@@ -10,7 +10,7 @@
     "generate": "graphql-codegen --config codegen.ts",
     "lint": "vp lint src",
     "postinstall": "patch-package",
-    "test": "vp test run src",
+    "test": "vp test run src tests/unit",
     "test:browser": "playwright test",
     "type-check": "npm run generate && tsc --noEmit"
   },
