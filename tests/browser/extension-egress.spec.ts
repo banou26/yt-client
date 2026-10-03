@@ -13,7 +13,7 @@ test.describe('with the FKN extension installed', () => {
       executablePath: '/etc/profiles/per-user/banou/bin/google-chrome',
       // playwright's --disable-extensions default defeats the load, and --load-extension no longer works
       ignoreDefaultArgs: ['--disable-extensions'],
-      args: ['--enable-unsafe-extension-debugging', '--autoplay-policy=no-user-gesture-required'],
+      args: ['--mute-audio', '--enable-unsafe-extension-debugging', '--autoplay-policy=no-user-gesture-required'],
       viewport: { width: 1440, height: 900 },
     })
 

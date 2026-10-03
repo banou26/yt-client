@@ -1,14 +1,17 @@
 /* unsigned builds load only as TEMPORARY add-ons, and Playwright cannot install add-ons at all (its bundled Firefox also will not start on NixOS) */
 import { spawn, execFileSync } from 'node:child_process'
-import { mkdirSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const GECKODRIVER = '/nix/store/ghb40j28z8npnbrgxkgirh72cj7gzxa2-geckodriver-0.36.0/bin/geckodriver'
 const FIREFOX = '/etc/profiles/per-user/banou/bin/firefox'
-const SOURCE = process.env.EXT ?? '/home/banou/dev/fkn/web-extension/build-firefox'
+const SOURCE = process.env.YT_EXTENSION_BUILD_FIREFOX
 const ORIGIN = process.env.ORIGIN ?? 'http://localhost:4561'
 const PORT = 4456
+
+if (!SOURCE) throw new Error('YT_EXTENSION_BUILD_FIREFOX is unset: point it at an unpacked Firefox build of the FKN extension (fkn-client web-extension/build-firefox)')
+if (!existsSync(join(SOURCE, 'manifest.json'))) throw new Error(`YT_EXTENSION_BUILD_FIREFOX=${SOURCE} holds no manifest.json`)
 
 const work = join(tmpdir(), `fkn-ff-${Date.now()}`)
 mkdirSync(work, { recursive: true })
@@ -44,7 +47,7 @@ try {
         'moz:firefoxOptions': {
           binary: FIREFOX,
           args: process.env.HEADED === '1' ? [] : ['-headless'],
-          prefs: { 'media.autoplay.default': 0, 'media.autoplay.blocking_policy': 0 },
+          prefs: { 'media.volume_scale': '0.0', 'media.autoplay.default': 0, 'media.autoplay.blocking_policy': 0 },
         },
       },
     },
@@ -91,6 +94,7 @@ try {
   for (const line of logs.slice(0, 40)) console.log(' ', line)
 } catch (error) {
   console.log('FAILED', error instanceof Error ? error.message : String(error))
+  process.exitCode = 1
 } finally {
   if (sessionId) await call('DELETE', `/session/${sessionId}`)
   driver.kill()

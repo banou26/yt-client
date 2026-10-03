@@ -11,7 +11,7 @@ export default defineConfig({
     headless: true,
     launchOptions: {
       executablePath: '/etc/profiles/per-user/banou/bin/google-chrome',
-      args: ['--autoplay-policy=no-user-gesture-required'],
+      args: ['--mute-audio', '--autoplay-policy=no-user-gesture-required'],
     },
   },
   webServer: {
