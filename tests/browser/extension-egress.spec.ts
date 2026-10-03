@@ -1,13 +1,12 @@
 import { chromium, expect, test } from '@playwright/test'
 
-/* Skipped rather than failed when the extension cannot be loaded: it is built
-   in another repo, with `npm run build` in fkn/web-extension. */
-
-const EXTENSION_BUILD = '/home/banou/dev/fkn/web-extension/build'
+import { extensionBuild } from './extension-build'
 
 test.describe('with the FKN extension installed', () => {
   test('serves egress itself, and stops the header offering itself', async () => {
     test.setTimeout(180_000)
+    const build = extensionBuild(process.env)
+    test.skip(build.skip !== undefined, `YT_EXTENSION_BUILD=skip: ${build.skip}`)
     const context = await chromium.launchPersistentContext('', {
       headless: true,
       executablePath: '/etc/profiles/per-user/banou/bin/google-chrome',
@@ -19,10 +18,7 @@ test.describe('with the FKN extension installed', () => {
 
     try {
       const session = await context.browser()!.newBrowserCDPSession()
-      const loaded = await session
-        .send('Extensions.loadUnpacked' as 'Browser.getVersion', { path: EXTENSION_BUILD } as object)
-        .then(() => true, () => false)
-      test.skip(!loaded, `no loadable extension build at ${EXTENSION_BUILD}`)
+      await session.send('Extensions.loadUnpacked' as 'Browser.getVersion', { path: build.path } as object)
       if (!context.serviceWorkers().length) await context.waitForEvent('serviceworker')
 
       const page = await context.newPage()
