@@ -5,9 +5,9 @@ const botguard = vi.hoisted(() => ({
   resetPoTokenSession: vi.fn(async () => {}),
 }))
 
-vi.mock('./botguard', () => botguard)
+vi.mock('../../../src/frame/botguard', () => botguard)
 
-import { ACCOUNT_INDEX_KEY, GVS_ORIGIN_KEY, readAccountIndex, resetIdentity, storeAccountIndex, VISITOR_DATA_KEY } from './identity'
+import { ACCOUNT_INDEX_KEY, GVS_ORIGIN_KEY, readAccountIndex, resetIdentity, storeAccountIndex, VISITOR_DATA_KEY } from '../../../src/frame/identity'
 
 const createFakeStorage = () => {
   const store = new Map<string, string>()

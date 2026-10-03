@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, timedTextUrl } from './captions'
+import { json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, timedTextUrl } from '../../../src/frame/captions'
 
 // youtubei.js parses `name` into a Text node, so the label arrives as an object
 const TRACKLIST = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
 import { MediaHeader, UMPPartId } from 'googlevideo/protos'
-import { createUmpFramer, createUmpSegmentCollector, inspectUmpChunks } from './sabr'
+import { createUmpFramer, createUmpSegmentCollector, inspectUmpChunks } from '../../../src/frame/sabr'
 
 const encodeVarInt = (value: number) => {
   if (value < 128) return [value]

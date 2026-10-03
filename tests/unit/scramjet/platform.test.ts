@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { carriesIdentity, isOpaqueRedirect, mayHonourManualRedirect } from './platform'
+import { carriesIdentity, isOpaqueRedirect, mayHonourManualRedirect } from '../../../src/scramjet/platform'
 
 // the extension's native fetch cannot carry an identity: the `new Request(...)` constructor drops forbidden header names, and the lib smuggles only `origin` and `referer` back out
 describe('carriesIdentity', () => {

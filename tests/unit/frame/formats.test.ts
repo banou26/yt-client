@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import type { AdaptiveFormat } from './formats'
+import type { AdaptiveFormat } from '../../../src/frame/formats'
 
-import { playableFormats } from './formats'
+import { playableFormats } from '../../../src/frame/formats'
 
 type Named = AdaptiveFormat & { name: string }
 

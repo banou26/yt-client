@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { createYoutubeSource } from '.'
-import { SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../types'
+import { createYoutubeSource } from '../../../../src/sources/youtube'
+import { SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
 
 type FakeFeed = {
   videos: { video_id: string, title: { text: string } }[]

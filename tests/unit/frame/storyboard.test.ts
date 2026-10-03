@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { bestStoryboard, parseStoryboards, storyboardFrame } from './storyboard'
+import { bestStoryboard, parseStoryboards, storyboardFrame } from '../../../src/frame/storyboard'
 
 // A real spec: a base URL carrying $L/$N/$M placeholders, then one segment per level
 const SPEC = 'https://i.ytimg.com/sb/abc/storyboard3_L$L/$N.jpg?sqp=x'

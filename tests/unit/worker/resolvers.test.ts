@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import type { SourceApi } from '../sources/types'
+import type { SourceApi } from '../../../src/sources/types'
 
-import { resolvers } from './resolvers'
-import typeDefs from './schema.gql?raw'
+import { resolvers } from '../../../src/worker/resolvers'
+import typeDefs from '../../../src/worker/schema.gql?raw'
 
 // A field added to schema.gql without a resolver only fails when a user hits it
 const rootFields = (type: 'Query' | 'Mutation') =>

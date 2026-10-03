@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import type { TransportRequest } from './protocol'
+import type { TransportRequest } from '../../../src/scramjet/protocol'
 
-import { createFknTransport, createWebvpnTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
+import { createFknTransport, createWebvpnTransport, FRAME_BOOTSTRAP_URL } from '../../../src/scramjet/fkn-transport'
 
 describe('webvpn transport', () => {
   it('routes requests through libcurl with a request id, cancels on abort, and promotes auth soft-redirects', async () => {

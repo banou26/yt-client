@@ -18,7 +18,7 @@ const ROUTES = [
 
 const collectPageErrors = (page: Page) => {
   const errors: string[] = []
-  page.on('pageerror', error => errors.push(error.message.split('\n')[0].slice(0, 140)))
+  page.on('pageerror', error => errors.push(error.message.split('\n')[0]!.slice(0, 140)))
   return errors
 }
 

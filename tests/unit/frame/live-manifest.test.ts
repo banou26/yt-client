@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { buildLiveManifest, contiguousTail, liveAnchor, timelineEndMs } from './live-manifest'
+import { buildLiveManifest, contiguousTail, liveAnchor, timelineEndMs } from '../../../src/frame/live-manifest'
 
 const video = (key: string, mimeType: string, height: number) => ({
   key,

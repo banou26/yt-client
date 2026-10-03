@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { parseStartSeconds } from './format'
+import { parseStartSeconds } from '../../../src/components/format'
 
 describe('start offsets', () => {
   it('accepts both forms upstream mints for `t`', () => {
