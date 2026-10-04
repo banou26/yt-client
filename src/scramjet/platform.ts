@@ -59,7 +59,8 @@ const create = async () => {
   const [, lib] = await Promise.all([brokerLoaded, import('@fkn/lib')])
   // the automatic install prompt is the one way the extension surface can pull the broker in, and a missing extension is the ORDINARY case here
   lib.setMissingExtensionHandler(null)
-  // async since @fkn/lib 0.9.13, and it rejects when this realm reaches no broker: that fails this start rather than going unhandled
+  // async since @fkn/lib 0.9.13, and awaited so a rejection fails this start rather than going unhandled
+  // it rejects ONLY when this realm has no FKN transport (no document, or a broker iframe with no window), and the lib resolves that transport once per document, so a retry rejects the same way; a broker that loads but never answers resolves here, and the worker's calls then time out at the lib's API deadline
   await lib.relayWorker(worker, { unregisterSignal: relayAbort.signal })
 
   // the one broker call this realm makes, and it is UI rather than egress

@@ -10,7 +10,7 @@ describe('the @fkn/lib surface this client reads', () => {
     expect(((lib as { FORGEABLE_HEADERS?: string[] }).FORGEABLE_HEADERS ?? []).includes('cookie')).toBe(true)
   })
 
-  // platform.ts awaits it, so a sync relayWorker that throws would skip the start's retry path
+  // platform.ts awaits it: called bare, a rejection from an async relayWorker goes unhandled and the start reports success
   it('has an async relayWorker that rejects outside a window realm', async () => {
     await expect(lib.relayWorker({} as Worker)).rejects.toThrow(/main thread/)
   })

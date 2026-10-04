@@ -38,8 +38,8 @@ describe('starting the platform', () => {
     vi.unstubAllGlobals()
   })
 
-  // @fkn/lib 0.9.13 made relayWorker async, and it rejects when the realm reaches no broker
-  it('fails when the worker cannot be relayed, and the next start tries again', async () => {
+  // @fkn/lib 0.9.13 made relayWorker async, and it rejects when the realm has no FKN transport; the real lib rejects again on a retry, so this pins only that the failure is not memoized
+  it('fails the start when the worker cannot be relayed, without memoizing the failure', async () => {
     relayWorker.mockRejectedValue(new Error('FKN @fkn/lib: relayWorker found no FKN transport in this realm'))
     const { startPlatform } = await import('../../../src/scramjet/platform')
     await expect(startPlatform()).rejects.toThrow(/no FKN transport/)
