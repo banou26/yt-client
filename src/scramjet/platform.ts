@@ -4,7 +4,7 @@ import { EGRESS_ABORT_ALL, EGRESS_KEY } from './protocol'
 
 // `@fkn/lib` lives in the APP realm rather than the host frame because importing it injects the `fkn.app/api` broker iframe into the importing document, and the broker renders the platform's own trusted UI (connect popup, relay picker, quota toast)
 // the host frame is `hidden`, so in there that iframe can be neither seen nor clicked and its overlay rAF loop does not tick: connecting an account was impossible, which left every WebVPN session on free-tier pacing, and free-tier pacing is what carries SABR media
-// THIS REALM IS A RELAY: it makes no cloud calls of its own, since `relayWorker` hands the window's `fkn-api` channel to the worker and a cloud call would contend with it
+// THIS REALM IS A RELAY: `relayWorker` hands the window's `fkn-api` channel to the worker, and since @fkn/lib 0.9.42 this realm's own broker calls (the install prompt, the overlay host) ride a channel of their own, `fkn-api-window`, never the relayed one
 
 const BROKER_URL = 'https://fkn.app/api'
 const BROKER_TIMEOUT_MS = 15_000
@@ -59,7 +59,8 @@ const create = async () => {
   const [, lib] = await Promise.all([brokerLoaded, import('@fkn/lib')])
   // the automatic install prompt is the one way the extension surface can pull the broker in, and a missing extension is the ORDINARY case here
   lib.setMissingExtensionHandler(null)
-  lib.relayWorker(worker, { unregisterSignal: relayAbort.signal })
+  // async since @fkn/lib 0.9.13, and it rejects when this realm reaches no broker: that fails this start rather than going unhandled
+  await lib.relayWorker(worker, { unregisterSignal: relayAbort.signal })
 
   // the one broker call this realm makes, and it is UI rather than egress
   const promptInstall = (reason?: string) => lib.promptInstall(reason)
