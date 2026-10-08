@@ -134,6 +134,18 @@ describe('minting when the FKN engine page fails', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  it('with no session to be had, the token is cold and the frame reports it cold', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    egress.egressFetch.mockImplementation(async (url: string) =>
+      endpoint(url) === 'att/get' ? new Response(null, { status: 403 }) : answerEgress(url))
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = connectAgent(() => ({ result: undefined }))
+    await mintPoToken('video-1', CONTEXT)
+    await until(() => agent!.reports.length === 1)
+    expect(agent.reports).toEqual([{ type: 'report', mint: 'cold' }])
+    expect(agent.requests).toEqual([])
+  })
+
   it("with the FKN engine timed out, mintPoToken still gets a live session from Scramjet's VM, inside the session wait", async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const { mintPoToken } = await import('../../../src/frame/botguard')

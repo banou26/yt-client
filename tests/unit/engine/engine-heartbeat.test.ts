@@ -15,6 +15,7 @@ type EnginePage = {
   scriptTags: string[]
   targetOrigins: string[]
   freeze(): void
+  thaw(): void
   newDocument(): void
 }
 
@@ -47,6 +48,7 @@ const enginePage = (label: string): EnginePage => {
       on: (_type, listener) => { documentListeners.add(listener) },
     },
     freeze: () => { frozen = true },
+    thaw: () => { frozen = false },
     newDocument: () => {
       realm = fakeAgentPage(`${label}-document-${++documents}`)
       for (const listener of documentListeners) listener()
@@ -160,6 +162,47 @@ describe('the engine page heartbeat', () => {
     expect(pages).toHaveLength(1)
     await throttledBeat()
     expect(pages).toHaveLength(2)
+  })
+
+  it("a new bridge drops the previous generation's calls, queued or in flight, so none is answered on it", async () => {
+    let release!: () => void
+    const released = new Promise<void>((resolve) => { release = resolve })
+    const page = enginePage('page-1')
+    const host = createAgentHost({
+      attach: async () => {
+        await released
+        return { frame: page.frame, detach: () => {} }
+      },
+      source: async () => AGENT_SOURCE,
+      publish: () => {},
+    })
+    // a frame's ids start over with each engine generation, so an old answer would land on the new frame's own call
+    const listen = () => {
+      const port = host.openBridge()
+      opened.push(port)
+      const heard: unknown[] = []
+      port.addEventListener('message', (event) => heard.push(event.data))
+      return { client: agentClient(port), heard }
+    }
+
+    const first = listen()
+    void first.client.call('create', CHALLENGE).catch(() => {})
+    await turn()
+    const second = listen()
+    release()
+    await turn()
+    expect(second.heard).toEqual([])
+
+    page.freeze()
+    void second.client.call('create', CHALLENGE).catch(() => {})
+    await turn()
+    const third = listen()
+    page.thaw()
+    await turn()
+    expect(third.heard).toEqual([])
+
+    // the control: the new frame's own calls are answered on its bridge
+    expect((await mintThrough(third.client, 'video-1')).token).toBe(mintedBy('page-1', 'video-1'))
   })
 
   it('a new document in the frame gets the agent again, without a new attachment', async () => {
