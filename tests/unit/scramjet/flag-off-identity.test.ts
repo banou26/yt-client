@@ -150,12 +150,12 @@ describe('the engine host with and without the agent port', () => {
     return { toApp, fromApp }
   }
 
-  const runFrame = async () => {
+  const runFrame = async ({ agentConnector = true } = {}) => {
     await vi.waitFor(() => expect(scramjet.initHook).toBeDefined())
     const frameWindow: Record<string, unknown> = {
       [FRAME_EGRESS_CONNECT]: vi.fn(),
       [FRAME_CONNECT]: vi.fn(),
-      [FRAME_AGENT_CONNECT]: vi.fn(),
+      ...(agentConnector && { [FRAME_AGENT_CONNECT]: vi.fn() }),
     }
     const connectors = { ...frameWindow } as Record<string, ReturnType<typeof vi.fn>>
     scramjet.initHook!({ isTopLevel: true, client: { natives: { call: () => () => {} } }, window: frameWindow })
@@ -199,5 +199,17 @@ describe('the engine host with and without the agent port', () => {
     expect(connectors[FRAME_AGENT_CONNECT]!.mock.calls).toHaveLength(1)
     expect(connectors[FRAME_AGENT_CONNECT]!.mock.calls[0]![0]).toBe(given[2])
     expect(frameWindow).not.toHaveProperty(FRAME_AGENT_CONNECT)
+  })
+
+  it('with three ports and a frame that has no agent connector, the port is closed and the frame still connects', async () => {
+    const host = installHost()
+    await import('../../../src/scramjet/host')
+    const given = ports(3)
+    const close = vi.spyOn(given[2]!, 'close')
+    host.fromApp(given)
+    const { connectors } = await runFrame({ agentConnector: false })
+    expect(close).toHaveBeenCalled()
+    expect(connectors[FRAME_CONNECT]).toHaveBeenCalledTimes(1)
+    expect(host.toApp.find(({ type }) => type === ENGINE_READY)).toEqual({ type: ENGINE_READY })
   })
 })

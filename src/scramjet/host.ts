@@ -334,10 +334,9 @@ const boot = async () => {
     connectEgress(egressChannel.port1)
     const connectAgent = frameWindow[FRAME_AGENT_CONNECT]
     delete frameWindow[FRAME_AGENT_CONNECT]
-    if (agent) {
-      if (!connectAgent) throw new Error('yt-client: frame agent connector is missing')
-      connectAgent(agent)
-    }
+    // a frame with no connector mints in its own realm, as it does with no port
+    if (agent && connectAgent) connectAgent(agent)
+    else agent?.close()
     const connect = frameWindow[FRAME_CONNECT]
     if (!connect) throw new Error('yt-client: frame connector is missing')
     delete frameWindow[FRAME_CONNECT]
