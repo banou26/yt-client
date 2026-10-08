@@ -247,8 +247,8 @@ const reportAgentFailure = (error: unknown) => {
 }
 
 // any refusal, timeout or detach of the agent lands on this realm's own VM, the path every flag-off session takes, with the same challenge
-const newSession = async (context: BotguardContext) => {
-  const agent = engineAgent()
+const newSession = async (context: BotguardContext, viaAgent: boolean) => {
+  const agent = viaAgent ? engineAgent() : undefined
   const challenge = await stage('challenge', () => fetchChallenge(context))
   if (agent) {
     try {
@@ -277,9 +277,9 @@ const reportSessionFailure = (error: unknown) => {
   )
 }
 
-const getSession = (context: BotguardContext) => {
+const getSession = (context: BotguardContext, viaAgent = true) => {
   if (session && performance.now() < session.expiresAt) return Promise.resolve(session)
-  pending ??= newSession(context).then(
+  pending ??= newSession(context, viaAgent).then(
     (next) => {
       session = next
       pending = undefined
@@ -343,13 +343,15 @@ export const mintPoToken = async (identifier: string, context: BotguardContext) 
     return stored
   }
   // MUST wait rather than start cold: SABR fixes attestation state from a stream's first request, for its whole life
-  const live = await Promise.race([
-    getSession(context).catch(() => undefined),
-    new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) }),
-  ])
+  const waitOver = new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) })
+  const live = await Promise.race([getSession(context).catch(() => undefined), waitOver])
   if (live) {
     const minted = await mintLive(live, identifier)
     if (minted !== undefined) return minted
+    // only an agent session answers undefined: its first mint failed, so this realm's own VM gets the rest of the wait
+    const own = await Promise.race([getSession(context, false).catch(() => undefined), waitOver])
+    const retried = own && await mintLive(own, identifier)
+    if (retried !== undefined) return retried
   }
   reportEngine({ mint: 'cold' })
   return BG.PoToken.generateColdStartToken(identifier)

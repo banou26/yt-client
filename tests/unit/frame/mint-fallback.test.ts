@@ -76,7 +76,8 @@ const connectAgent = (answer: (request: Request) => Reply) => {
   const connect = (window as unknown as Record<string, (port: MessagePort) => void>)[FRAME_AGENT_CONNECT]
   if (!connect) throw new Error('the frame defines no agent connector')
   connect(channel.port1)
-  return { requests, reports, cancels, close: () => { channel.port1.close(); channel.port2.close() } }
+  const reply = (id: number, answer: NonNullable<Reply>) => channel.port2.postMessage({ id, ...answer })
+  return { requests, reports, cancels, reply, close: () => { channel.port1.close(); channel.port2.close() } }
 }
 
 const immediate = () => new Promise((resolve) => { setImmediate(resolve) })
@@ -134,6 +135,61 @@ describe('minting when the FKN engine page fails', () => {
     expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(sent)
     expect(realm.log).toEqual([])
     expect(warn).not.toHaveBeenCalled()
+  })
+
+  it("a fresh agent session whose first mint fails is retried on Scramjet's VM, not minted cold", async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = connectAgent(({ method }) => {
+      if (method === 'create') return { result: 7 }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      if (method === 'mint') return { error: AGENT_REPLACED }
+      return { result: undefined }
+    })
+    expect(await mintPoToken('video-1', CONTEXT)).toBe(mintedBy('scramjet', 'video-1'))
+    await until(() => agent!.reports.length === 3)
+    expect(agent.reports).toEqual([
+      { type: 'report', engine: 'agent' },
+      { type: 'report', engine: 'scramjet' },
+      { type: 'report', mint: 'session' },
+    ])
+    // read after the reports, which came on the same port later: no second create, so the retry never asked the agent
+    expect(agent.requests).toEqual(['create', 'snapshot', 'minter', 'mint', 'shutdown'])
+  })
+
+  it("the retry on Scramjet's VM shares the session wait: 10000 ms from the call, the token is cold", async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    let integrityTokens = 0
+    egress.egressFetch.mockImplementation(async (url: string) =>
+      endpoint(url) === 'GenerateIT' && ++integrityTokens > 1 ? new Promise<never>(() => {}) : answerEgress(url))
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    let create = 0
+    agent = connectAgent(({ id, method }) => {
+      if (method === 'create') {
+        create = id
+        return undefined
+      }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      if (method === 'mint') return { error: AGENT_REPLACED }
+      return { result: undefined }
+    })
+    let settled = false
+    const token = mintPoToken('video-1', CONTEXT).finally(() => { settled = true })
+    await until(() => create !== 0)
+    // the agent session takes 4000 ms, under the agent's own 5000 ms call timeout
+    await vi.advanceTimersByTimeAsync(4_000)
+    agent.reply(create, { result: 7 })
+    await until(() => integrityTokens === 2)
+    await vi.advanceTimersByTimeAsync(5_999)
+    expect(settled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    await until(() => settled)
+    expect(settled).toBe(true)
+    await token
+    await until(() => agent!.reports.length === 2)
+    // the Scramjet session is still waiting on its GenerateIT, so it reports no engine
+    expect(agent.reports).toEqual([{ type: 'report', engine: 'agent' }, { type: 'report', mint: 'cold' }])
   })
 
   it('with no session to be had, the token is cold and the frame reports it cold', async () => {
