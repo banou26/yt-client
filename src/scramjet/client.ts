@@ -2,6 +2,8 @@ import type { FrameApi, FrameMethod, FrameProgress, FrameRequest, FrameResponse 
 import type { HostBootstrap, HostControlEvent, HostControlRequest, HostHello } from './protocol'
 
 import { FRAME_METHODS } from '../frame/protocol'
+import { openAgentBridge, startAgentHost } from '../engine/agent-host'
+import { stepEnabled } from '../engine/step-flag'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
 import { abortPlatformEgress, startPlatform } from './platform'
 import { CLEAR_COOKIES, CLOSE_SIGNIN, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, OPEN_SIGNIN, SIGNIN_LOADED, SIGNIN_STATUS } from './protocol'
@@ -179,6 +181,8 @@ export const startEngine = () => {
     const platformReady = startPlatform()
     // answerHello is the real handler; this only keeps a platform failure from surfacing as an unhandled rejection
     platformReady.catch(() => {})
+    const agentStep = stepEnabled('y1')
+    if (agentStep) startAgentHost()
 
     const frame = document.createElement('iframe')
     engineFrame = frame
@@ -191,10 +195,11 @@ export const startEngine = () => {
         if (generation !== engineGeneration) return
         const egress = platform.openEgressPort()
         const extFetch = platform.openExtFetchPort()
+        const agent = agentStep ? openAgentBridge() : undefined
         frame.contentWindow?.postMessage(
           { type: HOST_BOOTSTRAP, build: BUILD_ID } satisfies HostBootstrap,
           location.origin,
-          [egress, extFetch],
+          agent ? [egress, extFetch, agent] : [egress, extFetch],
         )
       } catch (error) {
         invalidateEngine(generation, error instanceof Error ? error : new Error(String(error)))

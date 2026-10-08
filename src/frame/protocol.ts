@@ -172,3 +172,5 @@ export type FrameEgressResponse = {
 
 export const FRAME_CONNECT = 'yt-client-frame-connect'
 export const FRAME_EGRESS_CONNECT = 'yt-client-frame-egress-connect'
+// behind yt-client:step:y1 only: the frame's end of the app realm's bridge to the BotGuard agent (src/engine/agent-host.ts)
+export const FRAME_AGENT_CONNECT = 'yt-client-frame-agent-connect'

@@ -29,6 +29,7 @@ export const ENGINE_READY = 'yt-client-engine-ready'
 export const EGRESS_ABORT_ALL = 'yt-client-egress-abort-all'
 
 /* HOST_BOOTSTRAP carries two ports: ports[0] the EgressApi straight to the egress worker, ports[1] the extension fetch back into the app realm.
+   With yt-client:step:y1 on it carries a third, ports[2], the app realm's bridge to the BotGuard agent, which the host hands to the frame.
    The host frame must not import `@fkn/lib` at all: importing it ANYWHERE injects an `fkn.app/api` broker iframe into that realm's document.
    Each side names its build (engine-build.ts), and a peer that names another one is refused before any port is used.
    The host also takes an app realm that names none, a tab opened before build ids; the app realm refuses a host that names none. */

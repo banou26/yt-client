@@ -1,7 +1,10 @@
 import type { IntegrityTokenData, WebPoSignalOutput } from 'bgutils-js'
 
+import type { AgentApi } from '../engine/agent-protocol'
+
 import { BG, buildURL, GOOG_API_KEY } from 'bgutils-js'
 
+import { engineAgent, reportEngine } from './agent'
 import { egressFetch } from './egress'
 
 // attestation MUST use the egress path, not the scramjet-trapped global fetch, whose fingerprint is refused
@@ -24,11 +27,13 @@ type BotguardContext = {
   }
 }
 
+// the agent's sessions answer these three through its port (createAgentSession), this realm's are bgutils' own
 type MinterSession = {
-  client: InstanceType<typeof BG.BotGuardClient>
-  minter: InstanceType<typeof BG.WebPoMinter>
-  script: HTMLScriptElement
+  client: { shutdown(): Promise<unknown> }
+  minter: { mintAsWebsafeString(identifier: string): Promise<string> }
+  script: { remove(): void }
   expiresAt: number
+  agent?: true
 }
 
 type StoredToken = {
@@ -170,6 +175,16 @@ const createSession = async (context: BotguardContext): Promise<MinterSession> =
   })
   const webPoSignalOutput: WebPoSignalOutput = []
   const botguardResponse = await stage('snapshot', () => client.snapshot({ webPoSignalOutput }))
+  const token = await generateIntegrityToken(botguardResponse)
+  return {
+    client,
+    minter: await BG.WebPoMinter.create(token, webPoSignalOutput),
+    script,
+    expiresAt: performance.now() + (token.estimatedTtlSecs ?? 3_600) * 800,
+  }
+}
+
+const generateIntegrityToken = async (botguardResponse: string) => {
   const integrity = await stage('GenerateIT', async () => {
     const response = await attestFetch(buildURL('GenerateIT', true), {
       method: 'POST',
@@ -191,12 +206,60 @@ const createSession = async (context: BotguardContext): Promise<MinterSession> =
     websafeFallbackToken: integrity[3],
   } satisfies IntegrityTokenData
   if (!token.integrityToken && !token.websafeFallbackToken) throw new Error('botguard: integrity token is missing')
-  return {
-    client,
-    minter: await BG.WebPoMinter.create(token, webPoSignalOutput),
-    script,
-    expiresAt: performance.now() + (token.estimatedTtlSecs ?? 3_600) * 800,
+  return token
+}
+
+// behind yt-client:step:y1: the VM runs in the engine page's agent, while the challenge, GenerateIT and the token's lifetime stay here
+const createAgentSession = async (context: BotguardContext, agent: AgentApi): Promise<MinterSession> => {
+  const challenge = await stage('challenge', () => fetchChallenge(context))
+  const id = await stage('agent interpreter', () => agent.create({
+    interpreter: challenge.interpreter,
+    program: challenge.program,
+    globalName: challenge.globalName,
+  }))
+  try {
+    const botguardResponse = await stage('agent snapshot', () => agent.snapshot(id))
+    const token = await generateIntegrityToken(botguardResponse)
+    await stage('agent minter', () => agent.minter(id, token))
+    return {
+      client: { shutdown: () => agent.shutdown(id) },
+      minter: { mintAsWebsafeString: (identifier) => agent.mint(id, identifier) },
+      script: { remove: () => {} },
+      expiresAt: performance.now() + (token.estimatedTtlSecs ?? 3_600) * 800,
+      agent: true,
+    }
+  } catch (error) {
+    void agent.shutdown(id).catch(() => {})
+    throw error
   }
+}
+
+const reportedAgentFailures = new Set<string>()
+
+const reportAgentFailure = (error: unknown) => {
+  const reason = error instanceof Error ? error.message : String(error)
+  if (reportedAgentFailures.has(reason)) return
+  reportedAgentFailures.add(reason)
+  console.warn(`yt-client: the BotGuard engine page failed, so this session's VM runs in the Scramjet frame: ${reason}`)
+}
+
+// any refusal, timeout or detach of the agent lands on this realm's own VM, the path every flag-off session takes
+const newSession = (context: BotguardContext) => {
+  const agent = engineAgent()
+  if (!agent) return createSession(context)
+  return createAgentSession(context, agent).then(
+    (next) => {
+      reportEngine({ engine: 'agent' })
+      return next
+    },
+    (error: unknown) => {
+      reportAgentFailure(error)
+      return createSession(context).then((next) => {
+        reportEngine({ engine: 'scramjet' })
+        return next
+      })
+    },
+  )
 }
 
 const reported = new Set<string>()
@@ -213,7 +276,7 @@ const reportSessionFailure = (error: unknown) => {
 
 const getSession = (context: BotguardContext) => {
   if (session && performance.now() < session.expiresAt) return Promise.resolve(session)
-  pending ??= createSession(context).then(
+  pending ??= newSession(context).then(
     (next) => {
       session = next
       pending = undefined
@@ -239,6 +302,21 @@ const mintSessionToken = async (target: MinterSession, identifier: string) => {
   return token
 }
 
+// an agent session whose mint fails is dropped and answers undefined, so the caller goes on to a stored token or a new session; this realm's sessions throw as before
+const mintLive = async (target: MinterSession, identifier: string) => {
+  try {
+    const token = await mintSessionToken(target, identifier)
+    reportEngine({ mint: 'session' })
+    return token
+  } catch (error) {
+    if (!target.agent) throw error
+    if (session === target) session = undefined
+    void target.client.shutdown().catch(() => {})
+    reportAgentFailure(error)
+    return undefined
+  }
+}
+
 const REFRESH_MARGIN_MS = 30 * 60_000
 
 export const warmPoTokenSession = (context: BotguardContext, identifier: string) => {
@@ -251,9 +329,13 @@ export const warmPoTokenSession = (context: BotguardContext, identifier: string)
 const SESSION_WAIT_MS = 10_000
 
 export const mintPoToken = async (identifier: string, context: BotguardContext) => {
-  if (session && performance.now() < session.expiresAt) return mintSessionToken(session, identifier)
+  if (session && performance.now() < session.expiresAt) {
+    const minted = await mintLive(session, identifier)
+    if (minted !== undefined) return minted
+  }
   const stored = readStoredToken(identifier)
   if (stored) {
+    reportEngine({ mint: 'stored' })
     warmPoTokenSession(context, identifier)
     return stored
   }
@@ -262,7 +344,11 @@ export const mintPoToken = async (identifier: string, context: BotguardContext) 
     getSession(context).catch(() => undefined),
     new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) }),
   ])
-  if (live) return mintSessionToken(live, identifier)
+  if (live) {
+    const minted = await mintLive(live, identifier)
+    if (minted !== undefined) return minted
+  }
+  reportEngine({ mint: 'cold' })
   return BG.PoToken.generateColdStartToken(identifier)
 }
 

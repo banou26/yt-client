@@ -7,7 +7,7 @@ import { Controller } from '@mercuryworkshop/scramjet-controller'
 import { expose } from 'osra'
 
 import { CLEAR_COOKIES, CLOSE_SIGNIN, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, OPEN_SIGNIN, SIGNIN_LOADED, SIGNIN_STATUS } from './protocol'
-import { FRAME_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
+import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, createWebvpnTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
 import type { ExtEgressFetch } from './fkn-transport'
@@ -19,6 +19,7 @@ const isYoutubeHop = (target: string) => /^https:\/\/(?:[a-z0-9-]+\.)*youtube\.c
 type FrameWindow = Window & {
   [FRAME_CONNECT]?: (port: MessagePort) => void
   [FRAME_EGRESS_CONNECT]?: (port: MessagePort) => void
+  [FRAME_AGENT_CONNECT]?: (port: MessagePort) => void
   $scramerr?: (error: unknown) => void
 }
 
@@ -40,7 +41,7 @@ const stage = (value: string) => {
 
 const BOOTSTRAP_TIMEOUT_MS = 30_000
 
-const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort }>((resolve, reject) => {
+const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agent?: MessagePort }>((resolve, reject) => {
   const timeout = setTimeout(
     () => reject(new Error('yt-client: engine bootstrap ports never arrived')),
     BOOTSTRAP_TIMEOUT_MS,
@@ -57,12 +58,12 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort }>((r
       reject(new Error(ENGINE_BUILD_MISMATCH))
       return
     }
-    const [egress, extFetch] = event.ports
+    const [egress, extFetch, agent] = event.ports
     if (!egress || !extFetch) {
       reject(new Error('yt-client: engine bootstrap ports are missing'))
       return
     }
-    resolve({ egress, extFetch })
+    resolve({ egress, extFetch, agent })
   }
   window.addEventListener('message', onMessage)
   window.parent.postMessage({ type: HOST_HELLO, build: BUILD_ID } satisfies HostHello, location.origin)
@@ -106,7 +107,7 @@ const boot = async () => {
   }).then(waitForWorker)
   const frameCodePromise = fetch('/__yt_scramjet__/youtube-frame.js').then((response) => response.text())
   stage('bootstrap')
-  const transportReady = bootstrap.then(async ({ egress, extFetch: extFetchPort }) => {
+  const transportReady = bootstrap.then(async ({ egress, extFetch: extFetchPort, agent }) => {
     egress.start()
     const remote = expose<EgressApi>({}, {
       key: EGRESS_KEY,
@@ -115,9 +116,9 @@ const boot = async () => {
     const extFetch = createExtFetch(extFetchPort)
     const transport = createFknTransport(remote, extFetch)
     await transport.init()
-    return { egress, extFetchPort, remote, transport, extFetch }
+    return { egress, extFetchPort, remote, transport, extFetch, agent }
   })
-  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch }] = await Promise.all([workerReady, transportReady])
+  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch, agent }] = await Promise.all([workerReady, transportReady])
 
   stage('controller')
   const controller = new Controller({
@@ -332,6 +333,12 @@ const boot = async () => {
     if (!connectEgress) throw new Error('yt-client: frame egress connector is missing')
     delete frameWindow[FRAME_EGRESS_CONNECT]
     connectEgress(egressChannel.port1)
+    const connectAgent = frameWindow[FRAME_AGENT_CONNECT]
+    delete frameWindow[FRAME_AGENT_CONNECT]
+    if (agent) {
+      if (!connectAgent) throw new Error('yt-client: frame agent connector is missing')
+      connectAgent(agent)
+    }
     const connect = frameWindow[FRAME_CONNECT]
     if (!connect) throw new Error('yt-client: frame connector is missing')
     delete frameWindow[FRAME_CONNECT]
@@ -347,6 +354,7 @@ const boot = async () => {
     extFetchPort.close()
     frameEgressPort?.close()
     controlPort?.close()
+    agent?.close()
   }, { once: true })
 
   return { controller, frame: proxiedFrame }
