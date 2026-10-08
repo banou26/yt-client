@@ -6,7 +6,7 @@ import { createRelayFetch, RELAY_NONCE_HEADER } from '../../../src/scramjet/rela
 
 type Sent = { url: string, init: RequestInit }
 
-// what the relay keys its cache on (`handler.rs` cache_key in horionsoftware/proxy): method, url, the sorted header set, the body
+// what the relay keys its cache on: method, url, the sorted header set, the body
 const signature = ({ url, init }: Sent) => JSON.stringify([
   init.method ?? 'GET',
   url,
@@ -41,6 +41,7 @@ const FRESH: [string, string, TransportRequest][] = [
   ['the watch page read', 'https://www.youtube.com/watch?v=FAlMdord_Fg', { method: 'GET', headers: {} }],
   ['a live chat poll', 'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ continuation: 'same' }) }],
   ['a live chat replay poll', 'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat_replay', { method: 'POST', headers: {}, body: json({ continuation: 'same' }) }],
+  ['a player read with an empty authorization', 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false&alt=json', { method: 'POST', headers: { authorization: '', 'content-type': 'application/json' }, body: json({ videoId: 'FAlMdord_Fg' }) }],
 ]
 
 // the jar Scramjet sends with a signed-in page load, which carries no authorization header
