@@ -20,5 +20,5 @@
     "target": "esnext",
     "types": ["vite/client"]
   },
-  "include": ["codegen.ts", "src", "tests", "vite.config.ts", "vite.frame.config.ts"]
+  "include": ["codegen.ts", "src", "tests", "vite.agent.config.ts", "vite.config.ts", "vite.frame.config.ts"]
 }

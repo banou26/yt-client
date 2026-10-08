@@ -1,4 +1,5 @@
 build/
+build-agent/
 coverage/
 node_modules/
 playwright-report/
