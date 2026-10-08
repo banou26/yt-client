@@ -1,4 +1,4 @@
-import type { AgentApi, AgentMethod, AgentResponse, EngineReport } from '../engine/agent-protocol'
+import type { AgentApi, AgentCancel, AgentMethod, AgentResponse, EngineReport } from '../engine/agent-protocol'
 
 import { AGENT_METHODS } from '../engine/agent-protocol'
 import { FRAME_AGENT_CONNECT } from './protocol'
@@ -34,7 +34,9 @@ if (typeof window !== 'undefined') {
 const call = (target: MessagePort, method: AgentMethod, args: unknown[]) => new Promise<unknown>((resolve, reject) => {
   const id = ++requestId
   const timeout = setTimeout(() => {
-    if (pending.delete(id)) reject(new Error(`yt-client agent: ${method} timed out after ${AGENT_CALL_TIMEOUT_MS} ms`))
+    if (!pending.delete(id)) return
+    target.postMessage({ type: 'cancel', id } satisfies AgentCancel)
+    reject(new Error(`yt-client agent: ${method} timed out after ${AGENT_CALL_TIMEOUT_MS} ms`))
   }, AGENT_CALL_TIMEOUT_MS)
   pending.set(id, {
     resolve: (value) => {

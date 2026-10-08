@@ -46,6 +46,9 @@ export type AgentRequest = {
 
 export type AgentResponse = { id: number, result: unknown, error?: never } | { id: number, result?: never, error: string }
 
+/** What the frame posts on the bridge when it stops waiting for call `id`, so a call still queued for the engine page never runs. */
+export type AgentCancel = { type: 'cancel', id: number }
+
 /** Messages on an agent port that are not answers: `ready` once the agent holds the port, the heartbeat's `ping` and `pong`. */
 export type AgentControl = { type: 'ready' } | { type: 'ping' } | { type: 'pong' }
 

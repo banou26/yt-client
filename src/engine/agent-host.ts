@@ -1,4 +1,4 @@
-import type { AgentControl, AgentRequest, AgentResponse, EngineReport } from './agent-protocol'
+import type { AgentCancel, AgentControl, AgentRequest, AgentResponse, EngineReport } from './agent-protocol'
 
 import { startPlatform } from '../scramjet/platform'
 import { AGENT_INSTALL, AGENT_PAGE_ORIGIN, AGENT_PAGE_URL, ENGINES, MINT_KINDS } from './agent-protocol'
@@ -41,13 +41,17 @@ const waitForReady = (port: MessagePort) => new Promise<void>((resolve, reject) 
 const isReport = (message: unknown): message is EngineReport =>
   (message as EngineReport | null)?.type === 'report'
 
+const isCancel = (message: unknown): message is AgentCancel =>
+  (message as AgentCancel | null)?.type === 'cancel'
+
 /**
  * The app realm's side of the engine page. One attachment per app realm, kept across engine
  * resets; each engine generation gets a bridge, whose frame end goes in `HOST_BOOTSTRAP`, and the
  * host relays it to whichever agent port is current. A `document` event installs the agent again
  * on the same attachment, and a ping (sent every 5000 ms) that 15000 ms bring nothing back for
- * attaches again. While the page is attaching a call waits; once an attach or install has failed
- * every call is answered `AGENT_UNAVAILABLE`, for the frame to fall back to its own VM.
+ * attaches again. While the page is attaching a call waits, unless the frame cancels it; once an
+ * attach or install has failed every call is answered `AGENT_UNAVAILABLE`, for the frame to fall
+ * back to its own VM.
  */
 export const createAgentHost = ({ attach, source, publish }: AgentHostOptions) => {
   let state: 'attaching' | 'ready' | 'failed' = 'attaching'
@@ -155,6 +159,11 @@ export const createAgentHost = ({ attach, source, publish }: AgentHostOptions) =
     if (isReport(message)) {
       if (message.engine && ENGINES.includes(message.engine)) publish('ytEngine', message.engine)
       if (message.mint && MINT_KINDS.includes(message.mint)) publish('ytMint', message.mint)
+      return
+    }
+    if (isCancel(message)) {
+      const index = queued.findIndex(({ id }) => id === message.id)
+      if (index !== -1) queued.splice(index, 1)
       return
     }
     const request = message as AgentRequest

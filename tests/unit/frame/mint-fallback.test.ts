@@ -60,10 +60,12 @@ const connectAgent = (answer: (request: Request) => Reply) => {
   const channel = new MessageChannel()
   const requests: string[] = []
   const reports: unknown[] = []
+  const cancels: number[] = []
   channel.port2.addEventListener('message', (event) => {
-    const message = event.data as Request | { type: 'report' }
+    const message = event.data as Request | { type: 'report' } | { type: 'cancel', id: number }
     if ('type' in message) {
-      reports.push(message)
+      if (message.type === 'cancel') cancels.push(message.id)
+      else reports.push(message)
       return
     }
     requests.push(message.method)
@@ -74,7 +76,7 @@ const connectAgent = (answer: (request: Request) => Reply) => {
   const connect = (window as unknown as Record<string, (port: MessagePort) => void>)[FRAME_AGENT_CONNECT]
   if (!connect) throw new Error('the frame defines no agent connector')
   connect(channel.port1)
-  return { requests, reports, close: () => { channel.port1.close(); channel.port2.close() } }
+  return { requests, reports, cancels, close: () => { channel.port1.close(); channel.port2.close() } }
 }
 
 const immediate = () => new Promise((resolve) => { setImmediate(resolve) })
@@ -155,6 +157,9 @@ describe('minting when the FKN engine page fails', () => {
     await vi.advanceTimersByTimeAsync(5_000)
     expect(await token).toBe(mintedBy('scramjet', 'video-1'))
     expect(agent.requests).toEqual(['create'])
+    // the call it gave up on is cancelled, so a page still attaching never runs it
+    await until(() => agent!.cancels.length === 1)
+    expect(agent.cancels).toEqual([1])
   })
 
   it("with the FKN engine detached mid-session, mintPoToken still gets a live session from Scramjet's VM", async () => {

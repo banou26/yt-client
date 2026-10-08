@@ -17,6 +17,8 @@ type EnginePage = {
   freeze(): void
   thaw(): void
   newDocument(): void
+  /** What the page's BotGuard VMs did: a `load` line for each one created. */
+  log(): string[]
 }
 
 // an attachment as the app realm sees it, whose page runs the real agent; each document is a fresh realm with its own BotGuard
@@ -49,6 +51,7 @@ const enginePage = (label: string): EnginePage => {
     },
     freeze: () => { frozen = true },
     thaw: () => { frozen = false },
+    log: () => realm.log,
     newDocument: () => {
       realm = fakeAgentPage(`${label}-document-${++documents}`)
       for (const listener of documentListeners) listener()
@@ -203,6 +206,28 @@ describe('the engine page heartbeat', () => {
 
     // the control: the new frame's own calls are answered on its bridge
     expect((await mintThrough(third.client, 'video-1')).token).toBe(mintedBy('page-1', 'video-1'))
+  })
+
+  it('a call the frame gave up on while the page attached never runs, and the next call still does', async () => {
+    let release!: () => void
+    const released = new Promise<void>((resolve) => { release = resolve })
+    const page = enginePage('page-1')
+    const host = createAgentHost({
+      attach: async () => {
+        await released
+        return { frame: page.frame, detach: () => {} }
+      },
+      source: async () => AGENT_SOURCE,
+      publish: () => {},
+    })
+    const bridge = bridgeOf(host)
+    void bridge.call('create', CHALLENGE).catch(() => {})
+    bridge.post({ type: 'cancel', id: 1 })
+    const kept = bridge.call('create', CHALLENGE)
+    await turn()
+    release()
+    expect(await kept).toBe(1)
+    expect(page.log()).toEqual(['page-1 load the program'])
   })
 
   it('a new document in the frame gets the agent again, without a new attachment', async () => {
