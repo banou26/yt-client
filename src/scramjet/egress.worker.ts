@@ -17,6 +17,7 @@ workerGlobal.global ??= globalThis
 import type { EgressApi } from './protocol'
 
 import { EGRESS_ABORT_ALL, EGRESS_KEY } from './protocol'
+import { createRelayFetch } from './relay-nonce'
 
 declare const self: DedicatedWorkerGlobalScope
 
@@ -141,21 +142,7 @@ const withLanguage = (headers: Record<string, string> = {}) => {
 const requests = new Map<string, AbortController>()
 
 const api = {
-  fknFetch: async (url, options) => {
-    const response = await fetchWithFkn(url, {
-      method: options.method,
-      headers: options.headers,
-      body: options.body,
-      credentials: 'omit',
-      redirect: options.redirect,
-    })
-    return {
-      status: response.status,
-      statusText: response.statusText,
-      headers: [...response.headers.entries()],
-      body: response.body,
-    }
-  },
+  fknFetch: createRelayFetch(fetchWithFkn),
   libcurlFetch: async (requestId, url, options) => {
     const controller = new AbortController()
     requests.set(requestId, controller)
