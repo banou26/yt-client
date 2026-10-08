@@ -45,7 +45,7 @@ const isReport = (message: unknown): message is EngineReport =>
  * The app realm's side of the engine page. One attachment per app realm, kept across engine
  * resets; each engine generation gets a bridge, whose frame end goes in `HOST_BOOTSTRAP`, and the
  * host relays it to whichever agent port is current. A `document` event installs the agent again
- * on the same attachment, and 15000 ms with nothing heard from the agent (pinged every 5000 ms)
+ * on the same attachment, and a ping (sent every 5000 ms) that 15000 ms bring nothing back for
  * attaches again. While the page is attaching a call waits; once an attach or install has failed
  * every call is answered `AGENT_UNAVAILABLE`, for the frame to fall back to its own VM.
  */
@@ -56,7 +56,8 @@ export const createAgentHost = ({ attach, source, publish }: AgentHostOptions) =
   let agent: MessagePort | undefined
   let bridge: MessagePort | undefined
   let heartbeat: ReturnType<typeof setInterval> | undefined
-  let lastHeard = 0
+  // when the oldest ping nothing has answered yet went out
+  let unanswered: number | undefined
   const queued: AgentRequest[] = []
   const inFlight = new Set<number>()
 
@@ -90,15 +91,19 @@ export const createAgentHost = ({ attach, source, publish }: AgentHostOptions) =
   const take = (port: MessagePort) => {
     agent = port
     state = 'ready'
-    lastHeard = Date.now()
+    unanswered = undefined
     port.addEventListener('message', (event) => {
-      lastHeard = Date.now()
+      unanswered = undefined
       const message = event.data as AgentResponse | AgentControl
       if ('id' in message && inFlight.delete(message.id)) bridge?.postMessage(message)
     })
+    // silence counts from a ping, not from the last answer: a hidden tab runs this about once a minute while the page is fine
     heartbeat = setInterval(() => {
-      if (Date.now() - lastHeard >= SILENCE_MS) void attachAgain()
-      else port.postMessage({ type: 'ping' } satisfies AgentControl)
+      if (unanswered !== undefined && Date.now() - unanswered >= SILENCE_MS) void attachAgain()
+      else {
+        unanswered ??= Date.now()
+        port.postMessage({ type: 'ping' } satisfies AgentControl)
+      }
     }, HEARTBEAT_MS)
     for (const request of queued.splice(0)) send(request)
   }

@@ -118,10 +118,10 @@ describe('the engine page heartbeat', () => {
 
     pages[0]!.freeze()
     const stuck = expect(bridge.call('mint', first.session, 'video-x')).rejects.toThrow(AGENT_REPLACED)
-    await beat(2)
+    await beat(3)
     expect(pages).toHaveLength(1)
     await beat(1)
-    // 15000 ms of silence: the attachment goes and a fresh one is made
+    // 15000 ms since the first ping nothing answered: the attachment goes and a fresh one is made
     expect(pages).toHaveLength(2)
     expect(pages[0]!.detached).toBe(true)
     await stuck
@@ -137,6 +137,29 @@ describe('the engine page heartbeat', () => {
     expect(pages[1]!.scriptTags).toEqual([AGENT_SOURCE, AGENT_SOURCE])
     // the earlier generation's sessions went with its port
     await expect(second.call('snapshot', again.session)).rejects.toThrow(/no session/)
+  })
+
+  it('a hidden tab whose heartbeat runs once a minute keeps a healthy page, and still replaces a stuck one', async () => {
+    const { host, pages } = startHost()
+    const bridge = bridgeOf(host)
+    await mintThrough(bridge, 'video-1')
+    await beat(2)
+    expect(pages).toHaveLength(1)
+
+    // Chrome's intensive throttling of a hidden tab wakes the 5000 ms interval about once a minute
+    const throttledBeat = async () => {
+      vi.setSystemTime(Date.now() + 55_000)
+      await beat(1)
+    }
+    await throttledBeat()
+    await throttledBeat()
+    expect(pages).toHaveLength(1)
+
+    pages[0]!.freeze()
+    await throttledBeat()
+    expect(pages).toHaveLength(1)
+    await throttledBeat()
+    expect(pages).toHaveLength(2)
   })
 
   it('a new document in the frame gets the agent again, without a new attachment', async () => {
