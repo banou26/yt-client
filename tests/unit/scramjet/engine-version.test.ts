@@ -172,7 +172,11 @@ describe('the engine host', () => {
     vi.unstubAllGlobals()
   })
 
-  it('refuses an app realm that names another build, by name and before using its ports', async () => {
+  // Y1 changed the protocol (a third bootstrap port), so a tab from before build ids is another build too
+  it.each([
+    ['names another build', { type: HOST_BOOTSTRAP, build: 'an-earlier-build' }],
+    ['names none, as a tab opened before build ids', { type: HOST_BOOTSTRAP }],
+  ])('refuses an app realm that %s, by name and before using its ports', async (_, bootstrap) => {
     const host = installHost()
     await import('../../../src/scramjet/host')
     expect(host.toApp).toEqual([{ type: HOST_HELLO, build: BUILD_ID }])
@@ -182,21 +186,18 @@ describe('the engine host', () => {
     let egressClosed = false
     egress.port1.addEventListener('close', () => { egressClosed = true })
     egress.port1.start()
-    host.fromApp({ type: HOST_BOOTSTRAP, build: 'an-earlier-build' }, [egress.port2, extFetch.port2])
+    host.fromApp(bootstrap, [egress.port2, extFetch.port2])
     await vi.waitFor(() => expect(host.toApp).toContainEqual({ type: ENGINE_READY, error: ENGINE_BUILD_MISMATCH }))
     await vi.waitFor(() => expect(egressClosed).toBe(true))
     extFetch.port1.close()
   })
 
-  it.each([
-    ['is from this build', { type: HOST_BOOTSTRAP, build: BUILD_ID }],
-    ['names none, as a tab opened before build ids', { type: HOST_BOOTSTRAP }],
-  ])('takes the ports of an app realm that %s', async (_, bootstrap) => {
+  it('takes the ports of an app realm from this build', async () => {
     const host = installHost()
     await import('../../../src/scramjet/host')
     const egress = new MessageChannel()
     const extFetch = new MessageChannel()
-    host.fromApp(bootstrap, [egress.port2, extFetch.port2])
+    host.fromApp({ type: HOST_BOOTSTRAP, build: BUILD_ID }, [egress.port2, extFetch.port2])
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(host.toApp.filter(({ type }) => type === ENGINE_READY)).toEqual([])
     egress.port1.close()
