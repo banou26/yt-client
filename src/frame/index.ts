@@ -14,7 +14,7 @@ import { FRAME_CONNECT, isFrameMethod } from './protocol'
 
 const { id: _sourceId, ...sourceApi } = createYoutubeSource({
   fetch: globalThis.fetch.bind(globalThis),
-  createClient: () => catalogInnertube as unknown as Promise<YoutubeClient>,
+  createClient: () => catalogInnertube() as unknown as Promise<YoutubeClient>,
   signedIn: hasSessionCookie,
 })
 
@@ -47,7 +47,7 @@ const CUE_CLIENT = 'ANDROID_VR'
 
 const cueSourcesFor = async (entry: PlaybackEntry) => {
   entry.cueSources ??= (async () => {
-    const client = await catalogInnertube
+    const client = await catalogInnertube()
     const info = await client.getBasicInfo(entry.videoId, { client: CUE_CLIENT })
     return parseCaptionTracks(info.captions)
   })().catch((error) => {

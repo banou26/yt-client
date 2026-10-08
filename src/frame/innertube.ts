@@ -88,7 +88,16 @@ const authCookie = readAuthCookie()
 
 const accountIndex = readAccountIndex()
 
-export const catalogInnertube = Innertube.create({
+// One build per frame, but a failed build is dropped so the next call builds it again: a kept rejection fails every later playback in the frame.
+const keepOnSuccess = <T>(build: () => Promise<T>) => {
+  let pending: Promise<T> | undefined
+  return () => pending ??= build().catch((error: unknown) => {
+    pending = undefined
+    throw error
+  })
+}
+
+export const catalogInnertube = keepOnSuccess(() => Innertube.create({
   fetch: globalThis.fetch.bind(globalThis),
   generate_session_locally: false,
   retrieve_innertube_config: true,
@@ -105,9 +114,9 @@ export const catalogInnertube = Innertube.create({
   }
   storeVisitorData(context.client.visitorData)
   return client
-})
+}))
 
-const innertube = catalogInnertube.then((client) => {
+const innertube = keepOnSuccess(() => catalogInnertube().then((client) => {
   const context = client.session.context as unknown as InnertubeContext
   return Innertube.create({
     fetch: globalThis.fetch.bind(globalThis),
@@ -120,14 +129,16 @@ const innertube = catalogInnertube.then((client) => {
     ...(authCookie && { cookie: authCookie }),
     ...(authCookie && accountIndex !== undefined && { account_index: accountIndex }),
   })
-})
+}))
 
-void catalogInnertube
+void catalogInnertube()
   .then((client) => {
     const context = client.session.context as unknown as InnertubeContext
     warmPoTokenSession(context, context.client.visitorData)
   })
   .catch(() => {})
+
+void innertube().catch(() => {})
 
 try {
   const gvsOrigin = localStorage.getItem(GVS_ORIGIN_KEY)
@@ -289,12 +300,12 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
     return egressFetch(`${new URL(streamingUrl).origin}/generate_204`, { method: 'GET' })
       .then((response) => response.body?.cancel())
   }).catch(() => {})
-  const catalogClient = await catalogInnertube
+  const catalogClient = await catalogInnertube()
   const catalogContext = catalogClient.session.context as unknown as InnertubeContext
   warmPoTokenSession(catalogContext, catalogContext.client.visitorData)
   const nonce = Utils.generateRandomString(16)
   void rawPromise.then((raw) => registerPlayback(raw, nonce, beaconFormats(raw))).catch(() => {})
-  const client = await innertube
+  const client = await innertube()
   const context = client.session.context as unknown as InnertubeContext
   const raw = await rawPromise
   const info = new YT.VideoInfo([{ data: raw } as never], client.actions, Utils.generateRandomString(16))
