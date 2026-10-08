@@ -145,17 +145,21 @@ const fetchChallenge = async (context: BotguardContext) => {
   return { ...challenge, interpreter }
 }
 
-const stage = async <T>(name: string, run: () => Promise<T>): Promise<T> => {
+type Challenge = Awaited<ReturnType<typeof fetchChallenge>>
+
+// what the agent's own calls throw, the one failure that moves a session to this realm's VM: a refused challenge or GenerateIT would refuse that VM too
+class AgentFailure extends Error {}
+
+const stage = async <T>(name: string, run: () => Promise<T>, Failure: new (message: string, options: ErrorOptions) => Error = Error): Promise<T> => {
   try {
     return await run()
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
-    throw new Error(`botguard: ${name} failed: ${reason}`, { cause: error })
+    throw new Failure(`botguard: ${name} failed: ${reason}`, { cause: error })
   }
 }
 
-const createSession = async (context: BotguardContext): Promise<MinterSession> => {
-  const challenge = await stage('challenge', () => fetchChallenge(context))
+const createSession = async (challenge: Challenge): Promise<MinterSession> => {
   const { client, script } = await stage('interpreter', async () => {
     const element = document.createElement('script')
     element.textContent = challenge.interpreter
@@ -210,17 +214,16 @@ const generateIntegrityToken = async (botguardResponse: string) => {
 }
 
 // behind yt-client:step:y1: the VM runs in the engine page's agent, while the challenge, GenerateIT and the token's lifetime stay here
-const createAgentSession = async (context: BotguardContext, agent: AgentApi): Promise<MinterSession> => {
-  const challenge = await stage('challenge', () => fetchChallenge(context))
+const createAgentSession = async (challenge: Challenge, agent: AgentApi): Promise<MinterSession> => {
   const id = await stage('agent interpreter', () => agent.create({
     interpreter: challenge.interpreter,
     program: challenge.program,
     globalName: challenge.globalName,
-  }))
+  }), AgentFailure)
   try {
-    const botguardResponse = await stage('agent snapshot', () => agent.snapshot(id))
+    const botguardResponse = await stage('agent snapshot', () => agent.snapshot(id), AgentFailure)
     const token = await generateIntegrityToken(botguardResponse)
-    await stage('agent minter', () => agent.minter(id, token))
+    await stage('agent minter', () => agent.minter(id, token), AgentFailure)
     return {
       client: { shutdown: () => agent.shutdown(id) },
       minter: { mintAsWebsafeString: (identifier) => agent.mint(id, identifier) },
@@ -243,23 +246,23 @@ const reportAgentFailure = (error: unknown) => {
   console.warn(`yt-client: the BotGuard engine page failed, so this session's VM runs in the Scramjet frame: ${reason}`)
 }
 
-// any refusal, timeout or detach of the agent lands on this realm's own VM, the path every flag-off session takes
-const newSession = (context: BotguardContext) => {
+// any refusal, timeout or detach of the agent lands on this realm's own VM, the path every flag-off session takes, with the same challenge
+const newSession = async (context: BotguardContext) => {
   const agent = engineAgent()
-  if (!agent) return createSession(context)
-  return createAgentSession(context, agent).then(
-    (next) => {
+  const challenge = await stage('challenge', () => fetchChallenge(context))
+  if (agent) {
+    try {
+      const next = await createAgentSession(challenge, agent)
       reportEngine({ engine: 'agent' })
       return next
-    },
-    (error: unknown) => {
+    } catch (error) {
+      if (!(error instanceof AgentFailure)) throw error
       reportAgentFailure(error)
-      return createSession(context).then((next) => {
-        reportEngine({ engine: 'scramjet' })
-        return next
-      })
-    },
-  )
+    }
+  }
+  const next = await createSession(challenge)
+  reportEngine({ engine: 'scramjet' })
+  return next
 }
 
 const reported = new Set<string>()

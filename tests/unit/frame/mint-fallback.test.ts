@@ -97,6 +97,7 @@ describe('minting when the FKN engine page fails', () => {
     agent?.close()
     agent = undefined
     vi.useRealTimers()
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
     delete (globalThis as Record<string, unknown>)[GLOBAL_NAME]
   })
@@ -109,6 +110,28 @@ describe('minting when the FKN engine page fails', () => {
     expect(realm.log).toEqual([`scramjet load ${PROGRAM}`])
     await until(() => agent!.reports.length === 2)
     expect(agent.reports).toEqual([{ type: 'report', engine: 'scramjet' }, { type: 'report', mint: 'session' }])
+    // the challenge fetched for the agent is the one Scramjet's VM runs
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['att/get', 'interpreter', 'GenerateIT'])
+  })
+
+  it.each([
+    ['att/get', ['att/get']],
+    ['GenerateIT', ['att/get', 'interpreter', 'GenerateIT']],
+  ])("a refused %s is not the engine page's failure: no second attestation and no Scramjet VM", async (refused, sent) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    egress.egressFetch.mockImplementation(async (url: string) =>
+      endpoint(url) === refused ? new Response(null, { status: 403 }) : answerEgress(url))
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = connectAgent(({ method }) => {
+      if (method === 'create') return { result: 7 }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      return { result: undefined }
+    })
+    await mintPoToken('video-1', CONTEXT)
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(sent)
+    expect(realm.log).toEqual([])
+    expect(warn).not.toHaveBeenCalled()
   })
 
   it("with the FKN engine timed out, mintPoToken still gets a live session from Scramjet's VM, inside the session wait", async () => {
