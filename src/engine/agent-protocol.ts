@@ -7,7 +7,7 @@ export const AGENT_PAGE_ORIGIN = 'https://www.youtube.com'
 /** The message the app realm posts to the page with the agent's port as its one transferred port. */
 export const AGENT_INSTALL = 'yt-client:agent'
 
-/** The global the agent's IIFE bundle defines (vite.agent.config.ts), whose `install` the app calls after it. */
+/** The name the agent's IIFE bundle binds (vite.agent.config.ts), local to the function agent-source.ts wraps it in, whose `install` the app calls after it. */
 export const AGENT_GLOBAL = 'YtClientAgent'
 
 export type AgentChallenge = {

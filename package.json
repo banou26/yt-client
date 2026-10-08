@@ -11,7 +11,7 @@
     "generate": "graphql-codegen --config codegen.ts",
     "lint": "vp lint src tests",
     "postinstall": "patch-package",
-    "test": "vp test run tests/unit",
+    "test": "npm run build:agent && vp test run tests/unit",
     "test:browser": "playwright test",
     "type-check": "npm run generate && tsc --noEmit"
   },

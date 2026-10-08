@@ -36,7 +36,8 @@ type Session = {
 export const installAgent = ({ scope, appOrigin, runScript }: AgentOptions): 'installed' | 'already' => {
   const global = scope as unknown as Record<string, unknown>
   if (global[AGENT_MARK]) return 'already'
-  global[AGENT_MARK] = true
+  // not enumerable, so the page's own listing of its window shows nothing of ours
+  Object.defineProperty(global, AGENT_MARK, { value: true })
 
   const sessions = new Map<number, Session>()
   let lastSession = 0
