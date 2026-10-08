@@ -8,6 +8,7 @@ import { expose } from 'osra'
 
 import { CLEAR_COOKIES, CLOSE_SIGNIN, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, OPEN_SIGNIN, SIGNIN_LOADED, SIGNIN_STATUS } from './protocol'
 import { FRAME_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
+import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, createWebvpnTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
 import type { ExtEgressFetch } from './fkn-transport'
 
@@ -46,9 +47,16 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort }>((r
   )
   const onMessage = (event: MessageEvent) => {
     if (event.origin !== location.origin || event.source !== window.parent) return
-    if ((event.data as HostBootstrap | undefined)?.type !== HOST_BOOTSTRAP) return
+    const message = event.data as Partial<HostBootstrap> | undefined
+    if (message?.type !== HOST_BOOTSTRAP) return
     window.removeEventListener('message', onMessage)
     clearTimeout(timeout)
+    // an app realm that names no build is a tab opened before build ids existed, and its protocol is this one's
+    if (message.build !== undefined && message.build !== BUILD_ID) {
+      for (const port of event.ports) port.close()
+      reject(new Error(ENGINE_BUILD_MISMATCH))
+      return
+    }
     const [egress, extFetch] = event.ports
     if (!egress || !extFetch) {
       reject(new Error('yt-client: engine bootstrap ports are missing'))
@@ -57,7 +65,7 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort }>((r
     resolve({ egress, extFetch })
   }
   window.addEventListener('message', onMessage)
-  window.parent.postMessage({ type: HOST_HELLO } satisfies HostHello, location.origin)
+  window.parent.postMessage({ type: HOST_HELLO, build: BUILD_ID } satisfies HostHello, location.origin)
 })
 
 const createExtFetch = (port: MessagePort): ExtEgressFetch => {

@@ -1,7 +1,8 @@
 import type { FrameApi, FrameMethod, FrameProgress, FrameRequest, FrameResponse } from '../frame/protocol'
-import type { HostBootstrap, HostControlEvent, HostControlRequest } from './protocol'
+import type { HostBootstrap, HostControlEvent, HostControlRequest, HostHello } from './protocol'
 
 import { FRAME_METHODS } from '../frame/protocol'
+import { BUILD_ID, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
 import { abortPlatformEgress, startPlatform } from './platform'
 import { CLEAR_COOKIES, CLOSE_SIGNIN, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, OPEN_SIGNIN, SIGNIN_LOADED, SIGNIN_STATUS } from './protocol'
 
@@ -164,6 +165,12 @@ const invalidateEngine = (generation: number, error: Error) => {
   engine = undefined
 }
 
+const fromAnotherBuild = (generation: number, engineBuild: unknown) => {
+  if (generation !== engineGeneration) return
+  invalidateEngine(generation, new Error(ENGINE_BUILD_MISMATCH))
+  reloadOnceForBuild(engineBuild)
+}
+
 export const startEngine = () => {
   if (engine) return engine
   const generation = ++engineGeneration
@@ -177,6 +184,7 @@ export const startEngine = () => {
     engineFrame = frame
     frame.hidden = true
     frame.src = '/__yt_scramjet__/host.html'
+    let engineBuild: unknown
     const answerHello = async () => {
       try {
         const platform = await platformReady
@@ -184,7 +192,7 @@ export const startEngine = () => {
         const egress = platform.openEgressPort()
         const extFetch = platform.openExtFetchPort()
         frame.contentWindow?.postMessage(
-          { type: HOST_BOOTSTRAP } satisfies HostBootstrap,
+          { type: HOST_BOOTSTRAP, build: BUILD_ID } satisfies HostBootstrap,
           location.origin,
           [egress, extFetch],
         )
@@ -195,12 +203,18 @@ export const startEngine = () => {
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== location.origin || event.source !== frame.contentWindow) return
       if (event.data?.type === HOST_HELLO) {
-        void answerHello()
+        engineBuild = (event.data as Partial<HostHello>).build
+        if (engineBuild !== BUILD_ID) fromAnotherBuild(generation, engineBuild)
+        else void answerHello()
         return
       }
       if (event.data?.type !== ENGINE_READY) return
       engineCleanup?.()
       engineCleanup = undefined
+      if (event.data.error === ENGINE_BUILD_MISMATCH) {
+        fromAnotherBuild(generation, engineBuild)
+        return
+      }
       if (event.data.error) {
         invalidateEngine(generation, new Error(event.data.error))
         return

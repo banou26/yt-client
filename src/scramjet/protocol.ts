@@ -29,12 +29,14 @@ export const ENGINE_READY = 'yt-client-engine-ready'
 export const EGRESS_ABORT_ALL = 'yt-client-egress-abort-all'
 
 /* HOST_BOOTSTRAP carries two ports: ports[0] the EgressApi straight to the egress worker, ports[1] the extension fetch back into the app realm.
-   The host frame must not import `@fkn/lib` at all: importing it ANYWHERE injects an `fkn.app/api` broker iframe into that realm's document. */
+   The host frame must not import `@fkn/lib` at all: importing it ANYWHERE injects an `fkn.app/api` broker iframe into that realm's document.
+   Each side names its build (engine-build.ts), and a peer that names another one is refused before any port is used.
+   The host also takes an app realm that names none, a tab opened before build ids; the app realm refuses a host that names none. */
 export const HOST_HELLO = 'yt-client-host-hello'
 export const HOST_BOOTSTRAP = 'yt-client-host-bootstrap'
 
-export type HostHello = { type: typeof HOST_HELLO }
-export type HostBootstrap = { type: typeof HOST_BOOTSTRAP }
+export type HostHello = { type: typeof HOST_HELLO, build: string }
+export type HostBootstrap = { type: typeof HOST_BOOTSTRAP, build: string }
 
 export type ExtFetchRequest = {
   type: 'fetch'

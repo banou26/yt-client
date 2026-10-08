@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 
 import { defineConfig, lazyPlugins } from 'vite-plus'
@@ -8,6 +9,8 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
 export default defineConfig({
+  // one value for the app and the engine host it serves, new on every build (src/scramjet/engine-build.ts)
+  define: { __YT_BUILD_ID__: JSON.stringify(randomUUID()) },
   fmt: { semi: false, singleQuote: true },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
