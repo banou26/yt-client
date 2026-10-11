@@ -75,12 +75,6 @@ const style = css`
     color: var(--text-primary);
   }
 
-  .hint {
-    margin: 0 0 1.2rem;
-    font-size: 1.3rem;
-    color: var(--text-secondary);
-  }
-
   .row {
     width: 100%;
     display: flex;
@@ -196,7 +190,7 @@ export const AccountPage = () => {
       <main css={style}>
         <h1 className='heading'>Account</h1>
         <p className='signed-out'>
-          You are not signed in. <Link href='/signin'>Sign in</Link> to switch between accounts.
+          You are not signed in. <Link href='/signin'>Sign in</Link>
         </p>
       </main>
     )
@@ -228,9 +222,6 @@ export const AccountPage = () => {
         ? (
           <div className='section'>
             <h2 className='section-heading'>Accounts</h2>
-            <p className='hint'>
-              Switching reloads the app: the connection to YouTube is rebuilt for the account you pick.
-            </p>
             {accounts.map((account) => (
               <button
                 key={account.index}

@@ -312,16 +312,10 @@ const style = css`
   }
 
   .prompt h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-  }
-
-  .prompt p {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-secondary);
   }
 
   .sign-in {
@@ -435,7 +429,6 @@ const PlaylistPage = () => {
       <main css={style}>
         <div className='prompt'>
           <h2>No playlist selected</h2>
-          <p>A playlist link carries its id in the address, as /playlist?list=…</p>
         </div>
       </main>
     )
@@ -447,7 +440,6 @@ const PlaylistPage = () => {
       <main css={style}>
         <div className='prompt'>
           <h2>Sign in to see {label}</h2>
-          <p>{label} belongs to your account, so it only opens once you are signed in.</p>
           <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
@@ -565,7 +557,6 @@ const PlaylistPage = () => {
             ? (
               <div className='prompt'>
                 <h2>Nothing in this playlist</h2>
-                <p>Videos saved to it collect here.</p>
               </div>
             )
             : undefined}

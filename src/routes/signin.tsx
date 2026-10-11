@@ -138,7 +138,7 @@ const SignInPage = () => {
           ? (
             <div className='loading'>
               <div className='spinner' />
-              <p className='status'>Loading the secure sign-in page…</p>
+              <p className='status'>Loading sign-in…</p>
             </div>
           )
           : undefined}

@@ -137,16 +137,10 @@ const style = css`
   }
 
   .prompt h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-  }
-
-  .prompt p {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-secondary);
   }
 
   .sign-in {
@@ -245,8 +239,7 @@ const HistoryFeedPage = () => {
       <main css={style}>
         <h1 className='heading'>Watch history</h1>
         <div className='prompt'>
-          <h2>Keep track of what you watch</h2>
-          <p>Watch history belongs to your account, so sign in to see it and manage it here.</p>
+          <h2>Sign in to see your watch history</h2>
           <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
@@ -294,7 +287,6 @@ const HistoryFeedPage = () => {
         ? (
           <div className='prompt'>
             <h2>Nothing watched yet</h2>
-            <p>Videos you watch collect here, so you can pick one back up where you left it.</p>
           </div>
         )
         : undefined}

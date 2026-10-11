@@ -64,16 +64,10 @@ const style = css`
   }
 
   .card h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-  }
-
-  .card p {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-secondary);
   }
 
   .sign-in {
@@ -136,7 +130,6 @@ const SubscriptionsFeedPage = () => {
         <h1 className='heading'>Subscriptions</h1>
         <div className='card'>
           <h2>Sign in to see your subscriptions</h2>
-          <p>The newest videos from the channels you follow show up here once you are signed in.</p>
           <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
@@ -154,7 +147,6 @@ const SubscriptionsFeedPage = () => {
         ? (
           <div className='card'>
             <h2>No new videos</h2>
-            <p>Subscribe to a channel and its latest uploads collect here.</p>
           </div>
         )
         : <VideoGrid videos={items} fetching={fetching && items.length === 0} />}

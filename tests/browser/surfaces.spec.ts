@@ -40,7 +40,7 @@ test('shows an empty home for an anonymous session, and real search results', as
     .poll(
       () => page.evaluate(() =>
         document.querySelectorAll('a[href^="/watch"]').length > 0
-        || /Anonymous sessions start with an empty feed/i.test(document.body.innerText)),
+        || /Try searching to get started/i.test(document.body.innerText)),
       { timeout: 90_000 },
     )
     .toBe(true)

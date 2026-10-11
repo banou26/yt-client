@@ -151,16 +151,10 @@ const style = css`
   }
 
   .prompt h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-  }
-
-  .prompt p {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-secondary);
   }
 
   .sign-in {
@@ -275,7 +269,6 @@ const PlaylistsFeedPage = () => {
         <h1 className='heading'>Playlists</h1>
         <div className='prompt'>
           <h2>Sign in to see your playlists</h2>
-          <p>Playlists belong to your account, so sign in to open them and save videos to them here.</p>
           <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
@@ -315,7 +308,6 @@ const PlaylistsFeedPage = () => {
         ? (
           <div className='prompt'>
             <h2>No playlists yet</h2>
-            <p>Save a video from its Save button and the playlist you put it in collects here.</p>
           </div>
         )
         : undefined}

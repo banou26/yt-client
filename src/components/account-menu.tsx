@@ -293,7 +293,7 @@ export const AccountMenu = (
               <LogOut size={20} strokeWidth={1.5} />
               {signingOut ? 'Signing out…' : 'Sign out'}
             </button>
-            {signOutError ? <p className='sign-out-error'>Couldn’t clear the session — try again.</p> : undefined}
+            {signOutError ? <p className='sign-out-error'>Couldn’t clear the session. Try again.</p> : undefined}
           </div>
         )
         : undefined}

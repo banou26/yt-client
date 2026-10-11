@@ -42,11 +42,7 @@ test('offers the extension when it is absent', async ({ page }) => {
   await expect(pillOf(page)).toBeVisible()
 
   await openPanel(page)
-  const panel = panelOf(page)
-  await expect(panel).toContainText('round trip')
-  await expect(panel).toContainText('daily allowance')
-
-  await expect(panel.getByRole('button', { name: 'Get the extension' })).toBeVisible()
+  await expect(panelOf(page).getByRole('button', { name: 'Get the extension' })).toBeVisible()
 })
 
 test('hands installing over to the platform prompt', async ({ page }) => {
@@ -96,7 +92,7 @@ test('stops offering once declined, and settings brings it back', async ({ page 
 test('says nothing at all when the extension is installed', async ({ page }) => {
   await exposeExtension(page)
   await page.goto('/settings')
-  await expect(page.getByText('The FKN extension is active')).toBeVisible()
+  await expect(page.getByText('Through the FKN extension')).toBeVisible()
   await expect(pillOf(page)).toHaveCount(0)
   await expect(toggleOf(page)).toHaveCount(0)
 })
@@ -111,5 +107,5 @@ test('withdraws the offer when the extension appears mid-session', async ({ page
   }, EXPOSURE_EVENT)
 
   await expect(pillOf(page)).toHaveCount(0)
-  await expect(page.getByText('The FKN extension is active')).toBeVisible()
+  await expect(page.getByText('Through the FKN extension')).toBeVisible()
 })

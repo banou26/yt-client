@@ -7,9 +7,9 @@ import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { useDismiss } from './ui/popup'
 
 // the marketing page rather than a store listing: it picks the right store per browser, so this app never carries an extension id
-export const EXTENSION_URL = 'https://www.fkn.app/#why'
+const EXTENSION_URL = 'https://www.fkn.app/#why'
 
-const INSTALL_REASON = 'Fetch YouTube straight from your browser instead of the shared FKN relay, for quicker playback.'
+const INSTALL_REASON = 'For quicker playback.'
 
 // the content script announces itself with `data-fkn-extension` on <html>, plus this event on every flip of it
 const EXPOSURE_EVENT = 'FKN_WEB_EXTENSION_MAIN_WORLD_CONTENT_SCRIPT_ENABLED_EVENT_KEY'
@@ -104,7 +104,7 @@ const style = css`
     right: 0;
     z-index: var(--z-popup);
     /* Wide enough for both actions to sit on one row without either label
-       wrapping, which is what sets it rather than the prose above them. */
+       wrapping. */
     width: 36rem;
     max-width: calc(100vw - 3.2rem);
     padding: 1.6rem;
@@ -115,21 +115,10 @@ const style = css`
   }
 
   .title {
-    margin: 0 0 0.8rem;
+    margin: 0 0 1.6rem;
     font-size: 1.5rem;
     font-weight: 500;
     color: var(--text-primary);
-  }
-
-  .body {
-    margin: 0 0 0.8rem;
-    font-size: 1.3rem;
-    line-height: 1.9rem;
-    color: var(--text-secondary);
-  }
-
-  .body:last-of-type {
-    margin-bottom: 1.6rem;
   }
 
   .actions {
@@ -258,15 +247,6 @@ export const ExtensionNotice = () => {
         ? (
           <div className='panel' role='dialog' aria-label='Faster with the FKN extension'>
             <p className='title'>Faster with the FKN extension</p>
-            <p className='body'>
-              Right now this app reaches YouTube through the shared FKN relay, which adds a
-              round trip to every request. With the extension installed it goes straight from
-              your browser, so pages and video start quicker and the relay's daily allowance
-              stops applying to you.
-            </p>
-            <p className='body'>
-              It is free, and every permission stays yours to grant or revoke per app.
-            </p>
             <div className='actions'>
               <button type='button' className='install' onClick={install}>
                 <Zap size={16} strokeWidth={2} />

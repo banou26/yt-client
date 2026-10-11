@@ -248,7 +248,7 @@ const style = css`
   }
 
   .empty h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     color: var(--text-primary);
     font-size: 2rem;
   }
@@ -472,11 +472,6 @@ const ShortsPage = () => {
         <div className='empty'>
           <div>
             <h2>{signedIn ? 'No Shorts right now' : 'Sign in to see Shorts'}</h2>
-            <p>
-              {signedIn
-                ? 'Shorts are drawn from your home feed. Try again once it has some.'
-                : 'Shorts follow on from your home feed, which needs a signed-in session.'}
-            </p>
             {signedIn
               ? undefined
               : (

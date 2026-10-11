@@ -156,16 +156,10 @@ const style = css`
   }
 
   .empty h2 {
-    margin: 0 0 0.8rem;
+    margin: 0;
     font-size: 2rem;
     font-weight: 700;
     color: var(--text-primary);
-  }
-
-  .empty p {
-    margin: 0;
-    font-size: 1.4rem;
-    color: var(--text-secondary);
   }
 `
 
@@ -294,7 +288,6 @@ const HomePage = () => {
           ? (
             <div className='empty'>
               <h2>Try searching to get started</h2>
-              <p>Anonymous sessions start with an empty feed: search for videos to start watching.</p>
             </div>
           )
           : <p className='notice'>No videos under this filter.</p>

@@ -4,13 +4,13 @@ import { css } from '@emotion/react'
 import { useEffect, useState } from 'preact/hooks'
 
 import { useDocumentTitle } from '../app'
-import { EXTENSION_URL, useExtensionExposed } from '../components/extension-notice'
+import { useExtensionExposed } from '../components/extension-notice'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 
-const THEMES: { value: ThemePreference, label: string, detail: string }[] = [
-  { value: 'device', label: 'Device theme', detail: 'Follow the system setting' },
-  { value: 'dark', label: 'Dark', detail: 'Always dark' },
-  { value: 'light', label: 'Light', detail: 'Always light' },
+const THEMES: { value: ThemePreference, label: string }[] = [
+  { value: 'device', label: 'Device theme' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' },
 ]
 
 const QUALITIES: { value: QualityPreference, label: string }[] = [
@@ -48,14 +48,14 @@ const style = css`
   }
 
   .section-title {
-    margin: 0 0 0.4rem;
+    margin: 0 0 1.2rem;
     font-size: 1.6rem;
     font-weight: 500;
     color: var(--text-primary);
   }
 
   .section-note {
-    margin: 0 0 1.6rem;
+    margin: 0;
     font-size: 1.3rem;
     color: var(--text-secondary);
   }
@@ -71,16 +71,6 @@ const style = css`
   .row-label {
     font-size: 1.4rem;
     color: var(--text-primary);
-  }
-
-  .row-detail {
-    margin-top: 0.2rem;
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-  }
-
-  .link {
-    color: var(--accent);
   }
 
   .choices {
@@ -137,7 +127,6 @@ export const SettingsPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Appearance</h2>
-        <p className='section-note'>Device theme follows your system setting and changes with it.</p>
         <div className='choices'>
           {THEMES.map(theme => (
             <button
@@ -145,7 +134,6 @@ export const SettingsPage = () => {
               key={theme.value}
               className={settings.theme === theme.value ? 'choice active' : 'choice'}
               aria-pressed={settings.theme === theme.value}
-              title={theme.detail}
               onClick={() => set({ theme: theme.value })}
             >
               {theme.label}
@@ -156,10 +144,6 @@ export const SettingsPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Playback</h2>
-        <p className='section-note'>
-          Quality is a ceiling, not an exact pick: a video without that exact size plays the
-          closest one below it, and playback still drops lower on a slow connection.
-        </p>
         <div className='choices'>
           {QUALITIES.map(quality => (
             <button
@@ -174,10 +158,7 @@ export const SettingsPage = () => {
           ))}
         </div>
         <div className='row'>
-          <div>
-            <div className='row-label'>Autoplay</div>
-            <div className='row-detail'>Start a video as soon as its page opens</div>
-          </div>
+          <div className='row-label'>Autoplay</div>
           <input
             type='checkbox'
             className='toggle'
@@ -187,10 +168,7 @@ export const SettingsPage = () => {
           />
         </div>
         <div className='row'>
-          <div>
-            <div className='row-label'>Theater mode</div>
-            <div className='row-detail'>Open the watch page with the wide player</div>
-          </div>
+          <div className='row-label'>Theater mode</div>
           <input
             type='checkbox'
             className='toggle'
@@ -203,7 +181,6 @@ export const SettingsPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Speed</h2>
-        <p className='section-note'>Applied to every video as it starts. The player can still change it per video.</p>
         <div className='choices'>
           {RATES.map(rate => (
             <button
@@ -221,11 +198,6 @@ export const SettingsPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Subtitles</h2>
-        <p className='section-note'>
-          Turn captions on by default where a video has them. The language follows whichever
-          track you last chose in the player, and a video that publishes nothing in it starts
-          without captions rather than in another language.
-        </p>
         <div className='row'>
           <div className='row-label'>Always show captions</div>
           <input
@@ -241,26 +213,11 @@ export const SettingsPage = () => {
       {/* The one place the header offer can be brought back */}
       <section className='section'>
         <h2 className='section-title'>Connection</h2>
-        <p className='section-note'>
-          {extension === true
-            ? 'The FKN extension is active, so requests reach YouTube straight from your browser.'
-            : (
-              <>
-                Requests reach YouTube through the shared FKN relay, which adds a round trip to
-                each one. The{' '}
-                <a className='link' href={EXTENSION_URL} target='_blank' rel='noreferrer'>FKN extension</a>{' '}
-                sends them straight from your browser instead, and the relay's daily allowance
-                stops applying.
-              </>
-            )}
-        </p>
+        <p className='section-note'>{extension === true ? 'Through the FKN extension' : 'Through the FKN relay'}</p>
         {extension === false
           ? (
             <div className='row'>
-              <div>
-                <div className='row-label'>Offer the extension in the header</div>
-                <div className='row-detail'>Shows a single dismissible link, and never with the extension installed</div>
-              </div>
+              <div className='row-label'>Offer the extension in the header</div>
               <input
                 type='checkbox'
                 className='toggle'
