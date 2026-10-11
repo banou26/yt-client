@@ -4,7 +4,7 @@ import { css } from '@emotion/react'
 import { useEffect, useState } from 'preact/hooks'
 
 import { useDocumentTitle } from '../app'
-import { useExtensionExposed } from '../components/extension-notice'
+import { EXTENSION_URL, useExtensionExposed } from '../components/extension-notice'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 
 const THEMES: { value: ThemePreference, label: string }[] = [
@@ -71,6 +71,10 @@ const style = css`
   .row-label {
     font-size: 1.4rem;
     color: var(--text-primary);
+  }
+
+  .link {
+    color: var(--accent);
   }
 
   .choices {
@@ -213,7 +217,16 @@ export const SettingsPage = () => {
       {/* The one place the header offer can be brought back */}
       <section className='section'>
         <h2 className='section-title'>Connection</h2>
-        <p className='section-note'>{extension === true ? 'Through the FKN extension' : 'Through the FKN relay'}</p>
+        <p className='section-note'>
+          {extension === true
+            ? 'Through the FKN extension'
+            : (
+              <>
+                Through the FKN relay.{' '}
+                <a className='link' href={EXTENSION_URL} target='_blank' rel='noreferrer'>Get the extension</a>
+              </>
+            )}
+        </p>
         {extension === false
           ? (
             <div className='row'>

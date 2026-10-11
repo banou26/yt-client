@@ -136,6 +136,14 @@ const style = css`
     color: var(--text-secondary);
     font-size: 1.4rem;
   }
+
+  .sign-in {
+    display: inline-block;
+    margin-top: 1.2rem;
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
 `
 
 const Avatar = ({ name, avatar }: { name?: string, avatar?: string }) =>
@@ -189,9 +197,8 @@ export const AccountPage = () => {
     return (
       <main css={style}>
         <h1 className='heading'>Account</h1>
-        <p className='signed-out'>
-          You are not signed in. <Link href='/signin'>Sign in</Link>
-        </p>
+        <p className='signed-out'>You are not signed in.</p>
+        <Link className='sign-in' href='/signin'>Sign in</Link>
       </main>
     )
   }

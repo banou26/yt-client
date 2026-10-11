@@ -9,6 +9,7 @@ const EXPOSURE_EVENT = 'FKN_WEB_EXTENSION_MAIN_WORLD_CONTENT_SCRIPT_ENABLED_EVEN
 const pillOf = (page: Page) => page.getByRole('button', { name: 'Faster with the extension' })
 const panelOf = (page: Page) => page.getByRole('dialog', { name: 'Faster with the FKN extension' })
 const toggleOf = (page: Page) => page.getByLabel('Offer the extension in the header')
+const settingsLinkOf = (page: Page) => page.getByRole('main').getByRole('link', { name: 'Get the extension' })
 
 // an init script can run before the parser has created <html> at all, so it cannot simply assign: `document.documentElement` is null and the assignment throws
 const exposeExtension = (page: Page) =>
@@ -40,6 +41,7 @@ const openPanel = async (page: Page) => {
 test('offers the extension when it is absent', async ({ page }) => {
   await page.goto('/settings')
   await expect(pillOf(page)).toBeVisible()
+  await expect(settingsLinkOf(page)).toHaveAttribute('href', 'https://www.fkn.app/#why')
 
   await openPanel(page)
   await expect(panelOf(page).getByRole('button', { name: 'Get the extension' })).toBeVisible()
@@ -95,6 +97,7 @@ test('says nothing at all when the extension is installed', async ({ page }) => 
   await expect(page.getByText('Through the FKN extension')).toBeVisible()
   await expect(pillOf(page)).toHaveCount(0)
   await expect(toggleOf(page)).toHaveCount(0)
+  await expect(settingsLinkOf(page)).toHaveCount(0)
 })
 
 test('withdraws the offer when the extension appears mid-session', async ({ page }) => {

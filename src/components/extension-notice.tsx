@@ -7,9 +7,7 @@ import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { useDismiss } from './ui/popup'
 
 // the marketing page rather than a store listing: it picks the right store per browser, so this app never carries an extension id
-const EXTENSION_URL = 'https://www.fkn.app/#why'
-
-const INSTALL_REASON = 'For quicker playback.'
+export const EXTENSION_URL = 'https://www.fkn.app/#why'
 
 // the content script announces itself with `data-fkn-extension` on <html>, plus this event on every flip of it
 const EXPOSURE_EVENT = 'FKN_WEB_EXTENSION_MAIN_WORLD_CONTENT_SCRIPT_ENABLED_EVENT_KEY'
@@ -220,7 +218,7 @@ export const ExtensionNotice = () => {
     const settle = () => {
       delete document.documentElement.dataset.extensionPrompt
     }
-    void promptExtensionInstall(INSTALL_REASON).then(settle, (error: unknown) => {
+    void promptExtensionInstall().then(settle, (error: unknown) => {
       settle()
       console.warn('[yt-client] the FKN install prompt could not be shown', error)
       window.open(EXTENSION_URL, '_blank', 'noreferrer')
