@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vite-plus/test'
 
 import { AGENT_INSTALL } from '../../../src/engine/agent-protocol'
 import { installAgent } from '../../../src/engine/botguard-agent'
-import { agentClient, APP_ORIGIN, CHALLENGE, fakeAgentPage, INTEGRITY, mintedBy, PROGRAM, turn } from './agent-fakes'
+import { agentClient, APP_ORIGIN, CHALLENGE, CONFIG, fakeAgentPage, INTEGRITY, mintedBy, PROGRAM, turn } from './agent-fakes'
 
 const open: MessagePort[] = []
 
@@ -43,6 +43,14 @@ describe('the BotGuard agent', () => {
     expect(page.log).toContain('agent shutdown')
     expect(page.removed()).toBe(1)
     await expect(agent.call('mint', session, 'video-1')).rejects.toThrow(/no session/)
+  })
+
+  it("create sets the watch page's ytcfg as yt.config_ before the interpreter runs", async () => {
+    const page = installed()
+    const agent = connect(page)
+    await agent.call('create', CHALLENGE)
+    await agent.call('create', { ...CHALLENGE, config: { EVENT_ID: 'the next page event' } })
+    expect(page.configs).toEqual([CONFIG, { EVENT_ID: 'the next page event' }])
   })
 
   it('an unknown method is refused', async () => {

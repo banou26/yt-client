@@ -3,41 +3,39 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { AGENT_REPLACED, AGENT_UNAVAILABLE } from '../../../src/engine/agent-host'
 import { FRAME_AGENT_CONNECT } from '../../../src/frame/protocol'
 import { fakeBotguardVm, GLOBAL_NAME, INTERPRETER, mintedBy, PROGRAM } from '../engine/agent-fakes'
+import { streamed, watchPage } from './watch-page-fakes'
 
 const egress = vi.hoisted(() => ({ egressFetch: vi.fn() }))
 vi.mock('../../../src/frame/egress', () => egress)
-
-const CONTEXT = { client: { visitorData: 'visitor', clientVersion: '2.20261008.00.00' } }
-const INTERPRETER_URL = '//www.google.com/js/th/interpreter.js'
 
 type Request = { id: number, method: string, args: unknown[] }
 type Reply = { result?: unknown, error?: string } | undefined
 
 const endpoint = (url: string) => {
-  if (url.includes('/att/get')) return 'att/get'
   if (url.includes('interpreter.js')) return 'interpreter'
   if (url.includes('GenerateIT')) return 'GenerateIT'
   return url
 }
 
-// youtube.com and Google as the frame's egress answers them, signed out
+// Google as the frame's egress answers the attestation calls
 const answerEgress = (url: string) => {
   const name = endpoint(url)
-  if (name === 'att/get') {
-    return new Response(JSON.stringify({
-      bgChallenge: { program: PROGRAM, globalName: GLOBAL_NAME, interpreterUrl: { privateDoNotAccessOrElseTrustedResourceUrlWrappedValue: INTERPRETER_URL } },
-    }))
-  }
   if (name === 'interpreter') return new Response(INTERPRETER)
   if (name === 'GenerateIT') return new Response(JSON.stringify(['aXQ=', 3_600, null, 'fallback']))
   return new Response(null, { status: 404 })
 }
 
-// the Scramjet realm: a script element whose interpreter defines the VM global, as the real one does
-const installRealm = () => {
+// the Scramjet realm: a script element whose interpreter defines the VM global, as the real one does, and its fetch of watch pages, each with an EVENT_ID of its own
+const installRealm = ({ challenge = true } = {}) => {
   const storage = new Map<string, string>()
   const log: string[] = []
+  const configs: unknown[] = []
+  const watched: string[] = []
   vi.stubGlobal('window', {})
+  vi.stubGlobal('fetch', async (url: string) => {
+    watched.push(url)
+    return streamed([watchPage({ eventId: `event-${watched.length}`, challenge })])
+  })
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, value: string) => { storage.set(key, value) },
@@ -48,17 +46,26 @@ const installRealm = () => {
     createElement: () => ({ textContent: '', remove: () => {} }),
     head: {
       appendChild: (element: { textContent: string }) => {
-        if (element.textContent === INTERPRETER) (globalThis as Record<string, unknown>)[GLOBAL_NAME] = fakeBotguardVm('scramjet', log)
+        if (element.textContent !== INTERPRETER) return
+        configs.push((globalThis as { yt?: { config_?: unknown } }).yt?.config_)
+        ;(globalThis as Record<string, unknown>)[GLOBAL_NAME] = fakeBotguardVm('scramjet', log)
       },
     },
   })
-  return { log }
+  return { log, configs, watched }
+}
+
+// the frame's read of a watch page, which offers its challenge to the next session
+const readWatchPage = async (videoId = 'video-1') => {
+  const { fetchPlayerResponse } = await import('../../../src/frame/watch-page')
+  await fetchPlayerResponse(videoId)
 }
 
 // the app realm's end of the agent bridge, answering as a test case says the engine page does
 const connectAgent = (answer: (request: Request) => Reply) => {
   const channel = new MessageChannel()
   const requests: string[] = []
+  const creates: unknown[] = []
   const reports: unknown[] = []
   const cancels: number[] = []
   channel.port2.addEventListener('message', (event) => {
@@ -69,6 +76,7 @@ const connectAgent = (answer: (request: Request) => Reply) => {
       return
     }
     requests.push(message.method)
+    if (message.method === 'create') creates.push(message.args[0])
     const reply = answer(message)
     if (reply) channel.port2.postMessage({ id: message.id, ...reply })
   })
@@ -77,7 +85,7 @@ const connectAgent = (answer: (request: Request) => Reply) => {
   if (!connect) throw new Error('the frame defines no agent connector')
   connect(channel.port1)
   const reply = (id: number, answer: NonNullable<Reply>) => channel.port2.postMessage({ id, ...answer })
-  return { requests, reports, cancels, reply, close: () => { channel.port1.close(); channel.port2.close() } }
+  return { requests, creates, reports, cancels, reply, close: () => { channel.port1.close(); channel.port2.close() } }
 }
 
 const immediate = () => new Promise((resolve) => { setImmediate(resolve) })
@@ -103,36 +111,57 @@ describe('minting when the FKN engine page fails', () => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
     delete (globalThis as Record<string, unknown>)[GLOBAL_NAME]
+    delete (globalThis as Record<string, unknown>).yt
   })
 
   it("with the FKN engine refused, mintPoToken still gets a live session from Scramjet's VM", async () => {
     const { mintPoToken } = await import('../../../src/frame/botguard')
     agent = connectAgent(() => ({ error: AGENT_UNAVAILABLE }))
-    expect(await mintPoToken('video-1', CONTEXT)).toBe(mintedBy('scramjet', 'video-1'))
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe(mintedBy('scramjet', 'video-1'))
     expect(agent.requests).toEqual(['create'])
     expect(realm.log).toEqual([`scramjet load ${PROGRAM}`])
     await until(() => agent!.reports.length === 2)
     expect(agent.reports).toEqual([{ type: 'report', engine: 'scramjet' }, { type: 'report', mint: 'session' }])
-    // the challenge fetched for the agent is the one Scramjet's VM runs
-    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['att/get', 'interpreter', 'GenerateIT'])
+    // the challenge taken for the agent is the one Scramjet's VM runs, with the same page's ytcfg
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
+    expect(realm.watched).toHaveLength(1)
+    expect(realm.configs).toEqual([expect.objectContaining({ EVENT_ID: 'event-1' })])
   })
 
-  it.each([
-    ['att/get', ['att/get']],
-    ['GenerateIT', ['att/get', 'interpreter', 'GenerateIT']],
-  ])("a refused %s is not the engine page's failure: no second attestation and no Scramjet VM", async (refused, sent) => {
+  it("the engine page's VM is handed the challenge and the ytcfg of the watch page the frame read", async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = connectAgent(({ method }) => {
+      if (method === 'create') return { result: 7 }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      if (method === 'mint') return { result: 'agent-token' }
+      return { result: undefined }
+    })
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe('agent-token')
+    expect(agent.creates).toEqual([{
+      interpreter: INTERPRETER,
+      program: PROGRAM,
+      globalName: GLOBAL_NAME,
+      config: expect.objectContaining({ EVENT_ID: 'event-1' }),
+    }])
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
+  })
+
+  it("a refused GenerateIT is not the engine page's failure: no second attestation and no Scramjet VM", async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
     egress.egressFetch.mockImplementation(async (url: string) =>
-      endpoint(url) === refused ? new Response(null, { status: 403 }) : answerEgress(url))
+      endpoint(url) === 'GenerateIT' ? new Response(null, { status: 403 }) : answerEgress(url))
     const { mintPoToken } = await import('../../../src/frame/botguard')
     agent = connectAgent(({ method }) => {
       if (method === 'create') return { result: 7 }
       if (method === 'snapshot') return { result: 'agent snapshot' }
       return { result: undefined }
     })
-    await mintPoToken('video-1', CONTEXT)
-    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(sent)
+    await readWatchPage()
+    await mintPoToken('video-1')
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
     expect(realm.log).toEqual([])
     expect(warn).not.toHaveBeenCalled()
   })
@@ -146,7 +175,8 @@ describe('minting when the FKN engine page fails', () => {
       if (method === 'mint') return { error: AGENT_REPLACED }
       return { result: undefined }
     })
-    expect(await mintPoToken('video-1', CONTEXT)).toBe(mintedBy('scramjet', 'video-1'))
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe(mintedBy('scramjet', 'video-1'))
     await until(() => agent!.reports.length === 3)
     expect(agent.reports).toEqual([
       { type: 'report', engine: 'agent' },
@@ -174,8 +204,9 @@ describe('minting when the FKN engine page fails', () => {
       if (method === 'mint') return { error: AGENT_REPLACED }
       return { result: undefined }
     })
+    await readWatchPage()
     let settled = false
-    const token = mintPoToken('video-1', CONTEXT).finally(() => { settled = true })
+    const token = mintPoToken('video-1').finally(() => { settled = true })
     await until(() => create !== 0)
     // the agent session takes 4000 ms, under the agent's own 5000 ms call timeout
     await vi.advanceTimersByTimeAsync(4_000)
@@ -192,23 +223,27 @@ describe('minting when the FKN engine page fails', () => {
     expect(agent.reports).toEqual([{ type: 'report', engine: 'agent' }, { type: 'report', mint: 'cold' }])
   })
 
-  it('with no session to be had, the token is cold and the frame reports it cold', async () => {
+  it('with a watch page that carries no challenge, the token is cold and the frame reports it cold, with no attestation call', async () => {
+    vi.unstubAllGlobals()
+    realm = installRealm({ challenge: false })
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    egress.egressFetch.mockImplementation(async (url: string) =>
-      endpoint(url) === 'att/get' ? new Response(null, { status: 403 }) : answerEgress(url))
     const { mintPoToken } = await import('../../../src/frame/botguard')
     agent = connectAgent(() => ({ result: undefined }))
-    await mintPoToken('video-1', CONTEXT)
+    await readWatchPage()
+    await mintPoToken('video-1')
     await until(() => agent!.reports.length === 1)
     expect(agent.reports).toEqual([{ type: 'report', mint: 'cold' }])
     expect(agent.requests).toEqual([])
+    expect(egress.egressFetch).not.toHaveBeenCalled()
+    expect(realm.log).toEqual([])
   })
 
   it("with the FKN engine timed out, mintPoToken still gets a live session from Scramjet's VM, inside the session wait", async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const { mintPoToken } = await import('../../../src/frame/botguard')
     agent = connectAgent(() => undefined)
-    const token = mintPoToken('video-1', CONTEXT)
+    await readWatchPage()
+    const token = mintPoToken('video-1')
     await until(() => agent!.requests.length === 1)
     await vi.advanceTimersByTimeAsync(5_000)
     expect(await token).toBe(mintedBy('scramjet', 'video-1'))
@@ -228,11 +263,12 @@ describe('minting when the FKN engine page fails', () => {
       if (method === 'mint') return { result: 'agent-token' }
       return { result: undefined }
     })
-    expect(await mintPoToken('video-1', CONTEXT)).toBe('agent-token')
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe('agent-token')
     expect(realm.log).toEqual([])
 
     detached = true
-    expect(await mintPoToken('video-2', CONTEXT)).toBe(mintedBy('scramjet', 'video-2'))
+    expect(await mintPoToken('video-2')).toBe(mintedBy('scramjet', 'video-2'))
     expect(agent.requests).toEqual(['create', 'snapshot', 'minter', 'mint', 'mint', 'shutdown', 'create'])
     await until(() => agent!.reports.length === 4)
     expect(agent.reports).toEqual([
@@ -254,16 +290,42 @@ describe('minting with the flag off', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     delete (globalThis as Record<string, unknown>)[GLOBAL_NAME]
+    delete (globalThis as Record<string, unknown>).yt
   })
 
-  it("with no agent port, every session is this realm's, built exactly as before", async () => {
+  it("with no agent port, every session is this realm's, on the challenge and the ytcfg of the watch page read", async () => {
     const realm = installRealm()
     const { mintPoToken } = await import('../../../src/frame/botguard')
-    expect(await mintPoToken('video-1', CONTEXT)).toBe(mintedBy('scramjet', 'video-1'))
-    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['att/get', 'interpreter', 'GenerateIT'])
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe(mintedBy('scramjet', 'video-1'))
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
     expect(realm.log).toEqual([`scramjet load ${PROGRAM}`])
+    expect(realm.configs).toEqual([expect.objectContaining({ EVENT_ID: 'event-1' })])
     // the next mint is the same session's, with no second challenge
-    expect(await mintPoToken('video-2', CONTEXT)).toBe(mintedBy('scramjet', 'video-2'))
-    expect(egress.egressFetch).toHaveBeenCalledTimes(3)
+    expect(await mintPoToken('video-2')).toBe(mintedBy('scramjet', 'video-2'))
+    expect(egress.egressFetch).toHaveBeenCalledTimes(2)
+    expect(realm.watched).toHaveLength(1)
+  })
+
+  it("a recovered session runs on a new read of the last video's watch page, not on the page the first session took", async () => {
+    const realm = installRealm()
+    const { mintPoToken, recoverPoTokenSession } = await import('../../../src/frame/botguard')
+    await readWatchPage()
+    await mintPoToken('video-1')
+    await recoverPoTokenSession()
+    expect(realm.watched).toEqual(['https://www.youtube.com/watch?v=video-1', 'https://www.youtube.com/watch?v=video-1'])
+    expect(realm.configs).toEqual([expect.objectContaining({ EVENT_ID: 'event-1' }), expect.objectContaining({ EVENT_ID: 'event-2' })])
+  })
+
+  it('a session asked for before any watch page was read waits for the first page', async () => {
+    const realm = installRealm()
+    const { mintPoToken, warmPoTokenSession } = await import('../../../src/frame/botguard')
+    warmPoTokenSession('visitor')
+    await immediate()
+    expect(egress.egressFetch).not.toHaveBeenCalled()
+    await readWatchPage()
+    expect(await mintPoToken('video-1')).toBe(mintedBy('scramjet', 'video-1'))
+    expect(realm.watched).toHaveLength(1)
+    expect(egress.egressFetch).toHaveBeenCalledTimes(2)
   })
 })

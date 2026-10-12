@@ -4,7 +4,8 @@ export const APP_ORIGIN = 'https://youtube.fkn.app'
 export const INTERPRETER = 'the interpreter source'
 export const GLOBAL_NAME = 'fakeBotguard'
 export const PROGRAM = 'the program'
-export const CHALLENGE = { interpreter: INTERPRETER, program: PROGRAM, globalName: GLOBAL_NAME }
+export const CONFIG = { EVENT_ID: 'the page event' }
+export const CHALLENGE = { interpreter: INTERPRETER, program: PROGRAM, globalName: GLOBAL_NAME, config: CONFIG }
 // base64 of 'it', the integrity token GenerateIT answers in these tests
 export const INTEGRITY = { integrityToken: 'aXQ=', estimatedTtlSecs: 3_600, websafeFallbackToken: 'fallback' }
 
@@ -36,24 +37,28 @@ export const fakeBotguardVm = (label: string, log: string[] = []) => ({
 export const mintedBy = (label: string, identifier: string) =>
   Buffer.from(`${label}:it:${identifier}`).toString('base64').replace(/\+/g, '-').replace(/\//g, '_')
 
-/** A blank page as the agent sees it: a message target, a global, and inline scripts it can run and remove. */
+/** A blank page as the agent sees it: a message target, a global, and inline scripts it can run and remove. `configs` is the `yt.config_` each interpreter found. */
 export const fakeAgentPage = (label = 'agent') => {
   const listeners = new Set<(event: MessageEvent) => void>()
   const log: string[] = []
   const scripts: string[] = []
+  const configs: unknown[] = []
   let removedScripts = 0
   const scope: AgentScope & Record<string, unknown> = {
     addEventListener: (_type: 'message', listener: (event: MessageEvent) => void) => { listeners.add(listener) },
   }
   const runScript = (source: string) => {
     scripts.push(source)
-    if (source === INTERPRETER) scope[GLOBAL_NAME] = fakeBotguardVm(label, log)
+    if (source === INTERPRETER) {
+      configs.push((scope.yt as { config_?: unknown } | undefined)?.config_)
+      scope[GLOBAL_NAME] = fakeBotguardVm(label, log)
+    }
     return () => { removedScripts++ }
   }
   const deliver = (event: { origin: string, data: unknown, ports?: MessagePort[] }) => {
     for (const listener of listeners) listener({ ports: [], ...event } as unknown as MessageEvent)
   }
-  return { scope, runScript, deliver, listeners, log, scripts, removed: () => removedScripts }
+  return { scope, runScript, deliver, listeners, log, scripts, configs, removed: () => removedScripts }
 }
 
 type Answer = { id: number, result?: unknown, error?: string }

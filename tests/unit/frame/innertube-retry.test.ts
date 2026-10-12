@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
+import { streamed, watchPage } from './watch-page-fakes'
+
 // youtubei.js as the frame sees it: a catalog build, then a player build that fetches /iframe_api and base.js
 const youtube = vi.hoisted(() => ({
   builds: [] as ('catalog' | 'player')[],
@@ -92,6 +94,20 @@ describe('the frame Innertube sessions', () => {
     const source = await getSabrSource(VIDEO)
     expect(source.videoId).toBe(VIDEO)
     expect(youtube.builds).toEqual(['catalog', 'catalog', 'player'])
+  })
+
+  it("a playback's watch read keeps the page's challenge for the BotGuard session, with no second read", async () => {
+    const fetched: string[] = []
+    vi.stubGlobal('fetch', async (url: string) => {
+      fetched.push(url)
+      return streamed([watchPage()])
+    })
+    const { getSabrSource } = await loadFrame()
+    const { takePageChallenge } = await import('../../../src/frame/watch-page')
+    await getSabrSource(VIDEO)
+    const taken = await Promise.race([takePageChallenge(), new Promise((resolve) => setTimeout(() => resolve('still waiting'), 100))])
+    expect(taken).toMatchObject({ config: { EVENT_ID: 'event-1' } })
+    expect(fetched).toEqual([`https://www.youtube.com/watch?v=${VIDEO}`])
   })
 
   it('keeps a built session for every later playback', async () => {

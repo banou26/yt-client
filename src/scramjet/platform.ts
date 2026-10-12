@@ -95,7 +95,7 @@ const create = async () => {
       ? request.options.redirect ?? 'follow'
       : 'follow'
     // a throw here is answered as null for a named upstream bug: @fkn/lib's forgeable-header validator `(headers ?? []).map(([name]) => ...)` wants an array of [name, value] pairs and throws `(p ?? []).map is not a function` (surfacing as `botguard: challenge failed`) when the lib and the extension build disagree about that shape, which they can since they are separate artifacts on separate release cadences
-    // without the catch that throw reaches att/get, no minter session is ever built, and the whole session stays on cold-start tokens at the ~60s preview cap
+    // without the catch that throw reaches the attestation calls, no minter session is ever built, and the whole session stays on cold-start tokens at the ~60s preview cap
     // an abort is rethrown rather than swallowed: it is this caller's own cancellation and the tunnel must not re-issue behind it
     const response = await lib.extension.fetch(request.url, {
       method: request.options.method,

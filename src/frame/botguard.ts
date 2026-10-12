@@ -6,6 +6,7 @@ import { BG, buildURL, GOOG_API_KEY } from 'bgutils-js'
 
 import { engineAgent, reportEngine } from './agent'
 import { egressFetch } from './egress'
+import { takePageChallenge } from './watch-page'
 
 // attestation MUST use the egress path, not the scramjet-trapped global fetch, whose fingerprint is refused
 const attestFetch = (url: string, init?: { method?: string, headers?: Record<string, string>, body?: string }) =>
@@ -17,15 +18,7 @@ const attestFetch = (url: string, init?: { method?: string, headers?: Record<str
   })
 
 const REQUEST_KEY = 'O43z0dpjhgX20SCx4KAo'
-const ATT_GET_URL = 'https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false&alt=json'
 const TOKEN_STORE_KEY = 'yt-client:po-tokens'
-
-type BotguardContext = {
-  client: {
-    visitorData: string
-    clientVersion: string
-  }
-}
 
 // the agent's sessions answer these three through its port (createAgentSession), this realm's are bgutils' own
 type MinterSession = {
@@ -75,74 +68,16 @@ export const clearStoredTokens = () => {
   } catch {}
 }
 
-const readSapisid = () => {
-  try {
-    return document.cookie.match(/(?:^|;\s*)SAPISID=([^;\s]+)/)?.[1]
-  } catch {
-    return undefined
-  }
-}
-
-const readAuthCookie = () => {
-  try {
-    return document.cookie.includes('SAPISID=') ? document.cookie : undefined
-  } catch {
-    return undefined
-  }
-}
-
-// SAPISIDHASH is the hex sha1 of '<ts> <SAPISID> <origin>' as '<ts>_<hash>'
-const sidAuthorization = async () => {
-  const sapisid = readSapisid()
-  if (!sapisid) return undefined
-  const timestamp = Math.floor(Date.now() / 1_000)
-  const digest = await crypto.subtle.digest(
-    'SHA-1',
-    new TextEncoder().encode(`${timestamp} ${sapisid} https://www.youtube.com`),
-  )
-  const hash = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
-  return `SAPISIDHASH ${timestamp}_${hash}`
-}
-
 // the egress path bypasses Scramjet, so nothing adds these, and Innertube answers a POST with no Origin with a 403
 const YOUTUBE_ORIGIN_HEADERS = {
   origin: 'https://www.youtube.com',
   referer: 'https://www.youtube.com/',
 } as const
 
-const fetchChallenge = async (context: BotguardContext) => {
-  const authorization = await sidAuthorization()
-  const authCookie = readAuthCookie()
-  const response = await attestFetch(ATT_GET_URL, {
-    method: 'POST',
-    headers: {
-      ...YOUTUBE_ORIGIN_HEADERS,
-      'content-type': 'application/json',
-      'x-goog-visitor-id': context.client.visitorData,
-      'x-youtube-client-name': '1',
-      'x-youtube-client-version': context.client.clientVersion,
-      // only ever together: a hash with no cookie cannot be verified, and a cookie with no hash is answered with a 401
-      ...(authorization && authCookie && { authorization, cookie: authCookie }),
-    },
-    body: JSON.stringify({ engagementType: 'ENGAGEMENT_TYPE_UNBOUND', context }),
-  })
-  if (!response.ok) throw new Error(`botguard: challenge returned ${response.status}`)
-  const data = await response.json() as {
-    bgChallenge?: {
-      program: string
-      globalName: string
-      interpreterUrl?: {
-        privateDoNotAccessOrElseTrustedResourceUrlWrappedValue?: string
-      }
-    }
-  }
-  const challenge = data.bgChallenge
-  if (!challenge) throw new Error('botguard: challenge is missing')
-  let interpreterUrl = challenge.interpreterUrl?.privateDoNotAccessOrElseTrustedResourceUrlWrappedValue
-  if (!interpreterUrl) throw new Error('botguard: interpreter URL is missing')
-  if (interpreterUrl.startsWith('//')) interpreterUrl = `https:${interpreterUrl}`
-  const interpreter = await attestFetch(interpreterUrl).then((result) => result.text())
-  return { ...challenge, interpreter }
+const fetchChallenge = async () => {
+  const page = await takePageChallenge()
+  const interpreter = await attestFetch(page.interpreterUrl).then((result) => result.text())
+  return { ...page, interpreter }
 }
 
 type Challenge = Awaited<ReturnType<typeof fetchChallenge>>
@@ -161,6 +96,7 @@ const stage = async <T>(name: string, run: () => Promise<T>, Failure: new (messa
 
 const createSession = async (challenge: Challenge): Promise<MinterSession> => {
   const { client, script } = await stage('interpreter', async () => {
+    ;(globalThis as { yt?: unknown }).yt = { config_: challenge.config }
     const element = document.createElement('script')
     element.textContent = challenge.interpreter
     document.head.appendChild(element)
@@ -219,6 +155,7 @@ const createAgentSession = async (challenge: Challenge, agent: AgentApi): Promis
     interpreter: challenge.interpreter,
     program: challenge.program,
     globalName: challenge.globalName,
+    config: challenge.config,
   }), AgentFailure)
   try {
     const botguardResponse = await stage('agent snapshot', () => agent.snapshot(id), AgentFailure)
@@ -247,9 +184,9 @@ const reportAgentFailure = (error: unknown) => {
 }
 
 // any refusal, timeout or detach of the agent lands on this realm's own VM, the path every flag-off session takes, with the same challenge
-const newSession = async (context: BotguardContext, viaAgent: boolean) => {
+const newSession = async (viaAgent: boolean) => {
   const agent = viaAgent ? engineAgent() : undefined
-  const challenge = await stage('challenge', () => fetchChallenge(context))
+  const challenge = await stage('challenge', fetchChallenge)
   if (agent) {
     try {
       const next = await createAgentSession(challenge, agent)
@@ -277,9 +214,9 @@ const reportSessionFailure = (error: unknown) => {
   )
 }
 
-const getSession = (context: BotguardContext, viaAgent = true) => {
+const getSession = (viaAgent = true) => {
   if (session && performance.now() < session.expiresAt) return Promise.resolve(session)
-  pending ??= newSession(context, viaAgent).then(
+  pending ??= newSession(viaAgent).then(
     (next) => {
       session = next
       pending = undefined
@@ -322,16 +259,16 @@ const mintLive = async (target: MinterSession, identifier: string) => {
 
 const REFRESH_MARGIN_MS = 30 * 60_000
 
-export const warmPoTokenSession = (context: BotguardContext, identifier: string) => {
+export const warmPoTokenSession = (identifier: string) => {
   if (session && performance.now() < session.expiresAt) return
   const stored = readStoredTokens()[identifier]
   if (stored && stored.expiresAt - Date.now() > REFRESH_MARGIN_MS) return
-  void getSession(context).catch(() => {})
+  void getSession().catch(() => {})
 }
 
 const SESSION_WAIT_MS = 10_000
 
-export const mintPoToken = async (identifier: string, context: BotguardContext) => {
+export const mintPoToken = async (identifier: string) => {
   if (session && performance.now() < session.expiresAt) {
     const minted = await mintLive(session, identifier)
     if (minted !== undefined) return minted
@@ -339,17 +276,17 @@ export const mintPoToken = async (identifier: string, context: BotguardContext) 
   const stored = readStoredToken(identifier)
   if (stored) {
     reportEngine({ mint: 'stored' })
-    warmPoTokenSession(context, identifier)
+    warmPoTokenSession(identifier)
     return stored
   }
   // MUST wait rather than start cold: SABR fixes attestation state from a stream's first request, for its whole life
   const waitOver = new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) })
-  const live = await Promise.race([getSession(context).catch(() => undefined), waitOver])
+  const live = await Promise.race([getSession().catch(() => undefined), waitOver])
   if (live) {
     const minted = await mintLive(live, identifier)
     if (minted !== undefined) return minted
     // only an agent session answers undefined: its first mint failed, so this realm's own VM gets the rest of the wait
-    const own = await Promise.race([getSession(context, false).catch(() => undefined), waitOver])
+    const own = await Promise.race([getSession(false).catch(() => undefined), waitOver])
     const retried = own && await mintLive(own, identifier)
     if (retried !== undefined) return retried
   }
@@ -357,18 +294,14 @@ export const mintPoToken = async (identifier: string, context: BotguardContext) 
   return BG.PoToken.generateColdStartToken(identifier)
 }
 
-export const recoverPoTokenSession = async (context: BotguardContext) => {
+export const recoverPoTokenSession = async () => {
   clearStoredTokens()
   if (pending) {
     await pending.catch(() => {})
     return
   }
   await resetPoTokenSession()
-  await getSession(context)
-}
-
-export const preparePoToken = async (context: BotguardContext) => {
-  await getSession(context)
+  await getSession()
 }
 
 export const resetPoTokenSession = async () => {

@@ -14,6 +14,8 @@ export type AgentChallenge = {
   interpreter: string
   program: string
   globalName: string
+  /** The `ytcfg` of the watch page the challenge came from, set as the page's `yt.config_` before the interpreter runs. */
+  config: Record<string, unknown>
 }
 
 /**
@@ -21,7 +23,7 @@ export type AgentChallenge = {
  * number for one BotGuard VM; the caller keeps the challenge, GenerateIT and the token's lifetime.
  */
 export type AgentApi = {
-  /** Runs the interpreter as an inline script and loads the program: `BotGuardClient.create`. */
+  /** Sets `yt.config_`, runs the interpreter as an inline script and loads the program: `BotGuardClient.create`. */
   create(challenge: AgentChallenge): Promise<number>
   /** BotGuard's response for GenerateIT; the signal functions it fills stay with the session. */
   snapshot(session: number): Promise<string>

@@ -15,6 +15,7 @@ import { egressFetch } from './egress'
 import { playableFormats } from './formats'
 import { parseStoryboards } from './storyboard'
 import { GVS_ORIGIN_KEY, readAccountIndex, VISITOR_DATA_KEY } from './identity'
+import { fetchPlayerResponse } from './watch-page'
 
 export { GVS_ORIGIN_KEY }
 
@@ -133,7 +134,7 @@ const innertube = keepOnSuccess(() => catalogInnertube().then((client) => {
 void catalogInnertube()
   .then((client) => {
     const context = client.session.context as unknown as InnertubeContext
-    warmPoTokenSession(context, context.client.visitorData)
+    warmPoTokenSession(context.client.visitorData)
   })
   .catch(() => {})
 
@@ -148,59 +149,12 @@ try {
   }
 } catch {}
 
-const scanInitialPlayerResponse = (html: string): Record<string, unknown> | undefined => {
-  const marker = html.indexOf('ytInitialPlayerResponse')
-  if (marker < 0) return undefined
-  const start = html.indexOf('{', marker)
-  if (start < 0) return undefined
-  let depth = 0
-  let quoted = false
-  let escaped = false
-  for (let index = start; index < html.length; index += 1) {
-    const character = html[index]
-    if (quoted) {
-      if (escaped) escaped = false
-      else if (character === '\\') escaped = true
-      else if (character === '"') quoted = false
-    } else if (character === '"') quoted = true
-    else if (character === '{') depth += 1
-    else if (character === '}' && --depth === 0) return JSON.parse(html.slice(start, index + 1)) as Record<string, unknown>
-  }
-  return undefined
-}
-
-const extractInitialPlayerResponse = (html: string) => {
-  const parsed = scanInitialPlayerResponse(html)
-  if (!parsed) throw new Error('youtube: player response is missing')
-  return parsed
-}
-
-const fetchInitialPlayerResponse = async (videoId: string) => {
-  const response = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`)
-  const reader = response.body?.getReader()
-  if (!reader) return extractInitialPlayerResponse(await response.text())
-  const decoder = new TextDecoder()
-  let html = ''
-  for (;;) {
-    const chunk = await reader.read()
-    if (chunk.done) break
-    html += decoder.decode(chunk.value, { stream: true })
-    const parsed = scanInitialPlayerResponse(html)
-    if (parsed) {
-      void reader.cancel().catch(() => {})
-      return parsed
-    }
-  }
-  html += decoder.decode()
-  return extractInitialPlayerResponse(html)
-}
-
 const playbackResponseCache = new Map<string, Promise<Record<string, unknown>>>()
 
 export const prefetchInitialPlayerResponse = (videoId: string) => {
   const cached = playbackResponseCache.get(videoId)
   if (cached) return cached
-  const promise = fetchInitialPlayerResponse(videoId)
+  const promise = fetchPlayerResponse(videoId)
   playbackResponseCache.set(videoId, promise)
   promise.catch(() => {
     if (playbackResponseCache.get(videoId) === promise) playbackResponseCache.delete(videoId)
@@ -301,7 +255,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
   }).catch(() => {})
   const catalogClient = await catalogInnertube()
   const catalogContext = catalogClient.session.context as unknown as InnertubeContext
-  warmPoTokenSession(catalogContext, catalogContext.client.visitorData)
+  warmPoTokenSession(catalogContext.client.visitorData)
   const nonce = Utils.generateRandomString(16)
   void rawPromise.then((raw) => registerPlayback(raw, nonce, beaconFormats(raw))).catch(() => {})
   const client = await innertube()
@@ -338,7 +292,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
   if (!ustreamerConfig) throw new Error('youtube: ustreamer configuration is missing')
   // The WEB GVS/streaming poToken is bound to the VIDEO ID, not the visitor or datasync id; the botguard session itself stays visitor/attestation-bound.
   const mintIdentifier = videoId
-  warmPoTokenSession(context, mintIdentifier)
+  warmPoTokenSession(mintIdentifier)
   return {
     videoId,
     isLive,
@@ -358,8 +312,8 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
       osName: context.client.osName,
       osVersion: context.client.osVersion,
     },
-    mint: () => mintPoToken(mintIdentifier, context),
-    recoverMint: () => recoverPoTokenSession(context),
+    mint: () => mintPoToken(mintIdentifier),
+    recoverMint: () => recoverPoTokenSession(),
   }
 }
 

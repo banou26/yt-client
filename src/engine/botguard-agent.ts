@@ -50,7 +50,8 @@ export const installAgent = ({ scope, appOrigin, runScript }: AgentOptions): 'in
   }
 
   const methods: AgentApi = {
-    create: async ({ interpreter, program, globalName }) => {
+    create: async ({ interpreter, program, globalName, config }) => {
+      global.yt = { config_: config }
       const removeScript = runScript(interpreter)
       if (!(globalName in global)) {
         removeScript()
