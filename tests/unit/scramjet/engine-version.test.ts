@@ -11,6 +11,11 @@ vi.mock('../../../src/scramjet/platform', () => ({
   abortPlatformEgress: () => {},
 }))
 
+vi.mock('../../../src/engine/agent-host', () => ({
+  startAgentHost: () => {},
+  openAgentBridge: () => new MessageChannel().port2,
+}))
+
 // the host's own boot never gets past its service worker here: these only have to import
 vi.mock('@mercuryworkshop/scramjet', () => ({ defaultConfigDev: {}, Tap: { tap: () => {} } }))
 vi.mock('@mercuryworkshop/scramjet-controller', () => ({ Controller: class {} }))
@@ -122,7 +127,7 @@ describe('an engine from another build', () => {
     expect(await settled(engine)).toEqual({ pending: true })
     const [bootstrap] = bootstraps(window.frames[0]!)
     expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID })
-    expect(bootstrap?.transfer).toHaveLength(2)
+    expect(bootstrap?.transfer).toHaveLength(3)
 
     const api = new MessageChannel()
     const control = new MessageChannel()

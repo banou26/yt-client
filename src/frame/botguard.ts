@@ -149,7 +149,7 @@ const generateIntegrityToken = async (botguardResponse: string) => {
   return token
 }
 
-// behind yt-client:step:y1: the VM runs in the engine page's agent, while the challenge, GenerateIT and the token's lifetime stay here
+// the VM runs in the engine page's agent, while the challenge, GenerateIT and the token's lifetime stay here
 const createAgentSession = async (challenge: Challenge, agent: AgentApi): Promise<MinterSession> => {
   const id = await stage('agent interpreter', () => agent.create({
     interpreter: challenge.interpreter,

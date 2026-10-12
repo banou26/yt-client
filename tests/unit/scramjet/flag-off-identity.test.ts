@@ -83,7 +83,7 @@ const installAppRealm = () => {
   return { frames, hello }
 }
 
-describe('the app realm with yt-client:step:y1 off', () => {
+describe('the app realm and yt-client:step:y1', () => {
   beforeEach(() => {
     vi.resetModules()
     agentHost.startAgentHost.mockReset()
@@ -94,33 +94,35 @@ describe('the app realm with yt-client:step:y1 off', () => {
     vi.unstubAllGlobals()
   })
 
-  it.each([
-    ['unset', {}],
-    ['set to anything but 1', { 'yt-client:step:y1': 'true' }],
-  ])('hands the engine its two ports and attaches nothing, with the flag %s', async (_, storage) => {
-    stubStorage(storage)
+  const boot = async () => {
     const realm = installAppRealm()
     const { startEngine } = await import('../../../src/scramjet/client')
     void startEngine().catch(() => {})
-    const bootstrap = await realm.hello(realm.frames[0]!)
-    expect(bootstrap.transfer).toHaveLength(2)
-    expect(agentHost.startAgentHost).not.toHaveBeenCalled()
-    expect(agentHost.openAgentBridge).not.toHaveBeenCalled()
-  })
+    return realm.hello(realm.frames[0]!)
+  }
 
-  // the control: the same check reads the flag on, so it can tell the two apart
-  it('with the flag on, attaches the engine page at boot and hands the bridge as a third port', async () => {
-    stubStorage({ 'yt-client:step:y1': '1' })
+  it.each([
+    ['unset', () => stubStorage({})],
+    ['set to 1', () => stubStorage({ 'yt-client:step:y1': '1' })],
+    ['set to anything but 0', () => stubStorage({ 'yt-client:step:y1': 'false' })],
+    ['in storage that cannot be read', () => vi.stubGlobal('localStorage', { getItem: () => { throw new DOMException('denied', 'SecurityError') } })],
+  ])('attaches the engine page at boot and hands the bridge as a third port, with the flag %s', async (_, storage) => {
+    storage()
     const bridge = new MessageChannel()
     agentHost.openAgentBridge.mockReturnValue(bridge.port2)
-    const realm = installAppRealm()
-    const { startEngine } = await import('../../../src/scramjet/client')
-    void startEngine().catch(() => {})
+    const bootstrap = await boot()
     expect(agentHost.startAgentHost).toHaveBeenCalledTimes(1)
-    const bootstrap = await realm.hello(realm.frames[0]!)
     expect(bootstrap.transfer).toHaveLength(3)
     expect(bootstrap.transfer[2]).toBe(bridge.port2)
     bridge.port1.close()
+  })
+
+  it('hands the engine its two ports and attaches nothing, with the flag set to 0', async () => {
+    stubStorage({ 'yt-client:step:y1': '0' })
+    const bootstrap = await boot()
+    expect(bootstrap.transfer).toHaveLength(2)
+    expect(agentHost.startAgentHost).not.toHaveBeenCalled()
+    expect(agentHost.openAgentBridge).not.toHaveBeenCalled()
   })
 })
 
