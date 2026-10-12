@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { held, tokenStored, unpassed } from '../../live/wall-read'
+import { type Account, bestAccount, held, keptInCopy, manifestChanges, tokenStored, unpassed } from '../../live/wall-read'
 
 const seek = { target: 90 }
 
@@ -48,5 +48,46 @@ describe('the token store reading', () => {
     void tokenStored({ evaluate: () => new Promise<boolean>(() => {}) }).then(value => { read = value })
     await vi.advanceTimersByTimeAsync(2_000)
     expect(read).toBe(null)
+  })
+})
+
+describe('a profile listing', () => {
+  const before = { 'Local State': '9473:1', Default: 'dir:1', 'Default/Cookies': '20480:1' }
+
+  it('reads no change between two equal listings (control)', () => {
+    expect(manifestChanges(before, { ...before })).toEqual([])
+  })
+
+  it('names every path added, removed or written, by size or by mtime alone', () => {
+    const { 'Local State': _removed, ...rest } = before
+    expect(manifestChanges(before, { ...rest, 'Default/Cookies': '20480:2', SingletonLock: 'link:2' }))
+      .toEqual(['Default/Cookies', 'Local State', 'SingletonLock'])
+    expect(manifestChanges(before, { ...before, 'Default/Cookies': '24576:1' })).toEqual(['Default/Cookies'])
+  })
+})
+
+describe('a profile copy', () => {
+  const kept = keptInCopy('/profiles/master')
+
+  it('keeps the session: cookies, storage and the profile root (control)', () => {
+    for (const path of ['', '/Local State', '/Default', '/Default/Cookies', '/Default/IndexedDB', '/Default/Local Storage']) {
+      expect(kept(`/profiles/master${path}`)).toBe(true)
+    }
+  })
+
+  it('leaves out the service workers, whose stored shell fails a first load once a deploy renames its chunks', () => {
+    expect(kept('/profiles/master/Default/Service Worker')).toBe(false)
+  })
+})
+
+describe('the account reading', () => {
+  it('keeps the strongest reading seen, so a later page that lost the header cannot undo an avatar', () => {
+    expect((['none', 'initial', 'avatar', 'none'] as Account[]).reduce<Account | null>(bestAccount, null)).toBe('avatar')
+    expect(bestAccount('initial', null)).toBe('initial')
+  })
+
+  it('reads none from a session that only ever showed the sign-in button (control)', () => {
+    expect((['none', 'none'] as Account[]).reduce<Account | null>(bestAccount, null)).toBe('none')
+    expect(bestAccount(null, null)).toBe(null)
   })
 })

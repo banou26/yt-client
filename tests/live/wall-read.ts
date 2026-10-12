@@ -26,6 +26,26 @@ export const unpassed = ({ target, maxBuffered, ended }: {
   return { verdict: 'inconclusive', reason: `buffered to ${maxBuffered} but never covered ${target}; the window ran out` }
 }
 
+// Each path under a profile mapped to what a write to it moves: a file's size and mtime, a directory's or link's mtime.
+export type Manifest = Record<string, string>
+
+export const manifestChanges = (before: Manifest, after: Manifest) =>
+  [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(path => before[path] !== after[path]).sort()
+
+/* A profile copy leaves out the master's service workers. They hold the fkn.app shell of the day the master was
+   signed in, so once a deploy renames that shell's chunks a copy's first load fails every request: measured
+   2026-10-12, two copies with them read the account menu with no avatar and every playback start failed on a 500,
+   while a copy without them showed the avatar and played. A reload recovers, which a single-load run never reaches. */
+export const keptInCopy = (master: string) => (source: string) => source !== `${master}/Default/Service Worker`
+
+// the header shows the account menu only for a signed-in session, holding an img once it has an avatar
+export type Account = 'avatar' | 'initial' | 'none'
+
+const ACCOUNT_RANK: Record<Account, number> = { none: 0, initial: 1, avatar: 2 }
+
+export const bestAccount = (seen: Account | null, read: Account | null) =>
+  read === null || (seen !== null && ACCOUNT_RANK[seen] >= ACCOUNT_RANK[read]) ? seen : read
+
 // a control is held or failed only by a verdict, so a run that reached none prints '-'
 export const held = (control: 'detector' | 'webdriver', verdict: Verdict | null) =>
   verdict !== 'pass' && verdict !== 'wall' ? '-' : String(control === 'detector' ? verdict === 'pass' : verdict === 'wall')

@@ -3,20 +3,25 @@
 
      env -u WAYLAND_DISPLAY -u NIXOS_OZONE_WL xvfb-run -a -s "-screen 0 1280x720x24" \
        node tests/live/wall.mjs --arm=none|extension [--control=detector|webdriver] [--video=ID] [--base=URL] [--label=NAME]
+         [--profile=DIR]
 
    --arm=extension loads the store build: the crx Chrome's update service serves for the listing, unpacked.
    --control=detector plays dQw4w9WgXcQ, which is not enforced, and must pass: it shows the detector can read a pass.
    --control=webdriver leaves navigator.webdriver true and must wall on an enforced video: it shows a wall can be read.
+   --profile=DIR runs on a copy of that Chrome profile, made in the run's scratch directory and removed with it, never
+     on DIR itself, and without DIR's service workers (wall-read.ts says why). DIR is listed (size and mtime of every entry) before the copy and after the removal, and a run
+     that finds it changed is refused. The copy is listed the same way and must show Chrome's writes, which proves
+     the listing can see a change. A profile run that never shows the account menu is refused as signed out.
 
-   Headful under Xvfb, never a real window, muted, a fresh profile per run. Prints one RESULT line and exits
-   0 on a pass, 1 on a wall, 2 with no verdict. Nothing identifiable is read or printed: the token store is
-   reported as present or absent only. */
+   Headful under Xvfb, never a real window, muted, a fresh profile per run unless --profile names one. Prints one
+   RESULT line and exits 0 on a pass, 1 on a wall, 2 with no verdict. Nothing identifiable is read or printed: the
+   token store and the account menu are reported as present or absent only. */
 import { chromium } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, lstat, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { held, sleep, tokenStored, unpassed, withTimeout } from './wall-read.ts'
+import { join, resolve } from 'node:path'
+import { bestAccount, held, keptInCopy, manifestChanges, sleep, tokenStored, unpassed, withTimeout } from './wall-read.ts'
 
 const flags = Object.fromEntries(process.argv.slice(2).map(arg => {
   const [key, ...value] = arg.replace(/^--/, '').split('=')
@@ -33,6 +38,7 @@ if (process.env.WAYLAND_DISPLAY || process.env.NIXOS_OZONE_WL || !process.env.DI
 const VIDEO = flags.video ?? (CONTROL === 'detector' ? 'dQw4w9WgXcQ' : 'FAlMdord_Fg')
 const BASE = flags.base ?? 'https://youtube.fkn.app'
 const LABEL = flags.label ?? `${ARM}-${Date.now().toString(36)}`
+const PROFILE = flags.profile ? resolve(flags.profile) : null
 const CHROME = '/etc/profiles/per-user/banou/bin/google-chrome-stable'
 const STORE_ID = 'ffeddppgmgpnjagcklkfefpdnaoefckf'
 const TARGET = 90
@@ -50,6 +56,18 @@ const storeExtension = async dir => {
   const unpacked = join(dir, 'unpacked')
   execFileSync('python3', ['-c', 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])', zip, unpacked])
   return { path: unpacked, version: JSON.parse(await readFile(join(unpacked, 'manifest.json'), 'utf8')).version }
+}
+
+const manifestOf = async dir => Object.fromEntries(await Promise.all((await readdir(dir, { recursive: true })).map(async path => {
+  const entry = await lstat(join(dir, path))
+  return [path, `${entry.isFile() ? entry.size : entry.isDirectory() ? 'dir' : 'link'}:${entry.mtimeMs}`]
+})))
+
+// Chrome holds SingletonLock for as long as it has the profile open, and a copy taken then would be torn
+const copyProfile = async (master, to) => {
+  await lstat(join(master, 'Local State')).catch(() => { throw new Error(`${master} holds no Chrome profile`) })
+  if (await lstat(join(master, 'SingletonLock')).catch(() => null)) throw new Error(`a Chrome has ${master} open`)
+  await cp(master, to, { recursive: true, verbatimSymlinks: true, filter: keptInCopy(master) })
 }
 
 /* Runs in the top document from its first byte. A player retry mounts a fresh <video> and an engine rebuild a
@@ -83,7 +101,9 @@ const sample = page => withTimeout(page.evaluate(target => {
   const round = n => Math.round(n * 10) / 10
   const seen = window.__wall ?? { videos: 0, hosts: 0, engine: [] }
   const video = document.querySelector('[data-player-root] video')
+  const menu = document.querySelector('button[aria-label="Account menu"]')
   const base = {
+    account: menu ? (menu.querySelector('img') ? 'avatar' : 'initial') : 'none',
     recovery: `${seen.videos}/${seen.hosts}/${seen.engine.join('>')}`,
     videos: seen.videos,
     hosts: seen.hosts,
@@ -120,9 +140,11 @@ const webdriverIn = async page => {
 }
 
 const run = async () => {
+  const masterBefore = PROFILE ? await manifestOf(PROFILE) : null
   const work = await mkdtemp(join(tmpdir(), 'yt-wall-'))
   const r = {
     label: LABEL, arm: ARM, control: CONTROL, video: VIDEO, ext: null, webdriver: null, egress: [], extFetchFailed: false,
+    account: null, profile: PROFILE ? { entries: Object.keys(masterBefore).length, master: null, copy: null } : null,
     engineAt: null, playAt: null, before: null, after: null, maxBuffered: 0, t: null, atSeek: null, recovery: null,
     refresh: { seek: null, end: null }, status: null, poTokens: { seek: null, end: null }, verdict: null, reason: null, seekMs: null, total: null,
   }
@@ -130,7 +152,12 @@ const run = async () => {
   const at = () => Math.round((Date.now() - t0) / 100) / 10
   let context
   let page
+  let copyBefore = null
   try {
+    if (PROFILE) {
+      await copyProfile(PROFILE, join(work, 'profile'))
+      copyBefore = await manifestOf(join(work, 'profile'))
+    }
     const extension = ARM === 'extension' ? await storeExtension(work) : null
     r.ext = extension?.version ?? null
     context = await chromium.launchPersistentContext(join(work, 'profile'), {
@@ -169,6 +196,7 @@ const run = async () => {
     let pausedSince = null
     while (Date.now() < loadDeadline) {
       const s = await sample(page)
+      r.account = bestAccount(r.account, s.account ?? null)
       if (r.engineAt === null && s.engine?.startsWith('ready')) r.engineAt = at()
       if (s.engine?.includes('error') || s.status?.startsWith('Playback failed')) break
       if (s.video && !s.paused && s.t > 0.5) { r.playAt = at(); break }
@@ -213,6 +241,7 @@ const run = async () => {
     let ended = null
     while (Date.now() - seekStart < SEEK_WINDOW_MS) {
       const [s, refresh] = await Promise.all([sample(page), frameRecovery(page)])
+      r.account = bestAccount(r.account, s.account ?? null)
       if (refresh) r.refresh.end = refresh
       // a sample taken after a retry or a rebuild belongs to another session, so it can decide nothing
       if (s.recovery !== undefined && s.recovery !== pre.recovery) {
@@ -243,9 +272,20 @@ const run = async () => {
     r.verdict ??= 'error'
     r.reason = String(error).split('\n')[0].slice(0, 200)
   } finally {
-    if (page) r.poTokens.end = await tokenStored(page)
+    if (page) {
+      r.poTokens.end = await tokenStored(page)
+      // the header asks for the session on its own schedule, so a profile run gives it time to show the menu
+      const deadline = Date.now() + (PROFILE ? 15_000 : 0)
+      for (;;) {
+        r.account = bestAccount(r.account, (await sample(page)).account ?? null)
+        if (r.account === 'avatar' || Date.now() >= deadline) break
+        await sleep(500)
+      }
+    }
     await context?.close().catch(() => {})
+    if (copyBefore) r.profile.copy = manifestChanges(copyBefore, await manifestOf(join(work, 'profile'))).length
     await rm(work, { recursive: true, force: true }).catch(() => {})
+    if (PROFILE) r.profile.master = manifestChanges(masterBefore, await manifestOf(PROFILE))
     r.total = at()
   }
   return r
@@ -255,6 +295,8 @@ const run = async () => {
    with the run, an egress line that disagrees with the arm or never printed, and a failed extension fetch,
    which drops the run onto the tunnel mid-session. */
 const refusal = r => {
+  if (r.profile && !r.profile.copy) return 'the listing saw no write by Chrome in the copy, so it proves nothing about the master'
+  if (r.profile && r.account !== 'avatar') return `the profile copy never showed the account avatar (read ${r.account})`
   if (r.atSeek !== null && r.atSeek !== '1/1/ready') return `the seek landed on a recovered session (videos/hosts/engine ${r.atSeek})`
   const flagged = [r.webdriver?.top, ...(r.webdriver?.frames ?? [])]
   if (CONTROL === 'webdriver' ? r.webdriver?.top !== true : flagged.some(value => value !== false)) {
@@ -267,7 +309,11 @@ const refusal = r => {
 }
 
 const r = await run()
-if (r.verdict === 'pass' || r.verdict === 'wall') {
+// a master that moved is refused whatever the run read, so it can never pass as a measurement
+if (r.profile?.master?.length) {
+  r.reason = `the master profile changed: ${r.profile.master.slice(0, 5).join(', ')}; read ${String(r.verdict)}${r.reason ? `, ${String(r.reason)}` : ''}`
+  r.verdict = 'refused'
+} else if (r.verdict === 'pass' || r.verdict === 'wall') {
   const refused = refusal(r)
   if (refused) {
     r.reason = `${refused}; read ${String(r.verdict)}${r.reason ? `, ${String(r.reason)}` : ''}`
@@ -276,9 +322,12 @@ if (r.verdict === 'pass' || r.verdict === 'wall') {
 }
 const control = CONTROL === null ? '' : ` held=${held(CONTROL, r.verdict)}`
 const atSeekAndEnd = (reading, show) => ['seek', 'end'].map(when => `${when}:${reading[when] === null ? '-' : show(reading[when])}`).join(',')
+const profile = r.profile
+  ? `profile=copy master=${r.profile.master === null ? '-' : r.profile.master.length ? `changed:${r.profile.master.length}` : 'unchanged'}/${r.profile.entries} copy-writes=${r.profile.copy ?? '-'}`
+  : 'profile=fresh'
 const egress = [...new Set(r.egress.map(line => line === EGRESS.extension ? 'extension' : line === EGRESS.none ? 'relay' : line))].join('|') || '-'
 console.log(
-  `RESULT ${r.label} arm=${r.arm} ext=${r.ext ?? '-'} control=${r.control ?? '-'}${control} video=${r.video} `
+  `RESULT ${r.label} arm=${r.arm} ext=${r.ext ?? '-'} control=${r.control ?? '-'}${control} video=${r.video} ${profile} account=${r.account ?? '-'} `
     + `webdriver=${r.webdriver ? `${r.webdriver.top}/${r.webdriver.frames.join(',')}` : '-'} egress=${egress} extFetchFailed=${r.extFetchFailed} `
     + `engine@${r.engineAt}s play@${r.playAt}s atSeek=${r.atSeek} recovery=${r.recovery} before=${JSON.stringify(r.before)} `
     + `after=${JSON.stringify(r.after)} max=${r.maxBuffered} t=${r.t} po-tokens=${atSeekAndEnd(r.poTokens, value => value ? 'yes' : 'no')} `
