@@ -5,6 +5,7 @@ import { Constants, Innertube, Platform, Types, UniversalCache, Utils, YT } from
 
 import type { PlaybackFormat } from './protocol'
 
+import { WEB_CLIENT_VERSION } from '../sources/youtube/client-version'
 import { mintPoToken, recoverPoTokenSession, warmPoTokenSession } from './botguard'
 import type { CaptionSource } from './captions'
 import type { Storyboard } from './storyboard'
@@ -50,9 +51,7 @@ type InnertubeContext = {
   }
 }
 
-const FALLBACK_CLIENT_VERSION = '2.20260618.05.00'
-
-;(Constants as unknown as { CLIENTS: { WEB: { VERSION: string } } }).CLIENTS.WEB.VERSION = FALLBACK_CLIENT_VERSION
+;(Constants as unknown as { CLIENTS: { WEB: { VERSION: string } } }).CLIENTS.WEB.VERSION = WEB_CLIENT_VERSION
 
 /* Evaluates only what youtubei.js already built: Player.decipher appends its own processor ending in
    `return process(n, sp, s)`, so `env` is deliberately unused. Do not re-add a second `return` reading
@@ -110,7 +109,7 @@ export const catalogInnertube = keepOnSuccess(() => Innertube.create({
   // retrieve_innertube_config can hand back a canary/experiment clientVersion; YouTube's public innertube API then rejects EVERY request with FAILED_PRECONDITION.
   const rawVersion = context.client.clientVersion
   if (rawVersion && !/^\d+\.\d{8}\.\d{2}\.\d{2}$/.test(rawVersion)) {
-    context.client.clientVersion = rawVersion.match(/(\d+\.\d{8}\.\d{2}\.\d{2})$/)?.[1] ?? FALLBACK_CLIENT_VERSION
+    context.client.clientVersion = rawVersion.match(/(\d+\.\d{8}\.\d{2}\.\d{2})$/)?.[1] ?? WEB_CLIENT_VERSION
   }
   storeVisitorData(context.client.visitorData)
   return client
