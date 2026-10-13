@@ -33,19 +33,25 @@ describe("a watch page's challenge", () => {
 
 describe('reading a watch page', () => {
   let pages: string[]
+  let statuses: number[]
   let fetched: string[]
 
   beforeEach(() => {
     vi.resetModules()
     pages = []
+    statuses = []
     fetched = []
     vi.stubGlobal('fetch', async (url: string) => {
       fetched.push(url)
+      const status = statuses.shift()
+      if (status !== undefined) return new Response('<html>an error page</html>', { status })
       return streamed([pages.shift() ?? watchPage({ eventId: `event-${fetched.length}` })])
     })
   })
 
   afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
   })
 
@@ -85,7 +91,7 @@ describe('reading a watch page', () => {
   })
 
   it('reads a page whose response has no body stream', async () => {
-    vi.stubGlobal('fetch', async () => ({ body: null, text: async () => watchPage() }))
+    vi.stubGlobal('fetch', async () => ({ ok: true, status: 200, body: null, text: async () => watchPage() }))
     const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
     expect(await fetchPlayerResponse('video-1')).toHaveProperty('videoDetails')
     expect(await takePageChallenge()).toEqual(CHALLENGE)
@@ -132,5 +138,39 @@ describe('reading a watch page', () => {
     const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
     await expect(fetchPlayerResponse('video-1')).rejects.toThrow('youtube: player response is missing')
     await expect(takePageChallenge()).rejects.toThrow('youtube: player response is missing')
+  })
+
+  it.each([429, 503])('reads the page again after a %i, and answers both from the page that follows', async (status) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    statuses.push(status)
+    const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
+    const player = fetchPlayerResponse('video-1')
+    await vi.advanceTimersByTimeAsync(499)
+    expect(fetched).toHaveLength(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(await player).toHaveProperty('videoDetails')
+    expect((await takePageChallenge()).config.EVENT_ID).toBe('event-2')
+    expect(fetched).toEqual(['https://www.youtube.com/watch?v=video-1', 'https://www.youtube.com/watch?v=video-1'])
+  })
+
+  it('a status that keeps coming back fails both with that status after three reads, never as a missing player response', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    statuses.push(429, 429, 429, 429)
+    const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
+    const player = fetchPlayerResponse('video-1')
+    void player.catch(() => {})
+    await vi.advanceTimersByTimeAsync(1_500)
+    await expect(player).rejects.toThrow('youtube: the watch page returned 429')
+    await expect(takePageChallenge()).rejects.toThrow('youtube: the watch page returned 429')
+    expect(fetched).toHaveLength(3)
+  })
+
+  it('a status that is neither 429 nor 5xx fails at once, with that status', async () => {
+    statuses.push(404)
+    const { fetchPlayerResponse } = await import('../../../src/frame/watch-page')
+    await expect(fetchPlayerResponse('video-1')).rejects.toThrow('youtube: the watch page returned 404')
+    expect(fetched).toHaveLength(1)
   })
 })
