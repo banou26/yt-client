@@ -1,17 +1,21 @@
 import type { WatchHistoryQuery } from '../generated/graphql'
+import type { HistoryEntry, ImportedHistory } from '../history/browser-history'
 
 import { css } from '@emotion/react'
-import { CircleUserRound, X } from 'lucide-react'
-import { useState } from 'preact/hooks'
+import { CircleUserRound, Download, Trash2, X } from 'lucide-react'
+import { useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 import { useLocation } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { useExtensionExposed } from '../components/extension-notice'
 import { readable } from '../components/format'
 import { showToast } from '../components/ui/toast'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { gql } from '../generated'
+import { canImportBrowserHistory, dayHeading, importBrowserHistory } from '../history/browser-history'
+import { deleteImportedHistory, readImportedHistory } from '../history/store'
 import { useSession } from '../session'
 
 const WATCH_HISTORY_QUERY = gql(`
@@ -143,6 +147,28 @@ const style = css`
     color: var(--text-primary);
   }
 
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.6rem;
+  }
+
+  .heading + .actions {
+    justify-content: flex-start;
+    margin: -0.8rem 0 2.4rem;
+  }
+
+  .actions .sign-in {
+    margin-top: 0;
+  }
+
+  .sign-in:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
   .sign-in {
     display: inline-flex;
     align-items: center;
@@ -165,6 +191,15 @@ const style = css`
     border-color: transparent;
   }
 `
+
+const HistorySkeleton = () => (
+  <main css={style}>
+    <h1 className='heading'>Watch history</h1>
+    <div className='entries'>
+      {Array.from({ length: SKELETON_ROWS }, (_, index) => <VideoCardCompactSkeleton key={index} />)}
+    </div>
+  </main>
+)
 
 const HistoryFeedPage = () => {
   useDocumentTitle('History')
@@ -223,31 +258,9 @@ const HistoryFeedPage = () => {
     })
   }
 
-  if (!ready) {
-    return (
-      <main css={style}>
-        <h1 className='heading'>Watch history</h1>
-        <div className='entries'>
-          {Array.from({ length: SKELETON_ROWS }, (_, index) => <VideoCardCompactSkeleton key={index} />)}
-        </div>
-      </main>
-    )
-  }
+  if (!ready) return <HistorySkeleton />
 
-  if (!signedIn) {
-    return (
-      <main css={style}>
-        <h1 className='heading'>Watch history</h1>
-        <div className='prompt'>
-          <h2>Sign in to see your watch history</h2>
-          <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
-            <CircleUserRound size={24} strokeWidth={1.5} />
-            Sign in
-          </button>
-        </div>
-      </main>
-    )
-  }
+  if (!signedIn) return <SignedOutHistory onSignIn={() => navigate('/signin')} />
 
   return (
     <main css={style}>
@@ -293,6 +306,109 @@ const HistoryFeedPage = () => {
       {error && items.length > 0 ? <p className='notice'>Could not load more of your history.</p> : undefined}
       {fetching && items.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
       <FeedSentinel onVisible={onMore} disabled={fetching || Boolean(error) || !cursor} />
+    </main>
+  )
+}
+
+type ImportedSection = { key: string, title?: string, entries: HistoryEntry[] }
+
+const importedSections = (entries: HistoryEntry[], now: Date) => {
+  const sections: ImportedSection[] = []
+  for (const entry of entries) {
+    const key = entry.watchedOn ?? entry.heading ?? ''
+    const last = sections[sections.length - 1]
+    if (last?.key === key) last.entries.push(entry)
+    else sections.push({ key, title: entry.watchedOn ? dayHeading(entry.watchedOn, now) : entry.heading, entries: [entry] })
+  }
+  return sections
+}
+
+const failureOf = (error: unknown) =>
+  error instanceof Error && error.name === 'ExtensionOutdatedError'
+    ? 'Update the FKN extension to import your history'
+    : error instanceof Error ? error.message : String(error)
+
+const SignedOutHistory = ({ onSignIn }: { onSignIn: () => void }) => {
+  const exposed = useExtensionExposed()
+  const offered = exposed === true && canImportBrowserHistory()
+  const [imported, setImported] = useState<ImportedHistory | undefined>()
+  const [loaded, setLoaded] = useState(false)
+  const [progress, setProgress] = useState<number | undefined>()
+  const [failure, setFailure] = useState<string | undefined>()
+
+  useEffect(() => {
+    void readImportedHistory().then(setImported, () => {}).finally(() => setLoaded(true))
+  }, [])
+
+  const runImport = () => {
+    if (progress !== undefined) return
+    setFailure(undefined)
+    setProgress(0)
+    void importBrowserHistory(setProgress).then(setImported, (error: unknown) => setFailure(failureOf(error)))
+      .finally(() => setProgress(undefined))
+  }
+
+  const onDelete = () => {
+    void deleteImportedHistory().then(() => {
+      setImported(undefined)
+      showToast('Imported history deleted')
+    }, (error: unknown) => showToast(failureOf(error)))
+  }
+
+  const importButton = (label: string) => (
+    <button type='button' className='sign-in' disabled={progress !== undefined} onClick={runImport}>
+      <Download size={20} strokeWidth={1.5} />
+      {progress === undefined ? label : `Importing… ${progress} videos`}
+    </button>
+  )
+
+  if (!loaded) return <HistorySkeleton />
+
+  if (!imported) {
+    return (
+      <main css={style}>
+        <h1 className='heading'>Watch history</h1>
+        <div className='prompt'>
+          <h2>Sign in to see your watch history</h2>
+          <div className='actions'>
+            <button type='button' className='sign-in' onClick={onSignIn}>
+              <CircleUserRound size={24} strokeWidth={1.5} />
+              Sign in
+            </button>
+            {offered ? importButton('Import from YouTube on this browser') : undefined}
+          </div>
+          {failure ? <p className='notice'>{failure}</p> : undefined}
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main css={style}>
+      <h1 className='heading'>Watch history</h1>
+      <div className='actions'>
+        {offered ? importButton('Import again') : undefined}
+        <button type='button' className='sign-in' onClick={onDelete}>
+          <Trash2 size={20} strokeWidth={1.5} />
+          Delete imported history
+        </button>
+      </div>
+      {failure ? <p className='notice'>{failure}</p> : undefined}
+      {importedSections(imported.entries, new Date()).map(section => (
+        <section className='section' key={section.key}>
+          {section.title ? <h2 className='section-title'>{section.title}</h2> : undefined}
+          <div className='entries'>
+            {section.entries.map(entry => <VideoCardCompact key={entry.id} video={entry} />)}
+          </div>
+        </section>
+      ))}
+      {imported.entries.length === 0
+        ? (
+          <div className='prompt'>
+            <h2>Nothing watched yet</h2>
+          </div>
+        )
+        : undefined}
     </main>
   )
 }
