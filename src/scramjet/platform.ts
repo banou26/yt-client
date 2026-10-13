@@ -1,3 +1,4 @@
+import type { BrowserSession } from '../history/browser-history'
 import type { ExtFetchRequest, ExtFetchResponse, TransportResponse } from './protocol'
 
 import { EGRESS_ABORT_ALL, EGRESS_KEY } from './protocol'
@@ -163,10 +164,18 @@ const create = async () => {
     return channel.port2
   }
 
+  // the history import reads the browser's own YouTube session through these, extension calls only, so this realm still makes no cloud call
+  const browserSession: BrowserSession = {
+    requestNetwork: (hosts, reason) => lib.extension.permissions.request([{ category: 'network', hosts, reason }]),
+    cookie: (details) => lib.extension.cookies.get(details),
+    fetch: (url, init) => lib.extension.fetch(url, init),
+  }
+
   return {
     openEgressPort,
     openExtFetchPort,
     promptInstall,
+    browserSession,
     abortEgress: () => worker.postMessage({ type: EGRESS_ABORT_ALL }),
   }
 }

@@ -1,0 +1,867 @@
+{
+ "first": {
+  "responseContext": {
+   "mainAppWebResponseContext": {
+    "loggedOut": false
+   }
+  },
+  "contents": {
+   "twoColumnBrowseResultsRenderer": {
+    "tabs": [
+     {
+      "tabRenderer": {
+       "selected": true,
+       "tabIdentifier": "FEhistory",
+       "content": {
+        "sectionListRenderer": {
+         "contents": [
+          {
+           "itemSectionRenderer": {
+            "header": {
+             "itemSectionHeaderRenderer": {
+              "title": {
+               "runs": [
+                {
+                 "text": "Yesterday"
+                }
+               ]
+              }
+             }
+            },
+            "contents": [
+             {
+              "lockupViewModel": {
+               "contentImage": {
+                "thumbnailViewModel": {
+                 "image": {
+                  "sources": [
+                   {
+                    "url": "https://i.ytimg.com/vi/C0DPdy98e4c/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-BIAC4AOKAgwIABABGGUgZShlMA8=&rs=AOn4CLAK-3vHRbDFfpCXKSXjSmhSD4YAMA",
+                    "width": 168,
+                    "height": 94
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/C0DPdy98e4c/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AH-BIAC4AOKAgwIABABGGUgZShlMA8=&rs=AOn4CLBP7_ZvVoXeCHBVth_dHDGgHa0hyg",
+                    "width": 196,
+                    "height": 110
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/C0DPdy98e4c/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gSAAuADigIMCAAQARhlIGUoZTAP&rs=AOn4CLCurrDDPqF-LBmpqTs-F9e_tu1Ffw",
+                    "width": 246,
+                    "height": 138
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/C0DPdy98e4c/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gSAAuADigIMCAAQARhlIGUoZTAP&rs=AOn4CLDdoVJ_WluSnA8YHExRcFK0vX9TIw",
+                    "width": 336,
+                    "height": 188
+                   }
+                  ]
+                 },
+                 "overlays": [
+                  {
+                   "thumbnailBottomOverlayViewModel": {
+                    "progressBar": {
+                     "thumbnailOverlayProgressBarViewModel": {
+                      "startPercent": 10
+                     }
+                    },
+                    "badges": [
+                     {
+                      "thumbnailBadgeViewModel": {
+                       "text": "0:18",
+                       "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                       "rendererContext": {
+                        "accessibilityContext": {
+                         "label": "18 seconds"
+                        }
+                       }
+                      }
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               },
+               "metadata": {
+                "lockupMetadataViewModel": {
+                 "title": {
+                  "content": "TEST VIDEO"
+                 },
+                 "image": {
+                  "decoratedAvatarViewModel": {
+                   "avatar": {
+                    "avatarViewModel": {
+                     "image": {
+                      "sources": [
+                       {
+                        "url": "https://yt3.ggpht.com/ytc/AIdro_kDPzRbNIL4GbArX3lXXtkDEilRud4Xu2JGdH7GZf4cb2re=s68-c-k-c0x00ffffff-no-rj",
+                        "width": 68,
+                        "height": 68
+                       }
+                      ]
+                     },
+                     "avatarImageSize": "AVATAR_SIZE_M"
+                    }
+                   },
+                   "a11yLabel": "Go to channel Simon Yapp",
+                   "rendererContext": {
+                    "commandContext": {
+                     "onTap": {
+                      "innertubeCommand": {
+                       "commandMetadata": {
+                        "webCommandMetadata": {
+                         "url": "/@simonyapp",
+                         "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                         "rootVe": 3611,
+                         "apiUrl": "/youtubei/v1/browse"
+                        }
+                       },
+                       "browseEndpoint": {
+                        "browseId": "UCHDm-DKoMyJxKVgwGmuTaQA",
+                        "canonicalBaseUrl": "/@simonyapp"
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 },
+                 "metadata": {
+                  "contentMetadataViewModel": {
+                   "metadataRows": [
+                    {
+                     "metadataParts": [
+                      {
+                       "text": {
+                        "content": "Simon Yapp"
+                       }
+                      },
+                      {
+                       "text": {
+                        "content": "1.2M views"
+                       }
+                      }
+                     ],
+                     "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                     }
+                    }
+                   ],
+                   "delimiter": " • "
+                  }
+                 }
+                }
+               },
+               "contentId": "C0DPdy98e4c",
+               "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+               "rendererContext": {
+                "accessibilityContext": {
+                 "label": "TEST VIDEO 18 seconds"
+                },
+                "commandContext": {
+                 "onTap": {
+                  "innertubeCommand": {
+                   "commandMetadata": {
+                    "webCommandMetadata": {
+                     "url": "/watch?v=C0DPdy98e4c",
+                     "webPageType": "WEB_PAGE_TYPE_WATCH",
+                     "rootVe": 3832
+                    }
+                   },
+                   "watchEndpoint": {
+                    "videoId": "C0DPdy98e4c"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             },
+             {
+              "lockupViewModel": {
+               "contentImage": {
+                "thumbnailViewModel": {
+                 "image": {
+                  "sources": [
+                   {
+                    "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLBTcDLyj2N_LR_KHlNAzw-gZeXBZg&usqp=CBU",
+                    "width": 168,
+                    "height": 94
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLCnxX9TMLnOY42Ky8wUN8zDgl5_BA&usqp=CBU",
+                    "width": 196,
+                    "height": 110
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLCiHtd7eg7isTAqLeS0s02kQnXb2w&usqp=CBU",
+                    "width": 246,
+                    "height": 138
+                   },
+                   {
+                    "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLAZ70jLhlCzg4sg2blj6QtEGq8p5w&usqp=CBU",
+                    "width": 336,
+                    "height": 188
+                   }
+                  ]
+                 },
+                 "overlays": [
+                  {
+                   "thumbnailBottomOverlayViewModel": {
+                    "progressBar": {
+                     "thumbnailOverlayProgressBarViewModel": {
+                      "startPercent": 10
+                     }
+                    },
+                    "badges": [
+                     {
+                      "thumbnailBadgeViewModel": {
+                       "text": "0:19",
+                       "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                       "rendererContext": {
+                        "accessibilityContext": {
+                         "label": "19 seconds"
+                        }
+                       }
+                      }
+                     }
+                    ]
+                   }
+                  }
+                 ]
+                }
+               },
+               "metadata": {
+                "lockupMetadataViewModel": {
+                 "title": {
+                  "content": "Me at the zoo"
+                 },
+                 "image": {
+                  "decoratedAvatarViewModel": {
+                   "avatar": {
+                    "avatarViewModel": {
+                     "image": {
+                      "sources": [
+                       {
+                        "url": "https://yt3.ggpht.com/uI3VE4PVqvCy0xnWLqMJnEzyBUm3T8VHOCp4ee-1RxdHqKXCdUE_qXYQnpf9AfuEoIPactVyDhM=s68-c-k-c0x00ffffff-no-rj",
+                        "width": 68,
+                        "height": 68
+                       }
+                      ]
+                     },
+                     "avatarImageSize": "AVATAR_SIZE_M"
+                    }
+                   },
+                   "a11yLabel": "Go to channel jawed",
+                   "rendererContext": {
+                    "commandContext": {
+                     "onTap": {
+                      "innertubeCommand": {
+                       "commandMetadata": {
+                        "webCommandMetadata": {
+                         "url": "/@jawed",
+                         "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                         "rootVe": 3611,
+                         "apiUrl": "/youtubei/v1/browse"
+                        }
+                       },
+                       "browseEndpoint": {
+                        "browseId": "UC4QobU6STFB0P71PMvOGN5A",
+                        "canonicalBaseUrl": "/@jawed"
+                       }
+                      }
+                     }
+                    }
+                   }
+                  }
+                 },
+                 "metadata": {
+                  "contentMetadataViewModel": {
+                   "metadataRows": [
+                    {
+                     "metadataParts": [
+                      {
+                       "text": {
+                        "content": "jawed",
+                        "styleRuns": [
+                         {
+                          "startIndex": 5,
+                          "styleRunExtensions": {
+                           "styleRunColorMapExtension": {
+                            "colorMap": [
+                             {
+                              "key": "USER_INTERFACE_THEME_LIGHT",
+                              "value": 4284506208
+                             },
+                             {
+                              "key": "USER_INTERFACE_THEME_DARK",
+                              "value": 4289374890
+                             }
+                            ]
+                           }
+                          }
+                         }
+                        ],
+                        "attachmentRuns": [
+                         {
+                          "startIndex": 5,
+                          "length": 0,
+                          "element": {
+                           "type": {
+                            "imageType": {
+                             "image": {
+                              "sources": [
+                               {
+                                "clientResource": {
+                                 "imageName": "CHECK_CIRCLE_FILLED"
+                                },
+                                "width": 14,
+                                "height": 14
+                               }
+                              ]
+                             }
+                            }
+                           },
+                           "properties": {
+                            "layoutProperties": {
+                             "height": {
+                              "value": 14,
+                              "unit": "DIMENSION_UNIT_POINT"
+                             },
+                             "width": {
+                              "value": 14,
+                              "unit": "DIMENSION_UNIT_POINT"
+                             },
+                             "margin": {
+                              "left": {
+                               "value": 4,
+                               "unit": "DIMENSION_UNIT_POINT"
+                              }
+                             }
+                            }
+                           }
+                          },
+                          "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                         }
+                        ]
+                       }
+                      },
+                      {
+                       "text": {
+                        "content": "443M views"
+                       }
+                      }
+                     ],
+                     "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                     }
+                    }
+                   ],
+                   "delimiter": " • "
+                  }
+                 }
+                }
+               },
+               "contentId": "jNQXAC9IVRw",
+               "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+               "rendererContext": {
+                "accessibilityContext": {
+                 "label": "Me at the zoo 19 seconds"
+                },
+                "commandContext": {
+                 "onTap": {
+                  "innertubeCommand": {
+                   "commandMetadata": {
+                    "webCommandMetadata": {
+                     "url": "/watch?v=jNQXAC9IVRw",
+                     "webPageType": "WEB_PAGE_TYPE_WATCH",
+                     "rootVe": 3832
+                    }
+                   },
+                   "watchEndpoint": {
+                    "videoId": "jNQXAC9IVRw"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            ]
+           }
+          },
+          {
+           "continuationItemRenderer": {
+            "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+            "continuationEndpoint": {
+             "commandMetadata": {
+              "webCommandMetadata": {
+               "sendPost": true,
+               "apiUrl": "/youtubei/v1/browse"
+              }
+             },
+             "continuationCommand": {
+              "token": "fixture-continuation",
+              "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+             }
+            }
+           }
+          }
+         ]
+        }
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "next": {
+  "responseContext": {
+   "mainAppWebResponseContext": {
+    "loggedOut": false
+   }
+  },
+  "onResponseReceivedActions": [
+   {
+    "appendContinuationItemsAction": {
+     "targetId": "browse-feedFEhistory",
+     "continuationItems": [
+      {
+       "itemSectionRenderer": {
+        "header": {
+         "itemSectionHeaderRenderer": {
+          "title": {
+           "runs": [
+            {
+             "text": "Oct 3"
+            }
+           ]
+          }
+         }
+        },
+        "contents": [
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLBTcDLyj2N_LR_KHlNAzw-gZeXBZg&usqp=CBU",
+                "width": 168,
+                "height": 94
+               },
+               {
+                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLCnxX9TMLnOY42Ky8wUN8zDgl5_BA&usqp=CBU",
+                "width": 196,
+                "height": 110
+               },
+               {
+                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLCiHtd7eg7isTAqLeS0s02kQnXb2w&usqp=CBU",
+                "width": 246,
+                "height": 138
+               },
+               {
+                "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLAZ70jLhlCzg4sg2blj6QtEGq8p5w&usqp=CBU",
+                "width": 336,
+                "height": 188
+               }
+              ]
+             },
+             "overlays": [
+              {
+               "thumbnailBottomOverlayViewModel": {
+                "progressBar": {
+                 "thumbnailOverlayProgressBarViewModel": {
+                  "startPercent": 48
+                 }
+                },
+                "badges": [
+                 {
+                  "thumbnailBadgeViewModel": {
+                   "text": "3:34",
+                   "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                   "rendererContext": {
+                    "accessibilityContext": {
+                     "label": "3 minutes, 34 seconds"
+                    }
+                   }
+                  }
+                 }
+                ]
+               }
+              }
+             ]
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)"
+             },
+             "image": {
+              "decoratedAvatarViewModel": {
+               "avatar": {
+                "avatarViewModel": {
+                 "image": {
+                  "sources": []
+                 },
+                 "avatarImageSize": "AVATAR_SIZE_M"
+                }
+               },
+               "a11yLabel": "Go to channel Rick Astley",
+               "rendererContext": {
+                "commandContext": {
+                 "onTap": {
+                  "innertubeCommand": {
+                   "commandMetadata": {
+                    "webCommandMetadata": {
+                     "url": "/@RickAstleyYT",
+                     "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                     "rootVe": 3611,
+                     "apiUrl": "/youtubei/v1/browse"
+                    }
+                   },
+                   "browseEndpoint": {
+                    "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                    "canonicalBaseUrl": "/@RickAstleyYT"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Rick Astley",
+                    "styleRuns": [
+                     {
+                      "startIndex": 5,
+                      "styleRunExtensions": {
+                       "styleRunColorMapExtension": {
+                        "colorMap": [
+                         {
+                          "key": "USER_INTERFACE_THEME_LIGHT",
+                          "value": 4284506208
+                         },
+                         {
+                          "key": "USER_INTERFACE_THEME_DARK",
+                          "value": 4289374890
+                         }
+                        ]
+                       }
+                      }
+                     }
+                    ],
+                    "attachmentRuns": [
+                     {
+                      "startIndex": 5,
+                      "length": 0,
+                      "element": {
+                       "type": {
+                        "imageType": {
+                         "image": {
+                          "sources": [
+                           {
+                            "clientResource": {
+                             "imageName": "CHECK_CIRCLE_FILLED"
+                            },
+                            "width": 14,
+                            "height": 14
+                           }
+                          ]
+                         }
+                        }
+                       },
+                       "properties": {
+                        "layoutProperties": {
+                         "height": {
+                          "value": 14,
+                          "unit": "DIMENSION_UNIT_POINT"
+                         },
+                         "width": {
+                          "value": 14,
+                          "unit": "DIMENSION_UNIT_POINT"
+                         },
+                         "margin": {
+                          "left": {
+                           "value": 4,
+                           "unit": "DIMENSION_UNIT_POINT"
+                          }
+                         }
+                        }
+                       }
+                      },
+                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "443M views"
+                   }
+                  }
+                 ],
+                 "lockupContentMetadataRowExtension": {
+                  "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                 }
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "dQw4w9WgXcQ",
+           "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+           "rendererContext": {
+            "accessibilityContext": {
+             "label": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster) 3 minutes, 34 seconds"
+            },
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "/watch?v=dQw4w9WgXcQ",
+                 "webPageType": "WEB_PAGE_TYPE_WATCH",
+                 "rootVe": 3832
+                }
+               },
+               "watchEndpoint": {
+                "videoId": "dQw4w9WgXcQ"
+               }
+              }
+             }
+            }
+           }
+          }
+         },
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE1CKgBEF5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLBTcDLyj2N_LR_KHlNAzw-gZeXBZg&usqp=CBU",
+                "width": 168,
+                "height": 94
+               },
+               {
+                "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE1CMQBEG5IVfKriqkDKAgBFQAAiEIYAXABwAEG8AEB-AG-AoAC8AGKAgwIABABGFUgWShlMA-i85f_Aw4I--P_qwYY4OoEIOCoAQ==&rs=AOn4CLCnxX9TMLnOY42Ky8wUN8zDgl5_BA&usqp=CBU",
+                "width": 196,
+                "height": 110
+               },
+               {
+                "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLCiHtd7eg7isTAqLeS0s02kQnXb2w&usqp=CBU",
+                "width": 246,
+                "height": 138
+               },
+               {
+                "url": "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBvgKAAvABigIMCAAQARhVIFkoZTAPovOX_wMOCPvj_6sGGODqBCDgqAE=&rs=AOn4CLAZ70jLhlCzg4sg2blj6QtEGq8p5w&usqp=CBU",
+                "width": 336,
+                "height": 188
+               }
+              ]
+             },
+             "overlays": [
+              {
+               "thumbnailBottomOverlayViewModel": {
+                "progressBar": {
+                 "thumbnailOverlayProgressBarViewModel": {
+                  "startPercent": 10
+                 }
+                },
+                "badges": [
+                 {
+                  "thumbnailBadgeViewModel": {
+                   "text": "0:19",
+                   "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                   "rendererContext": {
+                    "accessibilityContext": {
+                     "label": "19 seconds"
+                    }
+                   }
+                  }
+                 }
+                ]
+               }
+              }
+             ]
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Me at the zoo"
+             },
+             "image": {
+              "decoratedAvatarViewModel": {
+               "avatar": {
+                "avatarViewModel": {
+                 "image": {
+                  "sources": [
+                   {
+                    "url": "https://yt3.ggpht.com/uI3VE4PVqvCy0xnWLqMJnEzyBUm3T8VHOCp4ee-1RxdHqKXCdUE_qXYQnpf9AfuEoIPactVyDhM=s68-c-k-c0x00ffffff-no-rj",
+                    "width": 68,
+                    "height": 68
+                   }
+                  ]
+                 },
+                 "avatarImageSize": "AVATAR_SIZE_M"
+                }
+               },
+               "a11yLabel": "Go to channel jawed",
+               "rendererContext": {
+                "commandContext": {
+                 "onTap": {
+                  "innertubeCommand": {
+                   "commandMetadata": {
+                    "webCommandMetadata": {
+                     "url": "/@jawed",
+                     "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                     "rootVe": 3611,
+                     "apiUrl": "/youtubei/v1/browse"
+                    }
+                   },
+                   "browseEndpoint": {
+                    "browseId": "UC4QobU6STFB0P71PMvOGN5A",
+                    "canonicalBaseUrl": "/@jawed"
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "jawed",
+                    "styleRuns": [
+                     {
+                      "startIndex": 5,
+                      "styleRunExtensions": {
+                       "styleRunColorMapExtension": {
+                        "colorMap": [
+                         {
+                          "key": "USER_INTERFACE_THEME_LIGHT",
+                          "value": 4284506208
+                         },
+                         {
+                          "key": "USER_INTERFACE_THEME_DARK",
+                          "value": 4289374890
+                         }
+                        ]
+                       }
+                      }
+                     }
+                    ],
+                    "attachmentRuns": [
+                     {
+                      "startIndex": 5,
+                      "length": 0,
+                      "element": {
+                       "type": {
+                        "imageType": {
+                         "image": {
+                          "sources": [
+                           {
+                            "clientResource": {
+                             "imageName": "CHECK_CIRCLE_FILLED"
+                            },
+                            "width": 14,
+                            "height": 14
+                           }
+                          ]
+                         }
+                        }
+                       },
+                       "properties": {
+                        "layoutProperties": {
+                         "height": {
+                          "value": 14,
+                          "unit": "DIMENSION_UNIT_POINT"
+                         },
+                         "width": {
+                          "value": 14,
+                          "unit": "DIMENSION_UNIT_POINT"
+                         },
+                         "margin": {
+                          "left": {
+                           "value": 4,
+                           "unit": "DIMENSION_UNIT_POINT"
+                          }
+                         }
+                        }
+                       }
+                      },
+                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                     }
+                    ]
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "443M views"
+                   }
+                  }
+                 ],
+                 "lockupContentMetadataRowExtension": {
+                  "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                 }
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "jNQXAC9IVRw",
+           "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+           "rendererContext": {
+            "accessibilityContext": {
+             "label": "Me at the zoo 19 seconds"
+            },
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "/watch?v=jNQXAC9IVRw",
+                 "webPageType": "WEB_PAGE_TYPE_WATCH",
+                 "rootVe": 3832
+                }
+               },
+               "watchEndpoint": {
+                "videoId": "jNQXAC9IVRw"
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

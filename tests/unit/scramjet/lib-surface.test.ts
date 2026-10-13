@@ -23,4 +23,10 @@ describe('the @fkn/lib surface this client reads', () => {
     expect(typeof lib.fetch).toBe('function')
     expect(typeof net.connect).toBe('function')
   })
+
+  // the history import's browser session calls (platform.ts), and the category ask is what lets one sheet carry its reason
+  it('has the extension calls the history import makes', () => {
+    expect(typeof lib.extension.cookies.get).toBe('function')
+    expect(typeof lib.extension.permissions.request).toBe('function')
+  })
 })

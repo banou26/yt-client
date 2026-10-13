@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 const relayWorker = vi.fn<() => Promise<void>>()
+const extensionFetch = vi.fn(async (_url: string, _init: RequestInit) => new Response(null))
+const getCookie = vi.fn(async (_details: { url: string, name: string }) => null)
+const requestPermissions = vi.fn(async (_requests: unknown[]) => [{ allow: true }])
 
 vi.mock('@fkn/lib', () => ({
   FORGEABLE_HEADERS: ['origin', 'referer', 'cookie'],
-  extension: { fetch: async () => new Response(null) },
+  extension: { fetch: extensionFetch, cookies: { get: getCookie }, permissions: { request: requestPermissions } },
   isExtensionExposed: () => false,
   promptInstall: async () => false,
   relayWorker,
@@ -51,7 +54,21 @@ describe('starting the platform', () => {
     relayWorker.mockResolvedValue(undefined)
     const { startPlatform } = await import('../../../src/scramjet/platform')
     const platform = await startPlatform()
-    expect(Object.keys(platform).sort()).toEqual(['abortEgress', 'openEgressPort', 'openExtFetchPort', 'promptInstall'])
+    expect(Object.keys(platform).sort()).toEqual(['abortEgress', 'browserSession', 'openEgressPort', 'openExtFetchPort', 'promptInstall'])
     expect(relayWorker).toHaveBeenCalledTimes(1)
+  })
+
+  // the history import's only way to the browser's YouTube session, and every call goes to the extension, never to the cloud
+  it('binds the browser session calls to the extension', async () => {
+    relayWorker.mockResolvedValue(undefined)
+    const { startPlatform } = await import('../../../src/scramjet/platform')
+    const { browserSession } = await startPlatform()
+    await browserSession.requestNetwork(['www.youtube.com'], 'reason')
+    expect(requestPermissions).toHaveBeenCalledWith([{ category: 'network', hosts: ['www.youtube.com'], reason: 'reason' }])
+    await browserSession.cookie({ url: 'https://www.youtube.com', name: 'SAPISID' })
+    expect(getCookie).toHaveBeenCalledWith({ url: 'https://www.youtube.com', name: 'SAPISID' })
+    const init: RequestInit = { method: 'POST', credentials: 'include' }
+    await browserSession.fetch('https://www.youtube.com/youtubei/v1/browse', init)
+    expect(extensionFetch).toHaveBeenCalledWith('https://www.youtube.com/youtubei/v1/browse', init)
   })
 })
