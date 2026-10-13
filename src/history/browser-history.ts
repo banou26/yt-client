@@ -1,9 +1,8 @@
 import type { SourceVideo } from '../sources/types'
 
-import { startPlatform } from '../scramjet/platform'
 import { WEB_CLIENT_VERSION } from '../sources/youtube/client-version'
 import { normalizeFeedVideo, normalizeLockupVideo } from '../sources/youtube/normalize'
-import { saveImportedHistory } from './store'
+import { deleteImportedHistory, saveImportedHistory } from './store'
 
 /**
  * One video of the imported copy. `watchedOn` is the local day YouTube's History page lists it under, as
@@ -17,7 +16,8 @@ export type HistoryEntry =
     heading?: string
   }
 
-export type ImportedHistory = { importedAt: number, entries: HistoryEntry[] }
+/** `session` names the browser's YouTube session the copy was read through: a digest of its SAPISID, never the cookie. */
+export type ImportedHistory = { importedAt: number, session: string, entries: HistoryEntry[] }
 
 /** The extension calls the import makes, all on the browser's own session; `platform.ts` binds them to `@fkn/lib`. */
 export type BrowserSession = {
@@ -28,8 +28,26 @@ export type BrowserSession = {
 
 const YOUTUBE_HOST = 'www.youtube.com'
 const YOUTUBE_ORIGIN = `https://${YOUTUBE_HOST}`
-const REASON = 'Import your watch history from YouTube on this browser'
-const NOT_SIGNED_IN = 'This browser is not signed in to YouTube'
+const IMPORT_REASON = 'Import your watch history from YouTube on this browser'
+const SHOW_REASON = 'Show the history you imported for the YouTube account on this browser'
+
+/** A failed import whose message is the one line the History page shows. */
+export class HistoryImportError extends Error {}
+
+/** The browser is not signed in to YouTube, by its cookies or by YouTube's own answer. */
+export class SignedOutError extends HistoryImportError {
+  constructor() {
+    super('This browser is not signed in to YouTube')
+  }
+}
+
+/** The line the History page shows for a failed import or check. */
+export const importFailure = (error: unknown) =>
+  error instanceof HistoryImportError
+    ? error.message
+    : error instanceof Error && error.name === 'ExtensionOutdatedError'
+      ? 'Update the FKN extension to import your history'
+      : 'Could not import your history, try again'
 
 type BrandedAgent = { userAgentData?: { brands?: { brand: string }[] } }
 
@@ -38,13 +56,19 @@ export const canImportBrowserHistory = (agent: BrandedAgent = navigator as Navig
   agent.userAgentData?.brands?.some(({ brand }) => brand === 'Chromium') === true
 
 // yt-dlp counts a jar as signed in only with LOGIN_INFO; youtube.com hashes SAPISID, or __Secure-3PAPISID without it
-const readSapisid = async (session: BrowserSession) => {
+const readSapisid = async (session: BrowserSession, reason: string) => {
+  const [grant] = await session.requestNetwork([YOUTUBE_HOST], reason)
+  if (!grant?.allow) throw new HistoryImportError('Allow YouTube access to import your history')
   const [login, sapisid, secure] = await Promise.all(
     ['LOGIN_INFO', 'SAPISID', '__Secure-3PAPISID'].map((name) => session.cookie({ url: YOUTUBE_ORIGIN, name })),
   )
   const value = sapisid?.value || secure?.value
-  if (!login || !value) throw new Error(NOT_SIGNED_IN)
-  return value
+  return login && value ? value : undefined
+}
+
+const sessionOf = async (sapisid: string) => {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`yt-client history ${sapisid}`))
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 // the browser attaches its own jar, so the cookie youtubei.js builds from the SAPISID is dropped: the extension refuses an app cookie beside credentials: 'include'
@@ -147,15 +171,14 @@ const signedOut = (data: unknown) =>
 /**
  * Reads the whole watch history of the YouTube account signed in on this browser (its default account), read only:
  * one Network ask on www.youtube.com, the session's SAPISID, then YouTube's own FEhistory feed page by page through
- * the browser's cookies. Throws a sentence the History page shows as is.
+ * the browser's cookies. Throws a `HistoryImportError` when access is declined or the browser is signed out.
  */
 export const readBrowserHistory = async (
   session: BrowserSession,
   { now = new Date(), onProgress }: { now?: Date, onProgress?: (count: number) => void } = {},
-) => {
-  const [grant] = await session.requestNetwork([YOUTUBE_HOST], REASON)
-  if (!grant?.allow) throw new Error('Allow YouTube access to import your history')
-  const sapisid = await readSapisid(session)
+): Promise<ImportedHistory> => {
+  const sapisid = await readSapisid(session, IMPORT_REASON)
+  if (!sapisid) throw new SignedOutError()
   const { Innertube, YT } = await import('youtubei.js/web')
   const client = await Innertube.create({
     fetch: sessionFetch(session),
@@ -168,15 +191,28 @@ export const readBrowserHistory = async (
   })
   client.session.context.client.clientVersion = WEB_CLIENT_VERSION
   const response = await client.actions.execute('/browse', { browseId: 'FEhistory' })
-  if (signedOut(response.data)) throw new Error(NOT_SIGNED_IN)
-  return collect(new YT.History(client.actions, response) as unknown as HistoryPage, now, onProgress)
+  if (signedOut(response.data)) throw new SignedOutError()
+  const entries = await collect(new YT.History(client.actions, response) as unknown as HistoryPage, now, onProgress)
+  return { importedAt: now.getTime(), session: await sessionOf(sapisid), entries }
 }
 
-/** Reads the browser account's history and replaces the kept copy with it. */
-export const importBrowserHistory = async (onProgress?: (count: number) => void) => {
-  const platform = await startPlatform()
-  const entries = await readBrowserHistory(platform.browserSession, { onProgress })
-  const history: ImportedHistory = { importedAt: Date.now(), entries }
+/** Reads the browser account's history and replaces the kept copy with it; a signed out browser deletes the copy. */
+export const importBrowserHistory = async (session: BrowserSession, onProgress?: (count: number) => void) => {
+  const history = await readBrowserHistory(session, { onProgress }).catch(async (error: unknown) => {
+    if (error instanceof SignedOutError) await deleteImportedHistory()
+    throw error
+  })
   await saveImportedHistory(history)
   return history
+}
+
+/**
+ * `kept` when the browser is still signed in to the YouTube session it was read through. A copy of any other
+ * session, or of none, is deleted and answers undefined. Throws when the session cannot be read.
+ */
+export const keptBrowserHistory = async (session: BrowserSession, kept: ImportedHistory) => {
+  const sapisid = await readSapisid(session, SHOW_REASON)
+  if (sapisid && kept.session === await sessionOf(sapisid)) return kept
+  await deleteImportedHistory()
+  return undefined
 }

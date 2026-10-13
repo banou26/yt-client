@@ -14,8 +14,9 @@ import { showToast } from '../components/ui/toast'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { gql } from '../generated'
-import { canImportBrowserHistory, dayHeading, importBrowserHistory } from '../history/browser-history'
+import { canImportBrowserHistory, dayHeading, importBrowserHistory, importFailure, keptBrowserHistory, SignedOutError } from '../history/browser-history'
 import { deleteImportedHistory, readImportedHistory } from '../history/store'
+import { startPlatform } from '../scramjet/platform'
 import { useSession } from '../session'
 
 const WATCH_HISTORY_QUERY = gql(`
@@ -323,37 +324,62 @@ const importedSections = (entries: HistoryEntry[], now: Date) => {
   return sections
 }
 
-const failureOf = (error: unknown) =>
-  error instanceof Error && error.name === 'ExtensionOutdatedError'
-    ? 'Update the FKN extension to import your history'
-    : error instanceof Error ? error.message : String(error)
-
 const SignedOutHistory = ({ onSignIn }: { onSignIn: () => void }) => {
   const exposed = useExtensionExposed()
   const offered = exposed === true && canImportBrowserHistory()
   const [imported, setImported] = useState<ImportedHistory | undefined>()
+  // a kept copy this page cannot match to the browser's YouTube session: never listed, still deletable
+  const [unmatched, setUnmatched] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [progress, setProgress] = useState<number | undefined>()
   const [failure, setFailure] = useState<string | undefined>()
 
   useEffect(() => {
-    void readImportedHistory().then(setImported, () => {}).finally(() => setLoaded(true))
-  }, [])
+    let current = true
+    const settle = (shown: ImportedHistory | undefined, kept = shown !== undefined) => {
+      if (!current) return
+      setImported(shown)
+      setUnmatched(kept && !shown)
+      setLoaded(true)
+    }
+    void readImportedHistory().then(async (kept) => {
+      if (!kept || !offered) return settle(undefined, kept !== undefined)
+      settle(await keptBrowserHistory((await startPlatform()).browserSession, kept))
+    }).catch(() => settle(undefined, true))
+    return () => {
+      current = false
+    }
+  }, [offered])
 
   const runImport = () => {
     if (progress !== undefined) return
     setFailure(undefined)
     setProgress(0)
-    void importBrowserHistory(setProgress).then(setImported, (error: unknown) => setFailure(failureOf(error)))
-      .finally(() => setProgress(undefined))
+    void startPlatform().then(({ browserSession }) => importBrowserHistory(browserSession, setProgress)).then((history) => {
+      setImported(history)
+      setUnmatched(false)
+    }, (error: unknown) => {
+      setFailure(importFailure(error))
+      if (!(error instanceof SignedOutError)) return
+      setImported(undefined)
+      setUnmatched(false)
+    }).finally(() => setProgress(undefined))
   }
 
   const onDelete = () => {
     void deleteImportedHistory().then(() => {
       setImported(undefined)
+      setUnmatched(false)
       showToast('Imported history deleted')
-    }, (error: unknown) => showToast(failureOf(error)))
+    }, () => showToast('Could not delete the imported history'))
   }
+
+  const deleteButton = (
+    <button type='button' className='sign-in' onClick={onDelete}>
+      <Trash2 size={20} strokeWidth={1.5} />
+      Delete imported history
+    </button>
+  )
 
   const importButton = (label: string) => (
     <button type='button' className='sign-in' disabled={progress !== undefined} onClick={runImport}>
@@ -376,6 +402,7 @@ const SignedOutHistory = ({ onSignIn }: { onSignIn: () => void }) => {
               Sign in
             </button>
             {offered ? importButton('Import from YouTube on this browser') : undefined}
+            {unmatched ? deleteButton : undefined}
           </div>
           {failure ? <p className='notice'>{failure}</p> : undefined}
         </div>
@@ -388,10 +415,7 @@ const SignedOutHistory = ({ onSignIn }: { onSignIn: () => void }) => {
       <h1 className='heading'>Watch history</h1>
       <div className='actions'>
         {offered ? importButton('Import again') : undefined}
-        <button type='button' className='sign-in' onClick={onDelete}>
-          <Trash2 size={20} strokeWidth={1.5} />
-          Delete imported history
-        </button>
+        {deleteButton}
       </div>
       {failure ? <p className='notice'>{failure}</p> : undefined}
       {importedSections(imported.entries, new Date()).map(section => (

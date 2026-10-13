@@ -164,7 +164,7 @@ const create = async () => {
     return channel.port2
   }
 
-  // the history import reads the browser's own YouTube session through these, extension calls only, so this realm still makes no cloud call
+  // the history import's only way to the browser's own YouTube session: each call goes to the extension alone, never to the broker or a relay
   const browserSession: BrowserSession = {
     requestNetwork: (hosts, reason) => lib.extension.permissions.request([{ category: 'network', hosts, reason }]),
     cookie: (details) => lib.extension.cookies.get(details),
