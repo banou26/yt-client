@@ -140,7 +140,7 @@ describe('reading a watch page', () => {
     await expect(takePageChallenge()).rejects.toThrow('youtube: player response is missing')
   })
 
-  it.each([429, 503])('reads the page again after a %i, and answers both from the page that follows', async (status) => {
+  it.each([429, 500, 503])('reads the page again after a %i, and answers both from the page that follows', async (status) => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     statuses.push(status)
@@ -161,7 +161,9 @@ describe('reading a watch page', () => {
     const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
     const player = fetchPlayerResponse('video-1')
     void player.catch(() => {})
-    await vi.advanceTimersByTimeAsync(1_500)
+    await vi.advanceTimersByTimeAsync(1_499)
+    expect(fetched).toHaveLength(2)
+    await vi.advanceTimersByTimeAsync(1)
     await expect(player).rejects.toThrow('youtube: the watch page returned 429')
     await expect(takePageChallenge()).rejects.toThrow('youtube: the watch page returned 429')
     expect(fetched).toHaveLength(3)
