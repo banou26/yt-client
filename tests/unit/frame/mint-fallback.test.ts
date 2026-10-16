@@ -428,7 +428,7 @@ describe('minting with the flag off', () => {
 
 describe('a session that never settles', () => {
   let agent: ReturnType<typeof sessionAgent> | undefined
-  let interpreters: (() => void)[]
+  let interpreters: ((error?: Error) => void)[]
 
   // the engine page's VM, numbering its sessions from 1, each minting tokens of its own
   const sessionAgent = () => {
@@ -460,7 +460,9 @@ describe('a session that never settles', () => {
     interpreters = []
     egress.egressFetch.mockReset()
     egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'interpreter'
-      ? new Promise<Response>((resolve) => { interpreters.push(() => resolve(answerEgress(url))) })
+      ? new Promise<Response>((resolve, reject) => {
+        interpreters.push((error) => error ? reject(error) : resolve(answerEgress(url)))
+      })
       : answerEgress(url))
     installRealm()
   })
@@ -507,6 +509,46 @@ describe('a session that never settles', () => {
     await until(() => interpreters.length === 2)
     interpreters[0]!()
     await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe('token-of-1') })
+  })
+
+  it('the session waited out failing late leaves the one started in its place pending, and starts no other', async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    interpreters[0]!(new Error('the connection was reset'))
+    await until(() => vi.mocked(console.error).mock.calls.length === 1)
+
+    // no timer advances from here: a mint that waited on a new session would never settle
+    let settled = false
+    const next = mintPoToken('video-2').finally(() => { settled = true })
+    await until(() => settled)
+    expect(settled).toBe(true)
+    expect(await next).not.toMatch(/^token-of-/)
+    expect(interpreters).toHaveLength(2)
+    interpreters[1]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-3')).toBe('token-of-1') })
+  })
+
+  it("the later of two sessions from this realm's VM has its script removed", async () => {
+    let made = 0
+    const removed: number[] = []
+    vi.stubGlobal('document', {
+      ...(globalThis as unknown as { document: object }).document,
+      createElement: () => {
+        const element = ++made
+        return { textContent: '', remove: () => { removed.push(element) } }
+      },
+    })
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    interpreters[1]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe(mintedBy('scramjet', 'video-2')) })
+    interpreters[0]!()
+    await vi.waitFor(() => { expect(removed).toEqual([2]) })
   })
 
   it('of the two, the first to settle is kept and the later one is shut down', async () => {
