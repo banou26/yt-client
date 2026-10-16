@@ -223,6 +223,40 @@ describe('minting when the FKN engine page fails', () => {
     expect(agent.reports).toEqual([{ type: 'report', engine: 'agent' }, { type: 'report', mint: 'cold' }])
   })
 
+  it('a Scramjet session the first mint waited only the rest of its wait for is waited on by the next mint', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    let integrityTokens = 0
+    let answerRetry: (() => void) | undefined
+    egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'GenerateIT' && ++integrityTokens > 1
+      ? new Promise<Response>((resolve) => { answerRetry = () => resolve(answerEgress(url)) })
+      : answerEgress(url))
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    let create = 0
+    agent = connectAgent(({ id, method }) => {
+      if (method === 'create') {
+        create = id
+        return undefined
+      }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      if (method === 'mint') return { error: AGENT_REPLACED }
+      return { result: undefined }
+    })
+    await readWatchPage()
+    const first = mintPoToken('video-1')
+    await until(() => create !== 0)
+    await vi.advanceTimersByTimeAsync(4_000)
+    agent.reply(create, { result: 7 })
+    await until(() => answerRetry !== undefined)
+    await vi.advanceTimersByTimeAsync(6_000)
+    expect(await first).not.toBe(mintedBy('scramjet', 'video-1'))
+
+    const second = mintPoToken('video-2')
+    await immediate()
+    answerRetry!()
+    expect(await second).toBe(mintedBy('scramjet', 'video-2'))
+  })
+
   it('with a watch page that carries no challenge, the token is cold and the frame reports it cold, with no attestation call', async () => {
     vi.unstubAllGlobals()
     realm = installRealm({ challenge: false })

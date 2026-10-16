@@ -272,14 +272,6 @@ const SESSION_WAIT_MS = 10_000
 // 2026-10-16, one whose interpreter fetch died with fkn.app's data plane worker cost every mint its 10 s
 let waitedOut: Promise<MinterSession> | undefined
 
-const sessionWithin = async (viaAgent: boolean, waitOver: Promise<undefined>) => {
-  const next = getSession(viaAgent)
-  if (next === waitedOut) return undefined
-  const live = await Promise.race([next.catch(() => undefined), waitOver])
-  if (live === undefined && next === pending) waitedOut = next
-  return live
-}
-
 export const mintPoToken = async (identifier: string) => {
   if (session && performance.now() < session.expiresAt) {
     const minted = await mintLive(session, identifier)
@@ -293,12 +285,14 @@ export const mintPoToken = async (identifier: string) => {
   }
   // MUST wait rather than start cold: SABR fixes attestation state from a stream's first request, for its whole life
   const waitOver = new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) })
-  const live = await sessionWithin(true, waitOver)
+  const next = getSession()
+  const live = next === waitedOut ? undefined : await Promise.race([next.catch(() => undefined), waitOver])
+  if (!live && next === pending) waitedOut = next
   if (live) {
     const minted = await mintLive(live, identifier)
     if (minted !== undefined) return minted
     // only an agent session answers undefined: its first mint failed, so this realm's own VM gets the rest of the wait
-    const own = await sessionWithin(false, waitOver)
+    const own = await Promise.race([getSession(false).catch(() => undefined), waitOver])
     const retried = own && await mintLive(own, identifier)
     if (retried !== undefined) return retried
   }
