@@ -288,9 +288,68 @@ describe('minting with the flag off', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
     delete (globalThis as Record<string, unknown>)[GLOBAL_NAME]
     delete (globalThis as Record<string, unknown>).yt
+  })
+
+  it('a session one mint waited its whole wait for sends the next mints cold at once, until it settles', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    let answerIntegrity: (() => void) | undefined
+    egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'GenerateIT'
+      ? new Promise<Response>((resolve) => { answerIntegrity = () => resolve(answerEgress(url)) })
+      : answerEgress(url))
+    installRealm()
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    await readWatchPage()
+
+    let firstSettled = false
+    const first = mintPoToken('video-1').finally(() => { firstSettled = true })
+    await until(() => answerIntegrity !== undefined)
+    await vi.advanceTimersByTimeAsync(9_999)
+    expect(firstSettled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(await first).not.toBe(mintedBy('scramjet', 'video-1'))
+
+    // no timer advances from here: a mint that waited on the same session again would never settle
+    let secondSettled = false
+    const second = mintPoToken('video-2').finally(() => { secondSettled = true })
+    await until(() => secondSettled)
+    expect(secondSettled).toBe(true)
+    expect(await second).not.toBe(mintedBy('scramjet', 'video-2'))
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
+
+    answerIntegrity!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-3')).toBe(mintedBy('scramjet', 'video-3')) })
+  })
+
+  it('once the session a mint waited out fails, the next mint waits on the new one', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const integrityAnswers: ((ok: boolean) => void)[] = []
+    egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'GenerateIT'
+      ? new Promise<Response>((resolve) => {
+        integrityAnswers.push(ok => resolve(ok ? answerEgress(url) : new Response(null, { status: 500 })))
+      })
+      : answerEgress(url))
+    installRealm()
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    await readWatchPage()
+
+    const first = mintPoToken('video-1')
+    await until(() => integrityAnswers.length === 1)
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await first).not.toBe(mintedBy('scramjet', 'video-1'))
+    integrityAnswers[0]!(false)
+
+    await readWatchPage('video-2')
+    const second = mintPoToken('video-2')
+    await until(() => integrityAnswers.length === 2)
+    integrityAnswers[1]!(true)
+    expect(await second).toBe(mintedBy('scramjet', 'video-2'))
   })
 
   it("with no agent port, every session is this realm's, on the challenge and the ytcfg of the watch page read", async () => {
