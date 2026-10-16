@@ -329,7 +329,7 @@ describe('minting with the flag off', () => {
     delete (globalThis as Record<string, unknown>).yt
   })
 
-  it('a session one mint waited its whole wait for sends the next mints cold at once, until it settles', async () => {
+  it('a session one mint waited its whole wait for sends the next mints cold at once, until a session settles', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     vi.spyOn(console, 'error').mockImplementation(() => {})
     let answerIntegrity: (() => void) | undefined
@@ -348,21 +348,22 @@ describe('minting with the flag off', () => {
     await vi.advanceTimersByTimeAsync(1)
     expect(await first).not.toBe(mintedBy('scramjet', 'video-1'))
 
-    // no timer advances from here: a mint that waited on the same session again would never settle
+    // no timer advances from here: a mint that waited on that session or the one started in its place would never settle
     let secondSettled = false
     const second = mintPoToken('video-2').finally(() => { secondSettled = true })
     await until(() => secondSettled)
     expect(secondSettled).toBe(true)
     expect(await second).not.toBe(mintedBy('scramjet', 'video-2'))
-    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT'])
+    await until(() => egress.egressFetch.mock.calls.length === 4)
+    expect(egress.egressFetch.mock.calls.map(([url]) => endpoint(url as string))).toEqual(['interpreter', 'GenerateIT', 'interpreter', 'GenerateIT'])
 
     answerIntegrity!()
     await vi.waitFor(async () => { expect(await mintPoToken('video-3')).toBe(mintedBy('scramjet', 'video-3')) })
   })
 
-  it('once the session a mint waited out fails, the next mint waits on the new one', async () => {
+  it('once the session started in place of a waited-out one fails, the next mint waits on a new one', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const integrityAnswers: ((ok: boolean) => void)[] = []
     egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'GenerateIT'
       ? new Promise<Response>((resolve) => {
@@ -377,12 +378,14 @@ describe('minting with the flag off', () => {
     await until(() => integrityAnswers.length === 1)
     await vi.advanceTimersByTimeAsync(10_000)
     expect(await first).not.toBe(mintedBy('scramjet', 'video-1'))
-    integrityAnswers[0]!(false)
+    await until(() => integrityAnswers.length === 2)
+    integrityAnswers[1]!(false)
+    await until(() => error.mock.calls.length === 1)
 
     await readWatchPage('video-2')
     const second = mintPoToken('video-2')
-    await until(() => integrityAnswers.length === 2)
-    integrityAnswers[1]!(true)
+    await until(() => integrityAnswers.length === 3)
+    integrityAnswers[2]!(true)
     expect(await second).toBe(mintedBy('scramjet', 'video-2'))
   })
 
@@ -420,5 +423,132 @@ describe('minting with the flag off', () => {
     expect(await mintPoToken('video-1')).toBe(mintedBy('scramjet', 'video-1'))
     expect(realm.watched).toHaveLength(1)
     expect(egress.egressFetch).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('a session that never settles', () => {
+  let agent: ReturnType<typeof sessionAgent> | undefined
+  let interpreters: (() => void)[]
+
+  // the engine page's VM, numbering its sessions from 1, each minting tokens of its own
+  const sessionAgent = () => {
+    let created = 0
+    const shutdowns: unknown[] = []
+    const connected = connectAgent(({ method, args }) => {
+      if (method === 'create') return { result: ++created }
+      if (method === 'snapshot') return { result: 'agent snapshot' }
+      if (method === 'mint') return { result: `token-of-${String(args[0])}` }
+      if (method === 'shutdown') shutdowns.push(args[0])
+      return { result: undefined }
+    })
+    return { ...connected, shutdowns }
+  }
+
+  // the first mint waits the whole 10000 ms on the first session, whose interpreter fetch has not answered
+  const waitOutFirst = async (mintPoToken: (identifier: string) => Promise<string>) => {
+    const first = mintPoToken('video-1')
+    await until(() => interpreters.length === 1)
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await first).not.toMatch(/^token-of-/)
+  }
+
+  beforeEach(() => {
+    vi.resetModules()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    interpreters = []
+    egress.egressFetch.mockReset()
+    egress.egressFetch.mockImplementation(async (url: string) => endpoint(url) === 'interpreter'
+      ? new Promise<Response>((resolve) => { interpreters.push(() => resolve(answerEgress(url))) })
+      : answerEgress(url))
+    installRealm()
+  })
+
+  afterEach(() => {
+    agent?.close()
+    agent = undefined
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    delete (globalThis as Record<string, unknown>)[GLOBAL_NAME]
+    delete (globalThis as Record<string, unknown>).yt
+  })
+
+  it('once a mint waited it out, a new session starts in the background and the next mint takes its token', async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    expect(interpreters).toHaveLength(2)
+    interpreters[1]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe('token-of-1') })
+  })
+
+  it('never more than one session is started in place of it, however many mints go cold', async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    for (const video of ['video-2', 'video-3', 'video-4']) {
+      const token = mintPoToken(video)
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(await token).not.toMatch(/^token-of-/)
+    }
+    expect(interpreters).toHaveLength(2)
+  })
+
+  it('the session waited out is used if it settles late, while the one started in its place is still pending', async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    interpreters[0]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe('token-of-1') })
+  })
+
+  it('of the two, the first to settle is kept and the later one is shut down', async () => {
+    const { mintPoToken } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    interpreters[1]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe('token-of-1') })
+    interpreters[0]!()
+    await vi.waitFor(() => { expect(agent!.shutdowns).toEqual([2]) })
+    expect(await mintPoToken('video-3')).toBe('token-of-1')
+  })
+
+  it('a recovery waits on it for 10000 ms, not for good, and starts the new session', async () => {
+    const { mintPoToken, recoverPoTokenSession, warmPoTokenSession } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    warmPoTokenSession('video-1')
+    await until(() => interpreters.length === 1)
+    let recovered = false
+    const recovery = recoverPoTokenSession().finally(() => { recovered = true })
+    await vi.advanceTimersByTimeAsync(9_999)
+    expect(recovered).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    await recovery
+    await until(() => interpreters.length === 2)
+    interpreters[1]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-1')).toBe('token-of-1') })
+  })
+
+  it('a recovery drops the session that settled late, even while the one started in its place is pending', async () => {
+    const { mintPoToken, recoverPoTokenSession } = await import('../../../src/frame/botguard')
+    agent = sessionAgent()
+    await readWatchPage()
+    await waitOutFirst(mintPoToken)
+    await until(() => interpreters.length === 2)
+    interpreters[0]!()
+    await vi.waitFor(async () => { expect(await mintPoToken('video-2')).toBe('token-of-1') })
+    await recoverPoTokenSession()
+    expect(agent.shutdowns).toEqual([1])
+    expect(await mintPoToken('video-3')).not.toMatch(/^token-of-/)
   })
 })

@@ -214,21 +214,33 @@ const reportSessionFailure = (error: unknown) => {
   )
 }
 
-const getSession = (viaAgent = true) => {
-  if (session && performance.now() < session.expiresAt) return Promise.resolve(session)
-  pending ??= newSession(viaAgent).then(
+const startSession = (viaAgent: boolean) => {
+  const attempt: Promise<MinterSession> = newSession(viaAgent).then(
     (next) => {
+      if (pending === attempt) pending = undefined
+      // a session waited out can settle after the one started in its place: the first to settle is kept
+      if (session && performance.now() < session.expiresAt) {
+        next.script.remove()
+        void next.client.shutdown().catch(() => {})
+        return session
+      }
       session = next
-      pending = undefined
       reported.clear()
       return next
     },
     (error: unknown) => {
-      pending = undefined
+      if (pending === attempt) pending = undefined
       reportSessionFailure(error)
       throw error
     },
   )
+  void attempt.catch(() => {})
+  return attempt
+}
+
+const getSession = (viaAgent = true) => {
+  if (session && performance.now() < session.expiresAt) return Promise.resolve(session)
+  pending ??= startSession(viaAgent)
   return pending
 }
 
@@ -268,9 +280,21 @@ export const warmPoTokenSession = (identifier: string) => {
 
 const SESSION_WAIT_MS = 10_000
 
-// a session one mint already waited SESSION_WAIT_MS for is not waited on again until it settles: measured
-// 2026-10-16, one whose interpreter fetch died with fkn.app's data plane worker cost every mint its 10 s
+const sessionWait = () => new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) })
+
 let waitedOut: Promise<MinterSession> | undefined
+
+// MUST wait rather than start cold: SABR fixes attestation state from a stream's first request, for its whole life.
+// A session waited the whole SESSION_WAIT_MS is not waited on again, and is used if it settles; one new session starts
+// in its place, not waited on either, so a session that never settles costs one wait instead of every token after it
+// (measured 2026-10-16: an interpreter fetch that died with fkn.app's data plane worker never settled)
+const waitForSession = async (waitOver: Promise<undefined>) => {
+  const next = getSession()
+  if (next === waitedOut) return undefined
+  const live = await Promise.race([next, waitOver])
+  if (!live && next === pending) pending = waitedOut = startSession(true)
+  return live
+}
 
 export const mintPoToken = async (identifier: string) => {
   if (session && performance.now() < session.expiresAt) {
@@ -283,11 +307,8 @@ export const mintPoToken = async (identifier: string) => {
     warmPoTokenSession(identifier)
     return stored
   }
-  // MUST wait rather than start cold: SABR fixes attestation state from a stream's first request, for its whole life
-  const waitOver = new Promise<undefined>((resolve) => { setTimeout(() => resolve(undefined), SESSION_WAIT_MS) })
-  const next = getSession()
-  const live = next === waitedOut ? undefined : await Promise.race([next.catch(() => undefined), waitOver])
-  if (!live && next === pending) waitedOut = next
+  const waitOver = sessionWait()
+  const live = await waitForSession(waitOver).catch(() => undefined)
   if (live) {
     const minted = await mintLive(live, identifier)
     if (minted !== undefined) return minted
@@ -302,12 +323,8 @@ export const mintPoToken = async (identifier: string) => {
 
 export const recoverPoTokenSession = async () => {
   clearStoredTokens()
-  if (pending) {
-    await pending.catch(() => {})
-    return
-  }
   await resetPoTokenSession()
-  await getSession()
+  await waitForSession(sessionWait())
 }
 
 export const resetPoTokenSession = async () => {
