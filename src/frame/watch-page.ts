@@ -1,3 +1,5 @@
+import { readAgain } from '../read-again'
+
 /**
  * A watch page's attestation challenge and the `ytcfg` it was issued with, which BotGuard reads as
  * `yt.config_` (its `EVENT_ID` among it). The two are only used together. Measured on an enforced
@@ -97,19 +99,16 @@ export const readPageChallenge = (html: string): PageChallenge | undefined => {
   }
 }
 
-const WATCH_PAGE_ATTEMPTS = 3
-
 // a signed-in read through the relay carries no nonce, so a retry inside the relay's 60 s error TTL can get the same cached answer
 const fetchWatchPage = async (videoId: string) => {
-  for (let attempt = 1; ; attempt += 1) {
-    const response = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`)
-    if (response.ok) return response
-    void response.body?.cancel().catch(() => {})
-    const retried = response.status === 429 || response.status >= 500
-    if (!retried || attempt === WATCH_PAGE_ATTEMPTS) throw new Error(`youtube: the watch page returned ${response.status}`)
-    console.warn(`youtube: the watch page returned ${response.status}, reading it again`)
-    await new Promise((resolve) => { setTimeout(resolve, 250 * 2 ** attempt) })
-  }
+  const response = await readAgain(
+    () => fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`),
+    ({ status }) => status === 429 || status >= 500,
+    ({ status }) => console.warn(`youtube: the watch page returned ${status}, reading it again`),
+  )
+  if (response.ok) return response
+  void response.body?.cancel().catch(() => {})
+  throw new Error(`youtube: the watch page returned ${response.status}`)
 }
 
 // the player response is answered as soon as it arrives; the read goes on to the challenge, about 78 KB further on a 1.58 MB page

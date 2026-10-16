@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import type { TransportRequest } from '../../../src/scramjet/protocol'
 
@@ -117,5 +117,85 @@ describe('relay nonces', () => {
     const response = await relayFetch('https://www.youtube.com/youtubei/v1/search', { method: 'POST', headers: {}, body, redirect: 'manual' })
     expect(sent[0]!.init).toMatchObject({ method: 'POST', body, credentials: 'omit', redirect: 'manual' })
     expect(response.status).toBe(200)
+  })
+})
+
+// the relay's own refusal as the broker hands it on (handler.rs builds it before the cache, so no upstream status or headers ride along), and two upstream 429s it passes on
+const relayRefusal = () => new Response('{"error":"rate limit exceeded"}', { status: 429 })
+const UPSTREAM_429: [string, () => Response][] = [
+  ['an HTML page', () => new Response('<html><title>Sorry...</title></html>', { status: 429, headers: { 'content-type': 'text/html; charset=UTF-8' } })],
+  ['an InnerTube error', () => new Response('{"error":{"code":429,"message":"Resource has been exhausted","status":"RESOURCE_EXHAUSTED"}}', { status: 429, headers: { 'content-type': 'application/json; charset=UTF-8' } })],
+]
+
+describe("the relay's own rate limit refusal", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  const answering = (answers: (() => Response)[]) => {
+    const sent: Sent[] = []
+    const relayFetch = createRelayFetch(async (url, init) => {
+      sent.push({ url, init })
+      return (answers.shift() ?? (() => new Response('{}', { status: 200 })))()
+    })
+    return { sent, relayFetch }
+  }
+
+  it('is sent again after 500 ms, and the answer that follows is handed on', async () => {
+    const { sent, relayFetch } = answering([relayRefusal])
+    const response = relayFetch('https://www.youtube.com/iframe_api', { method: 'GET', headers: {} })
+    await vi.advanceTimersByTimeAsync(499)
+    expect(sent).toHaveLength(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect((await response).status).toBe(200)
+    expect(sent.map(({ url }) => url)).toEqual(['https://www.youtube.com/iframe_api', 'https://www.youtube.com/iframe_api'])
+    expect(console.warn).toHaveBeenCalledWith('yt-client: the relay is at its rate limit for /iframe_api, sending it again')
+  })
+
+  it('a refused write goes again with its method, headers and body', async () => {
+    const { sent, relayFetch } = answering([relayRefusal])
+    const body = json({ target: { videoId: 'FAlMdord_Fg' } })
+    const response = relayFetch('https://www.youtube.com/youtubei/v1/like/like', { method: 'POST', headers: signedIn, body })
+    await vi.advanceTimersByTimeAsync(500)
+    expect((await response).status).toBe(200)
+    expect(sent).toHaveLength(2)
+    expect(signature(sent[1]!)).toBe(signature(sent[0]!))
+  })
+
+  it('kept up, it is handed on after three sends, 500 ms and then 1 s apart', async () => {
+    const { sent, relayFetch } = answering([relayRefusal, relayRefusal, relayRefusal, relayRefusal])
+    const response = relayFetch('https://www.youtube.com/s/player/0123abcd/player_ias.vflset/en_US/base.js', { method: 'GET', headers: {} })
+    await vi.advanceTimersByTimeAsync(1_499)
+    expect(sent).toHaveLength(2)
+    await vi.advanceTimersByTimeAsync(1)
+    const answer = await response
+    expect(answer.status).toBe(429)
+    expect(await new Response(answer.body).text()).toBe('{"error":"rate limit exceeded"}')
+    expect(sent).toHaveLength(3)
+  })
+
+  it.each([200, 403])('a %i with the same body is handed on at once, never sent again', async (status) => {
+    const { sent, relayFetch } = answering([() => new Response('{"error":"rate limit exceeded"}', { status })])
+    const response = relayFetch('https://www.youtube.com/iframe_api', { method: 'GET', headers: {} })
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect((await response).status).toBe(status)
+    expect(sent).toHaveLength(1)
+    expect(console.warn).not.toHaveBeenCalled()
+  })
+
+  it.each(UPSTREAM_429)("an upstream 429 (%s) is handed on at once, never sent again", async (_, upstream) => {
+    const { sent, relayFetch } = answering([upstream])
+    const answer = await relayFetch('https://www.youtube.com/iframe_api', { method: 'GET', headers: {} })
+    expect(answer.status).toBe(429)
+    expect(await new Response(answer.body).text()).toBe(await upstream().text())
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(sent).toHaveLength(1)
+    expect(console.warn).not.toHaveBeenCalled()
   })
 })

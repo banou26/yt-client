@@ -1,5 +1,7 @@
 import type { TransportRequest, TransportResponse } from './protocol'
 
+import { readAgain } from '../read-again'
+
 /**
  * The request header that gives a relayed call an answer of its own.
  *
@@ -49,17 +51,38 @@ export const withRelayNonce = (url: string, options: TransportRequest) =>
     ? { ...options.headers, [RELAY_NONCE_HEADER]: crypto.randomUUID() }
     : options.headers
 
-/** The egress worker's relay call, over `@fkn/lib`'s `fetch`, which is passed in so the shape can be tested without a broker. */
+/**
+ * Whether an answer is the relay's own refusal at its rate limit (`{"error":"rate limit exceeded"}`),
+ * never an upstream 429 the relay passes on. The relay refuses before its cache and stores nothing,
+ * so the refused call never reached the upstream.
+ */
+const isRelayRefusal = async (response: Response) => {
+  if (response.status !== 429) return false
+  try {
+    return (JSON.parse(await response.clone().text()) as { error?: unknown }).error === 'rate limit exceeded'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * The egress worker's relay call, over `@fkn/lib`'s `fetch`, which is passed in so the shape can be
+ * tested without a broker. A relay refusal (`isRelayRefusal`) is sent again (`readAgain`).
+ */
 export const createRelayFetch = (
   fetchWithFkn: (url: string, init: RequestInit) => Promise<Response>,
 ) => async (url: string, options: TransportRequest): Promise<TransportResponse> => {
-  const response = await fetchWithFkn(url, {
-    method: options.method,
-    headers: withRelayNonce(url, options),
-    body: options.body,
-    credentials: 'omit',
-    redirect: options.redirect,
-  })
+  const response = await readAgain(
+    () => fetchWithFkn(url, {
+      method: options.method,
+      headers: withRelayNonce(url, options),
+      body: options.body,
+      credentials: 'omit',
+      redirect: options.redirect,
+    }),
+    isRelayRefusal,
+    () => console.warn(`yt-client: the relay is at its rate limit for ${new URL(url).pathname}, sending it again`),
+  )
   return {
     status: response.status,
     statusText: response.statusText,

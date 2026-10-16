@@ -32,6 +32,8 @@ describe('the egress worker relay hop', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
   })
 
@@ -43,6 +45,17 @@ describe('the egress worker relay hop', () => {
     expect(first).toMatch(/^[0-9a-f-]{36}$/)
     expect(second).toMatch(/^[0-9a-f-]{36}$/)
     expect(first).not.toBe(second)
+  })
+
+  it("sends the relay's own rate limit refusal again", async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fetchWithFkn.mockResolvedValueOnce(new Response('{"error":"rate limit exceeded"}', { status: 429 }))
+    const api = await exposedApi()
+    const response = api.fknFetch('https://www.youtube.com/iframe_api', { method: 'GET' })
+    await vi.advanceTimersByTimeAsync(500)
+    expect((await response).status).toBe(200)
+    expect(fetchWithFkn).toHaveBeenCalledTimes(2)
   })
 
   it('sends a shared read to the relay unchanged', async () => {
