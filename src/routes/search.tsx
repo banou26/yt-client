@@ -20,6 +20,7 @@ import { watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
 import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
+import { withPage } from './feed-pages'
 
 type ResultsPage = SearchResultsQuery['search']
 type SearchRow = ResultsPage['results'][number]
@@ -590,7 +591,7 @@ const SearchPage = () => {
   })
   const page = data?.search
   const { items, cursor } = useInfiniteFeed({
-    pages: page ? [...pages, page].map(entry => ({ items: entry.results, cursor: entry.cursor })) : [],
+    pages: withPage(pages, page).map(entry => ({ items: entry.results, cursor: entry.cursor })),
     key: rowKey
   })
 
