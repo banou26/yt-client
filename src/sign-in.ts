@@ -18,6 +18,10 @@ const WIDTH = 500
 const HEIGHT = 700
 const CLOSED_POLL_MS = 500
 
+// every tab's engine reads the cookies once at boot, so a sign-in in any tab reloads them all
+const SIGNED_IN_CHANNEL = 'yt-client-signed-in'
+const SIGNED_IN = 'signed-in'
+
 let openWindow: Window | undefined
 let finishing = false
 
@@ -27,10 +31,19 @@ const landSignedIn = () => {
   else location.reload()
 }
 
+const channel = new BroadcastChannel(SIGNED_IN_CHANNEL)
+channel.addEventListener('message', (event: MessageEvent) => {
+  if (event.data !== SIGNED_IN || finishing) return
+  finishing = true
+  openWindow?.close()
+  landSignedIn()
+})
+
 const finishSignIn = async () => {
   if (finishing) return
   finishing = true
   await startEngine().then((engine) => engine.resetIdentity()).catch(() => {})
+  channel.postMessage(SIGNED_IN)
   landSignedIn()
 }
 
@@ -41,7 +54,8 @@ const finishSignIn = async () => {
 export const openSignInWindow = (): Promise<SignInOutcome> => {
   const left = Math.round(screenX + (outerWidth - WIDTH) / 2)
   const top = Math.round(screenY + (outerHeight - HEIGHT) / 2)
-  const win = window.open(SIGNIN_WINDOW_PATH, 'yt-client-signin', `popup,width=${WIDTH},height=${HEIGHT},left=${left},top=${top}`)
+  // never a fixed name: another tab's click would load this tab's window, which answers only this tab
+  const win = window.open(SIGNIN_WINDOW_PATH, '_blank', `popup,width=${WIDTH},height=${HEIGHT},left=${left},top=${top}`)
   if (!win) return Promise.resolve('blocked')
   openWindow = win
   return new Promise<SignInOutcome>((resolve) => {

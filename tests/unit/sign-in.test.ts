@@ -3,8 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { BUILD_ID } from '../../src/scramjet/engine-build'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from '../../src/scramjet/protocol'
 
+const calls: string[] = []
 const showToast = vi.fn()
-const resetIdentity = vi.fn(async () => {})
+const resetIdentity = vi.fn(async () => { calls.push('reset') })
 const egressPort = { name: 'signin-port' }
 const openEgressPort = vi.fn((_role?: string) => egressPort)
 
@@ -28,11 +29,31 @@ const fakeWindow = (): FakeWindow => {
   return win
 }
 
+type Listener = (event: { data: unknown }) => void
+
+// every module instance is a tab: a message reaches every other instance's channel of that name, a task later, as the real one does
+const channels = new Set<{ name: string, listeners: Set<Listener> }>()
+class FakeBroadcastChannel {
+  readonly listeners = new Set<Listener>()
+  constructor(readonly name: string) {
+    channels.add(this)
+  }
+  addEventListener(_type: string, listener: Listener) {
+    this.listeners.add(listener)
+  }
+  postMessage(data: unknown) {
+    for (const channel of channels) {
+      if (channel === this || channel.name !== this.name) continue
+      setTimeout(() => { for (const listener of channel.listeners) listener({ data }) })
+    }
+  }
+}
+
 // each click opens the next of `opened`, and the last one from then on
 const install = (...opened: (FakeWindow | null)[]) => {
   const listeners = new Set<(event: Partial<MessageEvent>) => void>()
   const open = vi.fn((..._args: unknown[]) => opened.length > 1 ? opened.shift()! : opened[0]!)
-  const reload = vi.fn()
+  const reload = vi.fn(() => { calls.push('reload') })
   const assign = vi.fn()
   const location = { origin: ORIGIN, pathname: '/watch', reload, assign }
   vi.stubGlobal('window', { open })
@@ -45,6 +66,7 @@ const install = (...opened: (FakeWindow | null)[]) => {
   vi.stubGlobal('outerHeight', 800)
   vi.stubGlobal('addEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.add(listener))
   vi.stubGlobal('removeEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.delete(listener))
+  vi.stubGlobal('BroadcastChannel', FakeBroadcastChannel)
   const send = (event: Partial<MessageEvent>) => { for (const listener of listeners) listener(event) }
   return { open, reload, assign, location, send, listeners }
 }
@@ -53,6 +75,8 @@ describe('the sign-in window', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    calls.length = 0
+    channels.clear()
     showToast.mockClear()
     resetIdentity.mockClear()
     openEgressPort.mockClear()
@@ -71,7 +95,8 @@ describe('the sign-in window', () => {
     expect(open).toHaveBeenCalledOnce()
     const [url, name, features] = open.mock.calls[0]! as [string, string, string]
     expect(url).toBe(SIGNIN_WINDOW_PATH)
-    expect(name).toBe('yt-client-signin')
+    // a named window is one another tab's click would load, and its messages would still go to this tab
+    expect(name).toBe('_blank')
     expect(features).toMatch(/^popup,width=500,height=700,/)
   })
 
@@ -190,5 +215,21 @@ describe('the sign-in window', () => {
     // the page is on its way to loading again, so a click now opens nothing
     signIn()
     expect(open).toHaveBeenCalledOnce()
+  })
+
+  it('reaches every open tab: another one closes its own window and loads again, signed in', async () => {
+    const first = fakeWindow()
+    const second = fakeWindow()
+    const { send, reload } = install(first, second)
+    const tab = await import('../../src/sign-in')
+    vi.resetModules()
+    const otherTab = await import('../../src/sign-in')
+    tab.signIn()
+    otherTab.signIn()
+    send({ origin: ORIGIN, source: first as unknown as Window, data: { type: SIGNIN_DONE } })
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledTimes(2))
+    expect(second.closed).toBe(true)
+    // the reset runs once, in the tab that signed in, and before any tab loads again
+    expect(calls).toEqual(['reset', 'reload', 'reload'])
   })
 })
