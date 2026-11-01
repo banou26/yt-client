@@ -3,7 +3,7 @@ import type { Source, SourceChannel, SourceChannelPage, SourceChannelTab, Source
 import { Innertube } from 'youtubei.js/web'
 
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed } from './channel-feed'
-import { normalizeChannel, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizeChannelAbout, normalizeCommunityPost, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { normalizeChannel, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -923,11 +923,11 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     return result
   }
 
-  // The `items` getter casts the page's whole video set in one go and throws on anything outside its union; PlaylistVideo is the one renderer carrying set_video_id.
-  const playlistItems = (feed: PlaylistFeed) =>
-    (feed.memo?.get('PlaylistVideo') ?? [])
-      .map(normalizePlaylistItem)
-      .filter((item) => item !== undefined)
+  // Read off the memo rather than the `items` getter, which throws on any node outside its union. YouTube serves the rows as LockupView now; PlaylistVideo is the older renderer.
+  const playlistItems = (id: string, feed: PlaylistFeed) => [
+    ...(feed.memo?.get('PlaylistVideo') ?? []).map(normalizePlaylistItem),
+    ...(feed.memo?.get('LockupView') ?? []).map((node) => normalizePlaylistLockupItem(node, id)),
+  ].filter((item) => item !== undefined)
 
   // The playlist entity is threaded through every page rather than re-read: a continuation response carries no header and no sidebar.
   const playlistPage = (id: string, playlist: SourcePlaylist, feed: PlaylistFeed, items: SourcePlaylistItem[]): SourcePlaylistPage => {
@@ -935,7 +935,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     if (feed.has_continuation) {
       result.cursor = playlistContinuations.register(`playlist:${id}`, async () => {
         const next = await feed.getContinuation()
-        return playlistPage(id, playlist, next, playlistItems(next))
+        return playlistPage(id, playlist, next, playlistItems(id, next))
       })
     }
     return result
@@ -1165,7 +1165,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     playlist: async (id, cursor) => {
       if (cursor) return playlistContinuations.resolve(`playlist:${id}`, cursor)
       const feed = await (await client).getPlaylist(id)
-      const items = playlistItems(feed)
+      const items = playlistItems(id, feed)
       const details = normalizePlaylistDetails(feed, id)
       // The cover has to be resolved before the continuation closure captures the playlist: page two would otherwise hand back the same entity with its cover cleared.
       const playlist = rememberPlaylist({ ...details, thumbnail: details.thumbnail ?? items[0]?.video.thumbnail })

@@ -787,6 +787,42 @@ export const normalizePlaylistItem = (input: unknown): SourcePlaylistItem | unde
   }
 }
 
+type PlaylistEdit = { playlistId?: string, actions?: { action?: string, setVideoId?: string }[] }
+
+type PlaylistLockupRow = LockupVideo & {
+  renderer_context?: { command_context?: { on_tap?: { payload?: { index?: number } } } }
+  metadata?: {
+    menu_button?: {
+      on_tap?: {
+        command?: {
+          inline_content?: {
+            content?: { items?: { renderer_context?: { command_context?: { on_tap?: { payload?: PlaylistEdit } } } }[] }
+          }
+        }
+      }
+    }
+  }
+}
+
+// A lockup row has no set_video_id field, so the slot id is read off the row's own remove action for this playlist. Rows read signed out or from Liked videos carry none (measured 2026-11-01), and a row without one offers no Remove.
+export const normalizePlaylistLockupItem = (input: unknown, playlistId: string): SourcePlaylistItem | undefined => {
+  const video = normalizeLockupVideo(input)
+  if (!video) return undefined
+  const row = input as PlaylistLockupRow
+  const index = row.renderer_context?.command_context?.on_tap?.payload?.index
+  const setVideoId = row.metadata?.menu_button?.on_tap?.command?.inline_content?.content?.items
+    ?.map((item) => item.renderer_context?.command_context?.on_tap?.payload)
+    .filter((edit) => edit?.playlistId === playlistId)
+    .flatMap((edit) => edit?.actions ?? [])
+    .find((action) => action.action === 'ACTION_REMOVE_VIDEO' && action.setVideoId)?.setVideoId
+  return {
+    video,
+    setVideoId,
+    // the row's watch link counts from 0, where YouTube numbers the rows from 1
+    index: typeof index === 'number' ? index + 1 : undefined,
+  }
+}
+
 // the Text branch is taken ONLY on a real Text: stringifying an Author yields '[object Object]', which survives the 'N/A' filter
 const bylineText = (author: Author | Text | undefined) => {
   const named = presentText((author as Author | undefined)?.name)

@@ -63,6 +63,18 @@ test('opens a channel from the app own link', async ({ page }) => {
   await expect(page.locator('.tab').first()).toBeVisible()
 })
 
+// Computerphile's uploads: several hundred videos, which YouTube serves as lockup rows a hundred at a time
+test('lists a playlist, and its rows past the first hundred', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto('/playlist?list=UU9-y-6csu5WGm29I7JiwpnA')
+  const rows = page.locator('.rows .row')
+  await expect(rows.first()).toBeVisible({ timeout: 90_000 })
+  expect(await rows.count()).toBe(100)
+  await rows.last().scrollIntoViewIfNeeded()
+  await expect.poll(() => rows.count(), { timeout: 90_000 }).toBeGreaterThan(100)
+  await expect(page.getByText('Nothing in this playlist')).toHaveCount(0)
+})
+
 test('keeps playing in the miniplayer after leaving the watch page', async ({ page }) => {
   test.setTimeout(240_000)
   await page.goto('/watch?v=dQw4w9WgXcQ')
