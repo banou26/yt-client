@@ -32,6 +32,7 @@ type FakeComments = {
       reply_command?: { dialog?: { reply_button?: { endpoint?: FakeCommand } } }
     }
   }[]
+  header?: { count?: { text: string }, comments_count?: { text: string } }
   has_continuation: boolean
   getContinuation(): Promise<FakeComments>
 }
@@ -231,7 +232,10 @@ const createFakeClient = () => {
       }
       return channel
     },
-    getComments: async () => comments('top', async () => comments('next')),
+    getComments: async () => ({
+      ...comments('top', async () => comments('next')),
+      header: { count: { text: '2,461,151 Comments' }, comments_count: { text: '2.4M' } },
+    }),
     resolveURL: async (url: string) => {
       calls.push(`resolveURL:${url}`)
       return { payload: { browseId: 'UCresolved' } }
@@ -690,6 +694,14 @@ describe('youtube source', () => {
     await expect(source.comments('abc', undefined, first.cursor)).resolves.toMatchObject({ items: [{ id: 'next' }] })
     await expect(source.comments('other', undefined, first.cursor)).rejects.toThrow('belongs to comments:abc')
     await expect(source.comments('abc', 'NEWEST', first.cursor)).rejects.toThrow('belongs to comments:abc:TOP')
+  })
+
+  it('heads comments with the full count, not the rounded one', async () => {
+    const source = createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => createFakeClient(),
+    })
+    await expect(source.comments('abc')).resolves.toMatchObject({ countText: '2,461,151 Comments' })
   })
 
   it('pages a playlist with cursors scoped to that playlist', async () => {

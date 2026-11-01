@@ -76,3 +76,47 @@ test('grows the sidebar and its thumbnails on a wide window, like youtube.com', 
   await expect.poll(async () => (await measure()).aside).toBeCloseTo(402, 0)
   expect((await measure()).thumb).toBeCloseTo(168, 0)
 })
+
+test('heads the comments with the full count and Sort by, and threads them like youtube.com', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto(VIDEO)
+  const comments = page.locator('main section').filter({ has: page.locator('.heading') })
+  // the comments read's own header; the rounded '2.4M' alone was the heading before
+  await expect(comments.locator('.heading')).toHaveText(/^\d{1,3}(,\d{3})+ Comments$/, { timeout: 120_000 })
+  await expect(comments.locator('.sort')).toHaveText('Sort by')
+
+  const first = comments.locator('.comment').first()
+  // signed out too, as on youtube.com, where it leads to sign-in
+  await expect(first.getByRole('button', { name: 'Reply', exact: true })).toBeVisible()
+
+  // held by position: a filter on its Read more would stop matching once that turns into Show less
+  await expect(comments.getByRole('button', { name: 'Read more' }).first()).toBeVisible()
+  const longIndex = await comments.locator('.comment').evaluateAll(elements => elements.findIndex(element => element.querySelector('.read-more')))
+  const long = comments.locator('.comment').nth(longIndex)
+  const height = () => long.locator('.comment-text').evaluate(element => ({
+    height: element.getBoundingClientRect().height,
+    lineHeight: Number.parseFloat(getComputedStyle(element.firstElementChild!).lineHeight),
+  }))
+  const clamped = await height()
+  expect(clamped.height).toBeLessThanOrEqual(clamped.lineHeight * 4 + 1)
+  await long.getByRole('button', { name: 'Read more' }).click()
+  await expect(long.getByRole('button', { name: 'Show less' })).toBeVisible()
+  expect((await height()).height).toBeGreaterThan(clamped.lineHeight * 4 + 1)
+
+  // youtube.com's reply count: the comment's own text color, with the chevron after the count
+  const toggle = first.locator('button.replies')
+  const look = await toggle.evaluate(element => ({
+    color: getComputedStyle(element).color,
+    text: getComputedStyle(element.closest('.comment')!.querySelector('.text')!).color,
+    chevronLast: element.lastElementChild?.tagName.toLowerCase() === 'svg',
+  }))
+  expect(look.color).toBe(look.text)
+  expect(look.chevronLast).toBe(true)
+
+  // each reply row holds its own lines, rather than spilling them over the next row
+  await toggle.click()
+  const rows = first.locator('.reply-list > div:has(.comment-text)')
+  await expect(rows.first()).toBeVisible({ timeout: 60_000 })
+  const spills = await rows.evaluateAll(elements => elements.filter(element => element.scrollHeight > element.clientHeight + 1).length)
+  expect(spills).toBe(0)
+})

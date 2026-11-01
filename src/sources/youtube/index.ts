@@ -899,7 +899,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
           }),
         }]
       }),
-      countText: text(comments.header?.comments_count) ?? text(comments.header?.count),
+      // `count` is the full '2,461,151 Comments' youtube.com heads the list with, `comments_count` only the rounded '2.4M'
+      countText: text(comments.header?.count) ?? text(comments.header?.comments_count),
     }
     if (comments.has_continuation) {
       result.cursor = commentContinuations.register(

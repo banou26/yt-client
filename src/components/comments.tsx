@@ -4,7 +4,7 @@ import type { CommentRepliesQuery, CommentSort, CommentsQuery } from '../generat
 
 import { css } from '@emotion/react'
 import { ChevronDown, ChevronUp, ListFilter, ThumbsDown, ThumbsUp } from 'lucide-react'
-import { useState } from 'preact/hooks'
+import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 import { Link } from 'wouter'
 
@@ -170,13 +170,36 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  .text {
+  .comment-text {
     margin-top: 0.2rem;
+  }
+
+  .text {
     font-size: 1.4rem;
     line-height: 2rem;
     color: var(--text-primary);
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .comment-text.clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .read-more {
+    display: block;
+    margin-top: 0.4rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 2rem;
+    cursor: pointer;
   }
 
   .actions {
@@ -225,13 +248,6 @@ const style = css`
 
   .reply:hover {
     background: var(--bg-hover);
-  }
-
-  .replies {
-    margin-top: 0.4rem;
-    font-size: 1.2rem;
-    font-weight: 500;
-    color: var(--accent);
   }
 
   .show-more {
@@ -343,17 +359,19 @@ const style = css`
   }
 
   /* A disclosure rather than a label: it was inert text before, which read as a
-     count that ought to be clickable and was not. */
+     count that ought to be clickable and was not. The negative margin lines its
+     text up with the comment's, as youtube.com does. */
   .replies {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    height: 3.2rem;
-    padding: 0 1.2rem;
+    gap: 0.6rem;
+    height: 4rem;
+    margin-left: -1.6rem;
+    padding: 0 1.6rem;
     border: none;
-    border-radius: 1.6rem;
+    border-radius: 2rem;
     background: transparent;
-    color: var(--accent);
+    color: var(--text-primary);
     font-size: 1.4rem;
     font-weight: 500;
     cursor: pointer;
@@ -361,7 +379,7 @@ const style = css`
   }
 
   .replies:hover {
-    background: var(--accent-hover);
+    background: var(--bg-hover);
   }
 
   .reply-list {
@@ -374,12 +392,12 @@ const style = css`
     padding-left: 2.4rem;
   }
 
-  .reply {
+  .reply-row {
     display: flex;
     gap: 1.2rem;
   }
 
-  .reply .avatar {
+  .reply-row .avatar {
     width: 2.4rem;
     height: 2.4rem;
     font-size: 1.1rem;
@@ -400,13 +418,6 @@ const style = css`
   }
 `
 
-/**
- * The like, dislike and reply controls for one comment.
- *
- * Every control is gated on `actionsToken`: the endpoints are per-comment
- * protobuf params, and a read that carried none (a signed-out page) can only
- * produce controls that fail on click, so they are not rendered at all.
- */
 /** The top-level comment box. Signed-out readers get a prompt, not a dead form. */
 const Composer = ({ videoId }: { videoId: string }) => {
   const { ready, signedIn } = useSession()
@@ -464,6 +475,52 @@ const Composer = ({ videoId }: { videoId: string }) => {
   )
 }
 
+/**
+ * A comment's text, cut at youtube.com's four lines with a Read more that
+ * shows only when the text runs past them.
+ */
+const CommentText = (
+  { runs, text, videoId }: { runs: CommentRow['runs'], text?: string | null, videoId: string },
+) => {
+  const [expanded, setExpanded] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (expanded || !element) return
+    const check = () => setOverflowing(element.scrollHeight > element.clientHeight + 1)
+    check()
+    // a clamped box keeps its height when the web font swaps in and the lines rewrap
+    void document.fonts.ready.then(check)
+    const observer = new ResizeObserver(check)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [expanded, runs, text])
+  return (
+    <>
+      <div ref={ref} className={expanded ? 'comment-text' : 'comment-text clamped'}>
+        {runs.length > 0
+          ? <RichText className='text' runs={runs} videoId={videoId} />
+          : <span className='text'>{text}</span>}
+      </div>
+      {expanded || overflowing
+        ? (
+          <button type='button' className='read-more' onClick={() => setExpanded(value => !value)}>
+            {expanded ? 'Show less' : 'Read more'}
+          </button>
+        )
+        : undefined}
+    </>
+  )
+}
+
+/**
+ * The like, dislike and reply controls for one comment.
+ *
+ * Signed out, each one leads to sign-in. Signed in, they act through the
+ * comment's `actionsToken`, the per-comment endpoints its read carried, and are
+ * disabled on a comment whose read carried none.
+ */
 const CommentActions = ({ comment }: { comment: CommentRow }) => {
   const { ready, signedIn } = useSession()
   const [, rateComment] = useMutation(RATE_COMMENT)
@@ -485,6 +542,14 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
     void rateComment({ actionsToken: token, status: next }).then((result) => {
       if (result.error) showToast(readable(result.error.message))
     })
+  }
+
+  const reply = () => {
+    if (ready && !signedIn) {
+      navigate('/signin')
+      return
+    }
+    if (token) setReplying(value => !value)
   }
 
   const sendReply = () => {
@@ -527,13 +592,9 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
         >
           <ThumbsDown size={16} strokeWidth={1.5} fill={comment.isDisliked ? 'currentColor' : 'none'} />
         </button>
-        {token
-          ? (
-            <button type='button' className='reply' onClick={() => setReplying(value => !value)}>
-              Reply
-            </button>
-          )
-          : undefined}
+        <button type='button' className='reply' disabled={!token && signedIn} onClick={reply}>
+          Reply
+        </button>
       </div>
       {replying
         ? (
@@ -617,14 +678,14 @@ const Replies = (
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}
       >
-        {open ? <ChevronUp size={16} strokeWidth={2} /> : <ChevronDown size={16} strokeWidth={2} />}
         {label}
+        {open ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
       </button>
       {open
         ? (
           <div className='reply-list'>
             {items.map(reply => (
-              <div className='reply' key={reply.id}>
+              <div className='reply-row' key={reply.id}>
                 {reply.author
                   ? (
                     <Link
@@ -645,9 +706,7 @@ const Replies = (
                       : undefined}
                     {reply.publishedText ? <span className='age'>{reply.publishedText}</span> : undefined}
                   </div>
-                  {reply.runs.length > 0
-                    ? <RichText className='text' runs={reply.runs} videoId={videoId} />
-                    : <div className='text'>{reply.text}</div>}
+                  <CommentText runs={reply.runs} text={reply.text} videoId={videoId} />
                   {reply.likeCountText ? <div className='age'>{reply.likeCountText}</div> : undefined}
                 </div>
               </div>
@@ -686,10 +745,9 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
     pages: page ? [...loadedPages, page] : loadedPages,
     key: comment => comment.id
   })
-  const heading = page?.countText
-    ?? (commentCountText
-      ? /comment/i.test(commentCountText) ? commentCountText : `${commentCountText} Comments`
-      : 'Comments')
+  // the first page carries the full count ('2,461,151 Comments'); later pages carry none, and the watch read only the rounded '2.4M'
+  const count = (loadedPages[0] ?? page)?.countText ?? commentCountText
+  const heading = count ? /comment/i.test(count) ? count : `${count} Comments` : 'Comments'
   const onMore = () => {
     if (!page?.cursor || fetching) return
     setLoaded({ sort, pages: loadedPages[loadedPages.length - 1] === page ? loadedPages : [...loadedPages, page] })
@@ -719,7 +777,7 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
           trigger={
             <button type='button' className='sort'>
               <ListFilter size={24} strokeWidth={1.5} />
-              {SORTS.find(option => option.value === sort)?.label ?? 'Sort by'}
+              Sort by
             </button>
           }
         >
@@ -758,9 +816,7 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
                   : undefined}
                 {comment.publishedText ? <span className='age'>{comment.publishedText}</span> : undefined}
               </div>
-              {comment.runs.length > 0
-                ? <RichText className='text' runs={comment.runs} videoId={videoId} />
-                : <div className='text'>{comment.text}</div>}
+              <CommentText runs={comment.runs} text={comment.text} videoId={videoId} />
               <CommentActions comment={comment} />
               {comment.repliesCursor
                 ? <Replies cursor={comment.repliesCursor} count={comment.replyCount} videoId={videoId} />
