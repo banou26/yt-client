@@ -45,6 +45,8 @@ test('bolds the completion in suggestions and keeps the list up while the next o
   const list = page.getByRole('listbox')
   await input.pressSequentially('rick a', { delay: 30 })
   await expect(list.getByRole('option').first()).toBeVisible({ timeout: 60_000 })
+  const [listBox, searchBox] = await Promise.all([list.boundingBox(), page.locator('.search-box').boundingBox()])
+  expect(Math.abs(listBox!.x - searchBox!.x), 'the list does not line up with the box').toBeLessThanOrEqual(1)
   await expect(list.getByRole('option').first().locator('b')).not.toHaveText('')
   expect(await list.getByRole('option').first().locator('b').textContent()).not.toMatch(/^rick a/i)
 

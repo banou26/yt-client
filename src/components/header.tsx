@@ -170,7 +170,7 @@ const style = css`
   .suggestions {
     position: absolute;
     top: calc(100% + 0.4rem);
-    left: -1.6rem;
+    left: -1px;
     right: -1px;
     z-index: var(--z-popup);
     margin: 0;
