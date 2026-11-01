@@ -23,7 +23,7 @@ export const WATCH_META_QUERY = gql(`
       description
       descriptionRuns { text url videoId startSeconds browseId }
       likeStatus
-      channel { id name avatar handle subscriberCountText isSubscribed notificationLevel }
+      channel { id name avatar handle subscriberCountText isSubscribed notificationLevel isVerified isVerifiedArtist }
       relatedCursor
       autoplayId
       related {
@@ -35,7 +35,7 @@ export const WATCH_META_QUERY = gql(`
         viewCount
         publishedText
         isLive
-        channel { id name }
+        channel { id name isVerified isVerifiedArtist }
       }
       playlist {
         id

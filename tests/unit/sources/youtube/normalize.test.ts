@@ -919,3 +919,57 @@ describe('youtube normalization', () => {
     })).toMatchObject({ id: 'a', text: '', replyCount: 1200 })
   })
 })
+
+describe('verified badges', () => {
+  const lockup = (iconName?: string) => normalizeLockupVideo({
+    content_id: 'abc',
+    content_type: 'VIDEO',
+    metadata: {
+      title: { text: 'Related video' },
+      image: { renderer_context: { command_context: { on_tap: { payload: { browseId: 'UC123' } } } } },
+      metadata: {
+        metadata_rows: [
+          { metadata_parts: [{ text: { text: 'Channel' }, icon_name: iconName }] },
+          { metadata_parts: [{ text: { text: '1.1M views' } }] },
+        ],
+      },
+    },
+  })
+
+  it('reads a lockup channel\'s badge off the icon its name part carries', () => {
+    expect(lockup('CHECK_CIRCLE_FILLED')?.channel).toMatchObject({ isVerified: true, isVerifiedArtist: undefined })
+    expect(lockup('AUDIO_BADGE')?.channel).toMatchObject({ isVerified: undefined, isVerifiedArtist: true })
+    expect(lockup()?.channel).toMatchObject({ isVerified: undefined, isVerifiedArtist: undefined })
+  })
+
+  const pageHeader = (imageName: string) => normalizeChannel({
+    metadata: { external_id: 'UC123', title: 'Channel' },
+    header: {
+      content: {
+        title: {
+          text: {
+            text: 'Channel',
+            runs: [{
+              text: 'Channel',
+              attachment: { element: { type: { imageType: { image: { sources: [{ clientResource: { imageName } }] } } } } },
+            }],
+          },
+        },
+      },
+    },
+  })
+
+  it('reads a page header\'s badge off its title attachment', () => {
+    expect(pageHeader('CHECK_CIRCLE_FILLED')).toMatchObject({ isVerified: true, isVerifiedArtist: undefined })
+    expect(pageHeader('AUDIO_BADGE')).toMatchObject({ isVerified: undefined, isVerifiedArtist: true })
+  })
+
+  it('carries the author badges of the watch owner and a search channel', () => {
+    const memo = new Map<string, unknown[]>([
+      ['VideoSecondaryInfo', [{ owner: { author: { id: 'UC123', name: 'Rick Astley', is_verified: false, is_verified_artist: true } } }]],
+    ])
+    expect(normalizeWatchMeta({ contents_memo: memo }, 'abc')?.channel).toMatchObject({ isVerified: undefined, isVerifiedArtist: true })
+    expect(normalizeSearchChannel({ id: 'UC9', author: { id: 'UC9', name: 'BBC', is_verified: true } }))
+      .toMatchObject({ isVerified: true, isVerifiedArtist: undefined })
+  })
+})

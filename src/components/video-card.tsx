@@ -18,6 +18,7 @@ import { WATCH_LATER_ID } from './playlist'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
 import { useInfiniteFeed } from './use-infinite-feed'
+import { VerifiedBadge } from './verified-badge'
 import { signIn } from '../sign-in'
 
 export type VideoCardData =
@@ -38,7 +39,7 @@ export type VideoCardData =
     isLive?: boolean | null
     isShort?: boolean | null
     isUpcoming?: boolean | null
-    channel?: (Pick<Channel, 'id' | 'name'> & Partial<Pick<Channel, 'avatar'>>) | null
+    channel?: (Pick<Channel, 'id' | 'name'> & Partial<Pick<Channel, 'avatar' | 'isVerified' | 'isVerifiedArtist'>>) | null
   }
 
 /**
@@ -516,7 +517,7 @@ export const VideoCard = (
             <Link href={watchHref}>{video.title}</Link>
           </h3>
           {video.channel && channelHref && variant !== 'channel'
-            ? <Link href={channelHref} className='channel-name'>{video.channel.name}</Link>
+            ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
           {meta ? <div className='meta'>{meta}</div> : undefined}
         </div>

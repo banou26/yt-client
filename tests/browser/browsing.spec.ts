@@ -94,3 +94,14 @@ test('search has the chip row, a filters dialog, wide rows and a preview on hove
   await expect(page).toHaveURL(/duration=OVER_TWENTY_MINS/)
   await expect(page.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
+
+test('badges verified and artist channels on the watch page, its related column and the channel', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto('/watch?v=dQw4w9WgXcQ')
+  const owner = page.locator('.owner-row')
+  await expect(owner.locator('[data-badge="artist"]')).toBeVisible({ timeout: 120_000 })
+  await expect(page.locator('article [data-badge]').first()).toBeAttached({ timeout: 60_000 })
+
+  await owner.locator('a.channel-name').click()
+  await expect(page.locator('h1 [data-badge="artist"]')).toBeVisible({ timeout: 120_000 })
+})

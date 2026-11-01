@@ -15,6 +15,7 @@ import { showToast } from './ui/toast'
 import { RichText } from './rich-text'
 import { Menu, MenuItem } from './ui/menu'
 import { useInfiniteFeed } from './use-infinite-feed'
+import { VerifiedBadge } from './verified-badge'
 import { signIn } from '../sign-in'
 
 type CommentPage = CommentsQuery['comments']
@@ -39,7 +40,7 @@ const COMMENTS_QUERY = gql(`
         isMember
         isLiked
         isDisliked
-        author { id name avatar isVerified }
+        author { id name avatar isVerified isVerifiedArtist }
       }
       cursor
       disabled
@@ -638,7 +639,7 @@ const REPLIES_QUERY = gql(`
         isHearted
         isCreator
         isMember
-        author { id name avatar isVerified }
+        author { id name avatar isVerified isVerifiedArtist }
       }
       cursor
     }
@@ -702,7 +703,12 @@ const Replies = (
                 <div className='body'>
                   <div className='byline'>
                     {reply.author
-                      ? <span className={reply.isCreator ? 'name creator' : 'name'}>{reply.author.name}</span>
+                      ? (
+                        <span className={reply.isCreator ? 'name creator' : 'name'}>
+                          {reply.author.name}
+                          <VerifiedBadge channel={reply.author} size={12} />
+                        </span>
+                      )
                       : undefined}
                     {reply.publishedText ? <span className='age'>{reply.publishedText}</span> : undefined}
                   </div>
@@ -812,7 +818,12 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
               {comment.isPinned ? <div className='pinned'>Pinned</div> : undefined}
               <div className='byline'>
                 {comment.author
-                  ? <Link href={`/channel/${comment.author.id}`} className='author'>{comment.author.name}</Link>
+                  ? (
+                    <Link href={`/channel/${comment.author.id}`} className='author'>
+                      {comment.author.name}
+                      <VerifiedBadge channel={comment.author} size={12} />
+                    </Link>
+                  )
                   : undefined}
                 {comment.publishedText ? <span className='age'>{comment.publishedText}</span> : undefined}
               </div>

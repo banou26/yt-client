@@ -17,6 +17,8 @@ export type SourceChannel = {
   isSubscribed?: boolean
   notificationLevel?: SourceNotificationLevel
   isVerified?: boolean
+  // the music-note badge an official artist channel carries in place of the check
+  isVerifiedArtist?: boolean
 }
 
 export type SourceVideo = {

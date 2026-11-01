@@ -14,6 +14,7 @@ import { playlistHrefFor } from '../components/playlist'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
 import SubscribeButton from '../components/subscribe-button'
 import Dialog from '../components/ui/dialog'
+import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
@@ -41,7 +42,7 @@ const SEARCH_RESULTS_QUERY = gql(`
           isLive
           isUpcoming
           badges
-          channel { id name avatar isVerified }
+          channel { id name avatar isVerified isVerifiedArtist }
         }
         ... on Channel {
           id
@@ -54,6 +55,7 @@ const SEARCH_RESULTS_QUERY = gql(`
           isSubscribed
           notificationLevel
           isVerified
+          isVerifiedArtist
         }
         ... on Playlist {
           id
@@ -546,7 +548,7 @@ const VideoRow = ({ row }: { row: VideoResult }) => {
                   ? <img src={row.channel.avatar} alt='' loading='lazy' />
                   : row.channel.name.slice(0, 1).toUpperCase()}
               </span>
-              <span>{row.channel.name}</span>
+              <span>{row.channel.name}<VerifiedBadge channel={row.channel} size={12} /></span>
             </Link>
           )
           : undefined}
@@ -712,7 +714,7 @@ const SearchPage = () => {
                 </Link>
                 <div>
                   <h2 className='channel-name'>
-                    <Link href={`/channel/${row.id}`}>{row.name}</Link>
+                    <Link href={`/channel/${row.id}`}>{row.name}<VerifiedBadge channel={row} /></Link>
                   </h2>
                   <div className='meta'>
                     {[row.handle, row.subscriberCountText, row.videoCountText].filter(Boolean).join(' • ')}

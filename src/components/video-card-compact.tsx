@@ -5,6 +5,7 @@ import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { formatDuration, formatMeta } from './format'
+import { VerifiedBadge } from './verified-badge'
 import { resumePercent, VideoCardMenu, watchHrefFor } from './video-card'
 
 const style = css`
@@ -171,7 +172,12 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
           <Link href={watchHref}>{video.title}</Link>
         </h3>
         {video.channel
-          ? <Link href={`/channel/${video.channel.id}`} className='channel-name'>{video.channel.name}</Link>
+          ? (
+            <Link href={`/channel/${video.channel.id}`} className='channel-name'>
+              {video.channel.name}
+              <VerifiedBadge channel={video.channel} size={12} />
+            </Link>
+          )
           : undefined}
         {meta ? <div className='meta'>{meta}</div> : undefined}
       </div>

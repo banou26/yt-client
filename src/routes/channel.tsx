@@ -10,6 +10,7 @@ import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
 import { SubscribeButton } from '../components/subscribe-button'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
+import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact } from '../components/video-card-compact'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
@@ -72,6 +73,8 @@ const CHANNEL_VIEW_QUERY = gql(`
         description
         isSubscribed
         notificationLevel
+        isVerified
+        isVerifiedArtist
       }
       videos {
         items {
@@ -519,7 +522,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
                 : channel.name.slice(0, 1).toUpperCase()}
             </div>
             <div className='info'>
-              <h1 className='name'>{channel.name}</h1>
+              <h1 className='name'>{channel.name}<VerifiedBadge channel={channel} size={20} /></h1>
               {meta ? <p className='meta'>{meta}</p> : undefined}
               {channel.description ? <p className='description'>{channel.description}</p> : undefined}
               <div className='subscribe-row'>

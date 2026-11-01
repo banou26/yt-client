@@ -26,7 +26,7 @@ const HOME_FEED_QUERY = gql(`
         isLive
         isShort
         progressPercent
-        channel { id name avatar }
+        channel { id name avatar isVerified isVerifiedArtist }
       }
       shorts {
         id

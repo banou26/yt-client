@@ -14,6 +14,7 @@ type Text = {
 
 type RunNode = {
   text?: string
+  attachment?: { element?: { type?: { imageType?: { image?: { sources?: { clientResource?: { imageName?: string } }[] } } } } }
   endpoint?: {
     payload?: {
       url?: string
@@ -30,6 +31,7 @@ type Author = {
   thumbnails?: Thumbnail[]
   url?: string
   is_verified?: boolean
+  is_verified_artist?: boolean
 }
 
 type FeedVideo = {
@@ -66,17 +68,19 @@ type VideoDetails = {
 
 type MetadataParts = {
   metadata_rows?: {
-    metadata_parts?: { text?: Text }[]
+    // icon_name is this repo's patch of youtubei.js (patches/), which otherwise drops a part's icon
+    metadata_parts?: { text?: Text, icon_name?: string }[]
   }[]
 }
 
 type ChannelHeader = {
-  author?: { thumbnails?: Thumbnail[] }
+  author?: { thumbnails?: Thumbnail[], is_verified?: boolean, is_verified_artist?: boolean }
   banner?: Thumbnail[]
   subscribers?: Text
   videos_count?: Text
   channel_handle?: Text
   content?: {
+    title?: { text?: Text }
     banner?: { image?: Thumbnail[] }
     image?: { image?: Thumbnail[], avatar?: { image?: Thumbnail[] } }
     metadata?: MetadataParts
@@ -308,6 +312,24 @@ const metadataTexts = (metadata: MetadataParts | undefined) =>
     .filter((value): value is string => Boolean(value))
     ?? []
 
+// a lockup or a page header names its badge by icon rather than by an author badge style
+const VERIFIED_ICONS = new Set(['CHECK_CIRCLE_FILLED', 'CHECK_CIRCLE_THICK'])
+const ARTIST_ICONS = new Set(['AUDIO_BADGE', 'OFFICIAL_ARTIST_BADGE'])
+
+const iconBadges = (names: (string | undefined)[]): Pick<SourceChannel, 'isVerified' | 'isVerifiedArtist'> => ({
+  isVerified: names.some((name) => name !== undefined && VERIFIED_ICONS.has(name)) ? true : undefined,
+  isVerifiedArtist: names.some((name) => name !== undefined && ARTIST_ICONS.has(name)) ? true : undefined,
+})
+
+const authorBadges = (author: Pick<Author, 'is_verified' | 'is_verified_artist'> | undefined) => ({
+  isVerified: author?.is_verified === true ? true : undefined,
+  isVerifiedArtist: author?.is_verified_artist === true ? true : undefined,
+})
+
+const runIcons = (value: Text | undefined) =>
+  (value?.runs ?? []).flatMap((run) => run.attachment?.element?.type?.imageType?.image?.sources ?? [])
+    .map((source) => source.clientResource?.imageName)
+
 const authorChannel = (author: Author | undefined): SourceChannel | undefined => {
   const id = presentText(author?.id)
   const name = presentText(author?.name)
@@ -317,7 +339,7 @@ const authorChannel = (author: Author | undefined): SourceChannel | undefined =>
     name,
     avatar: thumbnail(author?.thumbnails, AVATAR_WIDTH),
     handle: handleFromUrl(author?.url),
-    isVerified: author?.is_verified === true ? true : undefined,
+    ...authorBadges(author),
   }
 }
 
@@ -338,18 +360,22 @@ const bylineChannel = (author: Author | Text | undefined): SourceChannel | undef
   return id && name ? { id, name } : undefined
 }
 
-const lockupParts = (lockup: LockupVideo) =>
-  lockup.metadata?.metadata?.metadata_rows
-    ?.flatMap((row) => row.metadata_parts ?? [])
-    .map((part) => part.text)
-    ?? []
+const lockupMetadataParts = (lockup: LockupVideo) =>
+  lockup.metadata?.metadata?.metadata_rows?.flatMap((row) => row.metadata_parts ?? []) ?? []
+
+const lockupParts = (lockup: LockupVideo) => lockupMetadataParts(lockup).map((part) => part.text)
 
 const lockupChannel = (lockup: LockupVideo, parts: (Text | undefined)[]): SourceChannel | undefined => {
   const name = text(parts[0])
   const id = parts[0]?.endpoint?.payload?.browseId
     ?? lockup.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId
   if (!id || !name) return undefined
-  return { id, name, avatar: thumbnail(lockup.metadata?.image?.avatar?.image, AVATAR_WIDTH) }
+  return {
+    id,
+    name,
+    avatar: thumbnail(lockup.metadata?.image?.avatar?.image, AVATAR_WIDTH),
+    ...iconBadges([lockupMetadataParts(lockup)[0]?.icon_name]),
+  }
 }
 
 // the page header's button carries only a key, and the state it names arrives in the response's entity store
@@ -370,6 +396,9 @@ export const normalizeChannel = (input: unknown, fallbackId?: string): SourceCha
   const parts = metadataTexts(view?.metadata)
   const handle = text(header?.channel_handle) ?? parts.find((part) => part.startsWith('@'))
   const details = parts.filter((part) => part !== handle)
+  // the legacy header badges its author, the page header its title
+  const fromAuthor = authorBadges(header?.author)
+  const fromTitle = iconBadges(runIcons(view?.title?.text))
   return {
     id,
     name: channel.metadata?.title ?? id,
@@ -383,6 +412,8 @@ export const normalizeChannel = (input: unknown, fallbackId?: string): SourceCha
     description: channel.metadata?.description ?? text(view?.description?.description),
     isSubscribed: headerSubscribed(channel) ?? channel.subscribe_button?.subscribed,
     notificationLevel: notificationLevel(channel.subscribe_button?.notification_preference_button?.current_state_id),
+    isVerified: fromAuthor.isVerified ?? fromTitle.isVerified,
+    isVerifiedArtist: fromAuthor.isVerifiedArtist ?? fromTitle.isVerifiedArtist,
   }
 }
 
@@ -428,7 +459,7 @@ export const normalizeSearchChannel = (input: unknown): SourceChannel | undefine
     subscriberCountText: presentText(node.video_count),
     description: presentText(node.description_snippet),
     isSubscribed: node.subscribe_button?.subscribed,
-    isVerified: node.author?.is_verified === true ? true : undefined,
+    ...authorBadges(node.author),
   }
 }
 
@@ -891,6 +922,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
           avatar: thumbnail(author.thumbnails, AVATAR_WIDTH),
           handle: handleFromUrl(author.url),
           subscriberCountText: text(owner?.subscriber_count),
+          ...authorBadges(author),
           isSubscribed: subscribeButton?.subscribed,
           notificationLevel: notificationLevel(
             bell?.current_state_id ?? bell?.states?.find((state) => state.id === bell.current_state_id)?.state_id,
@@ -936,7 +968,7 @@ export const normalizeCommentView = (input: unknown): SourceComment | undefined 
           name: comment.author.name,
           avatar: thumbnail(comment.author.thumbnails, AVATAR_WIDTH),
           handle: handleFromUrl(comment.author.url) ?? (comment.author.name.startsWith('@') ? comment.author.name : undefined),
-          isVerified: comment.author.is_verified === true ? true : undefined,
+          ...authorBadges(comment.author),
         }
       : undefined,
     text: text(comment.content) ?? '',

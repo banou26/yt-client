@@ -19,6 +19,7 @@ import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
 import SubscribeButton from '../components/subscribe-button'
 import { FeedSentinel } from '../components/use-infinite-feed'
+import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
@@ -323,7 +324,7 @@ const RELATED_MORE_QUERY = gql(`
         viewCount
         publishedText
         isLive
-        channel { id name }
+        channel { id name isVerified isVerifiedArtist }
       }
       cursor
     }
@@ -427,7 +428,10 @@ const WatchPage = () => {
                   : channel.name.slice(0, 1).toUpperCase()}
               </Link>
               <div className='owner-text'>
-                <Link href={`/channel/${channel.id}`} className='channel-name'>{channel.name}</Link>
+                <Link href={`/channel/${channel.id}`} className='channel-name'>
+                  {channel.name}
+                  <VerifiedBadge channel={channel} />
+                </Link>
                 {channel.subscriberCountText
                   ? <div className='sub-count'>{channel.subscriberCountText}</div>
                   : undefined}
