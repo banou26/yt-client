@@ -1,5 +1,7 @@
 import { css } from '@emotion/react'
+import { Redirect } from 'wouter'
 
+import { useSession } from '../session'
 import { signIn } from '../sign-in'
 
 const style = css`
@@ -22,10 +24,14 @@ const style = css`
 `
 
 // the window opens on a click only, so a link straight to /signin lands on one button
-const SignInPage = () => (
-  <main css={style}>
-    <button type='button' className='sign-in' onClick={signIn}>Sign in</button>
-  </main>
-)
+const SignInPage = () => {
+  const { ready, signedIn } = useSession()
+  if (ready && signedIn) return <Redirect to='/' replace />
+  return (
+    <main css={style}>
+      <button type='button' className='sign-in' onClick={signIn}>Sign in</button>
+    </main>
+  )
+}
 
 export default SignInPage

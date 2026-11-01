@@ -19,6 +19,12 @@ const CLOSED_POLL_MS = 500
 
 let open: { window: Window, outcome: Promise<SignInOutcome> } | undefined
 
+// the /signin page has nothing left for a signed-in person
+const landSignedIn = () => {
+  if (location.pathname === '/signin') location.assign('/')
+  else location.reload()
+}
+
 /**
  * Opens Google's sign-in in a window of its own and resolves once it ends. Call it directly in the click handler:
  * an await before it would open the window without the click's activation. A second call while a window is open
@@ -78,6 +84,6 @@ export const signIn = () => {
     }
     if (outcome !== 'authed') return
     await (await startEngine()).resetIdentity().catch(() => {})
-    location.reload()
+    landSignedIn()
   })
 }

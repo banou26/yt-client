@@ -32,8 +32,10 @@ const install = (opened: FakeWindow | null) => {
   const listeners = new Set<(event: Partial<MessageEvent>) => void>()
   const open = vi.fn((..._args: unknown[]) => opened)
   const reload = vi.fn()
+  const assign = vi.fn()
+  const location = { origin: ORIGIN, pathname: '/watch', reload, assign }
   vi.stubGlobal('window', { open })
-  vi.stubGlobal('location', { origin: ORIGIN, reload })
+  vi.stubGlobal('location', location)
   const stored = new Map<string, string>()
   vi.stubGlobal('sessionStorage', { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => stored.set(key, value) })
   vi.stubGlobal('screenX', 0)
@@ -43,7 +45,7 @@ const install = (opened: FakeWindow | null) => {
   vi.stubGlobal('addEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.add(listener))
   vi.stubGlobal('removeEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.delete(listener))
   const send = (event: Partial<MessageEvent>) => { for (const listener of listeners) listener(event) }
-  return { open, reload, send, listeners }
+  return { open, reload, assign, location, send, listeners }
 }
 
 describe('the sign-in window', () => {
@@ -124,6 +126,17 @@ describe('the sign-in window', () => {
     await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce())
     expect(resetIdentity).toHaveBeenCalledOnce()
     expect(listeners.size).toBe(0)
+  })
+
+  it('goes home after a sign-in from /signin, which has nothing for a signed-in person', async () => {
+    const win = fakeWindow()
+    const { send, reload, assign, location } = install(win)
+    location.pathname = '/signin'
+    const { signIn } = await import('../../src/sign-in')
+    signIn()
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_DONE } })
+    await vi.waitFor(() => expect(assign).toHaveBeenCalledWith('/'))
+    expect(reload).not.toHaveBeenCalled()
   })
 
   it('does nothing more when the person closes the window', async () => {
