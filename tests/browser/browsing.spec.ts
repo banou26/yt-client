@@ -149,3 +149,25 @@ test('plays Shorts signed out, with the comment count, the pager and the ⋮ men
   await expect.poll(() => new URL(page.url()).pathname, { timeout: 30_000 }).not.toBe(first)
   await expect(page.getByRole('button', { name: 'Previous short' })).toBeVisible()
 })
+
+test('has a You page and youtube.com\'s guide entries', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1600, height: 900 })
+  await page.goto('/feed/you')
+  const main = page.locator('main')
+  await expect(main.getByRole('heading', { name: 'Enjoy your favorite videos' })).toBeVisible({ timeout: 90_000 })
+  await expect(main.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByText('Not found')).toHaveCount(0)
+
+  const guide = page.getByRole('navigation', { name: 'Guide' })
+  await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('href', '/feed/you')
+  const homeLinks = await guide.locator('a[href="/"]').count()
+  expect(homeLinks, 'an Explore entry still points at Home').toBe(1)
+  await expect(guide.getByRole('link', { name: 'Music' })).toHaveAttribute('href', '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ')
+
+  await guide.getByRole('link', { name: 'Music' }).click()
+  await expect(page.locator('h1')).toBeVisible({ timeout: 120_000 })
+
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await expect(page.getByRole('navigation', { name: 'Guide' }).getByRole('link', { name: 'You' })).toHaveAttribute('href', '/feed/you')
+})

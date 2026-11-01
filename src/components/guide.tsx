@@ -3,7 +3,7 @@ import type { FunctionComponent } from 'preact'
 import type { Group } from '../groups/store'
 
 import { css } from '@emotion/react'
-import { ChevronRight, Clapperboard, Clock, Flame, Gamepad2, History, House, Library, ListVideo, Menu, Music2, Plus, ThumbsUp } from 'lucide-react'
+import { ChevronRight, CircleUserRound, Clapperboard, Clock, Gamepad2, History, House, Library, ListVideo, Menu, Music2, Plus, Radio, ThumbsUp } from 'lucide-react'
 import { useEffect, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -38,22 +38,23 @@ const MAIN_ENTRIES: GuideEntry[] = [
   { label: 'Subscriptions', href: '/feed/subscriptions', Icon: ListVideo, match: '/feed/subscriptions' }
 ]
 
-const HISTORY_ENTRY: GuideEntry = { label: 'History', href: '/feed/history', Icon: History, match: '/feed/history' }
+const YOU_ENTRY: GuideEntry = { label: 'You', href: '/feed/you', Icon: CircleUserRound, match: '/feed/you' }
 
 const YOU_ENTRIES: GuideEntry[] = [
-  HISTORY_ENTRY,
+  { label: 'History', href: '/feed/history', Icon: History, match: '/feed/history' },
   { label: 'Playlists', href: '/feed/playlists', Icon: Library, match: '/feed/playlists' },
   { label: 'Watch later', href: playlistHrefFor(WATCH_LATER_ID), Icon: Clock, match: playlistHrefFor(WATCH_LATER_ID) },
   { label: 'Liked videos', href: playlistHrefFor(LIKED_VIDEOS_ID), Icon: ThumbsUp, match: playlistHrefFor(LIKED_VIDEOS_ID) }
 ]
 
+// youtube.com's own Explore destinations, read off its signed-out guide (2026-11-01), less Movies & TV and Playables, which have no page here
 const EXPLORE_ENTRIES: GuideEntry[] = [
-  { label: 'Trending', href: '/', Icon: Flame },
-  { label: 'Music', href: '/results?search_query=Music', Icon: Music2, match: '/results?search_query=Music' },
-  { label: 'Gaming', href: '/results?search_query=Gaming', Icon: Gamepad2, match: '/results?search_query=Gaming' }
+  { label: 'Music', href: '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ', Icon: Music2, match: '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ' },
+  { label: 'Live', href: '/channel/UC4R8DWoMoI7CAwX8_LjQHig', Icon: Radio, match: '/channel/UC4R8DWoMoI7CAwX8_LjQHig' },
+  { label: 'Gaming', href: '/channel/UCOpNcN46UbXVtpKMrmU4Abg', Icon: Gamepad2, match: '/channel/UCOpNcN46UbXVtpKMrmU4Abg' }
 ]
 
-const MINI_ENTRIES: GuideEntry[] = [...MAIN_ENTRIES, HISTORY_ENTRY]
+const MINI_ENTRIES: GuideEntry[] = [...MAIN_ENTRIES, YOU_ENTRY]
 
 const FOOTER_LINKS = ['About', 'Press', 'Contact', 'Terms', 'Privacy', 'Developers']
 
@@ -282,7 +283,10 @@ const GuideSections = () => (
     </div>
     <GroupsSection />
     <div className='section'>
-      <div className='section-title'>You</div>
+      <Link href={YOU_ENTRY.href} className='section-title section-link'>
+        You
+        <ChevronRight size={20} strokeWidth={1.5} />
+      </Link>
       {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
     </div>
     <div className='section'>
