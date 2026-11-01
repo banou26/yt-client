@@ -2,6 +2,7 @@ import type { SignInWindowMessage } from './scramjet/protocol'
 
 import { showToast } from './components/ui/toast'
 import { startEngine } from './scramjet/client'
+import { BUILD_ID, reloadOnceForBuild } from './scramjet/engine-build'
 import { startPlatform } from './scramjet/platform'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from './scramjet/protocol'
 
@@ -46,6 +47,12 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
       if (event.origin !== location.origin || event.source !== win) return
       const message = event.data as SignInWindowMessage | undefined
       if (message?.type === SIGNIN_HELLO) {
+        if (message.build !== BUILD_ID) {
+          win.close()
+          settle('closed')
+          reloadOnceForBuild(message.build)
+          return
+        }
         void startPlatform().then(
           (platform) => win.postMessage({ type: SIGNIN_PORTS }, location.origin, [platform.openEgressPort('signin')]),
           () => win.close(),

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
+import { BUILD_ID } from '../../src/scramjet/engine-build'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from '../../src/scramjet/protocol'
 
 const showToast = vi.fn()
@@ -33,13 +34,15 @@ const install = (opened: FakeWindow | null) => {
   const reload = vi.fn()
   vi.stubGlobal('window', { open })
   vi.stubGlobal('location', { origin: ORIGIN, reload })
+  const stored = new Map<string, string>()
+  vi.stubGlobal('sessionStorage', { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => stored.set(key, value) })
   vi.stubGlobal('screenX', 0)
   vi.stubGlobal('screenY', 0)
   vi.stubGlobal('outerWidth', 1280)
   vi.stubGlobal('outerHeight', 800)
   vi.stubGlobal('addEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.add(listener))
   vi.stubGlobal('removeEventListener', (_type: string, listener: (event: Partial<MessageEvent>) => void) => listeners.delete(listener))
-  const send = (event: Partial<MessageEvent>) => { for (const listener of [...listeners]) listener(event) }
+  const send = (event: Partial<MessageEvent>) => { for (const listener of listeners) listener(event) }
   return { open, reload, send, listeners }
 }
 
@@ -86,16 +89,29 @@ describe('the sign-in window', () => {
     const { send } = install(win)
     const { openSignInWindow } = await import('../../src/sign-in')
     void openSignInWindow()
-    send({ origin: ORIGIN, source: {} as Window, data: { type: SIGNIN_HELLO } })
-    send({ origin: 'https://evil.example', source: win as unknown as Window, data: { type: SIGNIN_HELLO } })
+    send({ origin: ORIGIN, source: {} as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
+    send({ origin: 'https://evil.example', source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
     // the answer waits on the platform, so give any answer time to land before reading that none did
     await settle()
     expect(win.postMessage).not.toHaveBeenCalled()
-    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO } })
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
     await settle()
     expect(win.postMessage).toHaveBeenCalledOnce()
     expect(openEgressPort).toHaveBeenCalledWith('signin')
     expect(win.postMessage).toHaveBeenCalledWith({ type: SIGNIN_PORTS }, ORIGIN, [egressPort])
+  })
+
+  it('reloads, once, for a window from another build instead of handing it a port', async () => {
+    const win = fakeWindow()
+    const { send, reload } = install(win)
+    const { openSignInWindow } = await import('../../src/sign-in')
+    const outcome = openSignInWindow()
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: 'a-later-build' } })
+    await expect(outcome).resolves.toBe('closed')
+    await settle()
+    expect(win.closed).toBe(true)
+    expect(win.postMessage).not.toHaveBeenCalled()
+    expect(reload).toHaveBeenCalledOnce()
   })
 
   it('closes the window on done, resets the identity and loads the page again', async () => {

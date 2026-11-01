@@ -81,7 +81,8 @@ export const SIGNIN_HELLO = 'yt-client-signin-hello'
 export const SIGNIN_PORTS = 'yt-client-signin-ports'
 export const SIGNIN_DONE = 'yt-client-signin-done'
 
-export type SignInWindowMessage = { type: typeof SIGNIN_HELLO } | { type: typeof SIGNIN_DONE }
+// the window names its build as the engine host does (engine-build.ts): it loads from a fixed path, so a tab opened before a deploy gets the new one
+export type SignInWindowMessage = { type: typeof SIGNIN_HELLO, build: string } | { type: typeof SIGNIN_DONE }
 export type SignInPorts = { type: typeof SIGNIN_PORTS }
 
 export type EgressRole = 'engine' | 'signin'
