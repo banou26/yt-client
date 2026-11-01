@@ -977,6 +977,27 @@ describe('youtube source', () => {
     expect(updated).toMatchObject({ id: 'c', name: 'Channel', isSubscribed: true })
   })
 
+  it('reads a channel again after a subscription or bell write rather than serving the browse from before it', async () => {
+    const client = createFakeClient()
+    const state = { subscribed: false, level: 'PERSONALIZED' }
+    const inner = client.getChannel
+    client.getChannel = async () => Object.assign(await inner(), {
+      subscribe_button: { subscribed: state.subscribed, notification_preference_button: { current_state_id: state.level } },
+    })
+    client.interact.subscribe = async () => {
+      state.subscribed = true
+    }
+    client.interact.setNotificationPreferences = async (_channelId: string, level: string) => {
+      state.level = level
+    }
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    expect((await source.channel('c')).channel).toMatchObject({ isSubscribed: false, notificationLevel: 'PERSONALIZED' })
+    await source.setSubscribed('c', true)
+    expect((await source.channel('c', 'PLAYLISTS')).channel.isSubscribed).toBe(true)
+    await source.setNotificationLevel('c', 'ALL')
+    expect((await source.channel('c', 'COMMUNITY')).channel.notificationLevel).toBe('ALL')
+  })
+
   it('refuses writes when signed out instead of emitting an opaque innertube error', async () => {
     const client = createFakeClient()
     client.session.logged_in = false

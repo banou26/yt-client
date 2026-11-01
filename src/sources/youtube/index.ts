@@ -641,7 +641,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       if (videoId !== keep && now - session.lastReadAt > LIVE_CHAT_IDLE_MS) closeLiveChat(videoId)
     }
   }
-  // Short-lived rather than permanent: the header carries subscribe state, and a channel pinned for the session would keep serving the pre-write value.
+  // Short-lived rather than permanent, and dropped on a subscription write: the header carries subscribe state, and a kept browse would serve the pre-write value.
   // Memoizes one browse per channel: every tab switch used to re-browse it, with About and Community each browsing a SECOND time, and that burst of overlapping POSTs to /browse is what surfaced as an intermittent 405 from the endpoint.
   const CHANNEL_TTL_MS = 60_000
   const channelFetches = new Map<string, { at: number, result: Promise<ChannelFeed> }>()
@@ -1228,6 +1228,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const active = await client
       requireSignIn(active, 'change a subscription')
       await (subscribed ? active.interact.subscribe(channelId) : active.interact.unsubscribe(channelId))
+      // the memo is keyed by what the page was opened with, a handle included, so all of it goes
+      channelFetches.clear()
       const known = channels.get(channelId)
       const next: SourceChannel = { ...known?.channel, id: channelId, name: known?.channel.name ?? '', isSubscribed: subscribed }
       if (known) channels.set(channelId, { ...known, channel: next })
@@ -1237,6 +1239,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const active = await client
       requireSignIn(active, 'change notifications')
       await active.interact.setNotificationPreferences(channelId, level)
+      channelFetches.clear()
       const known = channels.get(channelId)
       const next: SourceChannel = { ...known?.channel, id: channelId, name: known?.channel.name ?? '', notificationLevel: level }
       if (known) channels.set(channelId, { ...known, channel: next })
