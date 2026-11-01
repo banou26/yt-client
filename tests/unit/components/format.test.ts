@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { formatAgo, formatCount, parseStartSeconds } from '../../../src/components/format'
+import { descriptionMeta, formatAgo, formatCount, parseStartSeconds } from '../../../src/components/format'
 
 describe('start offsets', () => {
   it('accepts both forms upstream mints for `t`', () => {
@@ -44,5 +44,28 @@ describe('relative times', () => {
     expect(formatCount(0, 'channel')).toBe('0 channels')
     expect(formatCount(1, 'channel')).toBe('1 channel')
     expect(formatCount(12, 'channel')).toBe('12 channels')
+  })
+})
+
+describe('the description line', () => {
+  const texts = {
+    viewCountText: '1,832,711,164 views',
+    shortViewCountText: '1.8B views',
+    publishedDateText: 'Oct 25, 2009',
+    relativeDateText: '17y ago',
+  }
+
+  it('shows the rounded count and the relative date while collapsed', () => {
+    expect(descriptionMeta({ expanded: false, ...texts })).toBe('1.8B views  17y ago')
+  })
+
+  it('shows the exact count and date once expanded', () => {
+    expect(descriptionMeta({ expanded: true, ...texts })).toBe('1,832,711,164 views  Oct 25, 2009')
+  })
+
+  it('falls back to whichever form upstream sent', () => {
+    expect(descriptionMeta({ expanded: false, viewCountText: '12 views', publishedDateText: 'Oct 25, 2009' })).toBe('12 views  Oct 25, 2009')
+    expect(descriptionMeta({ expanded: true, shortViewCountText: '1.8B views' })).toBe('1.8B views')
+    expect(descriptionMeta({ expanded: true })).toBe('')
   })
 })

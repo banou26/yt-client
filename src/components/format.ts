@@ -55,6 +55,26 @@ export const formatMeta = (viewCount?: string | null, publishedText?: string | n
   return parts.length > 0 ? parts.join(' • ') : undefined
 }
 
+/**
+ * The description box's first line, as youtube.com writes it: the rounded
+ * count and the relative date while collapsed, the exact ones once expanded.
+ * Each falls back to the other form when upstream sent only one.
+ */
+export const descriptionMeta = (
+  { expanded, viewCountText, shortViewCountText, publishedDateText, relativeDateText }: {
+    expanded: boolean
+    viewCountText?: string | null
+    shortViewCountText?: string | null
+    publishedDateText?: string | null
+    relativeDateText?: string | null
+  },
+) => {
+  const parts = expanded
+    ? [viewCountText ?? shortViewCountText, publishedDateText ?? relativeDateText]
+    : [shortViewCountText ?? viewCountText, relativeDateText ?? publishedDateText]
+  return parts.filter(part => part).join('  ')
+}
+
 // urql prefixes a GraphQL error message with its kind ('[GraphQL] ')
 export const readable = (message: string) => message.replace(/^\[\w+]\s*/, '')
 

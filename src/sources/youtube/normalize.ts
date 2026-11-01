@@ -804,7 +804,14 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   const first = (type: string) => memo.get(type)?.[0]
   const primary = first('VideoPrimaryInfo') as {
     title?: Text
-    view_count?: { view_count?: Text, short_view_count?: Text, is_live?: boolean, original_view_count?: number }
+    super_title_link?: Text
+    view_count?: {
+      view_count?: Text
+      short_view_count?: Text
+      extra_short_view_count?: Text
+      is_live?: boolean
+      original_view_count?: number
+    }
     published?: Text
     relative_date?: Text
   } | undefined
@@ -854,6 +861,9 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
       ? 'LIKE'
       : likeLegacy?.dislike_button?.is_toggled === true ? 'DISLIKE' : undefined)
   const bell = subscribeButton?.notification_preference_button
+  const views = primary?.view_count
+  // upstream now sends only the bare '1.8B' for a video, and youtube.com adds the word itself
+  const extraShort = presentText(views?.extra_short_view_count)
   return {
     id,
     title: text(primary?.title),
@@ -861,6 +871,13 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     concurrentViewers: primary?.view_count?.original_view_count,
     viewCountText: text(primary?.view_count?.view_count ?? primary?.view_count?.short_view_count),
     publishedDateText: text(primary?.published) ?? text(primary?.relative_date),
+    shortViewCountText: views?.is_live
+      ? undefined
+      : presentText(views?.short_view_count) ?? (extraShort ? `${extraShort} views` : undefined),
+    relativeDateText: presentText(primary?.relative_date),
+    hashtags: normalizeRuns(primary?.super_title_link)
+      .map(run => run.text.trim())
+      .filter(tag => tag.startsWith('#')),
     likeCountText: likeCount,
     commentCountText: text(commentsHeader?.comment_count),
     description: text(secondary?.description),

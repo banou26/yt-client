@@ -193,6 +193,9 @@ export type SourceWatchMeta = {
   title?: string
   viewCountText?: string
   publishedDateText?: string
+  shortViewCountText?: string
+  relativeDateText?: string
+  hashtags: string[]
   likeCountText?: string
   commentCountText?: string
   description?: string

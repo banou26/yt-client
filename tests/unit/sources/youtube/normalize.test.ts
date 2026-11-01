@@ -666,6 +666,9 @@ describe('youtube normalization', () => {
       concurrentViewers: undefined,
       viewCountText: '55,504,131 views',
       publishedDateText: 'Jun 8, 2021',
+      shortViewCountText: '55M views',
+      relativeDateText: '4 years ago',
+      hashtags: [],
       likeCountText: '123K',
       commentCountText: '4.2K',
       description: 'Full description\nwith lines',
@@ -681,6 +684,30 @@ describe('youtube normalization', () => {
         { id: 'rel1', title: 'Related one', durationSeconds: 60, badges: [], channel: { id: 'UC456', name: 'Other' } },
         { id: 'rel2', title: 'Related two', badges: [] },
       ],
+    })
+  })
+
+  it('reads the collapsed description line: the bare rounded count, the relative date and the hashtags', () => {
+    const memo = new Map<string, unknown[]>([
+      ['VideoPrimaryInfo', [{
+        super_title_link: {
+          runs: [
+            { text: '#OfficialMusicVideo', endpoint: { payload: { browseId: 'FEhashtag' } } },
+            { text: ' ' },
+            { text: '#NeverGonnaGiveYouUp', endpoint: { payload: { browseId: 'FEhashtag' } } },
+          ],
+        },
+        view_count: { view_count: { text: '1,832,711,164 views' }, extra_short_view_count: { text: '1.8B' } },
+        published: { text: 'Oct 25, 2009' },
+        relative_date: { text: '17y ago' },
+      }]],
+    ])
+    expect(normalizeWatchMeta({ contents_memo: memo }, 'dQw4w9WgXcQ')).toMatchObject({
+      viewCountText: '1,832,711,164 views',
+      publishedDateText: 'Oct 25, 2009',
+      shortViewCountText: '1.8B views',
+      relativeDateText: '17y ago',
+      hashtags: ['#OfficialMusicVideo', '#NeverGonnaGiveYouUp'],
     })
   })
 

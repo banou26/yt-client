@@ -475,6 +475,9 @@ const WatchPage = () => {
               key={`description:${videoId}`}
               viewCountText={watch.viewCountText}
               publishedDateText={watch.publishedDateText}
+              shortViewCountText={watch.shortViewCountText}
+              relativeDateText={watch.relativeDateText}
+              hashtags={watch.hashtags}
               description={watch.description}
               runs={watch.descriptionRuns}
               videoId={videoId}

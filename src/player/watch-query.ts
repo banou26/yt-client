@@ -15,6 +15,9 @@ export const WATCH_META_QUERY = gql(`
       title
       viewCountText
       publishedDateText
+      shortViewCountText
+      relativeDateText
+      hashtags
       likeCountText
       commentCountText
       description

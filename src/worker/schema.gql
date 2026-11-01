@@ -308,8 +308,15 @@ type WatchMeta {
   # while a stream is live.
   concurrentViewers: Int
   title: String
+  # The exact count and date, which the expanded description shows.
   viewCountText: String
   publishedDateText: String
+  # The rounded count ('1.8B views') and the relative date ('17y ago') the
+  # collapsed description shows instead.
+  shortViewCountText: String
+  relativeDateText: String
+  # The hashtags upstream lists beside the counts, each with its '#'.
+  hashtags: [String!]!
   likeCountText: String
   commentCountText: String
   description: String

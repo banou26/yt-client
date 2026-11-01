@@ -1163,7 +1163,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const active = await client
       requireSignIn(active, 'rate a video')
       await active.actions.execute(LIKE_ENDPOINT[status], { target: { videoId: id } })
-      return { id, likeStatus: status, related: [], descriptionRuns: [] }
+      return { id, likeStatus: status, related: [], descriptionRuns: [], hashtags: [] }
     },
     removeFromHistory: async (videoId) => {
       const active = await client
