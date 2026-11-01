@@ -872,6 +872,9 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   const commentsHeader = first('CommentsEntryPointHeader') as {
     comment_count?: Text
   } | undefined
+  // a short, and a signed-out video, carry the count only on the comments panel's header
+  const commentsPanel = (input as { engagement_panels?: { panel_identifier?: string, header?: { contextual_info?: Text } }[] })
+    .engagement_panels?.find((panel) => panel.panel_identifier === 'engagement-panel-comments-section')
   // the container, not memo.get('PlaylistPanelVideo'): the id, title, byline and current index exist nowhere else
   const watchNext = first('TwoColumnWatchNextResults') as {
     playlist?: unknown
@@ -911,7 +914,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
       .map(run => run.text.trim())
       .filter(tag => tag.startsWith('#')),
     likeCountText: likeCount,
-    commentCountText: text(commentsHeader?.comment_count),
+    commentCountText: text(commentsHeader?.comment_count) ?? text(commentsPanel?.header?.contextual_info),
     description: text(secondary?.description),
     descriptionRuns: normalizeRuns(secondary?.description),
     likeStatus: status,

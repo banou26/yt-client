@@ -973,3 +973,16 @@ describe('verified badges', () => {
       .toMatchObject({ isVerified: true, isVerifiedArtist: undefined })
   })
 })
+
+describe('the watch comment count', () => {
+  it('falls back to the comments panel header, the only place a short carries it', () => {
+    const meta = normalizeWatchMeta({
+      contents_memo: new Map<string, unknown[]>([['VideoPrimaryInfo', [{ title: { text: 'A short' } }]]]),
+      engagement_panels: [
+        { panel_identifier: 'engagement-panel-structured-description', header: {} },
+        { panel_identifier: 'engagement-panel-comments-section', header: { contextual_info: { text: '330' } } },
+      ],
+    }, 'short1')
+    expect(meta?.commentCountText).toBe('330')
+  })
+})

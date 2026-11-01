@@ -1,22 +1,22 @@
 import type { ShortsFeedQuery } from '../generated/graphql'
 
 import { css } from '@emotion/react'
-import { CircleUserRound, MessageCircle, MoreVertical, Share2, ThumbsDown, ThumbsUp, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, MessageCircle, MonitorPlay, MoreVertical, Share2, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { Link, useRoute } from 'wouter'
+import { Link, useLocation, useRoute } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { Comments } from '../components/comments'
 import { readable, safeDecode } from '../components/format'
 import ShareDialog from '../components/share-dialog'
 import SubscribeButton from '../components/subscribe-button'
+import { Menu, MenuItem } from '../components/ui/menu'
 import useInfiniteFeed from '../components/use-infinite-feed'
 import { gql } from '../generated'
 import ShortsPlayer from '../player/shorts-player'
 import { closePlayer } from '../player/session'
 import { useSession } from '../session'
-import { signIn } from '../sign-in'
 
 const SHORTS_FEED_QUERY = gql(`
   query ShortsFeed($seed: ID, $cursor: String) {
@@ -254,20 +254,44 @@ const style = css`
     font-size: 2rem;
   }
 
-  .sign-in {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.8rem;
-    height: 3.6rem;
-    margin-top: 1.6rem;
-    padding: 0 1.5rem;
-    border: 1px solid var(--border-strong);
-    border-radius: 1.8rem;
-    background: transparent;
-    color: var(--accent);
-    font-size: 1.4rem;
-    font-weight: 500;
+  /* The rail ends at the bottom of the video, so its menu opens upwards. */
+  .rail .rail-menu {
+    top: auto;
+    bottom: calc(100% + 0.8rem);
+  }
+
+  /* Fixed to the viewport's right edge, where youtube.com keeps them, rather
+     than to a slide: the pager scrolls under them. */
+  .pager {
+    position: fixed;
+    right: 2.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    z-index: 2;
+  }
+
+  .pager button {
+    display: grid;
+    place-items: center;
+    width: 5.6rem;
+    height: 5.6rem;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
     cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .pager button:hover:not(:disabled) {
+    background: var(--bg-hover, var(--border-subtle));
+  }
+
+  .pager button:disabled {
+    visibility: hidden;
   }
 
   @media (max-width: 900px) {
@@ -292,7 +316,8 @@ const style = css`
       color: #fff;
     }
 
-    .comments-panel {
+    .comments-panel,
+    .pager {
       display: none;
     }
   }
@@ -315,6 +340,7 @@ const Slide = (
     onShare: () => void
   },
 ) => {
+  const [, navigate] = useLocation()
   const [rateState, rate] = useMutation(RATE_SHORT)
   const [{ data }] = useQuery({
     query: SHORT_META_QUERY,
@@ -374,7 +400,7 @@ const Slide = (
           <span className='glyph'><ThumbsDown size={24} strokeWidth={1.5} fill={disliked ? 'currentColor' : 'none'} /></span>
           Dislike
         </button>
-        <button type='button' className='rail-button' onClick={onComments}>
+        <button type='button' className='rail-button' aria-label='Comments' onClick={onComments}>
           <span className='glyph'><MessageCircle size={24} strokeWidth={1.5} /></span>
           {meta?.commentCountText ?? 'Comments'}
         </button>
@@ -382,10 +408,22 @@ const Slide = (
           <span className='glyph'><Share2 size={24} strokeWidth={1.5} /></span>
           Share
         </button>
-        <Link className='rail-button' href={`/watch?v=${encodeURIComponent(id)}`} aria-label='Open in the full player'>
-          <span className='glyph'><MoreVertical size={24} strokeWidth={1.5} /></span>
-          Details
-        </Link>
+        <Menu
+          label='More actions'
+          align='start'
+          panelClass='rail-menu'
+          trigger={
+            <button type='button' className='rail-button' aria-label='More actions'>
+              <span className='glyph'><MoreVertical size={24} strokeWidth={1.5} /></span>
+            </button>
+          }
+        >
+          <MenuItem
+            icon={MonitorPlay}
+            label='Open in the full player'
+            onSelect={() => navigate(`/watch?v=${encodeURIComponent(id)}`)}
+          />
+        </Menu>
       </div>
     </>
   )
@@ -395,7 +433,7 @@ const ShortsPage = () => {
   const [, params] = useRoute('/shorts/:videoId')
   // frozen at mount: re-reading the param would refetch the whole sequence on every path rewrite the pager makes
   const [seed] = useState(() => (params?.videoId ? safeDecode(params.videoId) : undefined))
-  const { ready, signedIn } = useSession()
+  const { ready } = useSession()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState<ShortsPage[]>([])
   const [activeId, setActiveId] = useState<string | undefined>(seed)
@@ -470,20 +508,17 @@ const ShortsPage = () => {
     return (
       <main css={style}>
         <div className='empty'>
-          <div>
-            <h2>{signedIn ? 'No Shorts right now' : 'Sign in to see Shorts'}</h2>
-            {signedIn
-              ? undefined
-              : (
-                <button type='button' className='sign-in' onClick={signIn}>
-                  <CircleUserRound size={24} strokeWidth={1.5} />
-                  Sign in
-                </button>
-              )}
-          </div>
+          <h2>No Shorts right now</h2>
         </div>
       </main>
     )
+  }
+
+  const activeIndex = items.findIndex(short => short.id === activeId)
+  const step = (by: 1 | -1) => {
+    const target = items[activeIndex + by]
+    if (!target) return
+    scrollerRef.current?.querySelector(`[data-short-id="${CSS.escape(target.id)}"]`)?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -517,6 +552,14 @@ const ShortsPage = () => {
       ))}
       {sharing ? <ShareDialog videoId={sharing} onClose={() => setSharing(undefined)} /> : undefined}
       {active === undefined && fetching ? <p className='notice'>Loading more…</p> : undefined}
+      <div className='pager'>
+        <button type='button' aria-label='Previous short' disabled={activeIndex <= 0} onClick={() => step(-1)}>
+          <ChevronUp size={24} strokeWidth={1.5} />
+        </button>
+        <button type='button' aria-label='Next short' disabled={activeIndex >= items.length - 1} onClick={() => step(1)}>
+          <ChevronDown size={24} strokeWidth={1.5} />
+        </button>
+      </div>
     </main>
   )
 }

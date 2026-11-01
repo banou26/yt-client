@@ -328,7 +328,9 @@ const createFakeClient = () => {
         return {
           success: true,
           // `playlistId` is optional on the wire and is never validated upstream
-          data: { playlistId: 'PLnew' } as { playlistId?: string },
+          data: (endpoint === '/reel/reel_item_watch'
+            ? { replacementEndpoint: { reelWatchEndpoint: { videoId: 'seedless-short' } } }
+            : { playlistId: 'PLnew' }) as { playlistId?: string, replacementEndpoint?: { reelWatchEndpoint?: { videoId?: string } } },
           contents_memo: new Map<string, unknown[]>(memo),
         }
       },
@@ -627,14 +629,19 @@ describe('youtube source', () => {
     expect(page.items[0]?.id).toBe('short-first')
   })
 
-  it('returns an empty shorts feed rather than failing when signed out', async () => {
+  it('seeds a signed-out shorts feed where youtube.com\'s own guide entry does', async () => {
     const client = createFakeClient()
     client.session.logged_in = false
     const source = createYoutubeSource({
       fetch: globalThis.fetch,
       createClient: async () => client,
     })
-    await expect(source.shorts()).resolves.toEqual({ items: [] })
+    const page = await source.shorts()
+    expect(page.items.map((item) => item.id)).toEqual(['seedless-short', 'reel-1', 'reel-2'])
+    expect(client.payloads).toContainEqual({
+      endpoint: '/reel/reel_item_watch',
+      args: { params: 'CA8=', inputType: 'REEL_WATCH_INPUT_TYPE_SEEDLESS' },
+    })
   })
 
   it('refuses a cursor issued for a different feed', async () => {

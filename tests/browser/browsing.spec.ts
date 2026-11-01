@@ -127,3 +127,25 @@ test('puts the home Shorts shelf after the first full row at any width', async (
     expect(layout.above, `the first row is not full at ${width}px`).toBe(layout.columns)
   }
 })
+
+test('plays Shorts signed out, with the comment count, the pager and the ⋮ menu', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/shorts')
+  const slide = page.locator('[data-short-id]').first()
+  await expect(slide).toBeVisible({ timeout: 120_000 })
+  await expect(page.getByText('Sign in to see Shorts')).toHaveCount(0)
+  await expect(page).toHaveURL(/\/shorts\/[\w-]{11}$/)
+  const first = new URL(page.url()).pathname
+
+  await expect(slide.getByRole('button', { name: 'Comments' })).toHaveText(/\d/, { timeout: 60_000 })
+  await expect(page.getByRole('button', { name: 'Previous short' })).toBeHidden()
+
+  await slide.getByRole('button', { name: 'More actions' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Open in the full player' })).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  await page.getByRole('button', { name: 'Next short' }).click()
+  await expect.poll(() => new URL(page.url()).pathname, { timeout: 30_000 }).not.toBe(first)
+  await expect(page.getByRole('button', { name: 'Previous short' })).toBeVisible()
+})

@@ -209,6 +209,10 @@ type ApiResponse = {
   data?: { playlistId?: string }
 }
 
+type SeedlessReelResponse = {
+  data?: { replacementEndpoint?: { reelWatchEndpoint?: { videoId?: string } } }
+}
+
 export type YoutubeClient = {
   getHomeFeed(): Promise<HomeFeedResponse>
   getSubscriptionsFeed(): Promise<SectionedFeed>
@@ -245,8 +249,12 @@ export type YoutubeClient = {
     execute(endpoint: 'browse/edit_playlist', args: { playlistId: string, actions: PlaylistEditAction[] }): Promise<ApiResponse>
     execute(endpoint: 'playlist/create', args: { title: string, videoIds: string[], privacyStatus?: SourcePlaylistPrivacy, description?: string }): Promise<ApiResponse>
     execute(endpoint: 'playlist/delete', args: { playlistId: string }): Promise<ApiResponse>
+    execute(endpoint: '/reel/reel_item_watch', args: { params: string, inputType: string }): Promise<SeedlessReelResponse>
   }
 }
+
+// the guide's Shorts entry, read off youtube.com signed out (2026-11-01): params `CA8%3D`, decoded
+const SEEDLESS_REEL = { params: 'CA8=', inputType: 'REEL_WATCH_INPUT_TYPE_SEEDLESS' }
 
 export type YoutubeSourceOptions = {
   fetch: typeof globalThis.fetch
@@ -798,11 +806,14 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     return result
   }
 
-  // An anonymous home carries no shorts, which is why an anonymous Shorts feed is legitimately empty rather than broken.
+  // An anonymous home carries no shorts, so a signed-out pager starts where youtube.com's own guide entry does: a reel watch with no video, which upstream answers with one.
   const seedShort = async (active: YoutubeClient) => {
-    if (!active.session.logged_in) return undefined
-    const feed = await active.getHomeFeed()
-    return shortsItems(feed)[0]?.id
+    if (active.session.logged_in) {
+      const seed = shortsItems(await active.getHomeFeed())[0]?.id
+      if (seed) return seed
+    }
+    const reel = await active.actions.execute('/reel/reel_item_watch', SEEDLESS_REEL)
+    return reel.data?.replacementEndpoint?.reelWatchEndpoint?.videoId
   }
 
   const registerRelated = (videoId: string, endpoint: EndpointNode): string => {
