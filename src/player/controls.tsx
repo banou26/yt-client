@@ -200,7 +200,10 @@ const style = css`
     cursor: pointer;
   }
 
+  /* the one item that gives way, so an hour-long clock clips rather than pushing a button out of the player */
   .time {
+    min-width: 0;
+    overflow: hidden;
     padding: 0 0.8rem;
     font-size: 1.3rem;
     font-variant-numeric: tabular-nums;
@@ -261,6 +264,18 @@ const style = css`
   .settings-menu {
     bottom: calc(100% + 0.8rem);
     top: auto;
+  }
+
+  @container player (max-width: 600px) {
+    .bar {
+      gap: 0;
+    }
+
+    .autoplay,
+    .theater-toggle,
+    .volume-slider {
+      display: none;
+    }
   }
 `
 
@@ -624,7 +639,7 @@ export const PlayerControls = (
             </button>
           )
           : undefined}
-        <button type='button' className='control' aria-label='Theater mode' aria-pressed={theater} onClick={onTheater}>
+        <button type='button' className='control theater-toggle' aria-label='Theater mode' aria-pressed={theater} onClick={onTheater}>
           {/* two nested rectangles read as "wide screen" */}
           <svg width='24' height='24' viewBox='0 0 24 24' aria-hidden='true' fill='none' stroke='currentColor' strokeWidth='1.8'>
             <rect x='2' y='6' width='20' height='12' rx='1.5' />

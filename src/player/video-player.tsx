@@ -34,6 +34,8 @@ const playerStyle = css`
   border-radius: 14px;
   background: #000;
   position: relative;
+  /* the controls and the end screen lay out for the player's own width, which is the miniplayer's 400 px wherever the page is */
+  container: player / inline-size;
 
   /* Fullscreen has to beat BOTH the 16/9 aspect-ratio box and the max-height
      that theater mode puts on this element, or the video is letterboxed inside
