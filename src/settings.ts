@@ -21,7 +21,7 @@ export type Settings = {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  theme: 'dark',
+  theme: 'device',
   autoplay: true,
   volume: 1,
   muted: false,
