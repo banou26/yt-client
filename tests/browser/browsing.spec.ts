@@ -34,3 +34,31 @@ test('centres the search box, clears it, and opens the header menu', async ({ pa
   await page.getByRole('menuitem', { name: 'Settings' }).click()
   await expect(page).toHaveURL(/\/settings$/)
 })
+
+test('bolds the completion in suggestions and keeps the list up while the next one loads', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-engine', 'ready', { timeout: 90_000 })
+  const input = page.getByRole('combobox', { name: 'Search' })
+  const list = page.getByRole('listbox')
+  await input.pressSequentially('rick a', { delay: 30 })
+  await expect(list.getByRole('option').first()).toBeVisible({ timeout: 60_000 })
+  await expect(list.getByRole('option').first().locator('b')).not.toHaveText('')
+  expect(await list.getByRole('option').first().locator('b').textContent()).not.toMatch(/^rick a/i)
+
+  const before = await list.getByRole('option').allTextContents()
+  await page.evaluate(() => {
+    const state = { vanished: false }
+    Object.assign(window, { suggestState: state })
+    new MutationObserver(() => {
+      if (!document.getElementById('search-suggestions')) state.vanished = true
+    }).observe(document.body, { childList: true, subtree: true })
+  })
+  await input.press('s')
+  await expect.poll(() => list.getByRole('option').allTextContents(), { timeout: 60_000 }).not.toEqual(before)
+  const vanished = await page.evaluate(() => (window as unknown as { suggestState: { vanished: boolean } }).suggestState.vanished)
+  expect(vanished, 'the list blinked out while the next one loaded').toBe(false)
+
+  await input.fill('')
+  await expect(list).toBeHidden()
+})

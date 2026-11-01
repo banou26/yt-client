@@ -11,6 +11,7 @@ import { AccountMenu } from './account-menu'
 import { ExtensionNotice } from './extension-notice'
 import { HeaderMenu } from './header-menu'
 import { NotificationsMenu } from './notifications-menu'
+import { splitSuggestion } from './suggestion'
 import { signIn } from '../sign-in'
 
 const SEARCH_SUGGESTIONS_QUERY = gql(`
@@ -19,7 +20,7 @@ const SEARCH_SUGGESTIONS_QUERY = gql(`
   }
 `)
 
-const SUGGEST_DEBOUNCE_MS = 200
+const SUGGEST_DEBOUNCE_MS = 60
 
 const HEADER_SESSION_QUERY = gql(`
   query HeaderSession {
@@ -321,7 +322,8 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
     variables: { query: debounced },
     pause: !engineReady || debounced.length === 0 || !suggestOpen,
   })
-  const suggestions = suggestOpen ? suggestData?.searchSuggestions ?? [] : []
+  // urql keeps the last answer while the next is in flight, which keeps the list up between keystrokes as youtube.com's does; it keeps it for an emptied box too, so the length check closes the list there
+  const suggestions = suggestOpen && debounced.length > 0 ? suggestData?.searchSuggestions ?? [] : []
 
   const currentQuery = new URLSearchParams(search).get('search_query') ?? undefined
 
@@ -410,22 +412,25 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
           {suggestions.length > 0
             ? (
               <ul className='suggestions' id='search-suggestions' role='listbox'>
-                {suggestions.map((suggestion, index) => (
-                  <li
-                    key={suggestion}
-                    id={`suggestion-${index}`}
-                    role='option'
-                    aria-selected={index === activeSuggestion}
-                    className={index === activeSuggestion ? 'suggestion active' : 'suggestion'}
-                    onPointerDown={(event: TargetedEvent<HTMLLIElement>) => {
-                      event.preventDefault()
-                      submitQuery(suggestion)
-                    }}
-                  >
-                    <Search size={16} strokeWidth={1.5} />
-                    {suggestion}
-                  </li>
-                ))}
+                {suggestions.map((suggestion, index) => {
+                  const parts = splitSuggestion(typed ?? debounced, suggestion)
+                  return (
+                    <li
+                      key={suggestion}
+                      id={`suggestion-${index}`}
+                      role='option'
+                      aria-selected={index === activeSuggestion}
+                      className={index === activeSuggestion ? 'suggestion active' : 'suggestion'}
+                      onPointerDown={(event: TargetedEvent<HTMLLIElement>) => {
+                        event.preventDefault()
+                        submitQuery(suggestion)
+                      }}
+                    >
+                      <Search size={16} strokeWidth={1.5} />
+                      <span>{parts.typed}<b>{parts.completion}</b></span>
+                    </li>
+                  )
+                })}
               </ul>
             )
             : undefined}
