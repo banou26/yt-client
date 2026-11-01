@@ -294,6 +294,16 @@ const style = css`
     visibility: hidden;
   }
 
+  /* With the comments open, the slide reaches under the pager below this
+     width, which would cover the comments. Measured 2026-11-02 with the stage
+     at its height cap: up to 1192px under the mini guide, and up to 1360px
+     under the expanded guide that starts at 1313px. */
+  @media (max-width: 1440px) {
+    &.comments-open .pager {
+      display: none;
+    }
+  }
+
   @media (max-width: 900px) {
     .rail {
       /* Below the breakpoint the rail sits on top of the video, which is where
@@ -522,7 +532,7 @@ const ShortsPage = () => {
   }
 
   return (
-    <main css={style} ref={scrollerRef}>
+    <main css={style} className={showComments ? 'comments-open' : undefined} ref={scrollerRef}>
       {items.map(short => (
         <section className='slide' key={short.id} data-short-id={short.id}>
           <Slide

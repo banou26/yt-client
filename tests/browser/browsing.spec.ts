@@ -142,6 +142,23 @@ test('plays Shorts signed out, with the comment count, the pager and the ⋮ men
   await expect(slide.getByRole('button', { name: 'Comments' })).toHaveText(/\d/, { timeout: 60_000 })
   await expect(page.getByRole('button', { name: 'Previous short' })).toBeHidden()
 
+  const next = page.getByRole('button', { name: 'Next short' })
+  const panel = page.locator('.comments-panel')
+  await slide.getByRole('button', { name: 'Comments' }).click()
+  await expect(panel).toBeVisible()
+  // 1320 is the expanded guide's first width, where a tall viewport pushes the panel furthest right
+  for (const width of [1000, 1320]) {
+    await page.setViewportSize({ width, height: 1000 })
+    await expect.poll(async () => {
+      if (!await next.isVisible()) return false
+      const [button, comments] = await Promise.all([next.boundingBox(), panel.boundingBox()])
+      return button!.x < comments!.x + comments!.width
+    }, { message: `the pager covers the comments at ${width}px` }).toBe(false)
+  }
+  await page.getByRole('button', { name: 'Close comments' }).click()
+  await expect(next).toBeVisible()
+  await page.setViewportSize({ width: 1280, height: 900 })
+
   await slide.getByRole('button', { name: 'More actions' }).click()
   await expect(page.getByRole('menuitem', { name: 'Open in the full player' })).toBeVisible()
   await page.keyboard.press('Escape')
