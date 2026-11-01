@@ -1,22 +1,14 @@
 import type { Page } from '@playwright/test'
+import type { JarCookie } from '../../src/scramjet/jar'
 
 import { expect, test } from '@playwright/test'
 
-// the engine's Scramjet jar, the whole-jar blob every Controller of the origin persists and reloads
-const jarHolds = (page: Page, needle: string) => page.evaluate((text) => new Promise<boolean>((resolve) => {
-  const request = indexedDB.open('__scramjet_controller')
-  request.onerror = () => resolve(false)
-  request.onsuccess = () => {
-    const db = request.result
-    if (!db.objectStoreNames.contains('state')) {
-      resolve(false)
-      return
-    }
-    const get = db.transaction('state', 'readonly').objectStore('state').get('cookies')
-    get.onsuccess = () => resolve(String((get.result as { cookies?: string } | undefined)?.cookies ?? '').includes(text))
-    get.onerror = () => resolve(false)
-  }
-}), needle)
+// the engine's Scramjet jar through the app's own reader, so a cookie seen here also proves the reader parses the real jar
+const readJar = (page: Page) => page.evaluate(async (path) => {
+  const jar = await import(path) as typeof import('../../src/scramjet/jar')
+  const cookies = await jar.readJar()
+  return { names: cookies.map((cookie: JarCookie) => cookie.name), session: jar.holdsSession(cookies) }
+}, '/src/scramjet/jar.ts')
 
 // Google's form is read from frame CONTENT: a Scramjet frame's url never literally names google
 const showsGoogleForm = async (page: Page) => {
@@ -32,7 +24,7 @@ test('signs in through a window of its own, on the engine jar', async ({ page, c
   await page.goto('/watch?v=FAlMdord_Fg')
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.engine), { timeout: 90_000 }).toBe('ready')
   // the control: nothing has reached Google yet, so its cookie is not in the jar
-  expect(await jarHolds(page, '__Host-GAPS')).toBe(false)
+  expect((await readJar(page)).names).not.toContain('__Host-GAPS')
 
   const opened = context.waitForEvent('page')
   await page.locator('header button.sign-in').click()
@@ -43,7 +35,9 @@ test('signs in through a window of its own, on the engine jar', async ({ page, c
 
   await expect.poll(() => showsGoogleForm(popup), { timeout: 90_000 }).toBe(true)
   // the window's cookies are the engine's, which is how a sign-in there reaches the app
-  await expect.poll(() => jarHolds(page, '__Host-GAPS'), { timeout: 15_000 }).toBe(true)
+  await expect.poll(async () => (await readJar(page)).names, { timeout: 15_000 }).toContain('__Host-GAPS')
+  // Google's cookies before a sign-in are not a session, so closing the window here would not count as one
+  expect((await readJar(page)).session).toBe(false)
 
   // the engine keeps its egress port while the window holds one: a search answers in about 1 s, and an engine that lost
   // its port stalls about 15 s until its reset, so the bound sits well between the two

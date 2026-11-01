@@ -3,6 +3,7 @@ import type { SignInWindowMessage } from './scramjet/protocol'
 import { showToast } from './components/ui/toast'
 import { startEngine } from './scramjet/client'
 import { BUILD_ID, reloadOnceForBuild } from './scramjet/engine-build'
+import { jarHoldsSession } from './scramjet/jar'
 import { startPlatform } from './scramjet/platform'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from './scramjet/protocol'
 
@@ -87,7 +88,12 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
       }
     }
     addEventListener('message', onMessage)
-    const poll = setInterval(() => { if (win.closed) settle('closed') }, CLOSED_POLL_MS)
+    // a window closed after Google finished but before its own check fired has still left the session in the jar
+    const poll = setInterval(() => {
+      if (!win.closed) return
+      clearInterval(poll)
+      void jarHoldsSession().then((session) => settle(session ? 'authed' : 'closed'))
+    }, CLOSED_POLL_MS)
   })
 }
 

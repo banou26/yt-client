@@ -8,10 +8,12 @@ const showToast = vi.fn()
 const resetIdentity = vi.fn(async () => { calls.push('reset') })
 const egressPort = { name: 'signin-port' }
 const openEgressPort = vi.fn((_role?: string) => egressPort)
+const jarHoldsSession = vi.fn(async () => false)
 
 vi.mock('../../src/components/ui/toast', () => ({ showToast }))
 vi.mock('../../src/scramjet/client', () => ({ startEngine: async () => ({ resetIdentity }) }))
 vi.mock('../../src/scramjet/platform', () => ({ startPlatform: async () => ({ openEgressPort }) }))
+vi.mock('../../src/scramjet/jar', () => ({ jarHoldsSession }))
 
 const ORIGIN = 'https://youtube.fkn.app'
 
@@ -80,6 +82,8 @@ describe('the sign-in window', () => {
     showToast.mockClear()
     resetIdentity.mockClear()
     openEgressPort.mockClear()
+    jarHoldsSession.mockReset()
+    jarHoldsSession.mockResolvedValue(false)
   })
 
   afterEach(() => {
@@ -194,8 +198,21 @@ describe('the sign-in window', () => {
     win.closed = true
     vi.advanceTimersByTime(500)
     await expect(outcome).resolves.toBe('closed')
+    expect(jarHoldsSession).toHaveBeenCalledOnce()
     expect(reload).not.toHaveBeenCalled()
     expect(resetIdentity).not.toHaveBeenCalled()
+  })
+
+  it('signs in when the window closed after Google finished but before it said so', async () => {
+    const win = fakeWindow()
+    const { reload } = install(win)
+    jarHoldsSession.mockResolvedValue(true)
+    const { signIn } = await import('../../src/sign-in')
+    signIn()
+    win.closed = true
+    vi.advanceTimersByTime(500)
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce())
+    expect(resetIdentity).toHaveBeenCalledOnce()
   })
 
   it('settles one sign-in however many times Sign in is clicked', async () => {
