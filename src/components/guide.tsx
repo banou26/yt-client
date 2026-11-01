@@ -47,11 +47,11 @@ const YOU_ENTRIES: GuideEntry[] = [
   { label: 'Liked videos', href: playlistHrefFor(LIKED_VIDEOS_ID), Icon: ThumbsUp, match: playlistHrefFor(LIKED_VIDEOS_ID) }
 ]
 
-// youtube.com's own Explore destinations, read off its signed-out guide (2026-11-01), less Movies & TV and Playables, which have no page here
+// youtube.com links these to its topic channels, whose Home tab of shelves the channel page cannot show yet (one is empty, two error), so each is a search
 const EXPLORE_ENTRIES: GuideEntry[] = [
-  { label: 'Music', href: '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ', Icon: Music2, match: '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ' },
-  { label: 'Live', href: '/channel/UC4R8DWoMoI7CAwX8_LjQHig', Icon: Radio, match: '/channel/UC4R8DWoMoI7CAwX8_LjQHig' },
-  { label: 'Gaming', href: '/channel/UCOpNcN46UbXVtpKMrmU4Abg', Icon: Gamepad2, match: '/channel/UCOpNcN46UbXVtpKMrmU4Abg' }
+  { label: 'Music', href: '/results?search_query=Music', Icon: Music2, match: '/results?search_query=Music' },
+  { label: 'Live', href: '/results?search_query=Live&features=LIVE', Icon: Radio, match: '/results?search_query=Live&features=LIVE' },
+  { label: 'Gaming', href: '/results?search_query=Gaming', Icon: Gamepad2, match: '/results?search_query=Gaming' }
 ]
 
 const MINI_ENTRIES: GuideEntry[] = [...MAIN_ENTRIES, YOU_ENTRY]

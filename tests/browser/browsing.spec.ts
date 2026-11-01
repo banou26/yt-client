@@ -150,7 +150,7 @@ test('plays Shorts signed out, with the comment count, the pager and the ⋮ men
   await expect(page.getByRole('button', { name: 'Previous short' })).toBeVisible()
 })
 
-test('has a You page and youtube.com\'s guide entries', async ({ page }) => {
+test('has a You page and Explore entries that lead to videos', async ({ page }) => {
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 1600, height: 900 })
   await page.goto('/feed/you')
@@ -163,10 +163,15 @@ test('has a You page and youtube.com\'s guide entries', async ({ page }) => {
   await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('href', '/feed/you')
   const homeLinks = await guide.locator('a[href="/"]').count()
   expect(homeLinks, 'an Explore entry still points at Home').toBe(1)
-  await expect(guide.getByRole('link', { name: 'Music' })).toHaveAttribute('href', '/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ')
 
-  await guide.getByRole('link', { name: 'Music' }).click()
-  await expect(page.locator('h1')).toBeVisible({ timeout: 120_000 })
+  // back on the You page between entries, so a row still up from the previous search cannot pass for the next one
+  const rows = main.locator('article.result').filter({ has: page.locator('a.thumb') })
+  for (const label of ['Music', 'Live', 'Gaming']) {
+    await guide.getByRole('link', { name: 'You', exact: true }).click()
+    await expect(rows).toHaveCount(0)
+    await guide.getByRole('link', { name: label, exact: true }).click()
+    await expect(rows.first(), `the ${label} entry leads to no videos`).toBeVisible({ timeout: 120_000 })
+  }
 
   await page.setViewportSize({ width: 1280, height: 900 })
   await expect(page.getByRole('navigation', { name: 'Guide' }).getByRole('link', { name: 'You' })).toHaveAttribute('href', '/feed/you')
