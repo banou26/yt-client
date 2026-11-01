@@ -20,16 +20,37 @@ const POLL_MS = 500
 // the opener closes the window on SIGNIN_DONE; this only covers an opener that went away meanwhile
 const SELF_CLOSE_MS = 2_000
 
+let ended = false
 const stage = (value: string) => {
-  document.documentElement.dataset.stage = value
+  if (!ended) document.documentElement.dataset.stage = value
+}
+const end = (value: 'done' | 'error' | 'stopped') => {
+  stage(value)
+  ended = true
+}
+
+// every hop leaves through the opener's egress worker, which goes with the opener's document on a reload or a close
+const opener = window.opener as Window | null
+const openerDocument = (() => {
+  try {
+    return opener?.document
+  } catch {
+    return undefined
+  }
+})()
+const openerAlive = () => {
+  try {
+    return !!opener && !opener.closed && opener.document === openerDocument
+  } catch {
+    return false
+  }
 }
 
 const toOpener = (message: SignInWindowMessage) => {
-  ;(window.opener as Window | null)?.postMessage(message, location.origin)
+  opener?.postMessage(message, location.origin)
 }
 
 const egressPort = () => new Promise<MessagePort>((resolve, reject) => {
-  const opener = window.opener as Window | null
   if (!opener) {
     reject(new Error('yt-client: the sign-in window has no opener'))
     return
@@ -92,7 +113,6 @@ const boot = async () => {
 
   let advanced = false
   let revealed = false
-  let finished = false
   const reveal = () => {
     revealed = true
     element.style.visibility = 'visible'
@@ -101,10 +121,9 @@ const boot = async () => {
   const fallback = setTimeout(() => { if (!revealed) reveal() }, REVEAL_FALLBACK_MS)
 
   const finish = async () => {
-    finished = true
+    end('done')
     clearInterval(poll)
     clearTimeout(fallback)
-    stage('done')
     // every Set-Cookie already persisted the jar; this last write is what the engine reads after the app reloads
     await controller.persistCookies()
     toOpener({ type: SIGNIN_DONE })
@@ -112,7 +131,7 @@ const boot = async () => {
   }
 
   const check = () => {
-    if (finished) return
+    if (ended) return
     const current = target()
     if (current && isYoutubeHop(current)) element.style.visibility = 'hidden'
     else if (current && rendered()) reveal()
@@ -140,7 +159,12 @@ const boot = async () => {
   proxied.go(SIGN_IN_URL)
 }
 
+document.querySelector('.close')?.addEventListener('click', () => window.close())
+const watch = setInterval(() => {
+  if (!ended && !openerAlive()) end('stopped')
+  if (ended) clearInterval(watch)
+}, POLL_MS)
 void boot().catch((error: unknown) => {
   console.error('[yt-client] sign-in window:', error)
-  stage('error')
+  end('error')
 })
