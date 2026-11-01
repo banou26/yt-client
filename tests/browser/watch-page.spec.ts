@@ -47,3 +47,32 @@ test('collapses the description to the rounded counts and three lines, with an i
   await expect(more).toHaveCount(0)
   expect(await box.locator('.text').evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThan(layout.lineHeight * 3 + 1)
 })
+
+test('grows the sidebar and its thumbnails on a wide window, like youtube.com', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.goto(VIDEO)
+  await expect(page.locator('main aside article').first()).toBeVisible({ timeout: 90_000 })
+  const measure = () => page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
+    return {
+      viewport: document.documentElement.clientWidth,
+      player: box('main .stage').width,
+      aside: box('main aside').width,
+      asideRight: box('main aside').right,
+      thumb: box('main aside article .thumb').width,
+    }
+  })
+
+  // youtube.com at 1920: a 1344 px player beside a 528 px sidebar of 330 px thumbnails, reaching the window's edge
+  const wide = await measure()
+  expect(wide.aside).toBeCloseTo(528, 0)
+  expect(wide.player).toBeGreaterThan(1300)
+  expect(wide.viewport - wide.asideRight).toBeLessThanOrEqual(24)
+  expect(wide.thumb).toBeGreaterThan(320)
+
+  // and the 402 px sidebar of 168 px thumbnails stays below the width where 27.5% of the window passes it
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await expect.poll(async () => (await measure()).aside).toBeCloseTo(402, 0)
+  expect((await measure()).thumb).toBeCloseTo(168, 0)
+})

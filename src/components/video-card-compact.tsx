@@ -12,12 +12,14 @@ const style = css`
   align-items: flex-start;
   min-width: 0;
 
+  /* --compact-thumb-width lets a wider column, the watch sidebar on a wide
+     screen, grow the thumbnail */
   .thumb {
     position: relative;
     flex: none;
     display: block;
-    width: 16.8rem;
-    height: 9.4rem;
+    width: var(--compact-thumb-width, 16.8rem);
+    aspect-ratio: 16 / 9;
     border-radius: 0.8rem;
     overflow: hidden;
     background: var(--bg-elevated);
@@ -186,8 +188,8 @@ const skeletonStyle = css`
 
   .thumb {
     flex: none;
-    width: 16.8rem;
-    height: 9.4rem;
+    width: var(--compact-thumb-width, 16.8rem);
+    aspect-ratio: 16 / 9;
     border-radius: 0.8rem;
     background: var(--bg-elevated);
   }

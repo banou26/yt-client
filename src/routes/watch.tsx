@@ -40,7 +40,15 @@ const RATE_VIDEO = gql(`
 
 const style = css`
   display: grid;
-  grid-template-columns: minmax(0, 128rem) 40.2rem;
+  /* youtube.com's own proportions, measured at 1280 to 2560 px wide: the
+     sidebar is 27.5% of the window, held between 402 and 700 px, and the
+     player takes the rest, up to the width whose 16:9 frame still fits under
+     the header with room below it, so a short or ultrawide window centers the
+     two. */
+  grid-template-columns:
+    minmax(0, max(64rem, calc((100vh - var(--header-height) - 6rem) * 16 / 9)))
+    clamp(40.2rem, 27.5vw, 70rem);
+  justify-content: center;
   /* The sidebar spans BOTH rows, and an auto-sized row absorbs a share of a
      spanning item that is taller than its own content. So a long sidebar
      inflated row 1 and pushed the title and description far below the player:
@@ -81,6 +89,9 @@ const style = css`
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+    /* 168 px at the 402 px minimum, growing 1.25 px per px the row gains, up
+       to youtube.com's 62.5% of the row (330 of 528 at 1920) */
+    --compact-thumb-width: clamp(16.8rem, calc(125% - 33.45rem), 62.5%);
   }
 
   &.theater {
@@ -280,6 +291,7 @@ const style = css`
 
     .secondary {
       margin-top: 2.4rem;
+      --compact-thumb-width: 16.8rem;
     }
 
     &.theater .primary,
