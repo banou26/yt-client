@@ -1,18 +1,24 @@
 import type { SearchDuration, SearchFeature, SearchResultsQuery, SearchSort, SearchType, SearchUploadDate } from '../generated/graphql'
 
+import type { TargetedPointerEvent } from 'preact'
+
 import { css } from '@emotion/react'
 import { ListVideo, SlidersHorizontal } from 'lucide-react'
-import { useState } from 'preact/hooks'
+import { useCallback, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { formatDuration, formatMeta } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
+import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
 import SubscribeButton from '../components/subscribe-button'
+import Dialog from '../components/ui/dialog'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
+import { HoverPreview } from '../player/hover-preview'
+import { usePrefetchOnIntent } from '../player/prefetch'
 
 type ResultsPage = SearchResultsQuery['search']
 type SearchRow = ResultsPage['results'][number]
@@ -58,7 +64,6 @@ const SEARCH_RESULTS_QUERY = gql(`
         }
       }
       refinements
-      estimatedResults
       cursor
     }
   }
@@ -157,11 +162,52 @@ const style = css`
     display: flex;
     align-items: center;
     gap: 1.6rem;
-    padding-bottom: 1.6rem;
-    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 1.2rem;
+  }
+
+  .filter-chips {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 1.2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-chip {
+    flex: none;
+    height: 3.2rem;
+    padding: 0 1.2rem;
+    border: none;
+    border-radius: 0.8rem;
+    background: var(--bg-chip);
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .filter-chip:hover {
+    background: var(--bg-chip-hover);
+  }
+
+  .filter-chip.active {
+    background: var(--bg-inverse);
+    color: var(--text-inverse);
+  }
+
+  .filter-chip.active:hover {
+    background: var(--bg-inverse-hover);
   }
 
   .filter-toggle {
+    flex: none;
     display: inline-flex;
     align-items: center;
     gap: 0.8rem;
@@ -181,26 +227,17 @@ const style = css`
     background: var(--bg-hover);
   }
 
-  .filter-toggle.on {
-    background: var(--bg-chip);
-  }
-
-  .count {
-    font-size: 1.3rem;
-    color: var(--text-secondary);
-  }
-
-  .panel {
+  .filters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
     gap: 2.4rem;
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--border-subtle);
   }
 
   .group-title {
-    margin: 0 0 1.2rem;
-    font-size: 1.4rem;
+    margin: 0 0 0.8rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 1.2rem;
     font-weight: 500;
     color: var(--text-primary);
     text-transform: uppercase;
@@ -210,11 +247,11 @@ const style = css`
   .option {
     display: block;
     width: fit-content;
-    padding: 0.4rem 0;
+    padding: 0.8rem 0;
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     text-align: left;
     cursor: pointer;
   }
@@ -258,9 +295,10 @@ const style = css`
     padding-top: 1.6rem;
   }
 
+  /* youtube.com's row: the thumbnail takes half the row, up to 500px. */
   .result {
     display: grid;
-    grid-template-columns: 36rem minmax(0, 1fr);
+    grid-template-columns: minmax(24rem, min(50rem, 50%)) minmax(0, 1fr);
     gap: 1.6rem;
   }
 
@@ -366,7 +404,6 @@ const style = css`
      grid's top alignment, which is what youtube.com does and what keeps a row
      with almost no metadata from looking like it lost its thumbnail. */
   .result.channel-row {
-    grid-template-columns: 36rem minmax(0, 1fr);
     align-items: center;
   }
 
@@ -449,6 +486,76 @@ const style = css`
 const rowKey = (row: SearchRow) =>
   row.__typename === 'Channel' ? `channel:${row.id}` : `${row.__typename}:${row.id}`
 
+type VideoResult = Extract<SearchRow, { __typename: 'Video' }>
+
+const VideoRow = ({ row }: { row: VideoResult }) => {
+  const prefetch = usePrefetchOnIntent(row.id)
+  const [previewing, setPreviewing] = useState(false)
+  const watchHref = watchHrefFor(row.id)
+  const duration = formatDuration(row.durationSeconds)
+  const meta = formatMeta(row.viewCount, row.publishedText)
+  const snippet = row.descriptionSnippet ?? row.description
+  const canPreview = row.isUpcoming !== true && row.isLive !== true
+  return (
+    <article
+      className='result'
+      onPointerEnter={(event: TargetedPointerEvent<HTMLElement>) => {
+        prefetch.onPointerEnter()
+        if (event.pointerType === 'mouse' && canPreview) setPreviewing(true)
+      }}
+      onPointerLeave={() => {
+        prefetch.onPointerLeave()
+        setPreviewing(false)
+      }}
+      onPointerDown={prefetch.onPointerDown}
+    >
+      <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
+        {row.thumbnail
+          ? (
+            <img
+              src={row.thumbnail}
+              srcSet={row.thumbnailSrcset ?? undefined}
+              sizes='50rem'
+              alt=''
+              loading='lazy'
+            />
+          )
+          : undefined}
+        {previewing ? <HoverPreview videoId={row.id} /> : undefined}
+        {row.isLive
+          ? <span className='badge live'>LIVE</span>
+          : duration ? <span className='badge'>{duration}</span> : undefined}
+      </Link>
+      <div className='info'>
+        <h2 className='title'>
+          <Link href={watchHref}>{row.title}</Link>
+        </h2>
+        {meta ? <div className='meta'>{meta}</div> : undefined}
+        {row.badges.length > 0
+          ? (
+            <div className='chips'>
+              {row.badges.map(badge => <span className='chip' key={badge}>{badge}</span>)}
+            </div>
+          )
+          : undefined}
+        {row.channel
+          ? (
+            <Link href={`/channel/${row.channel.id}`} className='channel'>
+              <span className={row.channel.avatar ? 'avatar' : 'avatar fallback'}>
+                {row.channel.avatar
+                  ? <img src={row.channel.avatar} alt='' loading='lazy' />
+                  : row.channel.name.slice(0, 1).toUpperCase()}
+              </span>
+              <span>{row.channel.name}</span>
+            </Link>
+          )
+          : undefined}
+        {snippet ? <p className='description'>{snippet}</p> : undefined}
+      </div>
+    </article>
+  )
+}
+
 const SearchPage = () => {
   const search = useSearch()
   const params = new URLSearchParams(search)
@@ -465,7 +572,10 @@ const SearchPage = () => {
     features: features.length > 0 ? features : undefined,
   }
   const activeFilters = FILTER_PARAMS.filter(param => params.get(param)).length
-  const [panelOpen, setPanelOpen] = useState(activeFilters > 0)
+  const chip = activeChip(params)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  // stable, or the dialog re-runs its focus effect on every navigation a filter makes
+  const closeFilters = useCallback(() => setFiltersOpen(false), [])
 
   const feedKey = `${query}|${FILTER_PARAMS.map(param => params.get(param) ?? '').join('|')}`
   const [loaded, setLoaded] = useState<{ key: string, pages: ResultsPage[] }>({ key: feedKey, pages: [] })
@@ -491,6 +601,7 @@ const SearchPage = () => {
     const next = new URLSearchParams(search)
     if (value === undefined || next.get(param) === value) next.delete(param)
     else next.set(param, value)
+    setFiltersOpen(false)
     navigate(`/results?${next}`)
   }
 
@@ -501,6 +612,7 @@ const SearchPage = () => {
     else set.add(feature)
     if (set.size === 0) next.delete('features')
     else next.set('features', [...set].join(','))
+    setFiltersOpen(false)
     navigate(`/results?${next}`)
   }
 
@@ -512,60 +624,67 @@ const SearchPage = () => {
     <main css={style}>
       <h1 className='sr-only'>Results for {query}</h1>
       <div className='toolbar'>
-        <button
-          type='button'
-          className={panelOpen || activeFilters > 0 ? 'filter-toggle on' : 'filter-toggle'}
-          aria-expanded={panelOpen}
-          onClick={() => setPanelOpen(open => !open)}
-        >
-          <SlidersHorizontal size={20} strokeWidth={1.5} />
+        <div className='filter-chips'>
+          {SEARCH_CHIPS.map(entry => (
+            <button
+              type='button'
+              key={entry.id}
+              className={entry.id === chip ? 'filter-chip active' : 'filter-chip'}
+              aria-pressed={entry.id === chip}
+              onClick={() => navigate(`/results?${chipSearch(params, entry)}`)}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
+        <button type='button' className='filter-toggle' onClick={() => setFiltersOpen(true)}>
           Filters
           {activeFilters > 0 ? ` (${activeFilters})` : ''}
+          <SlidersHorizontal size={20} strokeWidth={1.5} />
         </button>
-        {page?.estimatedResults
-          ? <span className='count'>About {page.estimatedResults.toLocaleString()} results</span>
-          : undefined}
       </div>
-      {panelOpen
+      {filtersOpen
         ? (
-          <div className='panel'>
-            {SINGLE_GROUPS.map(group => (
-              <div key={group.param}>
-                <h2 className='group-title'>{group.label}</h2>
-                {group.options.map(option => {
-                  const active = params.get(group.param) === option.value
+          <Dialog title='Search filters' wide onClose={closeFilters}>
+            <div className='filters'>
+              {SINGLE_GROUPS.map(group => (
+                <div key={group.param}>
+                  <h3 className='group-title'>{group.label}</h3>
+                  {group.options.map(option => {
+                    const active = params.get(group.param) === option.value
+                    return (
+                      <button
+                        type='button'
+                        key={option.value}
+                        className={active ? 'option active' : 'option'}
+                        aria-pressed={active}
+                        onClick={() => setParam(group.param, option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
+              <div>
+                <h3 className='group-title'>Features</h3>
+                {FEATURES.map(feature => {
+                  const active = features.includes(feature.value)
                   return (
                     <button
                       type='button'
-                      key={option.value}
+                      key={feature.value}
                       className={active ? 'option active' : 'option'}
                       aria-pressed={active}
-                      onClick={() => setParam(group.param, option.value)}
+                      onClick={() => toggleFeature(feature.value)}
                     >
-                      {option.label}
+                      {feature.label}
                     </button>
                   )
                 })}
               </div>
-            ))}
-            <div>
-              <h2 className='group-title'>Features</h2>
-              {FEATURES.map(feature => {
-                const active = features.includes(feature.value)
-                return (
-                  <button
-                    type='button'
-                    key={feature.value}
-                    className={active ? 'option active' : 'option'}
-                    aria-pressed={active}
-                    onClick={() => toggleFeature(feature.value)}
-                  >
-                    {feature.label}
-                  </button>
-                )
-              })}
             </div>
-          </div>
+          </Dialog>
         )
         : undefined}
       {page?.refinements && page.refinements.length > 0
@@ -638,56 +757,7 @@ const SearchPage = () => {
             )
           }
 
-          const watchHref = watchHrefFor(row.id)
-          const duration = formatDuration(row.durationSeconds)
-          const meta = formatMeta(row.viewCount, row.publishedText)
-          const snippet = row.descriptionSnippet ?? row.description
-          return (
-            <article className='result' key={rowKey(row)}>
-              <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
-                {row.thumbnail
-                  ? (
-                    <img
-                      src={row.thumbnail}
-                      srcSet={row.thumbnailSrcset ?? undefined}
-                      sizes='36rem'
-                      alt=''
-                      loading='lazy'
-                    />
-                  )
-                  : undefined}
-                {row.isLive
-                  ? <span className='badge live'>LIVE</span>
-                  : duration ? <span className='badge'>{duration}</span> : undefined}
-              </Link>
-              <div className='info'>
-                <h2 className='title'>
-                  <Link href={watchHref}>{row.title}</Link>
-                </h2>
-                {meta ? <div className='meta'>{meta}</div> : undefined}
-                {row.badges.length > 0
-                  ? (
-                    <div className='chips'>
-                      {row.badges.map(badge => <span className='chip' key={badge}>{badge}</span>)}
-                    </div>
-                  )
-                  : undefined}
-                {row.channel
-                  ? (
-                    <Link href={`/channel/${row.channel.id}`} className='channel'>
-                      <span className={row.channel.avatar ? 'avatar' : 'avatar fallback'}>
-                        {row.channel.avatar
-                          ? <img src={row.channel.avatar} alt='' loading='lazy' />
-                          : row.channel.name.slice(0, 1).toUpperCase()}
-                      </span>
-                      <span>{row.channel.name}</span>
-                    </Link>
-                  )
-                  : undefined}
-                {snippet ? <p className='description'>{snippet}</p> : undefined}
-              </div>
-            </article>
-          )
+          return <VideoRow key={rowKey(row)} row={row} />
         })}
       </div>
       {query.length > 0 && !fetching && !error && items.length === 0

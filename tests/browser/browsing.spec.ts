@@ -62,3 +62,35 @@ test('bolds the completion in suggestions and keeps the list up while the next o
   await input.fill('')
   await expect(list).toBeHidden()
 })
+
+test('search has the chip row, a filters dialog, wide rows and a preview on hover', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/results?search_query=blender')
+  const rows = page.locator('article.result').filter({ has: page.locator('a.thumb') })
+  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+
+  const chips = page.locator('.filter-chip')
+  await expect(chips).toHaveText(['All', 'Shorts', 'Videos', 'Recently uploaded', 'Live'])
+  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByText(/About [\d,]+ results/)).toHaveCount(0)
+
+  const thumb = await rows.first().locator('a.thumb').boundingBox()
+  expect(thumb!.width, 'the thumbnail is narrower than youtube.com draws it at 1280').toBeGreaterThanOrEqual(480)
+
+  await rows.first().hover()
+  await expect(rows.first().locator('video')).toHaveCount(1, { timeout: 30_000 })
+  await page.mouse.move(0, 0)
+
+  await page.getByRole('button', { name: /^Filters/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Search filters' })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Over 20 minutes' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(page).toHaveURL(/duration=OVER_TWENTY_MINS/)
+
+  await page.getByRole('button', { name: 'Videos', exact: true }).click()
+  await expect(page).toHaveURL(/type=VIDEO/)
+  await expect(page).toHaveURL(/duration=OVER_TWENTY_MINS/)
+  await expect(page.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-pressed', 'true')
+})

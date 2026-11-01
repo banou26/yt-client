@@ -30,6 +30,10 @@ const style = css`
     box-shadow: var(--shadow-menu);
   }
 
+  .panel.wide {
+    max-width: 96rem;
+  }
+
   .head {
     display: flex;
     align-items: center;
@@ -75,7 +79,12 @@ const style = css`
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
 
 export const Dialog = (
-  { title, onClose, children }: { title: string, onClose: () => void, children: ComponentChildren },
+  { title, onClose, children, wide = false }: {
+    title: string
+    onClose: () => void
+    children: ComponentChildren
+    wide?: boolean
+  },
 ) => {
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -119,7 +128,7 @@ export const Dialog = (
   return (
     <div css={style}>
       <div className='scrim' onClick={onClose} />
-      <div className='panel' ref={panelRef} role='dialog' aria-modal='true' aria-label={title} tabIndex={-1}>
+      <div className={wide ? 'panel wide' : 'panel'} ref={panelRef} role='dialog' aria-modal='true' aria-label={title} tabIndex={-1}>
         <div className='head'>
           <h2 className='heading'>{title}</h2>
           <button type='button' className='close' aria-label='Close' onClick={onClose}>
