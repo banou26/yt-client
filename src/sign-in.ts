@@ -17,7 +17,8 @@ const WIDTH = 500
 const HEIGHT = 700
 const CLOSED_POLL_MS = 500
 
-let open: { window: Window, outcome: Promise<SignInOutcome> } | undefined
+let openWindow: Window | undefined
+let finishing = false
 
 // the /signin page has nothing left for a signed-in person
 const landSignedIn = () => {
@@ -25,28 +26,31 @@ const landSignedIn = () => {
   else location.reload()
 }
 
+const finishSignIn = async () => {
+  if (finishing) return
+  finishing = true
+  await startEngine().then((engine) => engine.resetIdentity()).catch(() => {})
+  landSignedIn()
+}
+
 /**
  * Opens Google's sign-in in a window of its own and resolves once it ends. Call it directly in the click handler:
- * an await before it would open the window without the click's activation. A second call while a window is open
- * focuses that window and shares its outcome.
+ * an await before it would open the window without the click's activation.
  */
 export const openSignInWindow = (): Promise<SignInOutcome> => {
-  if (open && !open.window.closed) {
-    open.window.focus()
-    return open.outcome
-  }
   const left = Math.round(screenX + (outerWidth - WIDTH) / 2)
   const top = Math.round(screenY + (outerHeight - HEIGHT) / 2)
   const win = window.open(SIGNIN_WINDOW_PATH, 'yt-client-signin', `popup,width=${WIDTH},height=${HEIGHT},left=${left},top=${top}`)
   if (!win) return Promise.resolve('blocked')
-  const outcome = new Promise<SignInOutcome>((resolve) => {
+  openWindow = win
+  return new Promise<SignInOutcome>((resolve) => {
     let settled = false
     const settle = (value: SignInOutcome) => {
       if (settled) return
       settled = true
       clearInterval(poll)
       removeEventListener('message', onMessage)
-      if (open?.window === win) open = undefined
+      if (openWindow === win) openWindow = undefined
       resolve(value)
     }
     const onMessage = (event: MessageEvent) => {
@@ -71,19 +75,17 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
     addEventListener('message', onMessage)
     const poll = setInterval(() => { if (win.closed) settle('closed') }, CLOSED_POLL_MS)
   })
-  open = { window: win, outcome }
-  return outcome
 }
 
-/** What every Sign in control calls on its click: after a sign-in the page loads again, signed in. */
+/** What every Sign in control calls on its click. While a window is open, a click focuses it. */
 export const signIn = () => {
-  void openSignInWindow().then(async (outcome) => {
-    if (outcome === 'blocked') {
-      showToast('The browser blocked the sign-in window. Allow pop-ups for this site.', { label: 'Try again', onAction: signIn })
-      return
-    }
-    if (outcome !== 'authed') return
-    await (await startEngine()).resetIdentity().catch(() => {})
-    landSignedIn()
+  if (finishing) return
+  if (openWindow && !openWindow.closed) {
+    openWindow.focus()
+    return
+  }
+  void openSignInWindow().then((outcome) => {
+    if (outcome === 'blocked') showToast('The browser blocked the sign-in window. Allow pop-ups for this site.', { label: 'Try again', onAction: signIn })
+    else if (outcome === 'authed') void finishSignIn()
   })
 }
