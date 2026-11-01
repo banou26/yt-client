@@ -1,4 +1,4 @@
-import type { HomeFeedQuery } from '../generated/graphql'
+import type { HomeFeedPage } from './home-feed'
 
 import { css } from '@emotion/react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -10,6 +10,7 @@ import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { ShortsShelf } from '../components/shorts-shelf'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
+import { homeFeedPages } from './home-feed'
 
 const HOME_FEED_QUERY = gql(`
   query HomeFeed($chip: ID, $cursor: String) {
@@ -44,7 +45,6 @@ const HOME_FEED_QUERY = gql(`
   }
 `)
 
-type HomeFeedPage = HomeFeedQuery['home']
 type RailChip = HomeFeedPage['chips'][number]
 
 const style = css`
@@ -180,14 +180,9 @@ const HomePage = () => {
 
   // urql holds the previous result while the next request is in flight, so a page is only usable once it is known to come from the selected chip
   const page = operation?.variables.chip === chip ? data?.home : undefined
-  const shorts = useInfiniteFeed({
-    pages: page ? [...pages, page].map(entry => ({ items: entry.shorts, cursor: entry.cursor })) : [],
-    key: short => short.id,
-  }).items
-  const { items, cursor } = useInfiniteFeed({
-    pages: page ? [...pages, page] : pages,
-    key: video => video.id
-  })
+  const feed = homeFeedPages(pages, page)
+  const shorts = useInfiniteFeed({ pages: feed.shorts, key: short => short.id }).items
+  const { items, cursor } = useInfiniteFeed({ pages: feed.videos, key: video => video.id })
 
   useEffect(() => {
     const chips = page?.chips
