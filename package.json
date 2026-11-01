@@ -26,7 +26,7 @@
     "googlevideo": "4.0.4",
     "graphql": "^16.11.0",
     "graphql-yoga": "^5.15.1",
-    "libcurl.js": "0.7.4",
+    "libcurl.js": "0.7.5",
     "lucide-react": "^1.24.0",
     "osra": "^0.6.3",
     "preact": "11.0.0-beta.0",
