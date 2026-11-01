@@ -105,3 +105,25 @@ test('badges verified and artist channels on the watch page, its related column 
   await owner.locator('a.channel-name').click()
   await expect(page.locator('h1 [data-badge="artist"]')).toBeVisible({ timeout: 120_000 })
 })
+
+test('puts the home Shorts shelf after the first full row at any width', async ({ page }) => {
+  await page.setViewportSize({ width: 2600, height: 900 })
+  await page.goto('/settings')
+  for (const width of [1200, 1800, 2500]) {
+    const layout = await page.evaluate(async (width) => {
+      document.querySelector('[data-grid-harness]')?.remove()
+      const harness = '/tests/browser/fixtures/grid-harness.tsx'
+      const { mountGrid } = await import(harness) as { mountGrid: (width: number) => void }
+      mountGrid(width)
+      const grid = document.querySelector('[data-grid-harness]')!.firstElementChild!
+      const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').length
+      const shelfTop = grid.querySelector(':scope > section[aria-label="Shorts"]')!.getBoundingClientRect().top
+      const above = [...grid.querySelectorAll(':scope > article')]
+        .map(card => card.getBoundingClientRect().top)
+        .filter(top => top < shelfTop)
+      return { columns, above: above.length, rows: new Set(above).size }
+    }, width)
+    expect(layout.rows, `more than one row before the shelf at ${width}px`).toBe(1)
+    expect(layout.above, `the first row is not full at ${width}px`).toBe(layout.columns)
+  }
+})

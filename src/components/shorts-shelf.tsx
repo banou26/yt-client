@@ -10,8 +10,10 @@ import { formatViews } from './format'
 const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
 
 const style = css`
-  /* Spans the whole grid so the shelf is a full-width band between rows rather
-     than a cell inside one. */
+  /* A full-width band in the grid's second row. An item placed on both axes is
+     placed before every auto-placed card, so the cards fill the first row at
+     whatever column count the width gives and continue below the shelf. */
+  grid-row: 2;
   grid-column: 1 / -1;
   margin: 1.6rem 0 2.4rem;
 
