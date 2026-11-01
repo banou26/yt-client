@@ -167,9 +167,10 @@ const style = css`
     color: var(--text-primary);
   }
 
-  /* The label goes before the search box does: at this width the header is
-     already tight, and the icon alone still reads as an offer. */
-  @media (max-width: 1100px) {
+  /* Icon only below this width: with the label, the header's end (355px
+     signed out, measured 2026-11-02) outgrows its 1fr track and pushes the
+     search box off the page's centre line. */
+  @media (max-width: 1500px) {
     .pill .label {
       display: none;
     }
@@ -234,6 +235,7 @@ export const ExtensionNotice = () => {
         type='button'
         className='pill'
         ref={triggerRef}
+        aria-label='Faster with the extension'
         aria-haspopup='dialog'
         aria-expanded={open}
         onClick={() => setOpen(value => !value)}

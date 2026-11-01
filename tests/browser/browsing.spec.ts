@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test'
 
 test('centres the search box, clears it, and opens the header menu', async ({ page }) => {
-  for (const width of [1920, 1600]) {
+  for (const width of [1920, 1600, 1440, 1280]) {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/settings')
+    // the extension offer is the widest thing at the header's end, and it lands a second after the page
+    await expect(page.getByRole('button', { name: 'Faster with the extension' })).toBeVisible({ timeout: 30_000 })
     const box = await page.getByRole('search').boundingBox()
     expect(box, 'the search form has no box').not.toBeNull()
     expect(Math.abs(box!.x + box!.width / 2 - width / 2), `off centre at ${width}`).toBeLessThanOrEqual(10)
