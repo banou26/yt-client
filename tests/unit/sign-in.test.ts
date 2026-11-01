@@ -5,7 +5,11 @@ import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from '../
 
 const calls: string[] = []
 const showToast = vi.fn()
-const resetIdentity = vi.fn(async () => { calls.push('reset') })
+// it records itself only after a real wait, or a reload announced before the reset would still read as after it
+const resetIdentity = vi.fn(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 5))
+  calls.push('reset')
+})
 const egressPort = { name: 'signin-port' }
 const openEgressPort = vi.fn((_role?: string) => egressPort)
 const jarHoldsSession = vi.fn(async () => false)
