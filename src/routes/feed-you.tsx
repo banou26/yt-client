@@ -193,9 +193,11 @@ const VideoShelf = ({ title, href, videos, fetching }: { title: string, href: st
   </Shelf>
 )
 
+// no shelf for an empty answer: the playlist reader cannot read LockupView items yet, so a full list can come back empty and 'No videos' would be wrong
 const PlaylistShelf = ({ id, title }: { id: string, title: string }) => {
   const [{ data, fetching }] = useQuery({ query: YOU_PLAYLIST_QUERY, variables: { id } })
   const videos = (data?.playlist.items ?? []).map(item => item.video)
+  if (!fetching && videos.length === 0) return null
   return <VideoShelf title={title} href={playlistHrefFor(id)} videos={videos} fetching={fetching} />
 }
 

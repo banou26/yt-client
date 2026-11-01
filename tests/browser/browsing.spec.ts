@@ -199,3 +199,18 @@ test('has a You page and Explore entries that lead to videos', async ({ page }) 
   await page.setViewportSize({ width: 1280, height: 900 })
   await expect(page.getByRole('navigation', { name: 'Guide' }).getByRole('link', { name: 'You' })).toHaveAttribute('href', '/feed/you')
 })
+
+test('leaves an empty Watch later shelf off the signed-in You page', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/settings')
+  await expect(page.locator('html')).toHaveAttribute('data-engine', 'ready', { timeout: 90_000 })
+  await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/you-harness.tsx'
+    const { mountYou } = await import(harness) as { mountYou: () => void }
+    mountYou()
+  })
+  const you = page.locator('[data-you-harness]')
+  await expect(you.getByRole('region', { name: 'Liked videos' }).locator('article')).toHaveCount(1)
+  await expect(you.getByRole('region', { name: 'History' })).toBeVisible()
+  await expect(you.getByRole('region', { name: 'Watch later' })).toHaveCount(0)
+})
