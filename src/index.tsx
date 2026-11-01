@@ -33,8 +33,6 @@ const globalStyles = css`
     --bg-hover-strong: rgba(255, 255, 255, 0.15);
     --bg-input: #121212;
     --bg-input-button: #222222;
-    --bg-mic: #181818;
-    --bg-mic-hover: #272727;
     --bg-inverse: #f1f1f1;
     --bg-inverse-hover: #ffffff;
 
@@ -105,8 +103,6 @@ const globalStyles = css`
     --bg-hover-strong: rgba(0, 0, 0, 0.1);
     --bg-input: #ffffff;
     --bg-input-button: #f8f8f8;
-    --bg-mic: #f2f2f2;
-    --bg-mic-hover: #e5e5e5;
     --bg-inverse: #0f0f0f;
     --bg-inverse-hover: #000000;
 

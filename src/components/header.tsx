@@ -1,7 +1,7 @@
 import type { TargetedEvent, TargetedKeyboardEvent, TargetedSubmitEvent } from 'preact'
 
 import { css } from '@emotion/react'
-import { CircleUserRound, EllipsisVertical, Menu, Mic, Search } from 'lucide-react'
+import { CircleUserRound, Menu, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -9,6 +9,7 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { gql } from '../generated'
 import { AccountMenu } from './account-menu'
 import { ExtensionNotice } from './extension-notice'
+import { HeaderMenu } from './header-menu'
 import { NotificationsMenu } from './notifications-menu'
 import { signIn } from '../sign-in'
 
@@ -76,9 +77,11 @@ const style = css`
   right: 0;
   height: var(--header-height);
   z-index: var(--z-header);
-  display: flex;
+  /* Two equal outer tracks keep the search box on the page's centre line, which
+     a flex row cannot do once the two ends differ in width. */
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 73.2rem) 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0 1.6rem;
   background: var(--bg-base);
 
@@ -108,7 +111,6 @@ const style = css`
   }
 
   .search {
-    flex: 0 1 73.2rem;
     display: flex;
     align-items: center;
     margin: 0 4rem;
@@ -129,6 +131,39 @@ const style = css`
     border-radius: 4rem 0 0 4rem;
     padding-left: 1.6rem;
     transition: border-color 0.15s ease;
+  }
+
+  .search-icon {
+    display: none;
+    flex: none;
+    margin-right: 1.2rem;
+    color: var(--text-primary);
+  }
+
+  .search-box:focus-within .search-icon {
+    display: block;
+  }
+
+  .clear {
+    flex: none;
+    width: 4rem;
+    height: 3.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .clear:hover {
+    background: var(--bg-hover);
+  }
+
+  .search-box input:placeholder-shown ~ .clear {
+    display: none;
   }
 
   .suggestions {
@@ -201,29 +236,10 @@ const style = css`
     background: var(--bg-chip-hover);
   }
 
-  .mic-button {
-    flex: none;
-    width: 4rem;
-    height: 4rem;
-    margin-left: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: 50%;
-    background: var(--bg-mic);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-
-  .mic-button:hover {
-    background: var(--bg-mic-hover);
-  }
-
   .end {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.8rem;
   }
 
@@ -252,10 +268,6 @@ const style = css`
   @media (max-width: 792px) {
     .search {
       margin: 0 1.6rem;
-    }
-
-    .mic-button {
-      display: none;
     }
   }
 `
@@ -342,6 +354,15 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
     if (event.key === 'Escape') setSuggestOpen(false)
   }
 
+  const onClear = () => {
+    const input = inputRef.current
+    if (!input) return
+    input.value = ''
+    setTyped('')
+    setActiveSuggestion(-1)
+    input.focus()
+  }
+
   const onSubmit = (event: TargetedSubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     submitQuery(inputRef.current?.value ?? '')
@@ -357,6 +378,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
       </div>
       <form className='search' role='search' onSubmit={onSubmit}>
         <div className='search-box'>
+          <Search className='search-icon' size={20} strokeWidth={1.5} aria-hidden='true' />
           <input
             key={currentQuery ?? ''}
             ref={inputRef}
@@ -382,6 +404,9 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
             onBlur={() => setTimeout(() => setSuggestOpen(false), 120)}
             onKeyDown={onSearchKeyDown}
           />
+          <button type='button' className='clear' aria-label='Clear search query' onClick={onClear}>
+            <X size={24} strokeWidth={1.5} />
+          </button>
           {suggestions.length > 0
             ? (
               <ul className='suggestions' id='search-suggestions' role='listbox'>
@@ -408,16 +433,11 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
         <button type='submit' className='search-button' aria-label='Search'>
           <Search size={24} strokeWidth={1.5} />
         </button>
-        <button type='button' className='mic-button' aria-label='Search with your voice'>
-          <Mic size={24} strokeWidth={1.5} />
-        </button>
       </form>
       <div className='end'>
         {/* renders nothing at all with the extension installed, or once declined */}
         <ExtensionNotice />
-        <Link href='/settings' className='icon-button' aria-label='Settings'>
-          <EllipsisVertical size={24} strokeWidth={1.5} />
-        </Link>
+        <HeaderMenu />
         <NotificationsMenu />
         {session?.signedIn
           ? <AccountMenu
