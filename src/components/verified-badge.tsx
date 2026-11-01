@@ -19,14 +19,14 @@ export type BadgedChannel = {
 /**
  * The mark youtube.com prints after a channel name: a check for a verified
  * channel, a music note for an official artist channel. Renders nothing for a
- * channel with neither. It takes the colour of the name it follows.
+ * channel with neither. It takes the colour of the name it follows. It is named
+ * by aria-label and carries no <title>, which would join the name's text.
  */
 export const VerifiedBadge = ({ channel, size = 14 }: { channel?: BadgedChannel | null, size?: number }) => {
   if (!channel?.isVerified && !channel?.isVerifiedArtist) return null
   const label = channel.isVerifiedArtist ? 'Official Artist Channel' : 'Verified'
   return (
     <svg css={style} width={size} height={size} viewBox='0 0 24 24' role='img' aria-label={label} data-badge={channel.isVerifiedArtist ? 'artist' : 'verified'}>
-      <title>{label}</title>
       <path d={channel.isVerifiedArtist ? NOTE : CHECK} />
     </svg>
   )

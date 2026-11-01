@@ -104,6 +104,7 @@ test('badges verified and artist channels on the watch page, its related column 
 
   await owner.locator('a.channel-name').click()
   await expect(page.locator('h1 [data-badge="artist"]')).toBeVisible({ timeout: 120_000 })
+  await expect(page.locator('h1'), 'the badge adds its label to the name').toHaveText('Rick Astley')
 })
 
 test('puts the home Shorts shelf after the first full row at any width', async ({ page }) => {
