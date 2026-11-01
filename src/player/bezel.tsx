@@ -1,18 +1,20 @@
 import { css } from '@emotion/react'
-import { FastForward, Gauge, Pause, Play, Rewind, Volume2, VolumeX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Gauge, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 
 const ICONS = {
   play: Play,
   pause: Pause,
-  forward: FastForward,
-  back: Rewind,
   volume: Volume2,
   mute: VolumeX,
   speed: Gauge,
 }
 
-/** One feedback flash: `id` changes on every cue, so the same icon twice still replays the animation. */
-export type BezelCue = { id: number, icon: keyof typeof ICONS, text?: string }
+/**
+ * One feedback flash: `id` changes on every cue, so the same icon twice still
+ * replays the animation. A `forward` or `back` cue is a seek, and its `text` is
+ * the seconds it moved.
+ */
+export type BezelCue = { id: number, icon: keyof typeof ICONS | 'forward' | 'back', text?: string }
 
 const style = css`
   position: absolute;
@@ -47,6 +49,27 @@ const style = css`
     animation: bezel-text 1s ease-in forwards;
   }
 
+  .bezel-seek {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.5);
+    transform: translateY(-50%);
+    animation: bezel-text 1s ease-in forwards;
+  }
+
+  .bezel-seek.forward {
+    right: 4.8rem;
+  }
+
+  .bezel-seek.back {
+    left: 4.8rem;
+  }
+
   @keyframes bezel-fade {
     from {
       opacity: 1;
@@ -71,8 +94,20 @@ const style = css`
   }
 `
 
-/** youtube.com's centered flash for a play, pause, seek, volume or speed change. Key it on `cue.id` to replay it. */
+/**
+ * youtube.com's feedback for a play, pause, volume or speed change, centered,
+ * and for a seek, at the side it moved toward. Key it on `cue.id` to replay it.
+ */
 export const Bezel = ({ cue }: { cue: BezelCue }) => {
+  if (cue.icon === 'forward' || cue.icon === 'back') {
+    return (
+      <div css={style} data-bezel={cue.icon} aria-hidden='true'>
+        {cue.icon === 'forward'
+          ? <div className='bezel-seek forward'><span>+ {cue.text}</span><ChevronRight size={28} strokeWidth={2.5} /></div>
+          : <div className='bezel-seek back'><ChevronLeft size={28} strokeWidth={2.5} /><span>{'\u2212'} {cue.text}</span></div>}
+      </div>
+    )
+  }
   const Icon = ICONS[cue.icon]
   return (
     <div css={style} data-bezel={cue.icon} aria-hidden='true'>

@@ -218,12 +218,22 @@ test('answers youtube.com keyboard shortcuts, with a bezel for each change', asy
   expect(await time()).toBeCloseTo(start + 10, 1)
   await page.keyboard.press('j')
   expect(await time()).toBeCloseTo(start, 1)
+  // youtube.com marks a seek at the side it moves toward, not in the middle
+  const side = (cue: string) => page.locator(`[data-bezel="${cue}"]`).evaluate((bezel) => {
+    const range = document.createRange()
+    range.selectNodeContents(bezel)
+    const mark = range.getBoundingClientRect()
+    const player = bezel.closest('[data-player-root]')!.getBoundingClientRect()
+    return (mark.left + mark.right) / 2 - (player.left + player.right) / 2
+  })
   await page.keyboard.press('ArrowRight')
   expect(await time()).toBeCloseTo(start + 5, 1)
-  await expect(page.locator('[data-bezel="forward"]')).toContainText('5 seconds')
+  await expect(page.locator('[data-bezel="forward"]')).toHaveText('+ 5')
+  expect(await side('forward')).toBeGreaterThan(100)
   await page.keyboard.press('ArrowLeft')
   expect(await time()).toBeCloseTo(start, 1)
-  await expect(page.locator('[data-bezel="back"]')).toBeAttached()
+  await expect(page.locator('[data-bezel="back"]')).toHaveText('\u2212 5')
+  expect(await side('back')).toBeLessThan(-100)
 
   await page.keyboard.press('.')
   const stepped = await time() - start

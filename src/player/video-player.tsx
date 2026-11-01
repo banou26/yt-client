@@ -316,7 +316,7 @@ const VideoPlayer = (
       }
       const seekBy = (delta: number) => {
         video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta))
-        flash(delta < 0 ? 'back' : 'forward', `${Math.abs(delta)} seconds`)
+        flash(delta < 0 ? 'back' : 'forward', String(Math.abs(delta)))
       }
       const setVolume = (volume: number) => {
         video.volume = volume
