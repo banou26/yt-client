@@ -29,6 +29,8 @@ export type SourceVideo = {
   durationSeconds?: number
   viewCount?: string
   publishedText?: string
+  // ISO 8601, only where upstream gives an exact time (a channel's uploads feed)
+  publishedAt?: string
   isLive?: boolean
   progressPercent?: number
   isUpcoming?: boolean
@@ -324,7 +326,10 @@ export type Source = {
   shorts(seed?: string, cursor?: string): Promise<SourceShortsPage>
   subscriptions(cursor?: string): Promise<SourceVideoPage>
   history(cursor?: string): Promise<SourceSectionedVideoPage>
-  subscribedChannels(): Promise<SourceChannel[]>
+  // `all` follows the list past its first page, at a cost of one request per page
+  subscribedChannels(all?: boolean): Promise<SourceChannel[]>
+  // A channel's newest long uploads, read off its public feed; a channel id that is not of the `UC` form is refused
+  channelUploads(channelId: string): Promise<SourceVideo[]>
   search(query: string, filters?: SourceSearchFilters, cursor?: string): Promise<SourceSearchPage>
   // Not an InnerTube call: every keystroke that reaches it is a tunneled round trip, so the caller is expected to debounce
   searchSuggestions(query: string, previousQuery?: string): Promise<string[]>
@@ -373,6 +378,7 @@ export const SOURCE_METHODS = [
   'subscriptions',
   'history',
   'subscribedChannels',
+  'channelUploads',
   'search',
   'searchSuggestions',
   'video',
@@ -439,6 +445,7 @@ export const SOURCE_REPLAY = {
   subscriptions: 'unless-cursor',
   history: 'unless-cursor',
   subscribedChannels: 'always',
+  channelUploads: 'always',
   search: 'unless-cursor',
   searchSuggestions: 'always',
   video: 'always',

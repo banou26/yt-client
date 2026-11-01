@@ -2,6 +2,7 @@ import type { Source, SourceChannel, SourceChannelPage, SourceChannelTab, Source
 
 import { Innertube } from 'youtubei.js/web'
 
+import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed } from './channel-feed'
 import { normalizeChannel, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizeChannelAbout, normalizeCommunityPost, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
@@ -29,6 +30,8 @@ type SectionedFeed = Feed & {
 
 type ChannelsFeed = {
   channels?: Iterable<unknown>
+  has_continuation?: boolean
+  getContinuation?(): Promise<ChannelsFeed>
 }
 
 export type YoutubeSearchFilters = {
@@ -493,6 +496,11 @@ const LIKE_ENDPOINT = {
   INDIFFERENT: '/like/removelike',
 } as const satisfies Record<SourceLikeStatus, string>
 
+// a group page reads one feed per channel, and the relay refuses more than 20 requests a second from one address
+const FEED_INTERVAL_MS = 100
+
+const SUBSCRIPTION_PAGES = 20
+
 const requireSignIn = (client: YoutubeClient, action: string) => {
   if (!client.session.logged_in) throw new Error(`youtube: sign in to ${action}`)
 }
@@ -511,6 +519,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
   const commentActions = createActionRegistry()
   const notificationContinuations = createContinuations<SourceNotificationPage>()
   const liveChatContinuations = createContinuations<SourceLiveChatPage>()
+  const paceFeed = createPacer(FEED_INTERVAL_MS)
 
   type LiveChatSession = {
     chat: LiveChatEmitter
@@ -1006,13 +1015,30 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       requireSignIn(active, 'see your history')
       return sectionedPage('history', await active.getHistory())
     },
-    subscribedChannels: async () => {
+    subscribedChannels: async (all) => {
       const active = await client
       requireSignIn(active, 'see your subscriptions')
-      const feed = await active.getChannelsFeed()
-      return [...(feed.channels ?? [])]
-        .map(normalizeFeedChannel)
-        .filter((channel) => channel !== undefined)
+      let feed = await active.getChannelsFeed()
+      const nodes = [...(feed.channels ?? [])]
+      for (let pages = 1; all && pages < SUBSCRIPTION_PAGES && feed.has_continuation && feed.getContinuation; pages++) {
+        feed = await feed.getContinuation()
+        nodes.push(...(feed.channels ?? []))
+      }
+      const channels = new Map<string, SourceChannel>()
+      for (const node of nodes) {
+        const channel = normalizeFeedChannel(node)
+        if (channel && !channels.has(channel.id)) channels.set(channel.id, channel)
+      }
+      return [...channels.values()]
+    },
+    channelUploads: async (channelId) => {
+      if (!isChannelId(channelId)) throw new Error(`youtube: ${channelId} is not a channel id`)
+      const response = await paceFeed(() => fetch(channelFeedUrl(channelId, Date.now())))
+      if (!response.ok) {
+        void response.body?.cancel().catch(() => {})
+        throw new Error(`youtube: the uploads of ${channelId} answered ${response.status}`)
+      }
+      return parseChannelFeed(await response.text())
     },
     search: async (query, filters, cursor) => {
       const kind = `search:${query}:${filterKey(filters)}`

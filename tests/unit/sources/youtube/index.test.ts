@@ -1018,6 +1018,35 @@ describe('youtube source', () => {
     ])
   })
 
+  it('pages the subscribed channels only when asked for all of them, and stops at 20 pages', async () => {
+    let browses = 0
+    const channelsPage = (index: number): { channels: unknown[], has_continuation: boolean, getContinuation(): Promise<unknown> } => {
+      browses++
+      return {
+        channels: [
+          { author: { id: `UC${index}`, name: `Chan ${index}` } },
+          // continuations overlap, so the previous page's last channel comes back
+          ...(index > 0 ? [{ author: { id: `UC${index - 1}`, name: `Chan ${index - 1}` } }] : []),
+        ],
+        has_continuation: true,
+        getContinuation: async () => channelsPage(index + 1),
+      }
+    }
+    const client = createFakeClient()
+    const source = createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => ({ ...client, getChannelsFeed: async () => channelsPage(0) }) as never,
+    })
+
+    expect((await source.subscribedChannels()).map(channel => channel.id)).toEqual(['UC0'])
+    expect(browses).toBe(1)
+
+    browses = 0
+    const all = await source.subscribedChannels(true)
+    expect(browses).toBe(20)
+    expect(all.map(channel => channel.id)).toEqual(Array.from({ length: 20 }, (_, index) => `UC${index}`))
+  })
+
   it('removes from history without needing the page to be open first', async () => {
     const client = createFakeClient()
     const source = createYoutubeSource({

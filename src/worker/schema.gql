@@ -48,6 +48,9 @@ type Video {
   durationSeconds: Int
   viewCount: String
   publishedText: String
+  # An exact ISO 8601 time, set only where upstream gives one (channelUploads).
+  # Lists that merge several channels sort on it.
+  publishedAt: String
   isLive: Boolean
   # 0-100 watch progress, for the red bar across the thumbnail. Only feeds that
   # carry a resume overlay (history, home) populate it.
@@ -507,7 +510,15 @@ type Query {
   # request that cannot succeed.
   subscriptions(cursor: String): VideoPage!
   history(cursor: String): SectionedVideoPage!
-  subscribedChannels: [Channel!]!
+  # Only the first page of the list unless `all` is set, which follows it to
+  # the end at one request per page (capped at 20 pages).
+  subscribedChannels(all: Boolean): [Channel!]!
+  # A channel's 15 newest long uploads (no Shorts, no live streams), from its
+  # public feed. `channelId` must be of the UC form. A feed that cannot be read,
+  # a 404 included, is an error rather than an empty list. The rows carry no
+  # duration, live state or channel avatar: a query must not select those, or
+  # it writes nulls over what other views cached for the same video.
+  channelUploads(channelId: ID!): [Video!]!
   # Results are heterogeneous: see the SearchResult union. A cursor is bound to
   # the query AND the filter set that minted it, so changing a filter starts a
   # fresh feed rather than paging the previous one's results.

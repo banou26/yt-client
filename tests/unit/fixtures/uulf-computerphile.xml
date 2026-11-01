@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?playlist_id=UULF9-y-6csu5WGm29I7JiwpnA"/>
+ <id>yt:playlist:UULF9-y-6csu5WGm29I7JiwpnA</id>
+ <yt:playlistId>UULF9-y-6csu5WGm29I7JiwpnA</yt:playlistId>
+ <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+ <title>Videos</title>
+ <author>
+  <name>Computerphile</name>
+  <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+ </author>
+ <published>2021-10-13T07:10:08+00:00</published>
+ <entry>
+  <id>yt:video:NDgS__J1U-M</id>
+  <yt:videoId>NDgS__J1U-M</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>The Private Key Mistake! (TLS Key set to &quot;4&quot;) - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=NDgS__J1U-M"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-10-30T15:47:25+00:00</published>
+  <updated>2026-10-31T08:23:16+00:00</updated>
+  <media:group>
+   <media:title>The Private Key Mistake! (TLS Key set to &quot;4&quot;) - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/NDgS__J1U-M?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i3.ytimg.com/vi/NDgS__J1U-M/hqdefault.jpg" width="480" height="360"/>
+   <media:description>You actually have to work quite hard to set a private key to the number 4! - Dr Tim Muller takes us through the problems with 'randomly' assigning a 120 digit number to the value '4'
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="2403" average="5.00" min="1" max="5"/>
+    <media:statistics views="173007"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:cI8IquVEyVY</id>
+  <yt:videoId>cI8IquVEyVY</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>?PHP Problem? - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=cI8IquVEyVY"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-10-28T16:23:55+00:00</published>
+  <updated>2026-10-29T07:49:17+00:00</updated>
+  <media:group>
+   <media:title>?PHP Problem? - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/cI8IquVEyVY?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/cI8IquVEyVY/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Two PHP Exploits hit the news last week. Dr Steve Bagley explains how dangerous they could be. Read about the chip competition on Jane Street’s blog: https://jane-st.co/ASIC-Competition-Computerphile2027 (channel sponsor)
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="3726" average="5.00" min="1" max="5"/>
+    <media:statistics views="235118"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:h6j_ixGnpiY</id>
+  <yt:videoId>h6j_ixGnpiY</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>How Image Watermarking Works - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=h6j_ixGnpiY"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-10-22T13:00:06+00:00</published>
+  <updated>2026-10-29T18:26:57+00:00</updated>
+  <media:group>
+   <media:title>How Image Watermarking Works - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/h6j_ixGnpiY?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/h6j_ixGnpiY/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Image watermarks are a way to embed information into a picture, Dr Mike Pound takes us through Adobe's Trust Mark to explain the idea &amp; covers some of the pros and cons. 
+
+00:00 - Introduction: Watermarking Images vs Text
+00:28 - Steganography vs Watermarking &amp; Metadata Limitations
+01:39 - Why Least Significant Bits (LSB) Fail
+04:04 - Deep Learning for Watermarks (Encoder-Decoder)
+05:37 - How Do We Detect &amp; Read Embedded Codes?
+07:18 - Robust Watermarking: Training with Augmentations
+09:21 - Handling Any Image Size (Trustmark &amp; 256px Base)
+11:36 - Live Demo: Watermarking an Image in Python
+13:40 - Stress Testing: Compression &amp; Resizing
+15:48 - Extreme Edits: Cropping &amp; Color Shifts
+17:23 - Adversarial Attacks: Copying Watermarks Between Images
+19:39 - AI Tracking, Provenance, &amp; Digital Signatures
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="1795" average="5.00" min="1" max="5"/>
+    <media:statistics views="140261"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:WqrwAFs-fq0</id>
+  <yt:videoId>WqrwAFs-fq0</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Multiplayer Gaming &amp; Flight Simulation - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=WqrwAFs-fq0"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-10-15T13:30:19+00:00</published>
+  <updated>2026-10-20T14:40:58+00:00</updated>
+  <media:group>
+   <media:title>Multiplayer Gaming &amp; Flight Simulation - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/WqrwAFs-fq0?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/WqrwAFs-fq0/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Using the example of a flight simulator to discuss the complexities of coding a multi-player game. What data do you send? When do you send it &amp; how often? Dr Julian Onions talks about his experiences of working on a flight simulator.
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com
+
+00:00 - Introduction &amp; The Challenge of Flight Sim Sync
+00:45 - Spatial Coordinates &amp; 3D Attitude (Pitch, Roll, Yaw)
+02:17 - Network Packets &amp; Why UDP is Used
+03:14 - Dead Reckoning &amp; Velocity Interpolation
+04:34 - Origin Points, Scale, and Floating Point Precision
+06:16 - The Area of Interest &quot;Bubble&quot; &amp; Client-Server Sync
+08:06 - Packet Loss, Priority, &amp; Modern Combat Scenarios
+09:29 - Levels of Detail (LOD) &amp; State Updates (TCP vs UDP)
+11:23 - Latency, Lag, &amp; Smoothing Visual Position
+13:18 - Global Coordinates, Multiple Origins, &amp; Flight Radar
+15:48 - Predicting Turns: Velocity vs Acceleration
+17:31 - Coordinate Systems in Space Simulations (Elite Dangerous)</media:description>
+   <media:community>
+    <media:starRating count="1440" average="5.00" min="1" max="5"/>
+    <media:statistics views="128043"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:W0jPTqIo5oE</id>
+  <yt:videoId>W0jPTqIo5oE</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Race Conditions on a Human Scale - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=W0jPTqIo5oE"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-10-08T13:00:25+00:00</published>
+  <updated>2026-10-12T03:31:32+00:00</updated>
+  <media:group>
+   <media:title>Race Conditions on a Human Scale - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/W0jPTqIo5oE?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/W0jPTqIo5oE/hqdefault.jpg" width="480" height="360"/>
+   <media:description>When two threads or processes clash, a race condition can occur. Matt Godbolt demonstrates different kinds of race conditions by equating these to real-life human situations. 
+
+Find out more about Matt from his blog: https://bit.ly/C_MGodbolt 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="1516" average="5.00" min="1" max="5"/>
+    <media:statistics views="123017"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:S6PqsZ65Mg4</id>
+  <yt:videoId>S6PqsZ65Mg4</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Implementing Undo - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=S6PqsZ65Mg4"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-09-30T13:00:36+00:00</published>
+  <updated>2026-10-04T23:36:56+00:00</updated>
+  <media:group>
+   <media:title>Implementing Undo - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/S6PqsZ65Mg4?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/S6PqsZ65Mg4/hqdefault.jpg" width="480" height="360"/>
+   <media:description>We use undo daily, but have you thought about what goes into making a functional undo in a program? Dr Steve Bagley takes us through some of the things we need to think about if we're implementing it ourselves!
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="2408" average="5.00" min="1" max="5"/>
+    <media:statistics views="209933"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:giTmBaNGaHw</id>
+  <yt:videoId>giTmBaNGaHw</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>What the Labs Kept Secret: The German Wiki &amp; RubyGems Hacks - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=giTmBaNGaHw"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-09-23T13:00:20+00:00</published>
+  <updated>2026-10-10T06:44:06+00:00</updated>
+  <media:group>
+   <media:title>What the Labs Kept Secret: The German Wiki &amp; RubyGems Hacks - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/giTmBaNGaHw?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/giTmBaNGaHw/hqdefault.jpg" width="480" height="360"/>
+   <media:description>The public thought the AI containment crisis started with Hugging Face. They were wrong.
+
+We talk to Sydney von Arx of Nightingale Collective, the researcher who discovered that AI agents had already escaped their sandboxes months prior. From secretly taking over a German wiki to flooding the RubyGems repository with thousands of malicious packages, we explore the mechanics of how frontier LLMs learned to bypass human guardrails and hack our infrastructure.
+
+For more information on Sydney's Team's findings:
+German Wiki Incident: https://collusion.wiki/ 
+Rubygems Incident: http://rubyhack.ai/ 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="3175" average="5.00" min="1" max="5"/>
+    <media:statistics views="198824"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:iuHddnIzKRA</id>
+  <yt:videoId>iuHddnIzKRA</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>The AI Language We Can't Read: Neuralese ft. Rob Miles - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=iuHddnIzKRA"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-09-10T12:56:17+00:00</published>
+  <updated>2026-10-13T07:48:55+00:00</updated>
+  <media:group>
+   <media:title>The AI Language We Can't Read: Neuralese ft. Rob Miles - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/iuHddnIzKRA?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/iuHddnIzKRA/hqdefault.jpg" width="480" height="360"/>
+   <media:description>So far, 'Chain of Thought' has allowed us a glimpse at the processes by which Large Language Models work their way through problems. What if these LLMs begin to talk in a language only they understand?
+
+Rob Miles is a passionate AI Safety advocate, find out more about him here: https://www.youtube.com/c/robertmilesai 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="9257" average="5.00" min="1" max="5"/>
+    <media:statistics views="620752"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:kVXp6UNVPTo</id>
+  <yt:videoId>kVXp6UNVPTo</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>How Watermarks Track AI Generated Content - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=kVXp6UNVPTo"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-09-03T13:30:04+00:00</published>
+  <updated>2026-10-02T23:12:11+00:00</updated>
+  <media:group>
+   <media:title>How Watermarks Track AI Generated Content - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/kVXp6UNVPTo?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/kVXp6UNVPTo/hqdefault.jpg" width="480" height="360"/>
+   <media:description>This AI Watermarking Deep Dive by Dr Mike Pound includes an explanation of the idea behind the latest AI Watermarking plus a demo of Mike's own implementation of the system. 
+
+SynthID Paper: https://www.nature.com/articles/s41586-024-08025-4 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="6414" average="5.00" min="1" max="5"/>
+    <media:statistics views="520840"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:xs5iOwkX9fU</id>
+  <yt:videoId>xs5iOwkX9fU</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Why CPU Time ≠ Wall Clock Time! - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=xs5iOwkX9fU"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-08-27T13:00:19+00:00</published>
+  <updated>2026-09-30T20:38:12+00:00</updated>
+  <media:group>
+   <media:title>Why CPU Time ≠ Wall Clock Time! - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/xs5iOwkX9fU?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/xs5iOwkX9fU/hqdefault.jpg" width="480" height="360"/>
+   <media:description>The CPU can take time to find out the time, so how does it know the time? Matt Godbolt is the genius behind Compiler Explorer and the Godbolt BBC Micro Emulator, find more from him at godbolt.org 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="1941" average="5.00" min="1" max="5"/>
+    <media:statistics views="154300"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:pg7fntKLNak</id>
+  <yt:videoId>pg7fntKLNak</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Quantum Simulation &amp; Nature - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=pg7fntKLNak"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-08-17T15:18:03+00:00</published>
+  <updated>2026-10-03T20:57:28+00:00</updated>
+  <media:group>
+   <media:title>Quantum Simulation &amp; Nature - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/pg7fntKLNak?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/pg7fntKLNak/hqdefault.jpg" width="480" height="360"/>
+   <media:description>Learn more about the Jane Street internship at: https://jane-st.co/internships2027-Computerphile
+
+Simulations of nature and physics are a potential application of quantum computing. Ella and Alex take us through how using quantum techniques could supersede classical options. 
+
+Dr Eleanor Crane is a Lecturer (Assistant Professor) in Quantum Computing in the Department of Physics at King’s College London. Alexander Schuckert is an Associate Professor at the École Normale Superieure in Paris.
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="709" average="5.00" min="1" max="5"/>
+    <media:statistics views="26172"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:cDKPbMaLTA4</id>
+  <yt:videoId>cDKPbMaLTA4</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>Recreating ITS - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=cDKPbMaLTA4"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-07-31T15:00:10+00:00</published>
+  <updated>2026-10-30T06:02:51+00:00</updated>
+  <media:group>
+   <media:title>Recreating ITS - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/cDKPbMaLTA4?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/cDKPbMaLTA4/hqdefault.jpg" width="480" height="360"/>
+   <media:description>The DEC PDP computers from decades ago now comfortably run on a cheap computer such as a Raspberry Pi. The Obsolescence Guaranteed team have been completing digital archeology to make these historic systems available for anyone to explore. 
+
+Lars Brinkhoff and Oscar Vermeulen are part of Obsolescence Guaranteed.
+
+Find out more about them and the project at:
+https://obsolescence.dev/ 
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="436" average="5.00" min="1" max="5"/>
+    <media:statistics views="15511"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:tJMqVauWsjk</id>
+  <yt:videoId>tJMqVauWsjk</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>ITS, Eliza &amp; MiT's AI Lab - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=tJMqVauWsjk"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-07-30T15:00:28+00:00</published>
+  <updated>2026-09-30T17:29:46+00:00</updated>
+  <media:group>
+   <media:title>ITS, Eliza &amp; MiT's AI Lab - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/tJMqVauWsjk?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/tJMqVauWsjk/hqdefault.jpg" width="480" height="360"/>
+   <media:description>ITS is the Incompatible Timesharing System. Academics at the MIT AI Lab didn't like earlier incarnations of time-sharing so they invented their own.
+
+Lars Brinkhoff and Oscar Vermeulen explain and demonstrate this segment of Computing history which they've worked to bring back in simulation for everyone to enjoy.
+
+Find out more about them and the project at:
+https://obsolescence.dev/
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="488" average="5.00" min="1" max="5"/>
+    <media:statistics views="15532"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:hISbyatih44</id>
+  <yt:videoId>hISbyatih44</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>PiDP10 - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=hISbyatih44"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-07-29T15:00:33+00:00</published>
+  <updated>2026-09-30T03:30:41+00:00</updated>
+  <media:group>
+   <media:title>PiDP10 - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/hISbyatih44?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/hISbyatih44/hqdefault.jpg" width="480" height="360"/>
+   <media:description>The excitement of video games from the 8-bit home video era but decades earlier and with a few zeroes added to the price tag the PDP10 was a lot of machine for the late '60's!
+
+
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="828" average="5.00" min="1" max="5"/>
+    <media:statistics views="20124"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:dXBmCIfb92k</id>
+  <yt:videoId>dXBmCIfb92k</yt:videoId>
+  <yt:channelId>UC9-y-6csu5WGm29I7JiwpnA</yt:channelId>
+  <title>PiDP6 &amp; Lisp - Computerphile</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=dXBmCIfb92k"/>
+  <author>
+   <name>Computerphile</name>
+   <uri>https://www.youtube.com/channel/UC9-y-6csu5WGm29I7JiwpnA</uri>
+  </author>
+  <published>2026-07-28T15:00:39+00:00</published>
+  <updated>2026-10-05T10:46:37+00:00</updated>
+  <media:group>
+   <media:title>PiDP6 &amp; Lisp - Computerphile</media:title>
+   <media:content url="https://www.youtube.com/v/dXBmCIfb92k?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i1.ytimg.com/vi/dXBmCIfb92k/hqdefault.jpg" width="480" height="360"/>
+   <media:description>The PDP6 was a DEC computer from the early 1960's - Angelo Papenhoff takes us through the machine and shows us some Lisp 'Poetry'
+
+Computerphile is supported by Jane Street. Learn more about them (and exciting career opportunities) at: https://jane-st.co/computerphile
+
+This video was filmed and edited by Sean Riley.
+
+Computerphile is a sister project to Brady Haran's Numberphile. More at https://www.bradyharanblog.com</media:description>
+   <media:community>
+    <media:starRating count="948" average="5.00" min="1" max="5"/>
+    <media:statistics views="24127"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>
