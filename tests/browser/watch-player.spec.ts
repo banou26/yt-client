@@ -79,6 +79,19 @@ test('with Autoplay off, shows suggestions and the player bar switch turns it ba
 
   await expect(page.locator('[data-end-screen="suggestions"]')).toBeVisible()
   await expect(page.locator('[data-end-screen="countdown"]')).toHaveCount(0)
+  // a title stops at the second line, where its clamp cuts it, rather than showing the top of a third
+  const lines = await page.locator('[data-end-screen="suggestions"] a').evaluateAll(tiles => tiles.map((tile) => {
+    const text = document.createTreeWalker(tile, NodeFilter.SHOW_TEXT).nextNode()!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    const tops = [...new Set([...range.getClientRects()].map(rect => Math.round(rect.top)))]
+    let clip = text.parentElement!
+    while (getComputedStyle(clip).overflow === 'visible') clip = clip.parentElement!
+    const bottom = clip.getBoundingClientRect().bottom
+    return { laid: tops.length, shown: tops.filter(top => top < bottom - 1).length }
+  }))
+  expect(Math.max(...lines.map(line => line.laid)), 'no title runs past two lines, so this cannot fail').toBeGreaterThan(2)
+  expect(Math.max(...lines.map(line => line.shown))).toBeLessThanOrEqual(2)
   await page.waitForTimeout(7_000)
   expect(videoIdOf(page.url())).toBe(VIDEO_ID)
 
@@ -139,10 +152,11 @@ test('the miniplayer moves on in place, without leaving the page', async ({ page
   await startPlayback(page)
 })
 
-test('the miniplayer keeps every control of its bar inside the dock', async ({ page }) => {
+test('the miniplayer keeps its bar and its end screen inside the dock', async ({ page }) => {
   test.setTimeout(300_000)
+  await withAutoplay(page, false)
   await page.goto(`/watch?v=${VIDEO_ID}`)
-  await startPlayback(page)
+  const video = await startPlayback(page)
   await page.evaluate(() => {
     history.pushState(null, '', '/settings')
     dispatchEvent(new PopStateEvent('popstate'))
@@ -159,6 +173,17 @@ test('the miniplayer keeps every control of its bar inside the dock', async ({ p
   await expect.poll(async () => (await fit()).overflow, { message: 'the bar overflows the dock' }).toBeLessThanOrEqual(0)
   expect((await fit()).outside).toBe(0)
   await expect(page.getByRole('button', { name: 'Full screen' })).toBeVisible()
+
+  await runToEnd(video)
+  await expect(page.locator('[data-end-screen="suggestions"]')).toBeVisible()
+  const tiles = await player.evaluate((root) => {
+    const top = root.getBoundingClientRect().top
+    const controls = root.querySelector('[aria-label="Seek"]')!.getBoundingClientRect().top
+    const shown = [...root.querySelectorAll('[data-end-screen] li')].map(tile => tile.getBoundingClientRect()).filter(box => box.width > 0)
+    return { shown: shown.length, clipped: shown.filter(box => box.top < top || box.bottom > controls).length }
+  })
+  expect(tiles.shown).toBeGreaterThan(0)
+  expect(tiles.clipped).toBe(0)
 })
 
 test('answers youtube.com keyboard shortcuts, with a bezel for each change', async ({ page }) => {

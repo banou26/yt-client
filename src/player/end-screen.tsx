@@ -11,8 +11,6 @@ import { COUNTDOWN_SECONDS } from './up-next'
 const style = css`
   position: absolute;
   inset: 0;
-  /* the miniplayer is a fraction of the watch page's player, so the layout reads its own width */
-  container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -158,13 +156,17 @@ const style = css`
     font-size: 1.3rem;
     font-weight: 500;
     line-height: 1.8rem;
+  }
+
+  /* clamped inside the padding, which would otherwise show the top of a third line */
+  .tile-title > span {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  @container (max-width: 560px) {
+  @container player (max-width: 560px) {
     padding: 1.2rem 1.2rem 5.6rem;
 
     .label {
@@ -198,7 +200,8 @@ const style = css`
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .grid li:nth-of-type(n + 5) {
+    /* one row, all the miniplayer's height holds above the controls */
+    .grid li:nth-of-type(n + 3) {
       display: none;
     }
   }
@@ -275,7 +278,7 @@ export const EndScreen = (
         <li key={video.id}>
           <a className='tile' href={upNextHref(video)} onClick={openOnClick(video, onOpen)}>
             {video.thumbnail ? <img src={video.thumbnail} alt='' /> : undefined}
-            <span className='tile-title'>{video.title}</span>
+            <span className='tile-title'><span>{video.title}</span></span>
           </a>
         </li>
       ))}
