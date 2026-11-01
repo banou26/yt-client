@@ -671,6 +671,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     channel: SourceChannel
     page: Omit<SourceChannelPage, 'channel' | 'videos'>
   }>()
+  // keyed by what the page was opened with, so one channel can sit under its UC id and a handle at once
+  const updateChannel = (channelId: string, change: Partial<SourceChannel>) => {
+    for (const [key, entry] of channels) {
+      if (entry.channel.id === channelId) channels.set(key, { ...entry, channel: { ...entry.channel, ...change } })
+    }
+  }
   const knownPlaylists = new Map<string, SourcePlaylist>()
 
   const homePage = (kind: string, feed: Feed): SourceHomePage => {
@@ -1232,7 +1238,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       channelFetches.clear()
       const known = channels.get(channelId)
       const next: SourceChannel = { ...known?.channel, id: channelId, name: known?.channel.name ?? '', isSubscribed: subscribed }
-      if (known) channels.set(channelId, { ...known, channel: next })
+      updateChannel(channelId, { isSubscribed: subscribed })
       return next
     },
     setNotificationLevel: async (channelId, level) => {
@@ -1242,7 +1248,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       channelFetches.clear()
       const known = channels.get(channelId)
       const next: SourceChannel = { ...known?.channel, id: channelId, name: known?.channel.name ?? '', notificationLevel: level }
-      if (known) channels.set(channelId, { ...known, channel: next })
+      updateChannel(channelId, { notificationLevel: level })
       return next
     },
     addToPlaylist: async (playlistId, videoIds) => {

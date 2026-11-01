@@ -998,6 +998,17 @@ describe('youtube source', () => {
     expect((await source.channel('c', 'COMMUNITY')).channel.notificationLevel).toBe('ALL')
   })
 
+  it('keeps a subscription or bell write on the next page of a channel opened by its handle', async () => {
+    for (const opened of ['c', '@someone']) {
+      const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => createFakeClient() })
+      const first = await source.channel(opened)
+      await source.setSubscribed(first.channel.id, true)
+      await source.setNotificationLevel(first.channel.id, 'ALL')
+      const next = await source.channel(opened, undefined, undefined, undefined, first.videos.cursor)
+      expect(next.channel, `opened by ${opened}`).toMatchObject({ isSubscribed: true, notificationLevel: 'ALL' })
+    }
+  })
+
   it('refuses writes when signed out instead of emitting an opaque innertube error', async () => {
     const client = createFakeClient()
     client.session.logged_in = false
