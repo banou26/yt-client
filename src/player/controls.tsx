@@ -7,13 +7,11 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
 import type { PlayerState } from './use-player-state'
 
-import { preferredTrack } from '../frame/captions'
 import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { MenuItem, Popup, useDismiss } from '../components/ui/popup'
 import { updateSettings } from '../settings'
-
-const RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+import { RATES } from './rates'
 
 export const clock = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
@@ -277,6 +275,7 @@ type ControlsProps = {
   captionTracks: CaptionTrack[]
   caption: string | undefined
   onCaption: (trackId: string | undefined) => void
+  onToggleCaption: () => void
   theater: boolean
   onTheater: () => void
   onNext?: () => void
@@ -288,7 +287,7 @@ type ControlsProps = {
 
 export const PlayerControls = (
   {
-    video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption,
+    video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
     theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false,
   }: ControlsProps,
 ) => {
@@ -408,16 +407,6 @@ export const PlayerControls = (
   const VolumeIcon = state.muted || state.volume === 0 ? VolumeX : state.volume < 0.5 ? Volume1 : Volume2
 
   const activeCaption = captionTracks.find((track) => track.id === caption)
-  // remembering the last pick is what makes the CC button a toggle rather than a reset
-  const lastCaption = useRef<string | undefined>(undefined)
-  if (caption) lastCaption.current = caption
-  const toggleCaption = () => {
-    if (caption) return onCaption(undefined)
-    const restored = lastCaption.current && captionTracks.some((track) => track.id === lastCaption.current)
-      ? lastCaption.current
-      : preferredTrack(captionTracks, undefined)?.id
-    if (restored) onCaption(restored)
-  }
   const activeLabel = video.videoHeight > 0 ? `${video.videoHeight}p` : undefined
 
   return (
@@ -516,7 +505,7 @@ export const PlayerControls = (
               className='control'
               aria-label={caption ? 'Turn off captions' : 'Turn on captions'}
               aria-pressed={caption !== undefined}
-              onClick={toggleCaption}
+              onClick={onToggleCaption}
             >
               {caption ? <Captions size={24} strokeWidth={1.8} /> : <CaptionsOff size={24} strokeWidth={1.8} />}
             </button>
@@ -656,5 +645,3 @@ export const isTypingTarget = (target: EventTarget | null) => {
   const element = target as HTMLElement | null
   return Boolean(element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' || element.isContentEditable))
 }
-
-export { RATES }

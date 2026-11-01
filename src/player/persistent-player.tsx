@@ -3,9 +3,9 @@ import type { UpNext } from './up-next'
 import { css } from '@emotion/react'
 import { X } from 'lucide-react'
 import { createPortal } from 'preact/compat'
-import { useEffect, useMemo, useState } from 'preact/hooks'
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
-import { Link, useLocation } from 'wouter'
+import { Link, useLocation, useSearch } from 'wouter'
 
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
@@ -102,7 +102,8 @@ const style = css`
 const PersistentPlayer = () => {
   const session = usePlayerSession()
   const docked = Boolean(session.videoId) && !session.claimed
-  const [, navigate] = useLocation()
+  const [location, navigate] = useLocation()
+  const search = useSearch()
   const [autoplay, setAutoplay] = useState(() => getSettings().autoplay)
   useEffect(() => subscribeSettings(settings => setAutoplay(settings.autoplay)), [])
 
@@ -147,6 +148,17 @@ const PersistentPlayer = () => {
     return item ? { id: item.id, title: item.title, thumbnail: item.thumbnail, list: playlist.id, index } : undefined
   }
 
+  // where i leaves the watch page for, as youtube.com returns to the page the video was opened from
+  const lastPage = useRef('/')
+  useEffect(() => {
+    if (!location.startsWith('/watch')) lastPage.current = search ? `${location}?${search}` : location
+  }, [location, search])
+  const toggleMiniplayer = () => {
+    const current = getPlayerSession()
+    if (!current.videoId) return
+    navigate(current.claimed ? lastPage.current : upNextHref({ id: current.videoId, list: current.list, index: current.index }))
+  }
+
   const next = count > 1 || pick
     ? () => {
       const target = queueTarget() ?? pick
@@ -183,6 +195,7 @@ const PersistentPlayer = () => {
               startAt={session.startAt}
               theater={session.theater}
               onTheater={() => setTheater(!session.theater)}
+              onMiniplayer={toggleMiniplayer}
               upNext={{
                 autoplay,
                 onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),

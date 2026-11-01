@@ -127,3 +127,92 @@ test('the miniplayer moves on in place, without leaving the page', async ({ page
   expect(new URL(page.url()).pathname).toBe('/settings')
   await startPlayback(page)
 })
+
+test('answers youtube.com keyboard shortcuts, with a bezel for each change', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  const video = await startPlayback(page)
+  const media = () => video.evaluate((element) => {
+    const player = element as HTMLVideoElement
+    return { time: player.currentTime, paused: player.paused, rate: player.playbackRate, muted: player.muted, volume: player.volume, duration: player.duration }
+  })
+  const time = async () => (await media()).time
+  await expect(page.getByRole('button', { name: 'Turn on captions' })).toBeVisible({ timeout: 60_000 })
+  await page.locator('main h1').click()
+
+  await page.keyboard.press('k')
+  await expect.poll(async () => (await media()).paused).toBe(true)
+  await expect(page.locator('[data-bezel="pause"]')).toBeAttached()
+
+  // paused from here on, so every position below is exact
+  const start = await time()
+  await page.keyboard.press('l')
+  expect(await time()).toBeCloseTo(start + 10, 1)
+  await page.keyboard.press('j')
+  expect(await time()).toBeCloseTo(start, 1)
+  await page.keyboard.press('ArrowRight')
+  expect(await time()).toBeCloseTo(start + 5, 1)
+  await expect(page.locator('[data-bezel="forward"]')).toContainText('5 seconds')
+  await page.keyboard.press('ArrowLeft')
+  expect(await time()).toBeCloseTo(start, 1)
+  await expect(page.locator('[data-bezel="back"]')).toBeAttached()
+
+  await page.keyboard.press('.')
+  const stepped = await time() - start
+  expect(stepped).toBeGreaterThan(0)
+  expect(stepped).toBeLessThan(0.1)
+  await page.keyboard.press(',')
+  expect(await time()).toBeCloseTo(start, 2)
+
+  await page.keyboard.press('Shift+Period')
+  expect((await media()).rate).toBe(1.25)
+  await expect(page.locator('[data-bezel="speed"]')).toContainText('1.25x')
+  await page.keyboard.press('Shift+Comma')
+  expect((await media()).rate).toBe(1)
+
+  await page.keyboard.press('ArrowDown')
+  expect((await media()).volume).toBeCloseTo(0.95, 2)
+  await expect(page.locator('[data-bezel="volume"]')).toContainText('95%')
+  await page.keyboard.press('ArrowUp')
+  expect((await media()).volume).toBeCloseTo(1, 2)
+  await page.keyboard.press('m')
+  expect((await media()).muted).toBe(true)
+  await expect(page.locator('[data-bezel="mute"]')).toBeAttached()
+  await page.keyboard.press('m')
+  expect((await media()).muted).toBe(false)
+
+  await page.keyboard.press('5')
+  const { duration } = await media()
+  expect(await time()).toBeCloseTo(duration / 2, 1)
+
+  await page.keyboard.press('c')
+  await expect(page.getByRole('button', { name: 'Turn off captions' })).toBeVisible()
+  await page.keyboard.press('c')
+  await expect(page.getByRole('button', { name: 'Turn on captions' })).toBeVisible()
+
+  await page.keyboard.press('Shift+Slash')
+  const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('Toggle miniplayer')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+
+  await page.keyboard.press('f')
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true)
+  await page.keyboard.press('f')
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false)
+
+  await page.keyboard.press('i')
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/')
+  await expect(page.locator('.dock-title')).toBeVisible()
+  await page.keyboard.press('i')
+  await expect.poll(() => videoIdOf(page.url())).toBe(VIDEO_ID)
+  await expect(page.locator('.dock-title')).toHaveCount(0)
+
+  const firstRelated = page.locator('main aside article a[href^="/watch"]').first()
+  await expect(firstRelated).toBeVisible({ timeout: 60_000 })
+  const expected = videoIdOf((await firstRelated.getAttribute('href'))!)
+  await page.locator('main h1').click()
+  await page.keyboard.press('Shift+N')
+  await expect.poll(() => videoIdOf(page.url())).toBe(expected)
+})

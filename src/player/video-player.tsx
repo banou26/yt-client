@@ -1,6 +1,7 @@
 import type shaka from 'shaka-player'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { BezelCue } from './bezel'
 import type { UpNext } from './up-next'
 
 // must stay type-only: a value import puts the on-demand shaka chunk back in the entry
@@ -10,6 +11,7 @@ import { LIVE_UNSUPPORTED } from '../frame/protocol'
 import { preferredTrack } from '../frame/captions'
 
 import { css } from '@emotion/react'
+import { createPortal } from 'preact/compat'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import { resetEngine, startEngine } from '../scramjet/client'
@@ -17,8 +19,11 @@ import { warmShaka } from './prefetch'
 import { registerSeek, clearSeek } from './seek'
 import { getSettings, updateSettings } from '../settings'
 import { showToast } from '../components/ui/toast'
+import { Bezel } from './bezel'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
+import { stepRate } from './rates'
+import { ShortcutsDialog } from './shortcuts'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
@@ -121,12 +126,15 @@ export type PlayerUpNext = {
   onOpen: (target: UpNext) => void
 }
 
+const FALLBACK_FPS = 30
+
 const VideoPlayer = (
-  { videoId, startAt, theater = false, onTheater, upNext }: {
+  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext }: {
     videoId: string
     startAt?: number
     theater?: boolean
     onTheater?: () => void
+    onMiniplayer?: () => void
     upNext?: PlayerUpNext
   },
 ) => {
@@ -146,6 +154,12 @@ const VideoPlayer = (
   const [active, setActive] = useState(true)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [cancelled, setCancelled] = useState(false)
+  const [bezel, setBezel] = useState<BezelCue | undefined>(undefined)
+  const [shortcuts, setShortcuts] = useState(false)
+  const closeShortcuts = useCallback(() => setShortcuts(false), [])
+  const flash = useCallback((icon: BezelCue['icon'], text?: string) => {
+    setBezel(previous => ({ id: (previous?.id ?? 0) + 1, icon, text }))
+  }, [])
 
   const state = usePlayerState(videoRef.current, player)
   const ending = state.ended && upNext
@@ -263,6 +277,17 @@ const VideoPlayer = (
     })
   }, [captionTracks])
 
+  // remembering the last pick is what makes c and the CC button a toggle rather than a reset
+  const lastCaption = useRef<string | undefined>(undefined)
+  if (caption) lastCaption.current = caption
+  const toggleCaption = () => {
+    if (caption) return applyCaption(undefined)
+    const restored = lastCaption.current && captionTracks.some((track) => track.id === lastCaption.current)
+      ? lastCaption.current
+      : preferredTrack(captionTracks, undefined)?.id
+    if (restored) applyCaption(restored)
+  }
+
   const wake = useCallback(() => {
     setActive(true)
     clearTimeout(idleTimer.current)
@@ -271,45 +296,77 @@ const VideoPlayer = (
 
   useEffect(() => () => clearTimeout(idleTimer.current), [])
 
+  // read at key time, so the listener is bound once rather than on every rendered frame
+  const latest = useRef({ onTheater, onNext, onMiniplayer, toggleCaption, player, shortcuts })
+  latest.current = { onTheater, onNext, onMiniplayer, toggleCaption, player, shortcuts }
+
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    const seekBy = (delta: number) => {
-      video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta))
-    }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || isTypingTarget(event.target)) return
+      const video = videoRef.current
+      if (!video || event.defaultPrevented || isTypingTarget(event.target)) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
+      const actions = latest.current
+      if (actions.shortcuts) return
       const key = event.key
       const handled = () => {
         event.preventDefault()
         wake()
       }
+      const seekBy = (delta: number) => {
+        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta))
+        flash(delta < 0 ? 'back' : 'forward', `${Math.abs(delta)} seconds`)
+      }
+      const setVolume = (volume: number) => {
+        video.volume = volume
+        updateSettings({ volume: video.volume })
+        flash(video.volume === 0 ? 'mute' : 'volume', `${Math.round(video.volume * 100)}%`)
+      }
+      const stepFrame = (direction: 1 | -1) => {
+        const fps = actions.player?.getVariantTracks().find(track => track.active)?.frameRate || FALLBACK_FPS
+        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + direction / fps))
+      }
       switch (key) {
         case ' ':
         case 'k':
           handled()
-          if (video.paused) void video.play().catch(() => {})
-          else video.pause()
+          if (video.paused) {
+            void video.play().catch(() => {})
+            flash('play')
+          } else {
+            video.pause()
+            flash('pause')
+          }
           return
         case 'ArrowLeft': handled(); seekBy(-SEEK_STEP); return
         case 'ArrowRight': handled(); seekBy(SEEK_STEP); return
         case 'j': handled(); seekBy(-JUMP_STEP); return
         case 'l': handled(); seekBy(JUMP_STEP); return
-        case 'ArrowUp':
-          handled()
-          video.volume = Math.min(1, video.volume + 0.05)
-          updateSettings({ volume: video.volume })
-          return
-        case 'ArrowDown':
-          handled()
-          video.volume = Math.max(0, video.volume - 0.05)
-          updateSettings({ volume: video.volume })
-          return
+        case 'ArrowUp': handled(); setVolume(Math.min(1, video.volume + 0.05)); return
+        case 'ArrowDown': handled(); setVolume(Math.max(0, video.volume - 0.05)); return
         case 'm':
           handled()
           video.muted = !video.muted
           updateSettings({ muted: video.muted })
+          flash(video.muted ? 'mute' : 'volume')
+          return
+        case 'c':
+          handled()
+          actions.toggleCaption()
+          return
+        case '<':
+        case '>': {
+          handled()
+          const rate = stepRate(video.playbackRate, key === '>' ? 1 : -1)
+          video.playbackRate = rate
+          updateSettings({ playbackRate: rate })
+          flash('speed', `${rate}x`)
+          return
+        }
+        case ',':
+        case '.':
+          if (!video.paused) return
+          handled()
+          stepFrame(key === '.' ? 1 : -1)
           return
         case 'f':
           handled()
@@ -317,12 +374,21 @@ const VideoPlayer = (
           return
         case 't':
           handled()
-          onTheater?.()
+          actions.onTheater?.()
+          return
+        case 'i':
+          if (!actions.onMiniplayer) return
+          handled()
+          actions.onMiniplayer()
+          return
+        case '?':
+          handled()
+          setShortcuts(true)
           return
         case 'N':
-          if (!event.shiftKey || !onNext) return
+          if (!event.shiftKey || !actions.onNext) return
           handled()
-          onNext()
+          actions.onNext()
           return
         case 'Home': handled(); video.currentTime = 0; return
         case 'End': handled(); video.currentTime = video.duration || 0; return
@@ -335,7 +401,7 @@ const VideoPlayer = (
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [wake, onTheater, onNext])
+  }, [wake, flash])
 
   const video = videoRef.current
   const showSpinner = Boolean(player) && (state.buffering || state.seeking)
@@ -356,12 +422,18 @@ const VideoPlayer = (
         onClick={() => {
           const current = videoRef.current
           if (!current) return
-          if (current.paused) void current.play().catch(() => {})
-          else current.pause()
+          if (current.paused) {
+            void current.play().catch(() => {})
+            flash('play')
+          } else {
+            current.pause()
+            flash('pause')
+          }
         }}
         onDblClick={() => requestPlayerFullscreen(videoRef.current)}
       />
       {showSpinner ? <div className='spinner' /> : undefined}
+      {bezel ? <Bezel key={bezel.id} cue={bezel} /> : undefined}
       {status ? <div className='playback-status'>{status}</div> : undefined}
       {upNext && ending === 'countdown' && upNext.pick
         ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />
@@ -381,6 +453,7 @@ const VideoPlayer = (
             captionTracks={captionTracks}
             caption={caption}
             onCaption={applyCaption}
+            onToggleCaption={toggleCaption}
             theater={theater}
             onTheater={() => onTheater?.()}
             onNext={onNext}
@@ -391,6 +464,7 @@ const VideoPlayer = (
           />
         )
         : undefined}
+      {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
     </div>
   )
 }
