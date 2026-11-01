@@ -458,7 +458,7 @@ export const PlayerControls = (
             ? <RotateCcw size={24} strokeWidth={2} />
             : state.paused ? <Play size={26} fill='currentColor' strokeWidth={0} /> : <Pause size={26} fill='currentColor' strokeWidth={0} />}
         </button>
-        {onNext ? <button type='button' className='control' aria-label='Next' onClick={onNext}><SkipForward size={24} fill='currentColor' strokeWidth={0} /></button> : undefined}
+        {onNext ? <button type='button' className='control' aria-label='Next' onClick={onNext}><SkipForward size={24} fill='currentColor' strokeWidth={2} /></button> : undefined}
         <div className='volume'>
           <button type='button' className='control' aria-label={state.muted ? 'Unmute' : 'Mute'} onClick={toggleMute}>
             <VolumeIcon size={24} strokeWidth={1.8} />
