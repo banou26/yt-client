@@ -16,7 +16,8 @@ const jarHoldsSession = vi.fn(async () => false)
 
 vi.mock('../../src/components/ui/toast', () => ({ showToast }))
 vi.mock('../../src/scramjet/client', () => ({ startEngine: async () => ({ resetIdentity }) }))
-vi.mock('../../src/scramjet/platform', () => ({ startPlatform: async () => ({ openEgressPort }) }))
+const startPlatform = vi.fn(async () => ({ openEgressPort }))
+vi.mock('../../src/scramjet/platform', () => ({ startPlatform }))
 vi.mock('../../src/scramjet/jar', () => ({ jarHoldsSession }))
 
 const ORIGIN = 'https://youtube.fkn.app'
@@ -86,6 +87,7 @@ describe('the sign-in window', () => {
     showToast.mockClear()
     resetIdentity.mockClear()
     openEgressPort.mockClear()
+    startPlatform.mockClear()
     jarHoldsSession.mockReset()
     jarHoldsSession.mockResolvedValue(false)
   })
@@ -135,6 +137,24 @@ describe('the sign-in window', () => {
     expect(win.postMessage).toHaveBeenCalledOnce()
     expect(openEgressPort).toHaveBeenCalledWith('signin')
     expect(win.postMessage).toHaveBeenCalledWith({ type: SIGNIN_PORTS }, ORIGIN, [egressPort])
+  })
+
+  it('leaves the window open to say sign-in could not start when the platform fails', async () => {
+    const win = fakeWindow()
+    const { send } = install(win)
+    startPlatform.mockRejectedValueOnce(new Error('the broker never loaded'))
+    const { openSignInWindow } = await import('../../src/sign-in')
+    const outcome = openSignInWindow()
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
+    await settle()
+    vi.advanceTimersByTime(500)
+    expect(startPlatform).toHaveBeenCalledOnce()
+    expect(win.postMessage).not.toHaveBeenCalled()
+    expect(win.closed).toBe(false)
+    // the person closes it after reading its line, and that is all
+    win.closed = true
+    vi.advanceTimersByTime(500)
+    await expect(outcome).resolves.toBe('closed')
   })
 
   it('reloads, once, for a window from another build instead of handing it a port', async () => {

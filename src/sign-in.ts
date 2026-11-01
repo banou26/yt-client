@@ -78,9 +78,10 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
           settle(reloadOnceForBuild(message.build) ? 'closed' : 'outdated')
           return
         }
+        // a platform that cannot start leaves the window open, to say so itself once its wait for the port runs out
         void startPlatform().then(
           (platform) => win.postMessage({ type: SIGNIN_PORTS }, location.origin, [platform.openEgressPort('signin')]),
-          () => win.close(),
+          () => {},
         )
       } else if (message?.type === SIGNIN_DONE) {
         win.close()
