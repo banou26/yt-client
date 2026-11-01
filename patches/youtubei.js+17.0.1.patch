@@ -48,3 +48,29 @@ index 727d2d1..cc1d60d 100644
          }
          if (toolbar_state) {
              this.is_hearted = toolbar_state.heartState === 'TOOLBAR_HEART_STATE_HEARTED';
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js b/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js
+index 07596db..b907770 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js
+@@ -31,6 +31,7 @@ export default class SubscribeButtonView extends YTNode {
+             this.on_show_subscription_options = new NavigationEndpoint(data.onShowSubscriptionOptions);
+         }
+         this.channel_id = data.channelId;
++        this.state_entity_store_key = data.stateEntityStoreKey;
+         this.enable_subscribe_button_post_click_animation = data.enableSubscribeButtonPostClickAnimation;
+         if ('bellAccessibilityData' in data) {
+             this.bell_accessibility_data = {
+diff --git a/node_modules/youtubei.js/dist/src/parser/parser.js b/node_modules/youtubei.js/dist/src/parser/parser.js
+index 7d6a7a5..1add4f3 100644
+--- a/node_modules/youtubei.js/dist/src/parser/parser.js
++++ b/node_modules/youtubei.js/dist/src/parser/parser.js
+@@ -220,6 +220,9 @@ export function parseResponse(data) {
+     if (on_response_received_endpoints_memo) {
+         applyCommentsMutations(on_response_received_endpoints_memo, data.frameworkUpdates?.entityBatchUpdate?.mutations);
+     }
++    if (data.frameworkUpdates?.entityBatchUpdate?.mutations) {
++        parsed_data.entity_mutations = data.frameworkUpdates.entityBatchUpdate.mutations;
++    }
+     const continuation = data.continuation ? parseC(data.continuation) : null;
+     if (continuation) {
+         parsed_data.continuation = continuation;

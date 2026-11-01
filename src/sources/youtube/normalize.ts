@@ -97,6 +97,11 @@ type ChannelDetails = {
     subscribed?: boolean
     notification_preference_button?: { current_state_id?: string | number }
   }
+  // state_entity_store_key and entity_mutations are this repo's patch of youtubei.js (patches/), which otherwise drops both
+  page?: {
+    header_memo?: Map<string, { state_entity_store_key?: string }[]>
+    entity_mutations?: { payload?: { subscriptionStateEntity?: { key?: string, subscribed?: boolean } } }[]
+  }
 }
 
 type WatchNextMemo = {
@@ -347,6 +352,15 @@ const lockupChannel = (lockup: LockupVideo, parts: (Text | undefined)[]): Source
   return { id, name, avatar: thumbnail(lockup.metadata?.image?.avatar?.image, AVATAR_WIDTH) }
 }
 
+// the page header's button carries only a key, and the state it names arrives in the response's entity store
+const headerSubscribed = (channel: ChannelDetails) => {
+  const key = channel.page?.header_memo?.get('SubscribeButtonView')?.[0]?.state_entity_store_key
+  if (!key) return undefined
+  return channel.page?.entity_mutations
+    ?.find((mutation) => mutation.payload?.subscriptionStateEntity?.key === key)
+    ?.payload?.subscriptionStateEntity?.subscribed
+}
+
 export const normalizeChannel = (input: unknown, fallbackId?: string): SourceChannel => {
   const channel = input as ChannelDetails
   const id = channel.metadata?.external_id ?? fallbackId
@@ -367,7 +381,7 @@ export const normalizeChannel = (input: unknown, fallbackId?: string): SourceCha
     videoCountText: text(header?.videos_count) ?? details[1],
     banner: thumbnail(header?.banner) ?? thumbnail(view?.banner?.image),
     description: channel.metadata?.description ?? text(view?.description?.description),
-    isSubscribed: channel.subscribe_button?.subscribed,
+    isSubscribed: headerSubscribed(channel) ?? channel.subscribe_button?.subscribed,
     notificationLevel: notificationLevel(channel.subscribe_button?.notification_preference_button?.current_state_id),
   }
 }

@@ -1,0 +1,174 @@
+{
+  "subscribed": {
+    "header": {
+      "pageHeaderRenderer": {
+        "pageTitle": "Awesome World 어썸월드",
+        "content": {
+          "pageHeaderViewModel": {
+            "actions": {
+              "flexibleActionsViewModel": {
+                "actionsRows": [
+                  {
+                    "actions": [
+                      {
+                        "subscribeButtonViewModel": {
+                          "subscribeButtonContent": {
+                            "buttonText": "Subscribe",
+                            "subscribeState": {
+                              "key": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgMygB",
+                              "subscribed": false
+                            }
+                          },
+                          "unsubscribeButtonContent": {
+                            "buttonText": "Subscribed",
+                            "subscribeState": {
+                              "key": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgMygB",
+                              "subscribed": true
+                            }
+                          },
+                          "stateEntityStoreKey": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgMygB",
+                          "channelId": "UC3XwA9aaZdWfojyo9wKaFtw",
+                          "notificationStateEntityStoreKeys": {
+                            "subsNotificationStateKey": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgjAEoAQ%3D%3D"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "channelMetadataRenderer": {
+        "title": "Awesome World 어썸월드",
+        "externalId": "UC3XwA9aaZdWfojyo9wKaFtw"
+      }
+    },
+    "frameworkUpdates": {
+      "entityBatchUpdate": {
+        "mutations": [
+          {
+            "entityKey": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgMygB",
+                "subscribed": true
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgjAEoAQ%3D%3D",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionNotificationStateEntity": {
+                "key": "EhhVQzNYd0E5YWFaZFdmb2p5bzl3S2FGdHcgjAEoAQ%3D%3D",
+                "state": "SUBSCRIPTION_NOTIFICATION_STATE_OCCASIONAL"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "unsubscribed": {
+    "header": {
+      "pageHeaderRenderer": {
+        "pageTitle": "Blender",
+        "content": {
+          "pageHeaderViewModel": {
+            "actions": {
+              "flexibleActionsViewModel": {
+                "actionsRows": [
+                  {
+                    "actions": [
+                      {
+                        "subscribeButtonViewModel": {
+                          "subscribeButtonContent": {
+                            "buttonText": "Subscribe",
+                            "subscribeState": {
+                              "key": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgMygB",
+                              "subscribed": false
+                            }
+                          },
+                          "unsubscribeButtonContent": {
+                            "buttonText": "Subscribed",
+                            "subscribeState": {
+                              "key": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgMygB",
+                              "subscribed": true
+                            }
+                          },
+                          "stateEntityStoreKey": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgMygB",
+                          "channelId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                          "notificationStateEntityStoreKeys": {
+                            "subsNotificationStateKey": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgjAEoAQ%3D%3D"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "channelMetadataRenderer": {
+        "title": "Blender",
+        "externalId": "UCSMOQeBJ2RAnuFungnQOxLg"
+      }
+    },
+    "frameworkUpdates": {
+      "entityBatchUpdate": {
+        "mutations": [
+          {
+            "entityKey": "EhhVQ0FzajlpUmVIekxFWXY5UWF3R3pJT2cgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQ0FzajlpUmVIekxFWXY5UWF3R3pJT2cgMygB",
+                "subscribed": false
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQ3o3NVJWYkg4cTJqZEJKNFNud3VaWlEgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQ3o3NVJWYkg4cTJqZEJKNFNud3VaWlEgMygB",
+                "subscribed": false
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgMygB",
+                "subscribed": false
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgjAEoAQ%3D%3D",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionNotificationStateEntity": {
+                "key": "EhhVQ1NNT1FlQkoyUkFudUZ1bmduUU94TGcgjAEoAQ%3D%3D",
+                "state": "SUBSCRIPTION_NOTIFICATION_STATE_OCCASIONAL"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
