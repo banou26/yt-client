@@ -43,11 +43,12 @@ const style = css`
   /* youtube.com's own proportions, measured at 1280 to 2560 px wide: the
      sidebar is 27.5% of the window, held between 402 and 700 px, and the
      player takes the rest, up to the width whose 16:9 frame still fits under
-     the header with room below it, so a short or ultrawide window centers the
-     two. */
-  grid-template-columns:
-    minmax(0, max(64rem, calc((100vh - var(--header-height) - 6rem) * 16 / 9)))
-    clamp(40.2rem, 27.5vw, 70rem);
+     the header with room below it. A short window gives the width the player
+     cannot take to the sidebar, up to its 700 px, and only an ultrawide one
+     centers the two. */
+  --player-max: max(64rem, calc((100vh - var(--header-height) - 6rem) * 16 / 9));
+  --sidebar: clamp(40.2rem, max(27.5vw, 100% - 2.4rem - var(--player-max)), 70rem);
+  grid-template-columns: minmax(0, var(--player-max)) var(--sidebar);
   justify-content: center;
   /* The sidebar spans BOTH rows, and an auto-sized row absorbs a share of a
      spanning item that is taller than its own content. So a long sidebar
@@ -94,7 +95,9 @@ const style = css`
     --compact-thumb-width: clamp(16.8rem, calc(125% - 33.45rem), 62.5%);
   }
 
+  /* a theater player runs edge to edge, so nothing is left over to center */
   &.theater {
+    grid-template-columns: minmax(0, 1fr) var(--sidebar);
     padding: 0 0 2.4rem;
   }
 
@@ -277,7 +280,10 @@ const style = css`
   }
 
   @media (max-width: 1017px) {
-    grid-template-columns: minmax(0, 1fr);
+    &,
+    &.theater {
+      grid-template-columns: minmax(0, 1fr);
+    }
 
     .stage,
     .primary,

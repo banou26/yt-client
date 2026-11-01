@@ -58,6 +58,8 @@ test('grows the sidebar and its thumbnails on a wide window, like youtube.com', 
     return {
       viewport: document.documentElement.clientWidth,
       player: box('main .stage').width,
+      playerLeft: box('main .stage').left,
+      playerRight: box('main .stage').right,
       aside: box('main aside').width,
       asideRight: box('main aside').right,
       thumb: box('main aside article .thumb').width,
@@ -71,10 +73,27 @@ test('grows the sidebar and its thumbnails on a wide window, like youtube.com', 
   expect(wide.viewport - wide.asideRight).toBeLessThanOrEqual(24)
   expect(wide.thumb).toBeGreaterThan(320)
 
+  // a short window holds the player to the 16:9 frame under the header, 1216 px here, and gives the sidebar the rest rather than centering the two
+  await page.setViewportSize({ width: 1920, height: 800 })
+  await expect.poll(async () => (await measure()).player).toBeCloseTo(1216, 0)
+  const short = await measure()
+  expect(short.playerLeft).toBeCloseTo(24, 0)
+  expect(short.viewport - short.asideRight).toBeLessThanOrEqual(24.5)
+  expect(short.aside).toBeGreaterThan(600)
+
   // and the 402 px sidebar of 168 px thumbnails stays below the width where 27.5% of the window passes it
   await page.setViewportSize({ width: 1280, height: 800 })
   await expect.poll(async () => (await measure()).aside).toBeCloseTo(402, 0)
   expect((await measure()).thumb).toBeCloseTo(168, 0)
+
+  // theater runs edge to edge, even on an ultrawide window where the two columns center
+  await page.setViewportSize({ width: 2560, height: 1080 })
+  await page.locator('main h1').click()
+  await page.keyboard.press('t')
+  await expect(page.locator('main.theater')).toBeAttached()
+  await expect.poll(async () => (await measure()).playerLeft).toBeLessThanOrEqual(0.5)
+  const theater = await measure()
+  expect(theater.viewport - theater.playerRight).toBeLessThanOrEqual(0.5)
 })
 
 test('heads the comments with the full count and Sort by, and threads them like youtube.com', async ({ page }) => {
