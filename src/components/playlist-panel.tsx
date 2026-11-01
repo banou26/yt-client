@@ -6,6 +6,7 @@ import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link, useLocation } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
+import { hasNextInQueue, nextQueueIndex, previousQueueIndex, queueMode } from '../player/up-next'
 import { formatDuration } from './format'
 import { watchHrefFor } from './video-card'
 
@@ -36,13 +37,9 @@ export type PlaylistPanelData = {
 const queueHrefFor = (videoId: string, playlistId: string, position: number) =>
   watchHrefFor(videoId, { list: playlistId, index: position + 1 })
 
-// module scope because app.tsx keys the whole route subtree on the query string, so every queue navigation unmounts this panel
-// kept out of settings.ts because a queue mode belongs to the session in progress, not to the next one
-const mode = { loop: false, shuffle: false }
-
-// exists so a Shuffle pressed on /playlist arrives at the queue with shuffle already on: that button navigates into the queue and only this module can answer for its mode
+// exists so a Shuffle pressed on /playlist arrives at the queue with shuffle already on: that button navigates into the queue
 export const setQueueShuffle = (value: boolean) => {
-  mode.shuffle = value
+  queueMode.shuffle = value
 }
 
 const style = css`
@@ -279,15 +276,13 @@ const QueueRow = (
 /**
  * The up-next queue, above the related rail on /watch.
  *
- * Playback handoff is not part of this: the player owns what happens when a
- * video ends (controls.tsx already declares an unwired `onNext`), so loop and
- * shuffle here govern where the Next and Previous controls go, not what plays
- * automatically at the end of the current video.
+ * Loop and shuffle live in up-next.ts, so the player's end of video and its
+ * Next control follow the same mode as the buttons here.
  */
 export const PlaylistPanel = ({ playlist }: { playlist: PlaylistPanelData }) => {
   const [, navigate] = useLocation()
-  const [loop, setLoop] = useState(mode.loop)
-  const [shuffle, setShuffle] = useState(mode.shuffle)
+  const [loop, setLoop] = useState(queueMode.loop)
+  const [shuffle, setShuffle] = useState(queueMode.shuffle)
   const listRef = useRef<HTMLOListElement>(null)
 
   const items = playlist.items
@@ -303,29 +298,17 @@ export const PlaylistPanel = ({ playlist }: { playlist: PlaylistPanelData }) => 
   }, [current, count, playlist.id])
 
   const toggleLoop = () => {
-    mode.loop = !loop
-    setLoop(mode.loop)
+    queueMode.loop = !loop
+    setLoop(queueMode.loop)
   }
 
   const toggleShuffle = () => {
-    mode.shuffle = !shuffle
-    setShuffle(mode.shuffle)
+    queueMode.shuffle = !shuffle
+    setShuffle(queueMode.shuffle)
   }
 
-  // the offset is drawn from a range one shorter than the queue and stepped over the current position, so the video on screen can never be picked again
-  const pickNext = () => {
-    if (shuffle) {
-      if (count < 2) return undefined
-      const offset = Math.floor(Math.random() * (count - 1))
-      return offset >= current ? offset + 1 : offset
-    }
-    if (current + 1 < count) return current + 1
-    return loop && count > 1 ? 0 : undefined
-  }
-
-  // previous steps back through the list even under shuffle: going back to what actually played would need a play history
-  const previousIndex = current > 0 ? current - 1 : loop && count > 1 ? count - 1 : undefined
-  const hasNext = shuffle ? count > 1 : current + 1 < count || (loop && count > 1)
+  const previousIndex = previousQueueIndex(current, count, { loop })
+  const hasNext = hasNextInQueue(current, count, { loop, shuffle })
 
   const go = (index?: number) => {
     if (index === undefined) return
@@ -364,7 +347,7 @@ export const PlaylistPanel = ({ playlist }: { playlist: PlaylistPanelData }) => 
             className='control'
             aria-label='Next video'
             disabled={!hasNext}
-            onClick={() => go(pickNext())}
+            onClick={() => go(nextQueueIndex(current, count, { loop, shuffle }))}
           >
             <SkipForward size={20} strokeWidth={1.5} />
           </button>

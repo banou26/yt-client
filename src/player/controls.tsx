@@ -1,7 +1,7 @@
 import type shaka from 'shaka-player'
 
 import { css } from '@emotion/react'
-import { Captions, CaptionsOff, Check, Maximize, Minimize, Pause, PictureInPicture2, Play, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
+import { Captions, CaptionsOff, Check, Maximize, Minimize, Pause, PictureInPicture2, Play, RotateCcw, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
@@ -213,6 +213,53 @@ const style = css`
     position: relative;
   }
 
+  .autoplay {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.8rem;
+    height: 4rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.9;
+  }
+
+  .autoplay:hover {
+    opacity: 1;
+  }
+
+  .autoplay-track {
+    position: relative;
+    width: 3.6rem;
+    height: 1.4rem;
+    border-radius: 0.7rem;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .autoplay-knob {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #717171;
+    color: #ffffff;
+    transform: translateY(-50%);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+
+  .autoplay[aria-checked='true'] .autoplay-knob {
+    background: #ffffff;
+    color: #000000;
+    transform: translate(1.6rem, -50%);
+  }
+
   .settings-menu {
     bottom: calc(100% + 0.8rem);
     top: auto;
@@ -233,6 +280,8 @@ type ControlsProps = {
   theater: boolean
   onTheater: () => void
   onNext?: () => void
+  autoplay?: boolean
+  onAutoplay?: (value: boolean) => void
   visible: boolean
   isLive?: boolean
 }
@@ -240,7 +289,7 @@ type ControlsProps = {
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption,
-    theater, onTheater, onNext, visible, isLive = false,
+    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false,
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -415,8 +464,10 @@ export const PlayerControls = (
           : undefined}
       </div>
       <div className='bar'>
-        <button type='button' className='control' aria-label={state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
-          {state.paused ? <Play size={26} fill='currentColor' strokeWidth={0} /> : <Pause size={26} fill='currentColor' strokeWidth={0} />}
+        <button type='button' className='control' aria-label={state.ended ? 'Replay' : state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
+          {state.ended
+            ? <RotateCcw size={24} strokeWidth={2} />
+            : state.paused ? <Play size={26} fill='currentColor' strokeWidth={0} /> : <Pause size={26} fill='currentColor' strokeWidth={0} />}
         </button>
         {onNext ? <button type='button' className='control' aria-label='Next' onClick={onNext}><SkipForward size={24} fill='currentColor' strokeWidth={0} /></button> : undefined}
         <div className='volume'>
@@ -440,6 +491,24 @@ export const PlayerControls = (
           ? <span className='live-badge'>LIVE</span>
           : <span className='time'>{clock(position)} / {clock(duration)}</span>}
         <span className='spacer' />
+        {onAutoplay && !isLive
+          ? (
+            <button
+              type='button'
+              className='autoplay'
+              role='switch'
+              aria-label='Autoplay'
+              aria-checked={autoplay === true}
+              onClick={() => onAutoplay(!autoplay)}
+            >
+              <span className='autoplay-track'>
+                <span className='autoplay-knob'>
+                  {autoplay ? <Play size={12} fill='currentColor' strokeWidth={0} /> : <Pause size={12} fill='currentColor' strokeWidth={0} />}
+                </span>
+              </span>
+            </button>
+          )
+          : undefined}
         {captionTracks.length > 0
           ? (
             <button

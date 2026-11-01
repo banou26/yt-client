@@ -7,6 +7,9 @@ export type PlayerSession = {
   startAt?: number
   title?: string
   poster?: string
+  // the playlist the video is playing from, with its 0-based position, so the end of the video can move along the queue
+  list?: string
+  index?: number
   theater: boolean
   claimed: boolean
 }
@@ -25,23 +28,32 @@ const update = (next: Partial<PlayerSession>) => {
   emit()
 }
 
-// re-opening the video already playing is deliberately a no-op, not a reset
 /**
  * Show a video in the persistent player.
  *
- * Re-opening the video already playing is deliberately a no-op rather than a
- * reset: the watch route calls this on every render pass that has an id, and
- * treating each one as a fresh open would restart playback whenever the page
- * re-rendered for an unrelated reason.
+ * Re-opening the video already playing never restarts it, and only takes its
+ * title and its queue: the watch route calls this on every render pass that
+ * has an id, and treating each one as a fresh open would restart playback
+ * whenever the page re-rendered for an unrelated reason.
  */
 export const openPlayer = (
-  { videoId, startAt, title, poster }: { videoId: string, startAt?: number, title?: string, poster?: string },
+  { videoId, startAt, title, poster, list, index }: {
+    videoId: string
+    startAt?: number
+    title?: string
+    poster?: string
+    list?: string
+    index?: number
+  },
 ) => {
   if (session.videoId === videoId) {
-    if (title !== undefined && title !== session.title) update({ title, poster: poster ?? session.poster })
+    const retitled = title !== undefined && title !== session.title
+    if (retitled || list !== session.list || index !== session.index) {
+      update({ title: title ?? session.title, poster: poster ?? session.poster, list, index })
+    }
     return
   }
-  update({ videoId, startAt, title, poster, theater: getSettings().theater })
+  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater })
 }
 
 // the ONLY thing that closes the frame's SABR session: route unmount deliberately does not
@@ -52,7 +64,7 @@ export const openPlayer = (
  * unmount deliberately does not, which is the whole point of the dock.
  */
 export const closePlayer = () => {
-  update({ videoId: undefined, startAt: undefined, title: undefined, poster: undefined, theater: false })
+  update({ videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined, theater: false })
 }
 
 export const setTheater = (theater: boolean) => update({ theater })

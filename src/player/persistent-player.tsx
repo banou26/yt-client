@@ -1,10 +1,18 @@
+import type { UpNext } from './up-next'
+
 import { css } from '@emotion/react'
 import { X } from 'lucide-react'
 import { createPortal } from 'preact/compat'
-import { Link } from 'wouter'
+import { useEffect, useMemo, useState } from 'preact/hooks'
+import { useQuery } from 'urql'
+import { Link, useLocation } from 'wouter'
 
-import { closePlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
+import { getSettings, subscribeSettings, updateSettings } from '../settings'
+import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
+import { upNextHref } from './end-screen'
+import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay } from './up-next'
 import VideoPlayer from './video-player'
+import { WATCH_META_QUERY } from './watch-query'
 
 const style = css`
   /* The dock is always mounted so the player's DOM home has somewhere to live
@@ -94,6 +102,57 @@ const style = css`
 const PersistentPlayer = () => {
   const session = usePlayerSession()
   const docked = Boolean(session.videoId) && !session.claimed
+  const [, navigate] = useLocation()
+  const [autoplay, setAutoplay] = useState(() => getSettings().autoplay)
+  useEffect(() => subscribeSettings(settings => setAutoplay(settings.autoplay)), [])
+
+  const videoId = session.videoId
+  // the same document and variables as the watch route, so on the watch page both share its one /next
+  const [{ data }] = useQuery({
+    query: WATCH_META_QUERY,
+    variables: { id: videoId ?? '', playlistId: session.list, playlistIndex: session.index },
+    pause: !videoId,
+  })
+  const watch = videoId !== undefined && data?.watch?.id === videoId ? data.watch : undefined
+
+  useEffect(() => {
+    if (videoId) markPlayed(videoId)
+  }, [videoId])
+
+  const playlist = session.list !== undefined && watch?.playlist?.id === session.list ? watch.playlist : undefined
+  const count = playlist?.items.length ?? 0
+  const current = Math.min(Math.max(playlist?.currentIndex ?? 0, 0), Math.max(count - 1, 0))
+  // read when the video ends, since loop and shuffle change without re-rendering this
+  const queued = () => playlist !== undefined && hasNextInQueue(current, count)
+
+  const suggestions = useMemo<UpNext[]>(
+    () => (watch?.related ?? []).filter(video => video.id !== videoId),
+    [watch, videoId],
+  )
+  const pick = useMemo(() => (videoId ? pickAutoplay(suggestions, videoId) : undefined), [suggestions, videoId])
+
+  // the watch page navigates; the miniplayer plays in place and leaves the page alone
+  const open = (target: UpNext) => {
+    if (getPlayerSession().claimed) {
+      navigate(upNextHref(target))
+      return
+    }
+    openPlayer({ videoId: target.id, title: target.title ?? undefined, list: target.list, index: target.index })
+  }
+
+  const queueTarget = () => {
+    if (!playlist) return undefined
+    const index = nextQueueIndex(current, count)
+    const item = index === undefined ? undefined : playlist.items[index]
+    return item ? { id: item.id, title: item.title, thumbnail: item.thumbnail, list: playlist.id, index } : undefined
+  }
+
+  const next = count > 1 || pick
+    ? () => {
+      const target = queueTarget() ?? pick
+      if (target) open(target)
+    }
+    : undefined
 
   return (
     <>
@@ -102,7 +161,10 @@ const PersistentPlayer = () => {
         {docked
           ? (
             <div className='dock-meta'>
-              <Link className='dock-title' href={`/watch?v=${encodeURIComponent(session.videoId!)}`}>
+              <Link
+                className='dock-title'
+                href={upNextHref({ id: session.videoId!, list: session.list, index: session.index })}
+              >
                 {session.title ?? 'Now playing'}
               </Link>
               <button type='button' className='dock-close' aria-label='Close miniplayer' onClick={closePlayer}>
@@ -121,6 +183,15 @@ const PersistentPlayer = () => {
               startAt={session.startAt}
               theater={session.theater}
               onTheater={() => setTheater(!session.theater)}
+              upNext={{
+                autoplay,
+                onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),
+                queued,
+                pick,
+                suggestions,
+                onNext: next,
+                onOpen: open,
+              }}
             />
           )
           : null,

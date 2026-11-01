@@ -1,6 +1,7 @@
 import type shaka from 'shaka-player'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { UpNext } from './up-next'
 
 // must stay type-only: a value import puts the on-demand shaka chunk back in the entry
 import type { startShakaPlayback } from './shaka'
@@ -17,6 +18,8 @@ import { registerSeek, clearSeek } from './seek'
 import { getSettings, updateSettings } from '../settings'
 import { showToast } from '../components/ui/toast'
 import { isTypingTarget, PlayerControls } from './controls'
+import { EndScreen, UpNextCountdown } from './end-screen'
+import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
 const playerStyle = css`
@@ -100,12 +103,31 @@ const requestPlayerFullscreen = (video: HTMLVideoElement | null) => {
   void video?.closest('[data-player-root]')?.requestFullscreen().catch(() => {})
 }
 
+/**
+ * What the player moves on to, decided by the persistent player that owns it.
+ *
+ * `queued` says whether a playlist entry follows, so the end of the video calls
+ * `onNext` at once; otherwise `pick` is the autoplay countdown's target and
+ * `suggestions` fill the end screen. `onOpen` plays a picked video, which on
+ * the watch page navigates and in the miniplayer plays in place.
+ */
+export type PlayerUpNext = {
+  autoplay: boolean
+  onAutoplay: (value: boolean) => void
+  queued: () => boolean
+  pick?: UpNext
+  suggestions: readonly UpNext[]
+  onNext?: () => void
+  onOpen: (target: UpNext) => void
+}
+
 const VideoPlayer = (
-  { videoId, startAt, theater = false, onTheater }: {
+  { videoId, startAt, theater = false, onTheater, upNext }: {
     videoId: string
     startAt?: number
     theater?: boolean
     onTheater?: () => void
+    upNext?: PlayerUpNext
   },
 ) => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -123,8 +145,17 @@ const VideoPlayer = (
   const selectCaptionRef = useRef<((trackId: string | undefined) => Promise<void>) | undefined>(undefined)
   const [active, setActive] = useState(true)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [cancelled, setCancelled] = useState(false)
 
   const state = usePlayerState(videoRef.current, player)
+  const ending = state.ended && upNext
+    ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
+    : undefined
+  const onNext = upNext?.onNext
+
+  useEffect(() => {
+    if (ending === 'advance') onNext?.()
+  }, [ending])
 
   useEffect(() => {
     const video = videoRef.current
@@ -288,6 +319,11 @@ const VideoPlayer = (
           handled()
           onTheater?.()
           return
+        case 'N':
+          if (!event.shiftKey || !onNext) return
+          handled()
+          onNext()
+          return
         case 'Home': handled(); video.currentTime = 0; return
         case 'End': handled(); video.currentTime = video.duration || 0; return
         default:
@@ -299,7 +335,7 @@ const VideoPlayer = (
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [wake, onTheater])
+  }, [wake, onTheater, onNext])
 
   const video = videoRef.current
   const showSpinner = Boolean(player) && (state.buffering || state.seeking)
@@ -327,6 +363,11 @@ const VideoPlayer = (
       />
       {showSpinner ? <div className='spinner' /> : undefined}
       {status ? <div className='playback-status'>{status}</div> : undefined}
+      {upNext && ending === 'countdown' && upNext.pick
+        ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />
+        : upNext && ending === 'suggestions' && upNext.suggestions.length > 0
+          ? <EndScreen videos={upNext.suggestions} onOpen={upNext.onOpen} />
+          : undefined}
       {video && !status
         ? (
           <PlayerControls
@@ -342,6 +383,9 @@ const VideoPlayer = (
             onCaption={applyCaption}
             theater={theater}
             onTheater={() => onTheater?.()}
+            onNext={onNext}
+            autoplay={upNext?.autoplay}
+            onAutoplay={upNext?.onAutoplay}
             isLive={isLive}
             visible={active || state.paused}
           />

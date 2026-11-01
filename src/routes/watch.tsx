@@ -23,6 +23,7 @@ import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
 import { claimPlayer, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
+import { WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
 import { showToast } from '../components/ui/toast'
 import { getSettings, updateSettings } from '../settings'
@@ -33,51 +34,6 @@ const RATE_VIDEO = gql(`
     rateVideo(id: $id, status: $status) {
       id
       likeStatus
-    }
-  }
-`)
-
-const WATCH_META_QUERY = gql(`
-  query WatchMeta($id: ID!, $playlistId: ID, $playlistIndex: Int) {
-    watch(id: $id, playlistId: $playlistId, playlistIndex: $playlistIndex) {
-      id
-      isLive
-      concurrentViewers
-      title
-      viewCountText
-      publishedDateText
-      likeCountText
-      commentCountText
-      description
-      descriptionRuns { text url videoId startSeconds browseId }
-      likeStatus
-      channel { id name avatar handle subscriberCountText isSubscribed notificationLevel }
-      relatedCursor
-      related {
-        id
-        title
-        thumbnail
-        thumbnailSrcset
-        durationSeconds
-        viewCount
-        publishedText
-        isLive
-        channel { id name }
-      }
-      playlist {
-        id
-        title
-        author
-        currentIndex
-        isInfinite
-        items {
-          id
-          title
-          thumbnail
-          thumbnailSrcset
-          durationSeconds
-        }
-      }
     }
   }
 `)
@@ -396,8 +352,8 @@ const WatchPage = () => {
 
   useEffect(() => {
     if (videoId === '') return
-    openPlayer({ videoId, startAt, title: watch?.title ?? undefined })
-  }, [videoId, startAt, watch?.title])
+    openPlayer({ videoId, startAt, title: watch?.title ?? undefined, list: listId, index: playlistIndex })
+  }, [videoId, startAt, watch?.title, listId, playlistIndex])
   // the sidebar pages from its own cursor: re-running /next would restart the whole watch
   const [wantMoreRelated, setWantMoreRelated] = useState(false)
   const [relatedPages, setRelatedPages] = useState<RelatedPage[]>([])
