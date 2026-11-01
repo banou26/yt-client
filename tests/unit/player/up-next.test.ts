@@ -35,13 +35,20 @@ describe('the autoplay pick', () => {
   const related = [{ id: 'a' }, { id: 'b' }, { id: 'c' }]
 
   it('takes the first related video that is not playing and not played', () => {
-    expect(pickAutoplay(related, 'a', new Set())?.id).toBe('b')
-    expect(pickAutoplay(related, 'x', new Set(['a', 'b']))?.id).toBe('c')
+    expect(pickAutoplay(related, 'a', { played: new Set() })?.id).toBe('b')
+    expect(pickAutoplay(related, 'x', { played: new Set(['a', 'b']) })?.id).toBe('c')
   })
 
   it('falls back to a played video rather than stopping', () => {
-    expect(pickAutoplay(related, 'a', new Set(['b', 'c']))?.id).toBe('b')
-    expect(pickAutoplay([{ id: 'a' }], 'a', new Set())).toBeUndefined()
+    expect(pickAutoplay(related, 'a', { played: new Set(['b', 'c']) })?.id).toBe('b')
+    expect(pickAutoplay([{ id: 'a' }], 'a', { played: new Set() })).toBeUndefined()
+  })
+
+  it('prefers the video youtube.com itself would play, unless it has played already', () => {
+    expect(pickAutoplay(related, 'a', { preferred: 'c', played: new Set() })?.id).toBe('c')
+    expect(pickAutoplay(related, 'a', { preferred: 'c', played: new Set(['c']) })?.id).toBe('b')
+    expect(pickAutoplay(related, 'a', { preferred: 'gone', played: new Set() })?.id).toBe('b')
+    expect(pickAutoplay(related, 'c', { preferred: 'c', played: new Set() })?.id).toBe('a')
   })
 })
 

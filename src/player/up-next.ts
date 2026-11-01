@@ -9,8 +9,8 @@ export type UpNext = {
   index?: number
 }
 
-/** youtube.com's own countdown, the `countDownSecs` its /next answer carries. */
-export const COUNTDOWN_SECONDS = 5
+/** youtube.com's countdown: the 3 of its player overlay, not the 5 the /next autoplay field carries. */
+export const COUNTDOWN_SECONDS = 3
 
 /**
  * The playlist queue's loop and shuffle, shared by the queue panel's buttons
@@ -53,14 +53,21 @@ export const markPlayed = (id: string) => {
   if (recent.size > RECENT_LIMIT) recent.delete(recent.values().next().value!)
 }
 
-/** The autoplay pick: the first related video not played yet in this tab, else the first that is not the current one. */
+/**
+ * The autoplay pick: youtube.com's own `preferred` video when the related list
+ * carries it and it has not played yet in this tab, else the first related
+ * video not played yet, else the first that is not the current one.
+ */
 export const pickAutoplay = <Video extends { id: string }>(
   related: readonly Video[],
   currentId: string,
-  played: ReadonlySet<string> = recent,
-) =>
-  related.find(video => video.id !== currentId && !played.has(video.id))
+  { preferred, played = recent }: { preferred?: string | null, played?: ReadonlySet<string> } = {},
+) => {
+  const fresh = (video: Video) => video.id !== currentId && !played.has(video.id)
+  return related.find(video => video.id === preferred && fresh(video))
+    ?? related.find(fresh)
     ?? related.find(video => video.id !== currentId)
+}
 
 /**
  * What the end of a video does: a following queue entry starts at once, the

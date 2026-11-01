@@ -776,6 +776,15 @@ describe('youtube normalization', () => {
     })
   })
 
+  it('reads the video youtube.com autoplays next off the watch response container', () => {
+    const meta = (autoplay: unknown) => normalizeWatchMeta({
+      contents_memo: new Map([['TwoColumnWatchNextResults', [{ autoplay }]]]),
+    }, 'v1')?.autoplayId
+    expect(meta({ sets: [{ autoplay_video: { payload: { videoId: 'next1' } } }], count_down_secs: 5 })).toBe('next1')
+    expect(meta(undefined)).toBeUndefined()
+    expect(meta({ sets: [] })).toBeUndefined()
+  })
+
   it('takes a mix byline off its Text node and reports the queue as infinite', () => {
     expect(normalizeWatchPlaylist({
       id: 'RD1',

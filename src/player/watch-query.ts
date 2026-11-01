@@ -25,6 +25,7 @@ export const WATCH_META_QUERY = gql(`
       likeStatus
       channel { id name avatar handle subscriberCountText isSubscribed notificationLevel }
       relatedCursor
+      autoplayId
       related {
         id
         title

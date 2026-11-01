@@ -38,18 +38,28 @@ const withAutoplay = (page: Page, autoplay: boolean) =>
     localStorage.setItem('yt-client:settings', JSON.stringify({ autoplay: value }))
   }, autoplay)
 
-test('counts down at the end, then plays the first related video', async ({ page }) => {
+const relatedIds = (page: Page) =>
+  page.locator('main aside article a[href^="/watch"]').evaluateAll(links => links.map(link => new URL(link.getAttribute('href')!, location.href).searchParams.get('v')))
+
+test('counts down from 3 at the end, then plays the related video it names', async ({ page }) => {
   test.setTimeout(300_000)
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const video = await startPlayback(page)
-  const firstRelated = page.locator('main aside article a[href^="/watch"]').first()
-  await expect(firstRelated).toBeVisible({ timeout: 60_000 })
-  const expected = videoIdOf((await firstRelated.getAttribute('href'))!)
+  await expect(page.locator('main aside article').first()).toBeVisible({ timeout: 60_000 })
+  // the first count is caught as the overlay mounts, since a poll after the end could start a second late
+  await page.evaluate(() => new MutationObserver(() => {
+    const label = [...document.querySelectorAll('[data-end-screen="countdown"] *')]
+      .find(element => /^Up next in \d+$/.test(element.textContent ?? ''))
+    if (label && !document.documentElement.dataset.firstCount) document.documentElement.dataset.firstCount = label.textContent!
+  }).observe(document.body, { childList: true, subtree: true, characterData: true }))
 
   await runToEnd(video)
-  await expect(page.locator('[data-end-screen="countdown"]')).toBeVisible()
-  await expect(page.getByText(/^Up next in \d$/)).toBeVisible()
+  const countdown = page.locator('[data-end-screen="countdown"]')
+  await expect(countdown).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('data-first-count', 'Up next in 3')
   await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible()
+  const expected = videoIdOf((await countdown.locator('a[href^="/watch"]').getAttribute('href'))!)
+  expect(await relatedIds(page)).toContain(expected)
 
   await expect.poll(() => videoIdOf(page.url()), { timeout: 30_000 }).toBe(expected)
   await startPlayback(page)
@@ -267,10 +277,10 @@ test('answers youtube.com keyboard shortcuts, with a bezel for each change', asy
   await expect.poll(() => videoIdOf(page.url())).toBe(VIDEO_ID)
   await expect(page.locator('.dock-title')).toHaveCount(0)
 
-  const firstRelated = page.locator('main aside article a[href^="/watch"]').first()
-  await expect(firstRelated).toBeVisible({ timeout: 60_000 })
-  const expected = videoIdOf((await firstRelated.getAttribute('href'))!)
+  await expect(page.locator('main aside article').first()).toBeVisible({ timeout: 60_000 })
+  const related = await relatedIds(page)
   await page.locator('main h1').click()
   await page.keyboard.press('Shift+N')
-  await expect.poll(() => videoIdOf(page.url())).toBe(expected)
+  await expect.poll(() => videoIdOf(page.url())).not.toBe(VIDEO_ID)
+  expect(related).toContain(videoIdOf(page.url()))
 })

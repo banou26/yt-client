@@ -130,7 +130,11 @@ const PersistentPlayer = () => {
     () => (watch?.related ?? []).filter(video => video.id !== videoId),
     [watch, videoId],
   )
-  const pick = useMemo(() => (videoId ? pickAutoplay(suggestions, videoId) : undefined), [suggestions, videoId])
+  const preferred = watch?.autoplayId
+  const pick = useMemo(
+    () => (videoId ? pickAutoplay(suggestions, videoId, { preferred }) : undefined),
+    [suggestions, videoId, preferred],
+  )
 
   // the watch page navigates; the miniplayer plays in place and leaves the page alone
   const open = (target: UpNext) => {

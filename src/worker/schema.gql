@@ -330,6 +330,9 @@ type WatchMeta {
   # same shape `Comment.repliesCursor` uses: `related` stays a plain list so the
   # busiest query in the app keeps its selection unchanged.
   relatedCursor: String
+  # The video youtube.com's own autoplay moves on to, which is often not the
+  # first related one. Null when upstream names none.
+  autoplayId: ID
   # Null unless the watch query passed a playlistId.
   playlist: WatchPlaylist
 }

@@ -844,6 +844,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   // the container, not memo.get('PlaylistPanelVideo'): the id, title, byline and current index exist nowhere else
   const watchNext = first('TwoColumnWatchNextResults') as {
     playlist?: unknown
+    autoplay?: { sets?: { autoplay_video?: { payload?: { videoId?: string } } }[] }
   } | undefined
   const owner = secondary?.owner
   const author = owner?.author
@@ -897,6 +898,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
         }
       : undefined,
     related,
+    autoplayId: watchNext?.autoplay?.sets?.[0]?.autoplay_video?.payload?.videoId || undefined,
     playlist: normalizeWatchPlaylist(watchNext?.playlist),
   }
 }
