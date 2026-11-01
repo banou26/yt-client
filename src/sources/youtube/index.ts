@@ -12,14 +12,20 @@ type Feed = {
   getContinuation(): Promise<Feed>
 }
 
+type ChipEndpoint = { payload?: { token?: string, params?: string } }
+
+// a ChipCloudChip or ChipView carries `text` and `endpoint`, a ListItemView out of a dropdown `title` and `renderer_context.command_context.on_tap`
 type FilterChip = {
+  text?: unknown
   title?: unknown
   is_selected?: boolean
-  endpoint?: { payload?: { token?: string, params?: string } }
+  selected?: boolean
+  endpoint?: ChipEndpoint
+  renderer_context?: { command_context?: { on_tap?: ChipEndpoint } }
 }
 
 type HomeFeedResponse = Feed & {
-  filter_chips?: FilterChip[]
+  filter_nodes?: { primary_filters?: FilterChip[] }
   applyFilter?: (chip: FilterChip) => Promise<HomeFeedResponse>
 }
 
@@ -402,16 +408,18 @@ const text = (value: unknown): string | undefined => {
   return stringified && stringified !== 'N/A' ? stringified : undefined
 }
 
-const chipId = (chip: { endpoint?: { payload?: { token?: string, params?: string } } }) =>
-  chip.endpoint?.payload?.token ?? chip.endpoint?.payload?.params
+const chipId = (chip: FilterChip) => {
+  const endpoint = chip.endpoint ?? chip.renderer_context?.command_context?.on_tap
+  return endpoint?.payload?.token ?? endpoint?.payload?.params
+}
 
 // removeVideo defaults to scanning a single page, so anything the user has scrolled past would report 'Video not found in watch history'.
 const HISTORY_REMOVAL_PAGES = 10
 
-// filter_chips THROWS when a feed carries no chip bar (and when it carries more than one), so it cannot be read with optional chaining.
-const filterChipsOf = (feed: { filter_chips?: FilterChip[] }): FilterChip[] => {
+// filter_nodes THROWS when a feed carries more than one chip bar, so it cannot be read with optional chaining.
+const filterChipsOf = (feed: HomeFeedResponse): FilterChip[] => {
   try {
-    return feed.filter_chips ?? []
+    return feed.filter_nodes?.primary_filters ?? []
   } catch {
     return []
   }
@@ -998,9 +1006,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
         // Chips come from the unfiltered response: the filtered one echoes back a reduced set that would make the rail collapse after one click.
         chips: chips.flatMap((candidate) => {
           const id = chipId(candidate)
-          const label = text(candidate.title)
+          const label = text(candidate.text ?? candidate.title)
           if (!id || !label) return []
-          return [{ id, label, selected: candidate.is_selected === true || id === chip }]
+          return [{ id, label, selected: candidate.is_selected === true || candidate.selected === true || id === chip }]
         }),
         cursor: result.cursor,
       }

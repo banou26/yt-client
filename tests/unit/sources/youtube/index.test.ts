@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { YTNodes } from 'youtubei.js'
+import { Parser, YT, YTNodes } from 'youtubei.js'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
 import { SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
@@ -1142,12 +1142,88 @@ describe('youtube source', () => {
     expect(requested[0]).toBeGreaterThan(1)
   })
 
-  it('survives a feed whose filter_chips getter throws', async () => {
+  it('reads the Home chip bar as youtubei.js parses it, and filters through a chip', async () => {
+    const chipRenderer = (label: string, token: string, isSelected: boolean) => ({
+      chipCloudChipRenderer: {
+        text: { runs: [{ text: label }] },
+        isSelected,
+        navigationEndpoint: {
+          commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/browse' } },
+          continuationCommand: { token, request: 'CONTINUATION_REQUEST_TYPE_BROWSE' },
+        },
+      },
+    })
+    const response = {
+      contents: { twoColumnBrowseResultsRenderer: { tabs: [{ tabRenderer: { selected: true, content: { richGridRenderer: {
+        contents: [],
+        header: { feedFilterChipBarRenderer: { contents: [chipRenderer('All', 'ALL', true), chipRenderer('Music', 'MUSIC', false)] } },
+      } } } }] } },
+    }
+    const client = createFakeClient()
+    const sent: unknown[] = []
+    const actions = {
+      session: client.session,
+      execute: async (_path: string, args: Record<string, unknown>) => {
+        sent.push(args.continuation)
+        return Parser.parseResponse(response as never)
+      },
+    }
+    client.getHomeFeed = async () => new YT.HomeFeed(actions as never, { data: response } as never) as never
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    await expect(source.home()).resolves.toMatchObject({
+      chips: [{ id: 'ALL', label: 'All', selected: true }, { id: 'MUSIC', label: 'Music', selected: false }],
+    })
+    await source.home('MUSIC')
+    expect(sent).toEqual(['MUSIC'])
+  })
+
+  it('reads the items of a dropdown chip as Home chips, and filters through one', async () => {
+    const listItem = (label: string, token: string, isSelected: boolean) => ({
+      listItemViewModel: {
+        title: { content: label },
+        isSelected,
+        rendererContext: { commandContext: { onTap: { innertubeCommand: {
+          commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/browse' } },
+          continuationCommand: { token, request: 'CONTINUATION_REQUEST_TYPE_BROWSE' },
+        } } } },
+      },
+    })
+    const response = {
+      contents: { twoColumnBrowseResultsRenderer: { tabs: [{ tabRenderer: { selected: true, content: { richGridRenderer: {
+        contents: [],
+        header: { chipBarViewModel: { chips: [{ chipViewModel: {
+          text: 'All',
+          displayType: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_DROP_DOWN',
+          tapCommand: { innertubeCommand: { showSheetCommand: { panelLoadingStrategy: { inlineContent: { sheetViewModel: {
+            content: { listViewModel: { listItems: [listItem('All', 'ALL', true), listItem('Music', 'MUSIC', false)] } },
+          } } } } } },
+        } }] } },
+      } } } }] } },
+    }
+    const client = createFakeClient()
+    const sent: unknown[] = []
+    const actions = {
+      session: client.session,
+      execute: async (_path: string, args: Record<string, unknown>) => {
+        sent.push(args.continuation)
+        return Parser.parseResponse(response as never)
+      },
+    }
+    client.getHomeFeed = async () => new YT.HomeFeed(actions as never, { data: response } as never) as never
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    await expect(source.home()).resolves.toMatchObject({
+      chips: [{ id: 'ALL', label: 'All', selected: true }, { id: 'MUSIC', label: 'Music', selected: false }],
+    })
+    await source.home('MUSIC')
+    expect(sent).toEqual(['MUSIC'])
+  })
+
+  it('survives a feed whose filter_nodes getter throws', async () => {
     const client = createFakeClient()
     client.getHomeFeed = async () => ({
       ...feed('first'),
-      // youtubei.js throws from this getter when the response carries no chip bar, so optional chaining does not protect the call site
-      get filter_chips (): never { throw new Error('There are no feed filter chipbars') },
+      // youtubei.js throws from this getter when the response carries more than one chip bar, so optional chaining does not protect the call site
+      get filter_nodes (): never { throw new Error('There are too many feed filter chipbars') },
     })
     const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
     await expect(source.home()).resolves.toMatchObject({ items: [{ id: 'first' }], chips: [] })
