@@ -37,7 +37,8 @@ test('signs in through a window of its own, on the engine jar', async ({ page, c
   const opened = context.waitForEvent('page')
   await page.locator('header button.sign-in').click()
   const popup = await opened
-  expect(new URL(popup.url()).pathname).toBe('/__yt_scramjet__/signin.html')
+  // a popup's url reads empty at the page event, until its first navigation commits
+  await expect(popup).toHaveURL(/\/__yt_scramjet__\/signin\.html$/)
   expect(new URL(page.url()).pathname).toBe('/watch')
 
   await expect.poll(() => showsGoogleForm(popup), { timeout: 90_000 }).toBe(true)
