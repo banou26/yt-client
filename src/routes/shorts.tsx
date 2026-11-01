@@ -4,7 +4,7 @@ import { css } from '@emotion/react'
 import { CircleUserRound, MessageCircle, MoreVertical, Share2, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { Link, useLocation, useRoute } from 'wouter'
+import { Link, useRoute } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { Comments } from '../components/comments'
@@ -16,6 +16,7 @@ import { gql } from '../generated'
 import ShortsPlayer from '../player/shorts-player'
 import { closePlayer } from '../player/session'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 
 const SHORTS_FEED_QUERY = gql(`
   query ShortsFeed($seed: ID, $cursor: String) {
@@ -394,7 +395,6 @@ const ShortsPage = () => {
   const [, params] = useRoute('/shorts/:videoId')
   // frozen at mount: re-reading the param would refetch the whole sequence on every path rewrite the pager makes
   const [seed] = useState(() => (params?.videoId ? safeDecode(params.videoId) : undefined))
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState<ShortsPage[]>([])
@@ -475,7 +475,7 @@ const ShortsPage = () => {
             {signedIn
               ? undefined
               : (
-                <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
+                <button type='button' className='sign-in' onClick={signIn}>
                   <CircleUserRound size={24} strokeWidth={1.5} />
                   Sign in
                 </button>

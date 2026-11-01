@@ -6,6 +6,7 @@ import { Link } from 'wouter'
 import { useDocumentTitle } from '../app'
 import { clearSessionCookies, startEngine } from '../scramjet/client'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 
 const style = css`
   max-width: 78rem;
@@ -140,6 +141,10 @@ const style = css`
   .sign-in {
     display: inline-block;
     margin-top: 1.2rem;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
     font-size: 1.4rem;
     font-weight: 500;
     color: var(--accent);
@@ -198,7 +203,7 @@ export const AccountPage = () => {
       <main css={style}>
         <h1 className='heading'>Account</h1>
         <p className='signed-out'>You are not signed in.</p>
-        <Link className='sign-in' href='/signin'>Sign in</Link>
+        <button type='button' className='sign-in' onClick={signIn}>Sign in</button>
       </main>
     )
   }

@@ -7,7 +7,7 @@ import { css } from '@emotion/react'
 import { EllipsisVertical, Link2, Share2, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { Link, useLocation, useSearch } from 'wouter'
+import { Link, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import Comments from '../components/comments'
@@ -26,6 +26,7 @@ import { claimPlayer, openPlayer, setTheater as setPlayerTheater, usePlayerSessi
 import { Menu, MenuItem } from '../components/ui/menu'
 import { showToast } from '../components/ui/toast'
 import { getSettings, updateSettings } from '../settings'
+import { signIn } from '../sign-in'
 
 const RATE_VIDEO = gql(`
   mutation RateVideo($id: ID!, $status: LikeStatus!) {
@@ -376,7 +377,6 @@ const WatchPage = () => {
     requestPolicy: 'cache-and-network',
     pause: videoId === ''
   })
-  const [, navigate] = useLocation()
   const [rateState, rateVideo] = useMutation(RATE_VIDEO)
   const playerSession = usePlayerSession()
   const theater = playerSession.theater
@@ -420,7 +420,7 @@ const WatchPage = () => {
 
   const rate = (status: 'LIKE' | 'DISLIKE') => {
     if (!watch?.likeStatus) {
-      navigate('/signin')
+      signIn()
       return
     }
     const next = watch.likeStatus === status ? 'INDIFFERENT' : status

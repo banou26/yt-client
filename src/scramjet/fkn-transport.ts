@@ -7,6 +7,8 @@ import type {
 
 import type { EgressApi, TransportRequest, TransportResponse } from './protocol'
 
+import { SIGNIN_REQUEST_PREFIX } from './protocol'
+
 export const FRAME_BOOTSTRAP_URL = 'https://www.youtube.com/__yt_client__/frame'
 
 const frameBootstrap = new URL(FRAME_BOOTSTRAP_URL)
@@ -105,7 +107,7 @@ export const createWebvpnTransport = (
     async () => { await remote },
     async (url, options, signal) => {
       const api = await remote
-      const requestId = `signin:${++requestCounter}`
+      const requestId = `${SIGNIN_REQUEST_PREFIX}${++requestCounter}`
       signal?.addEventListener('abort', () => { void api.cancelLibcurlFetch(requestId) }, { once: true })
       return api.libcurlFetch(requestId, url, options)
     },

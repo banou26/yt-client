@@ -6,7 +6,7 @@ import { css } from '@emotion/react'
 import { ChevronDown, ChevronUp, ListFilter, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { Link, useLocation } from 'wouter'
+import { Link } from 'wouter'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
@@ -15,6 +15,7 @@ import { showToast } from './ui/toast'
 import { RichText } from './rich-text'
 import { Menu, MenuItem } from './ui/menu'
 import { useInfiniteFeed } from './use-infinite-feed'
+import { signIn } from '../sign-in'
 
 type CommentPage = CommentsQuery['comments']
 type RepliesPage = CommentRepliesQuery['commentReplies']
@@ -408,7 +409,6 @@ const style = css`
  */
 /** The top-level comment box. Signed-out readers get a prompt, not a dead form. */
 const Composer = ({ videoId }: { videoId: string }) => {
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [, postComment] = useMutation(POST_COMMENT)
   const [draft, setDraft] = useState('')
@@ -416,7 +416,7 @@ const Composer = ({ videoId }: { videoId: string }) => {
 
   if (ready && !signedIn) {
     return (
-      <button type='button' className='composer-prompt' onClick={() => navigate('/signin')}>
+      <button type='button' className='composer-prompt' onClick={signIn}>
         Sign in to comment
       </button>
     )
@@ -465,7 +465,6 @@ const Composer = ({ videoId }: { videoId: string }) => {
 }
 
 const CommentActions = ({ comment }: { comment: CommentRow }) => {
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [, rateComment] = useMutation(RATE_COMMENT)
   const [, replyToComment] = useMutation(REPLY_TO_COMMENT)
@@ -476,7 +475,7 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
   const token = comment.actionsToken
   const rate = (status: 'LIKE' | 'DISLIKE') => {
     if (ready && !signedIn) {
-      navigate('/signin')
+      signIn()
       return
     }
     if (!token) return

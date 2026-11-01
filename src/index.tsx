@@ -78,7 +78,6 @@ const globalStyles = css`
     --guide-mini-width: 7.2rem;
 
     --z-guide: 1000;
-    --z-host-frame: 1500;
     --z-header: 2000;
     --z-drawer: 2100;
     --z-popup: 2200;

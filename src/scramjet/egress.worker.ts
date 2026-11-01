@@ -16,7 +16,7 @@ workerGlobal.global ??= globalThis
 
 import type { EgressApi } from './protocol'
 
-import { EGRESS_ABORT_ALL, EGRESS_KEY } from './protocol'
+import { EGRESS_ABORT_ALL, EGRESS_KEY, SIGNIN_REQUEST_PREFIX } from './protocol'
 import { createRelayFetch } from './relay-nonce'
 
 declare const self: DedicatedWorkerGlobalScope
@@ -207,19 +207,24 @@ const api = {
 
 void prepare()
 
-let enginePort: MessagePort | undefined
+const livePorts = new Map<string, MessagePort>()
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === EGRESS_ABORT_ALL) {
-    for (const controller of requests.values()) controller.abort()
-    requests.clear()
+    // an engine reset drops the engine's requests only: a sign-in window open beside it keeps its own (`signin:` ids)
+    for (const [requestId, controller] of requests) {
+      if (requestId.startsWith(SIGNIN_REQUEST_PREFIX)) continue
+      controller.abort()
+      requests.delete(requestId)
+    }
     return
   }
   if (event.data?.type !== EGRESS_KEY || !event.data.port) return
   const port = event.data.port as MessagePort
-  // one live engine at a time: the worker outlives the engine, so an old port strands an osra listener per reset
-  enginePort?.close()
-  enginePort = port
+  const role = event.data.role === 'signin' ? 'signin' : 'engine'
+  // one live port per role: the worker outlives the engine and the sign-in window, so an old port strands an osra listener
+  livePorts.get(role)?.close()
+  livePorts.set(role, port)
   port.start()
   expose(api, {
     key: EGRESS_KEY,

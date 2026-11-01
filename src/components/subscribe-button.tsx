@@ -2,7 +2,6 @@ import { css } from '@emotion/react'
 import { Bell, BellOff, BellRing, Check, ChevronDown } from 'lucide-react'
 import { useCallback, useRef, useState } from 'preact/hooks'
 import { useMutation } from 'urql'
-import { useLocation } from 'wouter'
 
 import type { NotificationLevel } from '../generated/graphql'
 
@@ -10,6 +9,7 @@ import { gql } from '../generated'
 import { readable } from './format'
 import { MenuItem, Popup, useDismiss } from './ui/popup'
 import { showToast } from './ui/toast'
+import { signIn } from '../sign-in'
 
 // The mutation does not refetch the channel, so anything else would come back null
 const SET_SUBSCRIBED = gql(`
@@ -88,7 +88,6 @@ export const SubscribeButton = (
     notificationLevel?: NotificationLevel | null
   },
 ) => {
-  const [, navigate] = useLocation()
   const [subscribeState, setSubscribed] = useMutation(SET_SUBSCRIBED)
   const [levelState, setLevel] = useMutation(SET_NOTIFICATION_LEVEL)
   const [open, setOpen] = useState(false)
@@ -105,7 +104,7 @@ export const SubscribeButton = (
     if (!channelId) return
     // Signed-out reads leave isSubscribed absent, which is what distinguishes them
     if (subscribed === undefined || subscribed === null) {
-      navigate('/signin')
+      signIn()
       return
     }
     void setSubscribed({ channelId, subscribed: !isSubscribed }).then((result) => {

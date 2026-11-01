@@ -141,8 +141,7 @@ export const App = () => {
   const wentBack = useRef(false)
 
   const isWatch = location.startsWith('/watch')
-  const isSignIn = location.startsWith('/signin')
-  const overlayOnly = isWatch || isSignIn || tiny
+  const overlayOnly = isWatch || tiny
   const guideVariant = overlayOnly ? undefined : collapsed || narrow ? 'mini' as const : 'expanded' as const
 
   useEffect(() => {

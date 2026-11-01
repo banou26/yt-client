@@ -4,7 +4,6 @@ import { css } from '@emotion/react'
 import { CircleUserRound, Clock, ThumbsUp } from 'lucide-react'
 import { useState } from 'preact/hooks'
 import { useQuery } from 'urql'
-import { useLocation } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { readable } from '../components/format'
@@ -13,6 +12,7 @@ import { PlaylistCard } from '../components/playlist-card'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { gql } from '../generated'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 
 // no `updatedText` and no `privacy`: this feed cannot fill them, and Playlist is keyed by id in graphcache, so the nulls would overwrite what a /playlist read had stored
 const LIBRARY_PLAYLISTS_QUERY = gql(`
@@ -230,7 +230,6 @@ const PlaylistCardSkeleton = () => (
 
 const PlaylistsFeedPage = () => {
   useDocumentTitle('Playlists')
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [loaded, setLoaded] = useState<LibraryPage[]>([])
   const [{ data, error, fetching }] = useQuery({
@@ -269,7 +268,7 @@ const PlaylistsFeedPage = () => {
         <h1 className='heading'>Playlists</h1>
         <div className='prompt'>
           <h2>Sign in to see your playlists</h2>
-          <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
+          <button type='button' className='sign-in' onClick={signIn}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
           </button>

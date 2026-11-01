@@ -17,6 +17,7 @@ import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { watchHrefFor } from '../components/video-card'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { gql } from '../generated'
+import { signIn } from '../sign-in'
 
 const PLAYLIST_VIEW_QUERY = gql(`
   query PlaylistView($id: ID!, $cursor: String) {
@@ -440,7 +441,7 @@ const PlaylistPage = () => {
       <main css={style}>
         <div className='prompt'>
           <h2>Sign in to see {label}</h2>
-          <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
+          <button type='button' className='sign-in' onClick={signIn}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
           </button>

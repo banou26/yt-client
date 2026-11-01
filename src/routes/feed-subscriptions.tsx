@@ -4,7 +4,7 @@ import { css } from '@emotion/react'
 import { CircleUserRound } from 'lucide-react'
 import { useState } from 'preact/hooks'
 import { useQuery } from 'urql'
-import { Link, useLocation } from 'wouter'
+import { Link } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { readable } from '../components/format'
@@ -14,6 +14,7 @@ import { gql } from '../generated'
 import { EMPTY_PAGES_LIMIT, emptyPagesInARow, matchesFilter } from '../groups/filter'
 import { useGroups } from '../groups/store'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 
 const SUBSCRIPTIONS_FEED_QUERY = gql(`
   query SubscriptionsFeed($cursor: String) {
@@ -180,7 +181,6 @@ const style = css`
 
 const SubscriptionsFeedPage = () => {
   useDocumentTitle('Subscriptions')
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const groups = useGroups()
   const [groupId, setGroupId] = useState<string | undefined>(undefined)
@@ -221,7 +221,7 @@ const SubscriptionsFeedPage = () => {
         <h1 className='heading'>Subscriptions</h1>
         <div className='card'>
           <h2>Sign in to see your subscriptions</h2>
-          <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
+          <button type='button' className='sign-in' onClick={signIn}>
             <CircleUserRound size={24} strokeWidth={1.5} />
             Sign in
           </button>

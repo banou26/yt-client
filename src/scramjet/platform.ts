@@ -1,5 +1,5 @@
 import type { BrowserSession } from '../history/browser-history'
-import type { ExtFetchRequest, ExtFetchResponse, TransportResponse } from './protocol'
+import type { EgressRole, ExtFetchRequest, ExtFetchResponse, TransportResponse } from './protocol'
 
 import { EGRESS_ABORT_ALL, EGRESS_KEY } from './protocol'
 
@@ -67,10 +67,10 @@ const create = async () => {
   // the one broker call this realm makes, and it is UI rather than egress
   const promptInstall = (reason?: string) => lib.promptInstall(reason)
 
-  // one live engine at a time: handing the worker a new port releases the previous engine's, whose frame is already gone
-  const openEgressPort = () => {
+  // one live port per role: handing the worker a new one releases the previous engine's or sign-in window's
+  const openEgressPort = (role: EgressRole = 'engine') => {
     const channel = new MessageChannel()
-    worker.postMessage({ type: EGRESS_KEY, port: channel.port1 }, [channel.port1])
+    worker.postMessage({ type: EGRESS_KEY, role, port: channel.port1 }, [channel.port1])
     return channel.port2
   }
 

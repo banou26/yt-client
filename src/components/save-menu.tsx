@@ -2,7 +2,6 @@ import { css } from '@emotion/react'
 import { ListPlus, Plus } from 'lucide-react'
 import { useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { useLocation } from 'wouter'
 
 import type { PlaylistPrivacy, SavePlaylistsQuery } from '../generated/graphql'
 
@@ -14,6 +13,7 @@ import Dialog from './ui/dialog'
 import { Menu, MenuItem, MenuSection, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
 import { useInfiniteFeed } from './use-infinite-feed'
+import { signIn } from '../sign-in'
 
 // no `privacy`: the library feed carries no visibility, and Playlist is keyed by id in graphcache, so it would overwrite what a /playlist read stored
 const SAVE_PLAYLISTS_QUERY = gql(`
@@ -183,7 +183,6 @@ export const SaveMenu = (
     class?: string
   },
 ) => {
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [opened, setOpened] = useState(false)
   const [loaded, setLoaded] = useState<PlaylistsPage[]>([])
@@ -271,7 +270,7 @@ export const SaveMenu = (
         type='button'
         css={triggerStyle}
         className={className}
-        onClick={() => navigate('/signin')}
+        onClick={signIn}
       >
         {triggerBody()}
       </button>

@@ -5,7 +5,6 @@ import { css } from '@emotion/react'
 import { CircleUserRound, Download, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { useLocation } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { useExtensionExposed } from '../components/extension-notice'
@@ -18,6 +17,7 @@ import { canImportBrowserHistory, dayHeading, importBrowserHistory, importFailur
 import { deleteImportedHistory, readImportedHistory } from '../history/store'
 import { startPlatform } from '../scramjet/platform'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 
 const WATCH_HISTORY_QUERY = gql(`
   query WatchHistory($cursor: String) {
@@ -204,7 +204,6 @@ const HistorySkeleton = () => (
 
 const HistoryFeedPage = () => {
   useDocumentTitle('History')
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [loaded, setLoaded] = useState<HistoryPage[]>([])
   const [{ data, error, fetching }] = useQuery({
@@ -261,7 +260,7 @@ const HistoryFeedPage = () => {
 
   if (!ready) return <HistorySkeleton />
 
-  if (!signedIn) return <SignedOutHistory onSignIn={() => navigate('/signin')} />
+  if (!signedIn) return <SignedOutHistory onSignIn={signIn} />
 
   return (
     <main css={style}>

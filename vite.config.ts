@@ -38,6 +38,7 @@ export default defineConfig({
       input: {
         app: fromRoot('./index.html'),
         engine: fromRoot('./__yt_scramjet__/host.html'),
+        signin: fromRoot('./__yt_scramjet__/signin.html'),
       },
     },
   },

@@ -6,7 +6,7 @@ import { css } from '@emotion/react'
 import { Check, ChevronLeft, Clock, EllipsisVertical, ListPlus, Share2 } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
-import { Link, useLocation } from 'wouter'
+import { Link } from 'wouter'
 
 // reuses save-menu.tsx's documents rather than a second gql() copy: two operations cannot share a name
 import { AddToPlaylistDocument, SavePlaylistsDocument } from '../generated/graphql'
@@ -18,6 +18,7 @@ import { WATCH_LATER_ID } from './playlist'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
 import { useInfiniteFeed } from './use-infinite-feed'
+import { signIn } from '../sign-in'
 
 export type VideoCardData =
   Pick<Video, 'id' | 'title'>
@@ -92,7 +93,6 @@ const CardMenuPanel = (
     onSaved: (playlistId: string) => void
   },
 ) => {
-  const [, navigate] = useLocation()
   const { ready, signedIn } = useSession()
   const [view, setView] = useState<CardMenuView>('root')
   const [wanted, setWanted] = useState(false)
@@ -168,7 +168,7 @@ const CardMenuPanel = (
               disabled={!ready || pending !== undefined || savedWatchLater}
               onSelect={() => {
                 if (!signedIn) {
-                  navigate('/signin')
+                  signIn()
                   return
                 }
                 save(WATCH_LATER_ID, 'Watch later')
@@ -181,7 +181,7 @@ const CardMenuPanel = (
               closeOnSelect={false}
               onSelect={() => {
                 if (!signedIn) {
-                  navigate('/signin')
+                  signIn()
                   return
                 }
                 setWanted(true)

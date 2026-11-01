@@ -6,7 +6,7 @@ import { openAgentBridge, startAgentHost } from '../engine/agent-host'
 import { stepEnabled } from '../engine/step-flag'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
 import { abortPlatformEgress, startPlatform } from './platform'
-import { CLEAR_COOKIES, CLOSE_SIGNIN, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, OPEN_SIGNIN, SIGNIN_LOADED, SIGNIN_STATUS } from './protocol'
+import { CLEAR_COOKIES, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
 
 let engine: Promise<FrameApi> | undefined
 let engineFrame: HTMLIFrameElement | undefined
@@ -15,8 +15,6 @@ let engineCleanup: (() => void) | undefined
 let engineReject: ((error: Error) => void) | undefined
 let engineGeneration = 0
 let engineControl: MessagePort | undefined
-let signInPending: { resolve: () => void, reject: (error: Error) => void, onStatus?: (signedIn: boolean) => void, onLoaded?: () => void } | undefined
-let signInGeneration = 0
 let controlRequestId = 0
 const CONTROL_TIMEOUT_MS = 15_000
 const clearPending = new Map<number, { resolve: () => void, reject: (error: Error) => void }>()
@@ -104,43 +102,16 @@ const createFrameApi = (port: MessagePort, onFatal: (error: Error) => void) => {
   }
 }
 
-const showHostFrame = () => {
-  if (!engineFrame) return
-  engineFrame.hidden = false
-  // an iframe is a replaced element: inset offsets don't stretch it (it falls back to the intrinsic 300x150), so size it explicitly
-  engineFrame.style.cssText = 'position: fixed; top: var(--header-height); left: 0; width: 100vw; height: calc(100vh - var(--header-height)); border: 0; z-index: var(--z-host-frame); background: var(--bg-base);'
-}
-
-const hideHostFrame = () => {
-  if (!engineFrame) return
-  engineFrame.hidden = true
-  engineFrame.removeAttribute('style')
-}
-
 const connectControl = (port: MessagePort) => {
   engineControl = port
   port.addEventListener('message', (event) => {
     const message = event.data as HostControlEvent
-    if (message.type === SIGNIN_LOADED) {
-      signInPending?.onLoaded?.()
-      return
-    }
-    if (message.type === SIGNIN_STATUS) {
-      const pending = signInPending
-      pending?.onStatus?.(message.signedIn)
-      if (!message.signedIn || !pending) return
-      signInPending = undefined
-      hideHostFrame()
-      pending.resolve()
-      return
-    }
-    if (message.type === COOKIES_CLEARED) {
-      const pending = clearPending.get(message.id)
-      clearPending.delete(message.id)
-      if (!pending) return
-      if (message.error) pending.reject(new Error(`yt-client: clearing session cookies failed: ${message.error}`))
-      else pending.resolve()
-    }
+    if (message.type !== COOKIES_CLEARED) return
+    const pending = clearPending.get(message.id)
+    clearPending.delete(message.id)
+    if (!pending) return
+    if (message.error) pending.reject(new Error(`yt-client: clearing session cookies failed: ${message.error}`))
+    else pending.resolve()
   })
   port.start()
 }
@@ -158,8 +129,6 @@ const invalidateEngine = (generation: number, error: Error) => {
   engineReject = undefined
   engineControl?.close()
   engineControl = undefined
-  signInPending?.reject(error)
-  signInPending = undefined
   for (const pending of clearPending.values()) pending.reject(error)
   clearPending.clear()
   engineFrame?.remove()
@@ -248,30 +217,6 @@ export const startEngine = () => {
 }
 
 export const resetEngine = () => invalidateEngine(engineGeneration, new Error('yt-client: engine reset'))
-
-export const openSignIn = async (
-  { onStatus, onLoaded }: { onStatus?: (signedIn: boolean) => void, onLoaded?: () => void } = {},
-) => {
-  // capture the generation BEFORE the engine await, so a closeSignIn issued while the engine is still booting cancels this open
-  const generation = ++signInGeneration
-  await startEngine()
-  if (generation !== signInGeneration) throw new Error('yt-client: sign-in closed')
-  if (!engineControl) throw new Error('yt-client: engine host control is missing')
-  signInPending?.reject(new Error('yt-client: sign-in restarted'))
-  showHostFrame()
-  engineControl.postMessage({ type: OPEN_SIGNIN } satisfies HostControlRequest)
-  await new Promise<void>((resolve, reject) => {
-    signInPending = { resolve, reject, onStatus, onLoaded }
-  })
-}
-
-export const closeSignIn = () => {
-  signInGeneration++
-  engineControl?.postMessage({ type: CLOSE_SIGNIN } satisfies HostControlRequest)
-  hideHostFrame()
-  signInPending?.reject(new Error('yt-client: sign-in closed'))
-  signInPending = undefined
-}
 
 export const clearSessionCookies = async () => {
   await startEngine()

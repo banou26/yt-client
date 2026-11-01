@@ -10,6 +10,7 @@ import { gql } from '../generated'
 import { AccountMenu } from './account-menu'
 import { ExtensionNotice } from './extension-notice'
 import { NotificationsMenu } from './notifications-menu'
+import { signIn } from '../sign-in'
 
 const SEARCH_SUGGESTIONS_QUERY = gql(`
   query SearchSuggestions($query: String!) {
@@ -433,7 +434,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
               }))}
             />
           : (
-            <button type='button' className='sign-in' onClick={() => navigate('/signin')}>
+            <button type='button' className='sign-in' onClick={signIn}>
               <CircleUserRound size={24} strokeWidth={1.5} />
               Sign in
             </button>
