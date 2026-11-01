@@ -28,9 +28,10 @@ const fakeWindow = (): FakeWindow => {
   return win
 }
 
-const install = (opened: FakeWindow | null) => {
+// each click opens the next of `opened`, and the last one from then on
+const install = (...opened: (FakeWindow | null)[]) => {
   const listeners = new Set<(event: Partial<MessageEvent>) => void>()
-  const open = vi.fn((..._args: unknown[]) => opened)
+  const open = vi.fn((..._args: unknown[]) => opened.length > 1 ? opened.shift()! : opened[0]!)
   const reload = vi.fn()
   const assign = vi.fn()
   const location = { origin: ORIGIN, pathname: '/watch', reload, assign }
@@ -114,6 +115,27 @@ describe('the sign-in window', () => {
     expect(win.closed).toBe(true)
     expect(win.postMessage).not.toHaveBeenCalled()
     expect(reload).toHaveBeenCalledOnce()
+  })
+
+  it('says to reload once the one reload for a window from another build is used', async () => {
+    const first = fakeWindow()
+    const second = fakeWindow()
+    const { send, reload } = install(first, second)
+    const { signIn } = await import('../../src/sign-in')
+    signIn()
+    send({ origin: ORIGIN, source: first as unknown as Window, data: { type: SIGNIN_HELLO, build: 'a-later-build' } })
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce())
+    // the reload landed on the same pair of builds, so this page cannot fix it by itself
+    signIn()
+    send({ origin: ORIGIN, source: second as unknown as Window, data: { type: SIGNIN_HELLO, build: 'a-later-build' } })
+    await vi.waitFor(() => expect(showToast).toHaveBeenCalledOnce())
+    expect(second.closed).toBe(true)
+    expect(reload).toHaveBeenCalledOnce()
+    const [message, action] = showToast.mock.calls[0]! as [string, { label: string, onAction: () => void }]
+    expect(message).toBe('The app was updated. Reload the page to sign in.')
+    expect(action.label).toBe('Reload')
+    action.onAction()
+    expect(reload).toHaveBeenCalledTimes(2)
   })
 
   it('closes the window on done, resets the identity and loads the page again', async () => {

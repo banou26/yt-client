@@ -8,9 +8,10 @@ import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from './s
 
 /**
  * How a sign-in window ended: `'authed'` once its jar holds the session (the window is closed), `'closed'` when the
- * person closed it first, `'blocked'` when the browser opened no window.
+ * person closed it first, `'blocked'` when the browser opened no window, `'outdated'` when the window is from another
+ * build and this page already used its one reload for that pair of builds.
  */
-export type SignInOutcome = 'authed' | 'closed' | 'blocked'
+export type SignInOutcome = 'authed' | 'closed' | 'blocked' | 'outdated'
 
 // FKN's window size, the one stub's sign-in windows open at
 const WIDTH = 500
@@ -59,8 +60,7 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
       if (message?.type === SIGNIN_HELLO) {
         if (message.build !== BUILD_ID) {
           win.close()
-          settle('closed')
-          reloadOnceForBuild(message.build)
+          settle(reloadOnceForBuild(message.build) ? 'closed' : 'outdated')
           return
         }
         void startPlatform().then(
@@ -86,6 +86,7 @@ export const signIn = () => {
   }
   void openSignInWindow().then((outcome) => {
     if (outcome === 'blocked') showToast('The browser blocked the sign-in window. Allow pop-ups for this site.', { label: 'Try again', onAction: signIn })
+    else if (outcome === 'outdated') showToast('The app was updated. Reload the page to sign in.', { label: 'Reload', onAction: () => location.reload() })
     else if (outcome === 'authed') void finishSignIn()
   })
 }
