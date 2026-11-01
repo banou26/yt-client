@@ -546,7 +546,7 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
 
   const reply = () => {
     if (ready && !signedIn) {
-      navigate('/signin')
+      signIn()
       return
     }
     if (token) setReplying(value => !value)
