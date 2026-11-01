@@ -6,6 +6,7 @@ import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
 import { SubscribeButton } from '../components/subscribe-button'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
@@ -199,6 +200,10 @@ const style = css`
   }
 
   .subscribe-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
     margin-top: 1.2rem;
   }
 
@@ -523,6 +528,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
                   subscribed={channel.isSubscribed}
                   notificationLevel={channel.notificationLevel}
                 />
+                <GroupsButton channel={{ id: channel.id, name: channel.name, avatar: channel.avatar ?? undefined }} />
               </div>
             </div>
           </header>

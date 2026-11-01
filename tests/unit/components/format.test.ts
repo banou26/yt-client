@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { parseStartSeconds } from '../../../src/components/format'
+import { formatAgo, formatCount, parseStartSeconds } from '../../../src/components/format'
 
 describe('start offsets', () => {
   it('accepts both forms upstream mints for `t`', () => {
@@ -19,5 +19,30 @@ describe('start offsets', () => {
     expect(parseStartSeconds(null)).toBeUndefined()
     expect(parseStartSeconds(undefined)).toBeUndefined()
     expect(parseStartSeconds('1x2')).toBeUndefined()
+  })
+})
+
+describe('relative times', () => {
+  const now = Date.parse('2026-11-01T12:00:00Z')
+
+  it('words a time the way a card does', () => {
+    expect(formatAgo('2026-11-01T11:59:30Z', now)).toBe('30 seconds ago')
+    expect(formatAgo('2026-11-01T11:00:00Z', now)).toBe('1 hour ago')
+    expect(formatAgo('2026-10-29T12:00:00Z', now)).toBe('3 days ago')
+    expect(formatAgo('2026-10-11T12:00:00Z', now)).toBe('3 weeks ago')
+    expect(formatAgo('2026-07-01T12:00:00Z', now)).toBe('4 months ago')
+    expect(formatAgo('2024-10-01T12:00:00Z', now)).toBe('2 years ago')
+  })
+
+  it('reads a time in the future as now, and anything else as no time', () => {
+    expect(formatAgo('2026-11-01T12:05:00Z', now)).toBe('0 seconds ago')
+    expect(formatAgo('soon', now)).toBeUndefined()
+    expect(formatAgo(undefined, now)).toBeUndefined()
+  })
+
+  it('counts in the singular only for one', () => {
+    expect(formatCount(0, 'channel')).toBe('0 channels')
+    expect(formatCount(1, 'channel')).toBe('1 channel')
+    expect(formatCount(12, 'channel')).toBe('12 channels')
   })
 })

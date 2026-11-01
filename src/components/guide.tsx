@@ -1,13 +1,17 @@
 import type { FunctionComponent } from 'preact'
 
+import type { Group } from '../groups/store'
+
 import { css } from '@emotion/react'
-import { Clapperboard, Clock, Flame, Gamepad2, History, House, Library, ListVideo, Menu, Music2, ThumbsUp } from 'lucide-react'
-import { useEffect } from 'preact/hooks'
+import { ChevronRight, Clapperboard, Clock, Flame, Gamepad2, History, House, Library, ListVideo, Menu, Music2, Plus, ThumbsUp } from 'lucide-react'
+import { useEffect, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { gql } from '../generated'
+import { groupHrefFor, useGroups } from '../groups/store'
 import { useSession } from '../session'
+import GroupDialog from './group-dialog'
 import { Logo } from './header'
 import { LIKED_VIDEOS_ID, playlistHrefFor, WATCH_LATER_ID } from './playlist'
 
@@ -110,6 +114,47 @@ const SubscriptionRail = () => {
   )
 }
 
+const GroupsSection = () => {
+  const groups = useGroups()
+  const [path, navigate] = useLocation()
+  const [creating, setCreating] = useState(false)
+
+  return (
+    <div className='section'>
+      <Link href='/feed/groups' className='section-title section-link'>
+        Groups
+        <ChevronRight size={20} strokeWidth={1.5} />
+      </Link>
+      {groups.map(group => {
+        const href = groupHrefFor(group.id)
+        const active = path === href
+        return (
+          <Link
+            key={group.id}
+            href={href}
+            className={active ? 'item active' : 'item'}
+            aria-current={active ? 'page' : undefined}
+          >
+            <span className='emoji' aria-hidden='true'>{group.emoji}</span>
+            <span className='label channel-name'>{group.name}</span>
+          </Link>
+        )
+      })}
+      {groups.length === 0
+        ? (
+          <button type='button' className='item' onClick={() => setCreating(true)}>
+            <Plus size={24} strokeWidth={1.5} />
+            <span className='label'>New group</span>
+          </button>
+        )
+        : undefined}
+      {creating
+        ? <GroupDialog onClose={() => setCreating(false)} onSaved={(group: Group) => navigate(groupHrefFor(group.id))} />
+        : undefined}
+    </div>
+  )
+}
+
 const sectionsStyle = css`
   .section {
     padding-bottom: 1.2rem;
@@ -128,6 +173,19 @@ const sectionsStyle = css`
     color: var(--text-primary);
   }
 
+  .section-link {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: fit-content;
+    border-radius: 1rem;
+    transition: background 0.15s ease;
+  }
+
+  .section-link:hover {
+    background: var(--bg-hover);
+  }
+
   .item {
     display: flex;
     align-items: center;
@@ -142,8 +200,25 @@ const sectionsStyle = css`
     transition: background 0.15s ease;
   }
 
+  button.item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
   .item svg {
     flex: none;
+  }
+
+  .emoji {
+    flex: none;
+    width: 2.4rem;
+    font-size: 2rem;
+    line-height: 2.4rem;
+    text-align: center;
   }
 
   .item:hover {
@@ -205,6 +280,7 @@ const GuideSections = () => (
     <div className='section'>
       {MAIN_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
     </div>
+    <GroupsSection />
     <div className='section'>
       <div className='section-title'>You</div>
       {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}

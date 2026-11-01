@@ -28,6 +28,28 @@ export const formatDuration = (seconds?: number | null) => {
   )
 }
 
+const relativeTime = new Intl.RelativeTimeFormat('en', { numeric: 'always' })
+
+const AGO_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['year', 365 * 86_400],
+  ['month', 30 * 86_400],
+  ['week', 7 * 86_400],
+  ['day', 86_400],
+  ['hour', 3_600],
+  ['minute', 60],
+]
+
+/** An ISO time as upstream words it on a card ('3 days ago'), or undefined when it is not a time. */
+export const formatAgo = (iso?: string | null, now = Date.now()) => {
+  const at = iso ? Date.parse(iso) : Number.NaN
+  if (Number.isNaN(at)) return undefined
+  const seconds = Math.max(0, (now - at) / 1000)
+  const [unit, size] = AGO_UNITS.find(([, length]) => seconds >= length) ?? ['second', 1]
+  return relativeTime.format(-Math.floor(seconds / size), unit)
+}
+
+export const formatCount = (count: number, noun: string) => `${count} ${noun}${count === 1 ? '' : 's'}`
+
 export const formatMeta = (viewCount?: string | null, publishedText?: string | null) => {
   const parts = [formatViews(viewCount), publishedText ?? undefined].filter(part => part !== undefined)
   return parts.length > 0 ? parts.join(' • ') : undefined

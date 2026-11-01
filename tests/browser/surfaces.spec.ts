@@ -13,6 +13,8 @@ const ROUTES = [
   ['subscriptions', '/feed/subscriptions'],
   ['history', '/feed/history'],
   ['playlists', '/feed/playlists'],
+  ['groups', '/feed/groups'],
+  ['missing group', '/feed/groups/not-a-group'],
   ['unknown route', '/definitely-not-a-route'],
 ] as const
 
