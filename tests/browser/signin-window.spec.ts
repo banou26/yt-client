@@ -45,10 +45,11 @@ test('signs in through a window of its own, on the engine jar', async ({ page, c
   // the window's cookies are the engine's, which is how a sign-in there reaches the app
   await expect.poll(() => jarHolds(page, '__Host-GAPS'), { timeout: 15_000 }).toBe(true)
 
-  // the engine keeps its egress port while the window holds one
+  // the engine keeps its egress port while the window holds one: a search answers in about 1 s, and an engine that lost
+  // its port stalls about 15 s until its reset, so the bound sits well between the two
   await page.locator('header input').fill('blender')
   await page.keyboard.press('Enter')
-  await expect.poll(() => page.locator('a[href^="/watch"]').count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(5)
+  await expect.poll(() => page.locator('a[href^="/watch"]').count(), { timeout: 8_000 }).toBeGreaterThanOrEqual(5)
   await popup.close()
 })
 
