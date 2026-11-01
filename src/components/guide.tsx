@@ -156,6 +156,21 @@ const GroupsSection = () => {
   )
 }
 
+const YouSectionLink = () => {
+  const [path] = useLocation()
+  const active = isActive(YOU_ENTRY.match, path, '')
+  return (
+    <Link
+      href={YOU_ENTRY.href}
+      className={active ? 'section-title section-link active' : 'section-title section-link'}
+      aria-current={active ? 'page' : undefined}
+    >
+      You
+      <ChevronRight size={20} strokeWidth={1.5} />
+    </Link>
+  )
+}
+
 const sectionsStyle = css`
   .section {
     padding-bottom: 1.2rem;
@@ -185,6 +200,10 @@ const sectionsStyle = css`
 
   .section-link:hover {
     background: var(--bg-hover);
+  }
+
+  .section-link.active {
+    background: var(--bg-selected);
   }
 
   .item {
@@ -283,10 +302,7 @@ const GuideSections = () => (
     </div>
     <GroupsSection />
     <div className='section'>
-      <Link href={YOU_ENTRY.href} className='section-title section-link'>
-        You
-        <ChevronRight size={20} strokeWidth={1.5} />
-      </Link>
+      <YouSectionLink />
       {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
     </div>
     <div className='section'>

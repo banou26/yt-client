@@ -161,6 +161,7 @@ test('has a You page and Explore entries that lead to videos', async ({ page }) 
 
   const guide = page.getByRole('navigation', { name: 'Guide' })
   await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('href', '/feed/you')
+  await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('aria-current', 'page')
   const homeLinks = await guide.locator('a[href="/"]').count()
   expect(homeLinks, 'an Explore entry still points at Home').toBe(1)
 
