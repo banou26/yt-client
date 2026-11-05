@@ -28,7 +28,7 @@ const style = css`
     font-weight: 700;
   }
 
-  h3:first-child {
+  h3:first-of-type {
     margin-top: 0;
   }
 

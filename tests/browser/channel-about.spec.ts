@@ -5,6 +5,10 @@ import { expect, test } from '@playwright/test'
 
 test('opens the About dialog from the header, with the description, the links and the details', async ({ page }) => {
   test.setTimeout(180_000)
+  const unsafeSelectors: string[] = []
+  page.on('console', message => {
+    if (message.text().includes('potentially unsafe')) unsafeSelectors.push(message.text())
+  })
   await page.goto('/@RickAstleyYT')
   const header = page.locator('main header')
   const first = header.locator('.links').getByRole('link')
@@ -20,6 +24,7 @@ test('opens the About dialog from the header, with the description, the links an
   await expect(dialog.getByRole('heading', { name: 'More info' })).toBeVisible()
   // youtube.com's order: the country, the joined date, then the counts
   await expect(dialog.locator('.about-details li')).toHaveText([/\S/, /^Joined /, / subscribers$/, / videos$/, / views$/])
+  expect(unsafeSelectors, 'Emotion warns on a selector that breaks under server rendering').toEqual([])
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 
