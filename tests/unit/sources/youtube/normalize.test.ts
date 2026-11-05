@@ -760,6 +760,7 @@ describe('youtube normalization', () => {
         { id: 'rel1', title: 'Related one', durationSeconds: 60, badges: [], channel: { id: 'UC456', name: 'Other' } },
         { id: 'rel2', title: 'Related two', badges: [] },
       ],
+      chapters: [],
     })
   })
 

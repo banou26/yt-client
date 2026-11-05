@@ -1,4 +1,4 @@
-import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -965,6 +965,23 @@ export const normalizeWatchPlaylist = (input: unknown): SourceWatchPlaylist | un
   }
 }
 
+type ChapterMarker = { value?: { chapters?: { title?: Text, time_range_start_millis?: number }[] } }
+
+// on the player bar of /next's overlay, which youtubei.js parses outside contents_memo and hands back wrapped
+const normalizeChapters = (input: unknown): SourceChapter[] => {
+  const overlays = (input as { player_overlays?: { is_node?: boolean, item?: () => unknown } } | undefined)?.player_overlays
+  const overlay = (overlays?.is_node ? overlays.item?.() : undefined) as {
+    decorated_player_bar?: { player_bar?: { markers_map?: ChapterMarker[] } }
+  } | null | undefined
+  const markers = overlay?.decorated_player_bar?.player_bar?.markers_map ?? []
+  const chapters = markers.find((marker) => (marker.value?.chapters?.length ?? 0) > 0)?.value?.chapters ?? []
+  return chapters.flatMap((chapter) => {
+    const title = presentText(chapter.title)
+    const start = chapter.time_range_start_millis
+    return title && typeof start === 'number' && Number.isFinite(start) ? [{ title, startSeconds: start / 1_000 }] : []
+  })
+}
+
 export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta | undefined => {
   const memo = (input as WatchNextResponse | undefined)?.contents_memo
   if (!memo) return undefined
@@ -1071,6 +1088,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     related,
     autoplayId: watchNext?.autoplay?.sets?.[0]?.autoplay_video?.payload?.videoId || undefined,
     playlist: normalizeWatchPlaylist(watchNext?.playlist),
+    chapters: normalizeChapters(input),
   }
 }
 

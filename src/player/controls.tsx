@@ -242,9 +242,10 @@ const style = css`
     cursor: pointer;
   }
 
-  /* the one group that gives way, so an hour-long clock clips rather than pushing a button out of the player */
+  /* the groups that give way, so a long chapter title and then an hour-long clock clip rather than pushing a button out of the player */
   .time,
-  .live-badge {
+  .live-badge,
+  .chapter {
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -258,6 +259,14 @@ const style = css`
 
   .time .current {
     font-weight: 500;
+  }
+
+  .chapter {
+    flex-shrink: 100;
+    max-width: 22rem;
+    font-size: 1.3rem;
+    font-weight: 500;
+    text-overflow: ellipsis;
   }
 
   .live-badge {
@@ -351,11 +360,17 @@ const style = css`
 
     .autoplay,
     .theater-toggle,
-    .volume-slider {
+    .volume-slider,
+    .chapter {
       display: none;
     }
   }
 `
+
+export type PlayerChapter = {
+  title: string
+  startSeconds: number
+}
 
 type ControlsProps = {
   video: HTMLVideoElement
@@ -376,12 +391,13 @@ type ControlsProps = {
   onAutoplay?: (value: boolean) => void
   visible: boolean
   isLive?: boolean
+  chapters?: readonly PlayerChapter[]
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
-    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false,
+    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [],
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -417,6 +433,7 @@ export const PlayerControls = (
 
   const duration = state.duration
   const position = preview ?? state.currentTime
+  const chapter = chapters.findLast(item => item.startSeconds <= position)
   const played = duration > 0 ? Math.min(1, position / duration) : 0
   const buffered = duration > 0 ? Math.min(1, state.buffered / duration) : 0
 
@@ -572,6 +589,7 @@ export const PlayerControls = (
         {isLive
           ? <span className='group live-badge'>LIVE</span>
           : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
+        {chapter && !isLive ? <span className='group chapter'>{chapter.title}</span> : undefined}
         <span className='spacer' />
         <div className='group right'>
           {onAutoplay && !isLive

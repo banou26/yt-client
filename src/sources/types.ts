@@ -230,6 +230,13 @@ export type SourceWatchMeta = {
   /** The video youtube.com's own autoplay moves on to, often not the first related one. */
   autoplayId?: string
   playlist?: SourceWatchPlaylist
+  /** In playback order, and empty when the video has none. */
+  chapters: SourceChapter[]
+}
+
+export type SourceChapter = {
+  title: string
+  startSeconds: number
 }
 
 export type SourceTextRun = {

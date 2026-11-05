@@ -2,6 +2,7 @@ import type shaka from 'shaka-player'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
 import type { BezelCue } from './bezel'
+import type { PlayerChapter } from './controls'
 import type { UpNext } from './up-next'
 
 // must stay type-only: a value import puts the on-demand shaka chunk back in the entry
@@ -131,13 +132,14 @@ export type PlayerUpNext = {
 const FALLBACK_FPS = 30
 
 const VideoPlayer = (
-  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext }: {
+  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext, chapters }: {
     videoId: string
     startAt?: number
     theater?: boolean
     onTheater?: () => void
     onMiniplayer?: () => void
     upNext?: PlayerUpNext
+    chapters?: readonly PlayerChapter[]
   },
 ) => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -462,6 +464,7 @@ const VideoPlayer = (
             autoplay={upNext?.autoplay}
             onAutoplay={upNext?.onAutoplay}
             isLive={isLive}
+            chapters={chapters}
             visible={active || state.paused}
           />
         )

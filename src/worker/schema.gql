@@ -364,6 +364,15 @@ type WatchMeta {
   autoplayId: ID
   # Null unless the watch query passed a playlistId.
   playlist: WatchPlaylist
+  # In playback order, and empty when the video has none.
+  chapters: [Chapter!]!
+}
+
+# A chapter of a video, as the player bar names it. It runs until the next one
+# starts.
+type Chapter {
+  title: String!
+  startSeconds: Float!
 }
 
 # One segment of a rich text body. Upstream hands text back as runs, each of

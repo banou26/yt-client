@@ -200,6 +200,7 @@ const PersistentPlayer = () => {
               theater={session.theater}
               onTheater={() => setTheater(!session.theater)}
               onMiniplayer={toggleMiniplayer}
+              chapters={watch?.chapters}
               upNext={{
                 autoplay,
                 onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),
