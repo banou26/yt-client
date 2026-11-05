@@ -141,11 +141,20 @@ const withLanguage = (headers: Record<string, string> = {}) => {
 
 const requests = new Map<string, AbortController>()
 
+const untilAborted = (signal: AbortSignal) => new Promise<never>((_resolve, reject) => {
+  signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+})
+
 const api = {
   fknFetch: createRelayFetch(fetchWithFkn),
   libcurlFetch: async (requestId, url, options) => {
     const controller = new AbortController()
     requests.set(requestId, controller)
+    // libcurl.js 0.7.4 and 0.7.5 drop a transfer's handle at once on abort but leave curl 1 ms later, and a first byte or
+    // end landing in between reads the answer of that null handle (measured 2026-11-06): 0.7.4 traps the wasm in curl's
+    // write callback and every later request hangs until reload, 0.7.5 reads a garbage status. So libcurl is aborted
+    // only once it answered, and a cancel before that answers the caller at once.
+    const transfer = new AbortController()
     let response: Awaited<ReturnType<typeof libcurl.fetch>>
     try {
       await prepare()
@@ -155,9 +164,14 @@ const api = {
         headers: withLanguage(options.headers),
         body: options.body ? new Uint8Array(options.body) : undefined,
         redirect: options.redirect,
-        signal: controller.signal,
+        signal: transfer.signal,
       }
-      response = await libcurl.fetch(url, fetchOptions)
+      const answer = libcurl.fetch(url, fetchOptions)
+      void answer.then(() => {
+        if (controller.signal.aborted) transfer.abort()
+        else controller.signal.addEventListener('abort', () => transfer.abort(), { once: true })
+      }, () => {})
+      response = await Promise.race([answer, untilAborted(controller.signal)])
     } catch (error) {
       requests.delete(requestId)
       throw error
