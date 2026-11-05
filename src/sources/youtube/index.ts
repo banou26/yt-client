@@ -331,10 +331,12 @@ const CONTINUATION_LIMIT = 64
 const createContinuations = <Page>() => {
   type Entry = { kind: string, load: () => Promise<Page>, result?: Promise<Page> }
   const entries = new Map<string, Entry>()
+  // an engine a reset replaced counted from 1 too, and the chat panel asks again only when a page names a cursor it has not seen (urql also keeps the old pages under those strings)
+  const instance = Math.random().toString(36).slice(2, 8)
   let cursorId = 0
 
   const register = (kind: string, load: () => Promise<Page>) => {
-    const cursor = `youtube:${kind}:${++cursorId}`
+    const cursor = `youtube:${kind}:${instance}.${++cursorId}`
     entries.set(cursor, { kind, load })
     // Insertion order is eviction order, and `resolve` re-inserts on read, so the cursors a user is actually paging through stay live.
     while (entries.size > CONTINUATION_LIMIT) {

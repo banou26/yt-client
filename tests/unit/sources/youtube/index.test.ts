@@ -601,6 +601,20 @@ describe('youtube source', () => {
     expect(await source.liveChat('abc', page.cursor)).toMatchObject({ items: [] })
   })
 
+  it('never answers a replaced engine\'s cursor with that same cursor', async () => {
+    const before = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => createFakeClient() })
+    const old = (await before.liveChat('abc')).cursor!
+    const client = createFakeClient()
+    const after = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    const reopened = after.liveChat('abc', old)
+    await chatStarted(client)
+    client.emitChat({ item: chatItem('c1', 'back') })
+    const page = await reopened
+    expect(page.items.map((item) => item.id)).toEqual(['c1'])
+    expect(page.cursor).toBeTruthy()
+    expect(page.cursor).not.toBe(old)
+  })
+
   it('reports chat being unavailable rather than throwing', async () => {
     // getLiveChat() THROWS when a video carries no chat, so absence is checked before calling it
     const client = createFakeClient()
