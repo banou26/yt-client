@@ -103,7 +103,19 @@ const fknWorld = () => {
       for (const listener of state.listeners) listener({ switched })
     }
     const total = () => Object.values(state.calls).reduce((sum, count) => sum + count, 0)
-    return { state, cloud, data: storage?.data, open, signIn, total }
+    // runs `effect` once, when `call` next answers and before the step sees the answer
+    const after = (call: 'availability' | 'unlocked' | 'read', effect: () => void) => {
+      const original: (path: string) => Promise<unknown> = cloud[call]
+      Object.assign(cloud, {
+        [call]: async (path: string) => {
+          const answer = await original(path)
+          Object.assign(cloud, { [call]: original })
+          effect()
+          return answer
+        },
+      })
+    }
+    return { state, cloud, data: storage?.data, open, signIn, total, after }
   }
 
   const fileOf = (account: string) => {
@@ -308,6 +320,81 @@ describe('groupSync', () => {
     expect(world.fileOf('bob')).toBeUndefined()
     expect(world.namesOf('ann')).toEqual(['Music'])
     expect(names(store)).toEqual([])
+  })
+
+  it('takes nothing out of the browser when a sign-in is heard while FKN answers signed out', async () => {
+    const world = fknWorld()
+    const device = world.browser('ann')
+    const { store, sync } = device.open()
+    const music = store.createGroup({ name: 'Music' })
+    await sync.check()
+    await sync.check()
+
+    // fkn.app signed out without a word to this page, and signing back in is heard while FKN answers the step
+    device.state.account = undefined
+    device.after('availability', () => device.signIn('ann'))
+    store.updateGroup(music.id, { name: 'Music 2' })
+    await vi.waitFor(() => expect(world.namesOf('ann')).toEqual(['Music 2']))
+    expect(names(store)).toEqual(['Music 2'])
+  })
+
+  it('reads nothing and raises no card once a switch is heard while it asks for the key', async () => {
+    const world = fknWorld()
+    const device = world.browser('ann')
+    const { store, sync } = device.open()
+    store.createGroup({ name: 'Music' })
+    await sync.check()
+    const reads = device.state.calls.read
+
+    // this browser holds no key for bob's account
+    device.after('unlocked', () => {
+      device.signIn('bob')
+      device.state.unlocked = false
+    })
+    store.createGroup({ name: 'News' })
+    await sync.check()
+    await sync.check()
+    expect(device.state.cards).toBe(0)
+    expect(device.state.calls.read).toBe(reads)
+  })
+
+  it('brings nothing in from the old account once a switch is heard during the read', async () => {
+    const world = fknWorld()
+    const laptop = world.browser('ann')
+    const phone = world.browser('ann')
+    const onLaptop = laptop.open({ boundMs: 20 })
+    const onPhone = phone.open()
+    onLaptop.store.createGroup({ name: 'Music' })
+    await onLaptop.sync.check()
+    onPhone.store.createGroup({ name: 'News' })
+    await onPhone.sync.check()
+
+    // FKN stops answering after the switch, so no later step puts the list right
+    laptop.after('read', () => {
+      laptop.signIn('bob')
+      laptop.state.hang.add('availability')
+    })
+    await onLaptop.sync.check()
+    await onLaptop.sync.check()
+    expect(names(onLaptop.store)).toEqual(['Music'])
+  })
+
+  it('finishes a step during which only the account\'s connection was renewed', async () => {
+    const world = fknWorld()
+    const device = world.browser('ann')
+    const { store, sync } = device.open({ boundMs: 20 })
+    store.createGroup({ name: 'Music' })
+    await sync.check()
+
+    // FKN stops answering after the renewal, so only this step can carry the new group
+    device.after('read', () => {
+      device.signIn('ann')
+      device.state.hang.add('availability')
+    })
+    store.createGroup({ name: 'News' })
+    await sync.check()
+    await sync.check()
+    expect(world.namesOf('ann')).toEqual(['Music', 'News'])
   })
 
   it('never reads or writes while this browser holds no key', async () => {
