@@ -1,7 +1,7 @@
 import type { SabrFormat } from 'googlevideo/shared-types'
 
 import { buildSabrFormat, FormatKeyUtils } from 'googlevideo/utils'
-import { Constants, Innertube, Platform, Types, UniversalCache, Utils, YT } from 'youtubei.js/web'
+import { Constants, Innertube, Platform, Player, Types, UniversalCache, Utils, YT } from 'youtubei.js/web'
 
 import type { PlaybackFormat } from './protocol'
 
@@ -15,7 +15,7 @@ import { egressFetch } from './egress'
 import { playableFormats } from './formats'
 import { parseStoryboards } from './storyboard'
 import { GVS_ORIGIN_KEY, readAccountIndex, VISITOR_DATA_KEY } from './identity'
-import { fetchPlayerResponse } from './watch-page'
+import { fetchPlayerResponse, pagePlayerOf } from './watch-page'
 
 export { GVS_ORIGIN_KEY }
 
@@ -148,6 +148,24 @@ try {
       .catch(() => {})
   }
 } catch {}
+
+const pagePlayers = new Map<string, () => Promise<Player>>()
+
+/* The session's player is the one /iframe_api names, and YouTube serves several at once: a stream URL deciphered by
+   another player than its watch page's answered 403 to every request, 7 of 7 times, and 0 of 78 matched (2026-11-05). */
+const decipherPlayer = async (session: Innertube['session'], pageId: string | undefined) => {
+  const player = session.player!
+  if (!pageId || pageId === player.player_id) return player
+  let build = pagePlayers.get(pageId)
+  if (!build) {
+    build = keepOnSuccess(() => Player.create(session.cache, globalThis.fetch.bind(globalThis), undefined, pageId))
+    pagePlayers.set(pageId, build)
+  }
+  return build().catch((error: unknown) => {
+    console.warn(`youtube: player ${pageId} failed to build, deciphering with ${player.player_id}`, error)
+    return player
+  })
+}
 
 const playbackResponseCache = new Map<string, Promise<Record<string, unknown>>>()
 
@@ -283,7 +301,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
       },
       manifest_options: { is_sabr: true, include_thumbnails: false },
     } as never),
-    client.session.player!.decipher(streaming.server_abr_streaming_url),
+    decipherPlayer(client.session, pagePlayerOf(raw)).then((player) => player.decipher(streaming.server_abr_streaming_url)),
   ])
   const url = new URL(decipheredUrl)
   url.searchParams.set('alr', 'yes')

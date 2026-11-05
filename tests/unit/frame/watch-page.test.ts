@@ -169,6 +169,20 @@ describe('reading a watch page', () => {
     expect(fetched).toHaveLength(3)
   })
 
+  it.each([
+    '/s/player/a5c2aafe/player_ias.vflset/en_US/base.js',
+    '\\/s\\/player\\/a5c2aafe\\/player_ias.vflset\\/en_US\\/base.js',
+  ])('names the player of a page whose PLAYER_JS_URL is %s', async (playerJsUrl) => {
+    pages.push(watchPage({ playerJsUrl }))
+    const { fetchPlayerResponse, pagePlayerOf } = await import('../../../src/frame/watch-page')
+    expect(pagePlayerOf(await fetchPlayerResponse('video-1'))).toBe('a5c2aafe')
+  })
+
+  it('names no player for a page with no PLAYER_JS_URL', async () => {
+    const { fetchPlayerResponse, pagePlayerOf } = await import('../../../src/frame/watch-page')
+    expect(pagePlayerOf(await fetchPlayerResponse('video-1'))).toBeUndefined()
+  })
+
   it('a status that is neither 429 nor 5xx fails at once, with that status', async () => {
     statuses.push(404)
     const { fetchPlayerResponse } = await import('../../../src/frame/watch-page')

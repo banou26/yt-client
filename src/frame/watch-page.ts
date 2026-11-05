@@ -99,6 +99,16 @@ export const readPageChallenge = (html: string): PageChallenge | undefined => {
   }
 }
 
+const pagePlayers = new WeakMap<object, string>()
+
+// the page's first ytcfg carries it ahead of the player response, with its slashes escaped
+const readPagePlayerId = (html: string) => html.match(/"PLAYER_JS_URL"\s*:\s*"([^"]+)"/)?.[1]
+  ?.replace(/\\\//g, '/')
+  .match(/\/s\/player\/([\w-]+)\//)?.[1]
+
+/** The id of the player the watch page answering `raw` was rendered with, from its PLAYER_JS_URL; undefined when it names none. */
+export const pagePlayerOf = (raw: object) => pagePlayers.get(raw)
+
 // a signed-in read through the relay carries no nonce, so a retry inside the relay's 60 s error TTL can get the same cached answer
 const fetchWatchPage = async (videoId: string) => {
   const response = await readAgain(
@@ -126,7 +136,11 @@ const readWatchPage = (videoId: string) => {
       html += chunk.done ? decoder.decode() : decoder.decode(chunk.value, { stream: true })
       if (!player) {
         player = readPlayerResponse(html)
-        if (player) playerResponse.resolve(player)
+        if (player) {
+          const pagePlayer = readPagePlayerId(html)
+          if (pagePlayer) pagePlayers.set(player, pagePlayer)
+          playerResponse.resolve(player)
+        }
       }
       const page = player && readPageChallenge(html)
       if (page) {
