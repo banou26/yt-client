@@ -8,8 +8,9 @@ import fixture from '../../fixtures/channel-home.json'
 
 /* channel-home.json is the signed-out browse of Linus Tech Tips captured on 2026-11-05, cut to one item per row and
    stripped of tracking and playback fields: the featured video, then a Videos row, a channels row, a Playlists row, a
-   Shorts row and a Posts row. It runs through the real upstream parser, since the node shapes are what is read. The
-   Channel has no actions, so any tab other than the one the browse landed on throws instead of browsing again. */
+   Shorts row, a Posts row and a Collaborations row. It runs through the real upstream parser, since the node shapes are
+   what is read. The Channel has no actions, so any tab other than the one the browse landed on throws instead of
+   browsing again. */
 
 const CHANNEL_ID = 'UCXuqSBlHAE6Xw-yeJA0Tunw'
 
@@ -27,7 +28,8 @@ describe('channel Home tab', () => {
     expect(page.availableTabs).toContain('VIDEOS')
     expect(page.videos.items).toEqual([])
     expect(page.home?.featured).toMatchObject({ id: 'IA9LlfQ9X-Q', title: 'I Bought EVERY Tech Ad I Saw for a MONTH' })
-    expect(page.home?.shelves.map((shelf) => shelf.title)).toEqual(['Videos', 'Featured Channels', 'Playlists', 'Shorts'])
+    // Collaborations follows the Shorts row upstream, so a read of all Shelf nodes and then all ReelShelf nodes puts it before Shorts
+    expect(page.home?.shelves.map((shelf) => shelf.title)).toEqual(['Videos', 'Featured Channels', 'Playlists', 'Shorts', 'Collaborations'])
   })
 
   it('reads each row as the kind of item it holds', async () => {

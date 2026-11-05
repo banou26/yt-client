@@ -1026,6 +1026,224 @@
                         }
                       ]
                     }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "title": {
+                              "simpleText": "Collaborations"
+                            },
+                            "content": {
+                              "horizontalListRenderer": {
+                                "items": [
+                                  {
+                                    "lockupViewModel": {
+                                      "contentImage": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/LttGyjX-QxE/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBiOfCLOZi6y35br2pg4Z81OyZWWA",
+                                                "width": 360,
+                                                "height": 202
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailBottomOverlayViewModel": {
+                                                "badges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "text": "31:21",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "animationActivationTargetId": "LttGyjX-QxE",
+                                                      "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                                      "lottieData": {
+                                                        "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                                        "settings": {
+                                                          "loop": true,
+                                                          "autoplay": true
+                                                        }
+                                                      },
+                                                      "animatedText": "Now playing",
+                                                      "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                                      "rendererContext": {
+                                                        "accessibilityContext": {
+                                                          "label": "31 minutes, 21 seconds"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            {
+                                              "animatedThumbnailOverlayViewModel": {
+                                                "thumbnail": {
+                                                  "sources": [
+                                                    {
+                                                      "url": "https://i.ytimg.com/an_webp/LttGyjX-QxE/mqdefault_6s.webp?du=3000&sqp=CKHEsdcG&rs=AOn4CLAcdkfW8_g6YPMnaxwSIK9cEMgXEg",
+                                                      "width": 320,
+                                                      "height": 180
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            {}
+                                          ]
+                                        }
+                                      },
+                                      "metadata": {
+                                        "lockupMetadataViewModel": {
+                                          "title": {
+                                            "content": "Finishing What we Started Seven Years Ago"
+                                          },
+                                          "image": {
+                                            "avatarStackViewModel": {
+                                              "avatars": [
+                                                {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.googleusercontent.com/gnvYLhXy8FAlPXZ2RTrkrgj-5kyt0vdE2FUGVOiKGdEZIa-wN5A-7nwZBlWJLzUMmoh1NWAU=s68-c-k-c0x00ffffff-no-rj",
+                                                          "width": 68,
+                                                          "height": 68
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.googleusercontent.com/m_kIt7A0tROEQfNtfAU_XrUZKzrCJO7vW9LpXadcOhUogA44t6tnJpDjTpFJEif_s8iICeABlQ=s88-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                }
+                                              ],
+                                              "avatarClusterSize": "AVATAR_SIZE_S",
+                                              "layoutType": "AVATAR_STACK_LAYOUT_CLUSTER",
+                                              "rendererContext": {
+                                                "accessibilityContext": {
+                                                  "label": "Collaboration channels"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "metadata": {
+                                            "contentMetadataViewModel": {
+                                              "metadataRows": [
+                                                {
+                                                  "metadataParts": [
+                                                    {
+                                                      "text": {
+                                                        "content": "Linus Tech Tips"
+                                                      },
+                                                      "icon": {
+                                                        "name": "CHECK_CIRCLE_FILLED",
+                                                        "height": 14,
+                                                        "width": 14,
+                                                        "accessibilityLabel": "Verified",
+                                                        "marginEndToken": {
+                                                          "spacing": 2
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "text": {
+                                                        "content": "and Zip Tie Tuning"
+                                                      },
+                                                      "icon": {
+                                                        "name": "CHECK_CIRCLE_FILLED",
+                                                        "height": 14,
+                                                        "width": 14,
+                                                        "accessibilityLabel": "Verified",
+                                                        "marginEndToken": {
+                                                          "spacing": 4
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "metadataParts": [
+                                                    {
+                                                      "text": {
+                                                        "content": "2.1M"
+                                                      },
+                                                      "accessibilityLabel": "2.1 million views",
+                                                      "leadingIcon": {
+                                                        "name": "PLAY_ARROW_OUTLINED",
+                                                        "height": 12,
+                                                        "width": 12
+                                                      }
+                                                    },
+                                                    {
+                                                      "text": {
+                                                        "content": "3w ago"
+                                                      },
+                                                      "accessibilityLabel": "3 weeks ago"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "contentId": "LttGyjX-QxE",
+                                      "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                                      "rendererContext": {
+                                        "accessibilityContext": {
+                                          "label": "Finishing What we Started Seven Years Ago 31 minutes"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ],
+                                "visibleItemCount": 4,
+                                "nextButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_RIGHT"
+                                    },
+                                    "accessibility": {
+                                      "label": "Next"
+                                    }
+                                  }
+                                },
+                                "previousButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_LEFT"
+                                    },
+                                    "accessibility": {
+                                      "label": "Previous"
+                                    }
+                                  }
+                                },
+                                "force16By9ThumbnailAspectRatio": true
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
                   }
                 ],
                 "targetId": "browse-feedUCXuqSBlHAE6Xw-yeJA0Tunw",
