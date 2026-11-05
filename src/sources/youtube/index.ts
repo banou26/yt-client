@@ -1,9 +1,9 @@
-import type { Source, SourceChannel, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
+import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
 
 import { Innertube } from 'youtubei.js/web'
 
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed } from './channel-feed'
-import { normalizeChannel, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -80,6 +80,7 @@ type ChannelFeed = Feed & {
   has_about?: boolean
   applySort?: (sort: string) => Promise<ChannelFeed>
   search?: (query: string) => Promise<ChannelFeed>
+  current_tab?: { content?: { contents?: Iterable<{ contents?: Iterable<unknown> }> } }
 }
 
 type PostsFeed = Feed & {
@@ -487,7 +488,21 @@ const availableChannelTabs = (feed: ChannelFeed): SourceChannelTab[] => {
 }
 
 const defaultChannelTab = (available: SourceChannelTab[]): SourceChannelTab =>
-  available.find((tab) => tab === 'VIDEOS') ?? available[0] ?? 'HOME'
+  available.find((tab) => tab === 'HOME') ?? available.find((tab) => tab === 'VIDEOS') ?? available[0] ?? 'HOME'
+
+// Walked rather than read off the memo, which files shelves and Shorts shelves under separate keys and so loses their order.
+const channelHome = (feed: ChannelFeed): SourceChannelHome => {
+  const home: SourceChannelHome = { shelves: [] }
+  for (const section of feed.current_tab?.content?.contents ?? []) {
+    for (const node of section.contents ?? []) {
+      const type = (node as { type?: string }).type
+      if (type === 'ChannelVideoPlayer') home.featured ??= normalizeFeaturedVideo(node)
+      const shelf = type === 'Shelf' || type === 'ReelShelf' ? normalizeChannelShelf(node) : undefined
+      if (shelf) home.shelves.push(shelf)
+    }
+  }
+  return home
+}
 
 const openChannelTab = async (
   feed: ChannelFeed,
@@ -1102,6 +1117,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       if (appliedSort && feed.applySort) feed = await feed.applySort(appliedSort)
       const rest = { availableTabs, tab: selected, sortOptions, appliedSort }
       channels.set(id, { channel, page: rest })
+      if (selected === 'HOME') return { ...rest, channel, videos: { items: [], playlists: [] }, home: channelHome(feed) }
       return { ...rest, channel, videos: page(kind, feed) }
     },
     channelAbout: async (id) => {

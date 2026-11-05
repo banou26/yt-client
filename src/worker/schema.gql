@@ -269,8 +269,30 @@ type PostPage {
   cursor: String
 }
 
+# A row of a channel's Home tab. Upstream fills a row with one kind of item,
+# so normally only one of the lists has entries.
+type ChannelShelf {
+  title: String!
+  subtitle: String
+  # Upstream's own path for the row's title (a playlist, or one of the
+  # channel's tabs), which the app's routes accept as they are.
+  url: String
+  videos: [Video!]!
+  shorts: [Video!]!
+  playlists: [Playlist!]!
+  channels: [Channel!]!
+}
+
+type ChannelHome {
+  featured: Video
+  # In upstream's order. Rows of a kind this client does not render, such as
+  # posts, are left out.
+  shelves: [ChannelShelf!]!
+}
+
 type ChannelPage {
   channel: Channel!
+  # Empty on the Home tab, which is `home` instead.
   videos: VideoPage!
   # Only the tabs this channel really has, in upstream's display order.
   availableTabs: [ChannelTab!]!
@@ -279,6 +301,8 @@ type ChannelPage {
   # applied one is echoed back so the control can show what is active.
   sortOptions: [String!]!
   appliedSort: String
+  # Only on the Home tab.
+  home: ChannelHome
 }
 
 # The queue rail beside the player, present only when /watch was opened inside a

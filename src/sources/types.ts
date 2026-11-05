@@ -170,6 +170,23 @@ export type SourcePostPage = {
   cursor?: string
 }
 
+// One kind of item per row upstream, but nothing stops a row mixing them, so each list is kept rather than a tagged union
+export type SourceChannelShelf = {
+  title: string
+  subtitle?: string
+  // upstream's own path, which the app's routes take as they are
+  url?: string
+  videos: SourceVideo[]
+  shorts: SourceVideo[]
+  playlists: SourcePlaylist[]
+  channels: SourceChannel[]
+}
+
+export type SourceChannelHome = {
+  featured?: SourceVideo
+  shelves: SourceChannelShelf[]
+}
+
 export type SourceChannelPage = {
   channel: SourceChannel
   videos: SourceVideoPage
@@ -177,6 +194,8 @@ export type SourceChannelPage = {
   tab: SourceChannelTab
   sortOptions: string[]
   appliedSort?: string
+  // only on the Home tab
+  home?: SourceChannelHome
 }
 
 export type SourceWatchPlaylist = {

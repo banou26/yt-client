@@ -1,4 +1,4 @@
-import type { SourceChannel, SourceChannelAbout, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -743,6 +743,75 @@ export const normalizeGridPlaylist = (input: unknown): SourcePlaylist | undefine
     videoCountText: presentText(node.video_count) ?? presentText(node.video_count_short),
     channel: bylineChannel(node.author),
   }
+}
+
+// A channel's Home tab heads with a player node rather than a lockup: it carries no still and no length.
+export const normalizeFeaturedVideo = (input: unknown): SourceVideo | undefined => {
+  const node = input as {
+    id?: string
+    title?: Text
+    description?: Text
+    view_count?: Text
+    published_time?: Text
+  } | undefined
+  const id = node?.id
+  const title = presentText(node?.title)
+  if (!id || !title) return undefined
+  return {
+    id,
+    title,
+    description: presentText(node?.description),
+    thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`,
+    viewCount: presentText(node?.view_count),
+    publishedText: presentText(node?.published_time),
+    badges: [],
+  }
+}
+
+// Dispatched on the node type: a GridVideo also passes normalizeGridPlaylist's id-and-title check, and normalizeFeedChannel's author check.
+export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | undefined => {
+  const node = input as {
+    title?: Text
+    subtitle?: Text
+    endpoint?: { metadata?: { url?: string } }
+    content?: { items?: unknown[], contents?: unknown[] }
+    items?: unknown[]
+  } | undefined
+  const title = presentText(node?.title)
+  if (!title) return undefined
+  const url = node?.endpoint?.metadata?.url
+  const shelf: SourceChannelShelf = {
+    title,
+    subtitle: presentText(node?.subtitle),
+    url: url?.startsWith('/') && !url.startsWith('//') ? url : undefined,
+    videos: [],
+    shorts: [],
+    playlists: [],
+    channels: [],
+  }
+  for (const item of node?.content?.items ?? node?.content?.contents ?? node?.items ?? []) {
+    const type = (item as { type?: string }).type
+    if (type === 'LockupView') {
+      const video = normalizeLockupVideo(item)
+      const playlist = video ? undefined : normalizePlaylistLockup(item)
+      if (video) shelf.videos.push(video)
+      if (playlist) shelf.playlists.push(playlist)
+    } else if (type === 'GridVideo' || type === 'Video') {
+      const video = normalizeFeedVideo(item)
+      if (video) shelf.videos.push(video)
+    } else if (type === 'ShortsLockupView') {
+      const short = normalizeShortsLockup(item)
+      if (short) shelf.shorts.push(short)
+    } else if (type === 'GridPlaylist' || type === 'Playlist') {
+      const playlist = normalizeGridPlaylist(item)
+      if (playlist) shelf.playlists.push(playlist)
+    } else if (type === 'GridChannel') {
+      const channel = normalizeFeedChannel(item)
+      if (channel) shelf.channels.push(channel)
+    }
+  }
+  const { videos, shorts, playlists, channels } = shelf
+  return videos.length + shorts.length + playlists.length + channels.length > 0 ? shelf : undefined
 }
 
 // the playlist id is nowhere in `info` on any renderer, so the caller carries the id it browsed with

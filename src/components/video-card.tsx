@@ -401,16 +401,20 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  &.channel .text {
+  &.channel .text,
+  &.shelf .text {
     margin-left: 0;
   }
 
-  &.channel .title {
+  &.channel .title,
+  &.shelf .title {
     font-size: 1.4rem;
     line-height: 2rem;
   }
 
-  &.channel .meta {
+  &.channel .meta,
+  &.shelf .meta,
+  &.shelf .channel-name {
     font-size: 1.2rem;
   }
 
@@ -445,7 +449,7 @@ const style = css`
 `
 
 export const VideoCard = (
-  { video, variant, context }: { video: VideoCardData, variant?: 'channel', context?: WatchContext },
+  { video, variant, context }: { video: VideoCardData, variant?: 'channel' | 'shelf', context?: WatchContext },
 ) => {
   const watchHref = watchHrefFor(video.id, context)
   const channelHref = video.channel ? `/channel/${video.channel.id}` : undefined
@@ -499,7 +503,7 @@ export const VideoCard = (
           : undefined}
       </Link>
       <div className='details'>
-        {video.channel && channelHref && variant !== 'channel'
+        {video.channel && channelHref && variant === undefined
           ? (
             <Link
               href={channelHref}

@@ -1,0 +1,1482 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/featured",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EghmZWF0dXJlZPIGBAoCMgA%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Home",
+            "selected": true,
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "channelVideoPlayerRenderer": {
+                            "videoId": "IA9LlfQ9X-Q",
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "I Bought EVERY Tech Ad I Saw for a MONTH",
+                                  "navigationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "url": "/watch?v=IA9LlfQ9X-Q"
+                                      }
+                                    },
+                                    "watchEndpoint": {
+                                      "videoId": "IA9LlfQ9X-Q"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "description": {
+                              "runs": [
+                                {
+                                  "text": "Get 20% off DeleteMe US consumer plans when you go to "
+                                }
+                              ]
+                            },
+                            "viewCountText": {
+                              "simpleText": "6,623,743 views"
+                            },
+                            "publishedTimeText": {
+                              "runs": [
+                                {
+                                  "text": "2y ago"
+                                }
+                              ]
+                            },
+                            "readMoreText": {
+                              "runs": [
+                                {
+                                  "text": "Read more",
+                                  "navigationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "url": "/watch?v=IA9LlfQ9X-Q"
+                                      }
+                                    },
+                                    "watchEndpoint": {
+                                      "videoId": "IA9LlfQ9X-Q"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Videos",
+                                  "navigationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "url": "/@LinusTechTips/videos?view=0&sort=dd&shelf_id=4",
+                                        "apiUrl": "/youtubei/v1/browse"
+                                      }
+                                    },
+                                    "browseEndpoint": {
+                                      "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                      "params": "EgZ2aWRlb3MYAyAAcATyBg0KCzoEIgIIBKIBAggB",
+                                      "canonicalBaseUrl": "/@LinusTechTips"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "endpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@LinusTechTips/videos?view=0&sort=dd&shelf_id=4",
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                "params": "EgZ2aWRlb3MYAyAAcATyBg0KCzoEIgIIBKIBAggB",
+                                "canonicalBaseUrl": "/@LinusTechTips"
+                              }
+                            },
+                            "content": {
+                              "horizontalListRenderer": {
+                                "items": [
+                                  {
+                                    "lockupViewModel": {
+                                      "contentImage": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/AAraNufcrW4/hq720_custom_2.jpg?sqp=CMjtsdcG-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDDcNh45yrLhX-JBW4tYqHNI84N5Q",
+                                                "width": 360,
+                                                "height": 202
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailBottomOverlayViewModel": {
+                                                "badges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "text": "16:21",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "animationActivationTargetId": "AAraNufcrW4",
+                                                      "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                                      "lottieData": {
+                                                        "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                                        "settings": {
+                                                          "loop": true,
+                                                          "autoplay": true
+                                                        }
+                                                      },
+                                                      "animatedText": "Now playing",
+                                                      "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE"
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            {
+                                              "animatedThumbnailOverlayViewModel": {
+                                                "thumbnail": {
+                                                  "sources": [
+                                                    {
+                                                      "url": "https://i.ytimg.com/an_webp/AAraNufcrW4/mqdefault_6s.webp?du=3000&sqp=CNzksdcG&rs=AOn4CLAmtVBskdQ_2e0gfx3xBfVbNJE4kQ",
+                                                      "width": 320,
+                                                      "height": 180
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            },
+                                            {}
+                                          ]
+                                        }
+                                      },
+                                      "metadata": {
+                                        "lockupMetadataViewModel": {
+                                          "title": {
+                                            "content": "Good PC Deals Still Exist!"
+                                          },
+                                          "image": {
+                                            "decoratedAvatarViewModel": {
+                                              "avatar": {
+                                                "avatarViewModel": {
+                                                  "image": {
+                                                    "sources": [
+                                                      {
+                                                        "url": "https://yt3.googleusercontent.com/gnvYLhXy8FAlPXZ2RTrkrgj-5kyt0vdE2FUGVOiKGdEZIa-wN5A-7nwZBlWJLzUMmoh1NWAU=s68-c-k-c0x00ffffff-no-rj",
+                                                        "width": 68,
+                                                        "height": 68
+                                                      }
+                                                    ]
+                                                  },
+                                                  "avatarImageSize": "AVATAR_SIZE_M"
+                                                }
+                                              },
+                                              "a11yLabel": "Go to channel Linus Tech Tips"
+                                            }
+                                          },
+                                          "metadata": {
+                                            "contentMetadataViewModel": {
+                                              "metadataRows": [
+                                                {
+                                                  "metadataParts": [
+                                                    {
+                                                      "text": {
+                                                        "content": "775K"
+                                                      },
+                                                      "accessibilityLabel": "775 thousand views",
+                                                      "leadingIcon": {
+                                                        "name": "PLAY_ARROW_OUTLINED",
+                                                        "height": 12,
+                                                        "width": 12
+                                                      }
+                                                    },
+                                                    {
+                                                      "text": {
+                                                        "content": "19h ago"
+                                                      },
+                                                      "accessibilityLabel": "19 hours ago"
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "delimiter": " "
+                                            }
+                                          },
+                                          "menuButton": {
+                                            "buttonViewModel": {
+                                              "iconName": "MORE_VERT",
+                                              "onTap": {
+                                                "innertubeCommand": {
+                                                  "showSheetCommand": {
+                                                    "panelLoadingStrategy": {
+                                                      "inlineContent": {
+                                                        "sheetViewModel": {
+                                                          "content": {
+                                                            "listViewModel": {
+                                                              "listItems": [
+                                                                {
+                                                                  "listItemViewModel": {
+                                                                    "title": {
+                                                                      "content": "Add to queue"
+                                                                    },
+                                                                    "leadingImage": {
+                                                                      "sources": [
+                                                                        {
+                                                                          "clientResource": {
+                                                                            "imageName": "ADD_TO_QUEUE_TAIL"
+                                                                          }
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  }
+                                                                },
+                                                                {
+                                                                  "listItemViewModel": {
+                                                                    "title": {
+                                                                      "content": "Save to playlist"
+                                                                    },
+                                                                    "leadingImage": {
+                                                                      "sources": [
+                                                                        {
+                                                                          "clientResource": {
+                                                                            "imageName": "BOOKMARK_BORDER"
+                                                                          }
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  }
+                                                                },
+                                                                {
+                                                                  "downloadListItemViewModel": {}
+                                                                },
+                                                                {
+                                                                  "listItemViewModel": {
+                                                                    "title": {
+                                                                      "content": "Share"
+                                                                    },
+                                                                    "leadingImage": {
+                                                                      "sources": [
+                                                                        {
+                                                                          "clientResource": {
+                                                                            "imageName": "SHARE"
+                                                                          }
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  }
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "accessibilityText": "More actions",
+                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                              "type": "BUTTON_VIEW_MODEL_TYPE_TEXT",
+                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "contentId": "AAraNufcrW4",
+                                      "contentType": "LOCKUP_CONTENT_TYPE_VIDEO"
+                                    }
+                                  }
+                                ],
+                                "visibleItemCount": 4,
+                                "nextButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_RIGHT"
+                                    }
+                                  }
+                                },
+                                "previousButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_LEFT"
+                                    }
+                                  }
+                                },
+                                "force16By9ThumbnailAspectRatio": true
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Featured Channels",
+                                  "navigationEndpoint": {
+                                    "showEngagementPanelEndpoint": {
+                                      "engagementPanel": {
+                                        "engagementPanelSectionListRenderer": {
+                                          "content": {
+                                            "sectionListRenderer": {
+                                              "contents": [
+                                                {
+                                                  "itemSectionRenderer": {
+                                                    "contents": [
+                                                      {
+                                                        "continuationItemRenderer": {
+                                                          "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                                          "continuationEndpoint": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ],
+                                                    "sectionIdentifier": "6b44a49f-0000-2ea6-a47b-30fd381294c8",
+                                                    "targetId": "6b44a49f-0000-2ea6-a47b-30fd381294c8"
+                                                  }
+                                                }
+                                              ],
+                                              "scrollPaneStyle": {
+                                                "scrollable": true
+                                              }
+                                            }
+                                          },
+                                          "targetId": "6b44a49e-0000-2ea6-a47b-30fd381294c8",
+                                          "identifier": {
+                                            "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                            "tag": "6b44a49e-0000-2ea6-a47b-30fd381294c8"
+                                          },
+                                          "size": "ENGAGEMENT_PANEL_SIZE_OPTIMIZED_FOR_CHANNELS"
+                                        }
+                                      },
+                                      "identifier": {
+                                        "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                        "tag": "6b44a49e-0000-2ea6-a47b-30fd381294c8"
+                                      },
+                                      "engagementPanelPresentationConfigs": {
+                                        "engagementPanelPopupPresentationConfig": {
+                                          "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "endpoint": {
+                              "showEngagementPanelEndpoint": {
+                                "engagementPanel": {
+                                  "engagementPanelSectionListRenderer": {
+                                    "content": {
+                                      "sectionListRenderer": {
+                                        "contents": [
+                                          {
+                                            "itemSectionRenderer": {
+                                              "contents": [
+                                                {
+                                                  "continuationItemRenderer": {
+                                                    "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                                    "continuationEndpoint": {
+                                                      "commandMetadata": {
+                                                        "webCommandMetadata": {
+                                                          "apiUrl": "/youtubei/v1/browse"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ],
+                                              "sectionIdentifier": "6b44a4a1-0000-2ea6-a47b-30fd381294c8",
+                                              "targetId": "6b44a4a1-0000-2ea6-a47b-30fd381294c8"
+                                            }
+                                          }
+                                        ],
+                                        "scrollPaneStyle": {
+                                          "scrollable": true
+                                        }
+                                      }
+                                    },
+                                    "targetId": "6b44a4a0-0000-2ea6-a47b-30fd381294c8",
+                                    "identifier": {
+                                      "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                      "tag": "6b44a4a0-0000-2ea6-a47b-30fd381294c8"
+                                    },
+                                    "size": "ENGAGEMENT_PANEL_SIZE_OPTIMIZED_FOR_CHANNELS"
+                                  }
+                                },
+                                "identifier": {
+                                  "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                  "tag": "6b44a4a0-0000-2ea6-a47b-30fd381294c8"
+                                },
+                                "engagementPanelPresentationConfigs": {
+                                  "engagementPanelPopupPresentationConfig": {
+                                    "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                                  }
+                                }
+                              }
+                            },
+                            "content": {
+                              "horizontalListRenderer": {
+                                "items": [
+                                  {
+                                    "gridChannelRenderer": {
+                                      "channelId": "UCdBK94H6oZT2Q7l0-b0xmMg",
+                                      "thumbnail": {
+                                        "thumbnails": [
+                                          {
+                                            "url": "//yt3.googleusercontent.com/ytc/AIdro_mDZiWSYXmBc_fiS3QG-Uh5mJRdww9Z-2qUDeXtMZhGTQ=s88-c-k-c0x00ffffff-no-rj-mo",
+                                            "width": 88,
+                                            "height": 88
+                                          }
+                                        ]
+                                      },
+                                      "videoCountText": {
+                                        "runs": [
+                                          {
+                                            "text": "1,371"
+                                          },
+                                          {
+                                            "text": " videos"
+                                          }
+                                        ]
+                                      },
+                                      "subscriberCountText": {
+                                        "simpleText": "2.55M subscribers"
+                                      },
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@ShortCircuit",
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCdBK94H6oZT2Q7l0-b0xmMg",
+                                          "canonicalBaseUrl": "/@ShortCircuit"
+                                        }
+                                      },
+                                      "title": {
+                                        "simpleText": "ShortCircuit"
+                                      },
+                                      "ownerBadges": [
+                                        {
+                                          "metadataBadgeRenderer": {
+                                            "icon": {
+                                              "iconType": "CHECK_CIRCLE_THICK"
+                                            },
+                                            "style": "BADGE_STYLE_TYPE_VERIFIED",
+                                            "tooltip": "Verified"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ],
+                                "visibleItemCount": 7,
+                                "nextButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_RIGHT"
+                                    }
+                                  }
+                                },
+                                "previousButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_LEFT"
+                                    }
+                                  }
+                                },
+                                "force16By9ThumbnailAspectRatio": true
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Playlists",
+                                  "navigationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "url": "/@LinusTechTips/playlists?view=1&sort=dd&shelf_id=11",
+                                        "apiUrl": "/youtubei/v1/browse"
+                                      }
+                                    },
+                                    "browseEndpoint": {
+                                      "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                      "params": "EglwbGF5bGlzdHMYAyABcAvyBgkKB0IAogECCAE%3D",
+                                      "canonicalBaseUrl": "/@LinusTechTips"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "endpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@LinusTechTips/playlists?view=1&sort=dd&shelf_id=11",
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                "params": "EglwbGF5bGlzdHMYAyABcAvyBgkKB0IAogECCAE%3D",
+                                "canonicalBaseUrl": "/@LinusTechTips"
+                              }
+                            },
+                            "content": {
+                              "horizontalListRenderer": {
+                                "items": [
+                                  {
+                                    "lockupViewModel": {
+                                      "contentImage": {
+                                        "collectionThumbnailViewModel": {
+                                          "primaryThumbnail": {
+                                            "thumbnailViewModel": {
+                                              "image": {
+                                                "sources": [
+                                                  {
+                                                    "url": "https://i.ytimg.com/vi/DZSYaQmxBLM/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLBLKZ0RlZVrZ03Pi8oQE8fAq6jQOQ",
+                                                    "width": 480,
+                                                    "height": 270
+                                                  }
+                                                ]
+                                              },
+                                              "overlays": [
+                                                {
+                                                  "thumbnailOverlayBadgeViewModel": {
+                                                    "thumbnailBadges": [
+                                                      {
+                                                        "thumbnailBadgeViewModel": {
+                                                          "icon": {
+                                                            "sources": [
+                                                              {
+                                                                "clientResource": {
+                                                                  "imageName": "PLAYLISTS"
+                                                                }
+                                                              }
+                                                            ]
+                                                          },
+                                                          "text": "2 videos",
+                                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                          "backgroundColor": {
+                                                            "lightTheme": 2369843,
+                                                            "darkTheme": 2369843
+                                                          }
+                                                        }
+                                                      }
+                                                    ],
+                                                    "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                                  }
+                                                },
+                                                {
+                                                  "thumbnailHoverOverlayViewModel": {
+                                                    "icon": {
+                                                      "sources": [
+                                                        {
+                                                          "clientResource": {
+                                                            "imageName": "PLAY_ALL"
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "text": {
+                                                      "content": "Play all"
+                                                    },
+                                                    "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+                                                  }
+                                                }
+                                              ],
+                                              "backgroundColor": {
+                                                "lightTheme": 2962239,
+                                                "darkTheme": 2962239
+                                              }
+                                            }
+                                          },
+                                          "stackColor": {
+                                            "lightTheme": 7109785,
+                                            "darkTheme": 7766163
+                                          }
+                                        }
+                                      },
+                                      "metadata": {
+                                        "lockupMetadataViewModel": {
+                                          "title": {
+                                            "content": "Vibe Coding"
+                                          },
+                                          "metadata": {
+                                            "contentMetadataViewModel": {
+                                              "metadataRows": [
+                                                {
+                                                  "metadataParts": [
+                                                    {
+                                                      "text": {
+                                                        "content": "Playlist",
+                                                        "commandRuns": [
+                                                          {
+                                                            "startIndex": 0,
+                                                            "length": 8,
+                                                            "onTap": {
+                                                              "innertubeCommand": {
+                                                                "commandMetadata": {
+                                                                  "webCommandMetadata": {
+                                                                    "url": "/@LinusTechTips",
+                                                                    "apiUrl": "/youtubei/v1/browse"
+                                                                  }
+                                                                },
+                                                                "browseEndpoint": {
+                                                                  "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                                                  "canonicalBaseUrl": "/@LinusTechTips"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "metadataParts": [
+                                                    {
+                                                      "text": {
+                                                        "content": "View full playlist",
+                                                        "commandRuns": [
+                                                          {
+                                                            "startIndex": 0,
+                                                            "length": 18,
+                                                            "onTap": {
+                                                              "innertubeCommand": {
+                                                                "commandMetadata": {
+                                                                  "webCommandMetadata": {
+                                                                    "url": "/playlist?list=PLPXG0FHDlqWU",
+                                                                    "apiUrl": "/youtubei/v1/browse"
+                                                                  }
+                                                                },
+                                                                "browseEndpoint": {
+                                                                  "browseId": "VLPLPXG0FHDlqWU"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "delimiter": " "
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "contentId": "PLPXG0FHDlqWU",
+                                      "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                      "itemPlayback": {
+                                        "inlinePlayerData": {
+                                          "onSelect": {
+                                            "innertubeCommand": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "url": "/watch?v=DZSYaQmxBLM&list=PLPXG0FHDlqWU&pp=0gcJCR0Ga94AFGB0"
+                                                }
+                                              },
+                                              "watchEndpoint": {
+                                                "videoId": "DZSYaQmxBLM",
+                                                "playlistId": "PLPXG0FHDlqWU",
+                                                "params": "OAI%3D"
+                                              }
+                                            }
+                                          },
+                                          "onVisible": {
+                                            "innertubeCommand": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "url": "/watch?v=DZSYaQmxBLM&list=PLPXG0FHDlqWU&pp=YAHIAQHwBAD4BACiBhUBqHapM1_PyJljI7taFUKfRNl7Wbg%3D"
+                                                }
+                                              },
+                                              "watchEndpoint": {
+                                                "videoId": "DZSYaQmxBLM",
+                                                "playlistId": "PLPXG0FHDlqWU"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ],
+                                "visibleItemCount": 4,
+                                "nextButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_RIGHT"
+                                    }
+                                  }
+                                },
+                                "previousButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_LEFT"
+                                    }
+                                  }
+                                },
+                                "force16By9ThumbnailAspectRatio": true
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "reelShelfRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Shorts"
+                                }
+                              ]
+                            },
+                            "button": {},
+                            "items": [
+                              {
+                                "shortsLockupViewModel": {
+                                  "entityId": "shorts-shelf-item-9st7OYkUHJk",
+                                  "accessibilityText": "Ep. 35 - Best Tech for a Deserted Island..., 174 thousand views - play Short",
+                                  "onTap": {
+                                    "innertubeCommand": {
+                                      "commandMetadata": {
+                                        "webCommandMetadata": {
+                                          "url": "/shorts/9st7OYkUHJk"
+                                        }
+                                      },
+                                      "reelWatchEndpoint": {
+                                        "videoId": "9st7OYkUHJk"
+                                      }
+                                    }
+                                  },
+                                  "indexInCollection": 0,
+                                  "menuOnTapA11yLabel": "More actions",
+                                  "overlayMetadata": {
+                                    "primaryText": {
+                                      "content": "Ep. 35 - Best Tech for a Deserted Island..."
+                                    },
+                                    "secondaryText": {
+                                      "content": "174K views"
+                                    }
+                                  },
+                                  "thumbnailViewModel": {
+                                    "thumbnailViewModel": {
+                                      "image": {
+                                        "sources": [
+                                          {
+                                            "url": "https://i.ytimg.com/vi/9st7OYkUHJk/sardefault.jpg?sqp=-oaymwEdCJUDENAFSFWQAgHyq4qpAwwIARUAAIhCcAHAAQY=&rs=AOn4CLCajSYGh1vE1OGOMwyxH7ywWH0A-g",
+                                            "width": 405,
+                                            "height": 720
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "stackedFrameData": {},
+                                  "titleTruncationStyle": "SHORTS_LOCKUP_TITLE_TRUNCATION_STYLE_UNKNOWN",
+                                  "inlinePopStateEntityKey": "Eh1zaG9ydHMtc2hlbGYtaXRlbS05c3Q3T1lrVUhKayDMAygB0.0115527"
+                                }
+                              }
+                            ],
+                            "icon": {
+                              "iconType": "YOUTUBE_SHORTS_BRAND_24"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "shelfRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Posts"
+                                }
+                              ]
+                            },
+                            "endpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/channel/UCXuqSBlHAE6Xw-yeJA0Tunw/posts",
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                "params": "EgVwb3N0c8oEAhgC8gYJCgdKAKIBAggB"
+                              }
+                            },
+                            "content": {
+                              "horizontalListRenderer": {
+                                "items": [
+                                  {
+                                    "postRenderer": {
+                                      "postId": "Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy",
+                                      "authorText": {
+                                        "runs": [
+                                          {
+                                            "text": "Linus Tech Tips",
+                                            "navigationEndpoint": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "url": "/@LinusTechTips",
+                                                  "apiUrl": "/youtubei/v1/browse"
+                                                }
+                                              },
+                                              "browseEndpoint": {
+                                                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                                "canonicalBaseUrl": "/@LinusTechTips"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "authorThumbnail": {
+                                        "thumbnails": [
+                                          {
+                                            "url": "//yt3.googleusercontent.com/gnvYLhXy8FAlPXZ2RTrkrgj-5kyt0vdE2FUGVOiKGdEZIa-wN5A-7nwZBlWJLzUMmoh1NWAU=s32-c-k-c0x00ffffff-no-rj-mo",
+                                            "width": 32,
+                                            "height": 32
+                                          }
+                                        ]
+                                      },
+                                      "authorEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@LinusTechTips",
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                          "canonicalBaseUrl": "/@LinusTechTips"
+                                        }
+                                      },
+                                      "contentText": {
+                                        "runs": [
+                                          {
+                                            "text": "You can't make this up"
+                                          }
+                                        ]
+                                      },
+                                      "backstageAttachment": {
+                                        "backstageImageRenderer": {
+                                          "image": {
+                                            "thumbnails": [
+                                              {
+                                                "url": "https://yt3.ggpht.com/LJtt2J7XC3f8ZWY3-kI7CO95nsvdyPAJiiALSBz_6G0Vx-4wgpq_dRtSwlAOGxVuHW_KA9_UZcgr=s288-c-fcrop64=1,00000000ffffffff-rw-nd-v1",
+                                                "width": 288,
+                                                "height": 288
+                                              }
+                                            ]
+                                          },
+                                          "icon": {
+                                            "iconType": "COLLECTIONS"
+                                          }
+                                        }
+                                      },
+                                      "publishedTimeText": {
+                                        "runs": [
+                                          {
+                                            "text": "2 weeks ago",
+                                            "navigationEndpoint": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "url": "/post/Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy",
+                                                  "apiUrl": "/youtubei/v1/browse"
+                                                }
+                                              },
+                                              "browseEndpoint": {
+                                                "browseId": "FEpost_detail",
+                                                "params": "wgNaEhhVQ1h1cVNCbEhBRTZYdy15ZUpBMFR1bncaJFVna3g0c0RxeTQzb0NFWmFlUTNWaXVrc2NCY1VqUlZ2MXlneVoYVUNYdXFTQmxIQUU2WHcteWVKQTBUdW53",
+                                                "canonicalBaseUrl": "/post/Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "voteCount": {
+                                        "simpleText": "6.9K"
+                                      },
+                                      "actionMenu": {},
+                                      "surface": "BACKSTAGE_SURFACE_TYPE_CHANNEL_HOME",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/post/Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy",
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "FEpost_detail",
+                                          "params": "wgNaEhhVQ1h1cVNCbEhBRTZYdy15ZUpBMFR1bncaJFVna3g0c0RxeTQzb0NFWmFlUTNWaXVrc2NCY1VqUlZ2MXlneVoYVUNYdXFTQmxIQUU2WHcteWVKQTBUdW53",
+                                          "canonicalBaseUrl": "/post/Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ],
+                                "visibleItemCount": 4,
+                                "nextButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_RIGHT"
+                                    }
+                                  }
+                                },
+                                "previousButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CHEVRON_LEFT"
+                                    }
+                                  }
+                                },
+                                "force16By9ThumbnailAspectRatio": true
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "targetId": "browse-feedUCXuqSBlHAE6Xw-yeJA0Tunw",
+                "disablePullToRefresh": true
+              }
+            }
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/videos",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgZ2aWRlb3PyBgQKAjoA",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Videos"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/shorts",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgZzaG9ydHPyBgUKA5oBAA%3D%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Shorts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/streams",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgdzdHJlYW1z8gYECgJ6AA%3D%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Live"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/shows",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgVzaG93c_IGBAoCYgA%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Shows"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/podcasts",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "Eghwb2RjYXN0c_IGBQoDugEA",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Podcasts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/playlists",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EglwbGF5bGlzdHPyBgoKCEIGCgIQaCIA",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Playlists"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/posts",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgVwb3N0c_IGBAoCSgA%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Posts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/store",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgVzdG9yZfIGBAoCGgA%3D",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Store"
+          }
+        },
+        {
+          "expandableTabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@LinusTechTips/search",
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                "params": "EgZzZWFyY2jyBgQKAloA",
+                "canonicalBaseUrl": "/@LinusTechTips"
+              }
+            },
+            "title": "Search",
+            "selected": false
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "channelMetadataRenderer": {
+      "title": "Linus Tech Tips",
+      "description": "Linus Tech Tips is a passionate team of \"professionally curious\" experts in consumer technology and video production who aim to educate and entertain.\n\nSponsorship Inquiries: partnerships@linusmediagroup.com\n",
+      "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "channelConversionUrl": "https://www.youtube.com/pagead/viewthroughconversion/962985656/?backend=innertube&cname=1&cver=2_20261030_02_00&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20261030_02_00%3Bptype%3Dcview%3Btype%3Dcview%3Butuid%3DXuqSBlHAE6Xw-yeJA0Tunw&foc_id=XuqSBlHAE6Xw-yeJA0Tunw&label=followon_cvisit&ptype=cview&utuid=XuqSBlHAE6Xw-yeJA0Tunw",
+      "externalId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "keywords": "Unboxing Review Computer Hardware Motherboard Intel AMD NVIDIA gaming",
+      "ownerUrls": [
+        "http://www.youtube.com/@LinusTechTips"
+      ],
+      "avatar": {
+        "thumbnails": [
+          {
+            "url": "https://yt3.googleusercontent.com/gnvYLhXy8FAlPXZ2RTrkrgj-5kyt0vdE2FUGVOiKGdEZIa-wN5A-7nwZBlWJLzUMmoh1NWAU=s900-c-k-c0x00ffffff-no-rj",
+            "width": 900,
+            "height": 900
+          }
+        ]
+      },
+      "channelUrl": "https://www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "isFamilySafe": true,
+      "availableCountryCodes": [
+        "KE",
+        "BD",
+        "TV",
+        "SV",
+        "VC",
+        "MR",
+        "LT",
+        "JM",
+        "LR",
+        "YE",
+        "MF",
+        "SX",
+        "PG",
+        "BQ",
+        "ST",
+        "MA",
+        "NA",
+        "AG",
+        "EE",
+        "KR",
+        "UG",
+        "UZ",
+        "CV",
+        "KM",
+        "MO",
+        "AM",
+        "TK",
+        "GG",
+        "FR",
+        "GY",
+        "CF",
+        "GM",
+        "AD",
+        "LY",
+        "NR",
+        "CK",
+        "SM",
+        "SY",
+        "TC",
+        "CY",
+        "AE",
+        "CH",
+        "TJ",
+        "SC",
+        "IM",
+        "FO",
+        "GL",
+        "HM",
+        "MC",
+        "CZ",
+        "GA",
+        "TG",
+        "BO",
+        "ML",
+        "BA",
+        "FM",
+        "PA",
+        "DZ",
+        "WF",
+        "TT",
+        "TZ",
+        "FK",
+        "HU",
+        "PR",
+        "MD",
+        "MX",
+        "CW",
+        "PW",
+        "PY",
+        "VE",
+        "JO",
+        "ET",
+        "AW",
+        "MT",
+        "WS",
+        "ZM",
+        "VA",
+        "VU",
+        "SJ",
+        "EG",
+        "BW",
+        "HR",
+        "LC",
+        "EC",
+        "SB",
+        "SL",
+        "RU",
+        "BT",
+        "KW",
+        "ME",
+        "BL",
+        "PM",
+        "AQ",
+        "TO",
+        "NE",
+        "AU",
+        "VN",
+        "BB",
+        "CR",
+        "ZA",
+        "LV",
+        "MQ",
+        "RS",
+        "MP",
+        "SK",
+        "RE",
+        "AR",
+        "PL",
+        "IL",
+        "DO",
+        "BY",
+        "MM",
+        "PN",
+        "GT",
+        "KP",
+        "PF",
+        "PT",
+        "SH",
+        "BN",
+        "NP",
+        "TN",
+        "DK",
+        "ZW",
+        "AT",
+        "HT",
+        "IO",
+        "PS",
+        "SD",
+        "PE",
+        "TM",
+        "UA",
+        "UM",
+        "CN",
+        "HN",
+        "SG",
+        "SZ",
+        "BV",
+        "IN",
+        "TR",
+        "ER",
+        "MN",
+        "IE",
+        "IQ",
+        "BG",
+        "BI",
+        "GN",
+        "BZ",
+        "GD",
+        "SE",
+        "CI",
+        "CA",
+        "GR",
+        "LK",
+        "GI",
+        "NF",
+        "AO",
+        "JP",
+        "LB",
+        "NL",
+        "PK",
+        "YT",
+        "DM",
+        "CG",
+        "GP",
+        "UY",
+        "TH",
+        "BR",
+        "ID",
+        "TF",
+        "JE",
+        "DJ",
+        "IR",
+        "LA",
+        "BH",
+        "CU",
+        "PH",
+        "RO",
+        "MY",
+        "QA",
+        "CO",
+        "BF",
+        "BJ",
+        "BM",
+        "SS",
+        "KY",
+        "GB",
+        "MU",
+        "ES",
+        "FI",
+        "GU",
+        "GH",
+        "GS",
+        "GW",
+        "NZ",
+        "VG",
+        "LS",
+        "MZ",
+        "EH",
+        "TL",
+        "AZ",
+        "RW",
+        "DE",
+        "NC",
+        "NI",
+        "GF",
+        "CM",
+        "BE",
+        "KZ",
+        "SR",
+        "HK",
+        "MW",
+        "OM",
+        "KH",
+        "SI",
+        "TW",
+        "US",
+        "FJ",
+        "AL",
+        "KN",
+        "VI",
+        "LU",
+        "CD",
+        "SN",
+        "AF",
+        "MK",
+        "CL",
+        "MG",
+        "GQ",
+        "AX",
+        "KG",
+        "MV",
+        "GE",
+        "NG",
+        "NU",
+        "CC",
+        "CX",
+        "LI",
+        "AS",
+        "IS",
+        "BS",
+        "MH",
+        "TD",
+        "SA",
+        "MS",
+        "AI",
+        "IT",
+        "NO",
+        "SO",
+        "KI"
+      ],
+      "androidDeepLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "androidAppindexingLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "iosAppindexingLink": "ios-app://544007664/vnd.youtube/www.youtube.com/channel/UCXuqSBlHAE6Xw-yeJA0Tunw",
+      "vanityChannelUrl": "http://www.youtube.com/@LinusTechTips"
+    }
+  }
+}
