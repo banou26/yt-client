@@ -95,9 +95,9 @@ const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
  * Keeps `store` in step with the groups file of the FKN account signed in.
  *
  * Signed out of FKN, the groups are this browser's own. Once the account's file can be read, they are merged into
- * it, and once a read found that file the list is the account's. Signing out of FKN takes the account's groups out of
- * this browser. A list read from another account's file is dropped, never merged into this one. A step that heard of
- * an account change keeps nothing, and one that found the list changed under it leaves it to the next step.
+ * it, and from then on the list is the account's. Signing out of FKN takes the account's groups out of this browser.
+ * A list last merged with another account's file is dropped, never merged into this one. A step that heard of an
+ * account change keeps nothing, and one that found the list changed under it leaves it to the next step.
  */
 export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => crypto.randomUUID(), boundMs = FKN_BOUND_MS }: {
   store: Pick<GroupStore, 'persists' | 'snapshot' | 'settle' | 'onEdit'>
@@ -110,6 +110,8 @@ export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => c
   boundMs?: number
 }) => {
   let generation = 0
+  // the file this page created, and the account it was created in
+  let minted: { file: string, generation: number } | undefined
 
   const step = async () => {
     const began = generation
@@ -139,26 +141,31 @@ export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => c
       gone = true
     }
     const theirs = text === null ? undefined : parseGroupsFile(text)
-    // a list read from another account's file, or one since deleted or no longer opened, is never merged into this one
-    const ours = before.file && before.file !== theirs?.file ? NONE : before
+    // another account's list, or one whose file was deleted or can no longer be opened, is never merged into this one.
+    // A list on a file this page created with no account change heard since is this account's: two browsers that each
+    // found no file both create one, and the later write wins.
+    const mine = minted?.generation === began && minted.file === before.file
+    const ours = before.file && before.file !== theirs?.file && !mine ? NONE : before
     const merged = mergeGroups(theirs ?? NONE, ours)
+    const file = theirs?.file ?? newId()
     const changed = gone || (theirs
-      ? !same({ file: theirs.file, ...merged }, theirs)
+      ? !same({ file, ...merged }, theirs)
       : merged.groups.length > 0 || Object.keys(merged.deleted).length > 0)
+    let held = theirs !== undefined
     if (changed) {
       // the read that found the file gone drops a key from before a reset, and a write with none raises FKN's card
       if (gone && !await within(boundMs, cloud.unlocked, () => false)) return
       if (!current()) return
-      await within(boundMs, () => cloud.write(GROUPS_PATH, JSON.stringify({ file: theirs?.file ?? newId(), ...merged })))
+      await within(boundMs, () => cloud.write(GROUPS_PATH, JSON.stringify({ file, ...merged })))
+      if (!held) minted = { file, generation: began }
+      held = true
     }
     if (!current()) return
     if (!same(store.snapshot(), before)) {
       void start()
       return
     }
-    // the id is kept only once a read found it: two browsers that each found no file both write one, the later write
-    // wins, and the earlier one's list, never read from the account, then merges into it rather than being dropped
-    const sync: GroupsSync = theirs ? { file: theirs.file, deleted: merged.deleted } : { deleted: merged.deleted }
+    const sync: GroupsSync = held ? { file, deleted: merged.deleted } : { deleted: merged.deleted }
     store.settle(merged.groups, sync)
   }
 

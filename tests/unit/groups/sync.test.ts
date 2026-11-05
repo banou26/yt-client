@@ -223,6 +223,36 @@ describe('groupSync', () => {
     expect(names(onPhone.store)).toEqual(['News', 'Music'])
   })
 
+  it('never carries a list into another account from a file the page created before the switch', async () => {
+    const world = fknWorld()
+    const device = world.browser('ann')
+    const { store, sync } = device.open()
+    store.createGroup({ name: 'Ann first' })
+    await sync.check()
+    expect(world.namesOf('ann')).toEqual(['Ann first'])
+
+    device.signIn('bob')
+    await sync.check()
+    expect(world.fileOf('bob')).toBeUndefined()
+    expect(names(store)).toEqual([])
+  })
+
+  it('takes a list on a file the page created out of the browser at a sign out, so the next account never gets it', async () => {
+    const world = fknWorld()
+    const device = world.browser('ann')
+    const { store, sync } = device.open()
+    store.createGroup({ name: 'Ann first' })
+    await sync.check()
+
+    device.signIn(undefined)
+    await sync.check()
+    expect(names(store)).toEqual([])
+    device.signIn('bob')
+    await sync.check()
+    expect(world.fileOf('bob')).toBeUndefined()
+    expect(names(store)).toEqual([])
+  })
+
   it('carries an edit and a deletion from one browser to the other', async () => {
     const world = fknWorld()
     const laptop = world.browser('ann')
@@ -284,8 +314,6 @@ describe('groupSync', () => {
     const first = device.open()
     first.store.createGroup({ name: 'Ann\'s' })
     await first.sync.check()
-    // the second step reads the file back, which makes the list the account's
-    await first.sync.check()
 
     // fkn.app signed out and in as another account while yt-client was closed: no change was heard
     device.state.account = 'bob'
@@ -305,7 +333,6 @@ describe('groupSync', () => {
     const device = world.browser('ann')
     const { store, sync } = device.open()
     store.createGroup({ name: 'Music' })
-    await sync.check()
     await sync.check()
     const read = device.cloud.read
     device.cloud.read = async (path) => {
@@ -327,7 +354,6 @@ describe('groupSync', () => {
     const device = world.browser('ann')
     const { store, sync } = device.open()
     const music = store.createGroup({ name: 'Music' })
-    await sync.check()
     await sync.check()
 
     // fkn.app signed out without a word to this page, and signing back in is heard while FKN answers the step
@@ -415,7 +441,6 @@ describe('groupSync', () => {
     const { store, sync } = device.open({ boundMs: 20 })
     store.createGroup({ name: 'Music' })
     await sync.check()
-    await sync.check()
     const file = world.fileOf('ann')?.file
 
     device.state.hang.add('availability')
@@ -427,7 +452,7 @@ describe('groupSync', () => {
     device.state.hang.add('unlocked')
     store.createGroup({ name: 'News' })
     await sync.check()
-    expect(device.state.calls.read).toBe(2)
+    expect(device.state.calls.read).toBe(1)
     device.state.hang.clear()
 
     for (const call of ['read', 'write'] as const) {
@@ -448,7 +473,6 @@ describe('groupSync', () => {
     store.createGroup({ name: 'Music' })
     store.deleteGroup(store.createGroup({ name: 'Old' }).id)
     await sync.check()
-    await sync.check()
     device.signIn(undefined)
     await sync.check()
     expect(names(store)).toEqual([])
@@ -464,12 +488,13 @@ describe('groupSync', () => {
     const world = fknWorld()
     const laptop = world.browser('ann')
     const phone = world.browser()
-    const onLaptop = laptop.open()
+    const first = laptop.open()
     const onPhone = phone.open()
-    onLaptop.store.createGroup({ name: 'Music' })
-    await onLaptop.sync.check()
-    await onLaptop.sync.check()
+    first.store.createGroup({ name: 'Music' })
+    await first.sync.check()
     const before = world.fileOf('ann')?.file
+    // reloaded, the laptop no longer knows it created the file
+    const onLaptop = laptop.open()
     onPhone.store.createGroup({ name: 'News' })
 
     world.failing.set('ann', E2E_STALE_EPOCH_MESSAGE)
