@@ -41,4 +41,18 @@ describe('channel Home tab', () => {
     expect(playlists?.videos).toEqual([])
     expect(shorts?.shorts).toMatchObject([{ id: '9st7OYkUHJk', isShort: true }])
   })
+
+  // the avatar still taps through to the channel, so a byline read off the first part named the channel '775K'
+  it('names no channel on the channel\'s own videos, whose one row is the views and the date', async () => {
+    const page = await sourceFor().channel(CHANNEL_ID)
+    const own = page.home?.shelves[0]?.videos[0]
+    expect(own).toMatchObject({ id: 'AAraNufcrW4', viewCount: '775K', publishedText: '19h ago' })
+    expect(own?.channel).toBeUndefined()
+    expect(page.channel.name).toBe('Linus Tech Tips')
+  })
+
+  it('reads a collaboration\'s views and date off the row after its two names', async () => {
+    const collaboration = (await sourceFor().channel(CHANNEL_ID)).home?.shelves.at(-1)?.videos[0]
+    expect(collaboration).toMatchObject({ id: 'LttGyjX-QxE', viewCount: '2.1M', publishedText: '3w ago' })
+  })
 })

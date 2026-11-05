@@ -79,3 +79,12 @@ test('names the tabs like youtube.com, sorts Videos by chips and searches from a
   await expect(box).toHaveValue('never gonna')
   await expect(page.locator('main article a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
 })
+
+test('keeps the channel\'s name in its header once its own videos fill the Home shelves', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/@LinusTechTips')
+  const shelf = page.getByRole('region', { name: 'Videos', exact: true })
+  await expect(shelf.locator('a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
+  await expect(page.locator('main h1')).toHaveText('Linus Tech Tips')
+  await expect(shelf.locator('.channel-name')).toHaveCount(0)
+})

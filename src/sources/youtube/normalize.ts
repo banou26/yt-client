@@ -360,21 +360,35 @@ const bylineChannel = (author: Author | Text | undefined): SourceChannel | undef
   return id && name ? { id, name } : undefined
 }
 
-const lockupMetadataParts = (lockup: LockupVideo) =>
-  lockup.metadata?.metadata?.metadata_rows?.flatMap((row) => row.metadata_parts ?? []) ?? []
+// a row with no parts carries only badges (CC, 4K)
+const lockupRows = (lockup: LockupVideo) =>
+  (lockup.metadata?.metadata?.metadata_rows ?? [])
+    .map((row) => row.metadata_parts ?? [])
+    .filter((parts) => parts.length > 0)
 
-const lockupParts = (lockup: LockupVideo) => lockupMetadataParts(lockup).map((part) => part.text)
+type LockupPart = ReturnType<typeof lockupRows>[number][number]
 
-const lockupChannel = (lockup: LockupVideo, parts: (Text | undefined)[]): SourceChannel | undefined => {
-  const name = text(parts[0])
-  const id = parts[0]?.endpoint?.payload?.browseId
+// The byline leads the first row: alone above the views and date (watch next, shelves) or ahead of them on the one row
+// (search, history). A channel's own videos on its Home shelves have only the views and date, and their avatar still
+// taps through to the channel, so on a shelf the one row is never a byline: read as one, it named the channel '784K'.
+const lockupLines = (lockup: LockupVideo, shelf: boolean): { byline?: LockupPart, stats: LockupPart[] } => {
+  const rows = lockupRows(lockup)
+  if (rows.length > 1) return { byline: rows[0]?.[0], stats: rows[1] ?? [] }
+  if (shelf) return { stats: rows[0] ?? [] }
+  const [byline, ...stats] = rows[0] ?? []
+  return { byline, stats }
+}
+
+const lockupChannel = (lockup: LockupVideo, byline: LockupPart | undefined): SourceChannel | undefined => {
+  const name = text(byline?.text)
+  const id = byline?.text?.endpoint?.payload?.browseId
     ?? lockup.metadata?.image?.renderer_context?.command_context?.on_tap?.payload?.browseId
   if (!id || !name) return undefined
   return {
     id,
     name,
     avatar: thumbnail(lockup.metadata?.image?.avatar?.image, AVATAR_WIDTH),
-    ...iconBadges([lockupMetadataParts(lockup)[0]?.icon_name]),
+    ...iconBadges([byline?.icon_name]),
   }
 }
 
@@ -695,7 +709,7 @@ export const normalizeVideoDetails = (input: unknown): SourceVideo | undefined =
 // an explicit allow-list rather than "not VIDEO" so a playlist lockup falls through to normalizePlaylistLockup instead of being swallowed here: the collection kinds have their own normalizers and must never be forced through this one
 const VIDEO_LOCKUPS = new Set(['UNSPECIFIED', 'VIDEO', 'SHORT', 'CLIP', 'MOVIE'])
 
-export const normalizeLockupVideo = (input: unknown): SourceVideo | undefined => {
+export const normalizeLockupVideo = (input: unknown, { shelf = false }: { shelf?: boolean } = {}): SourceVideo | undefined => {
   const lockup = input as LockupVideo
   if (!VIDEO_LOCKUPS.has(lockup.content_type ?? 'UNSPECIFIED')) return undefined
   const id = lockup.content_id
@@ -703,7 +717,7 @@ export const normalizeLockupVideo = (input: unknown): SourceVideo | undefined =>
   if (!id || !title) return undefined
   const image = lockup.content_image?.primary_thumbnail ?? lockup.content_image
   const badges = image?.overlays?.flatMap((overlay) => overlay.badges ?? []) ?? []
-  const parts = lockupParts(lockup)
+  const { byline, stats } = lockupLines(lockup, shelf)
   return {
     id,
     title,
@@ -712,8 +726,8 @@ export const normalizeLockupVideo = (input: unknown): SourceVideo | undefined =>
     durationSeconds: badges
       .map((badge) => durationSeconds(badge.text))
       .find((seconds) => seconds !== undefined),
-    viewCount: text(parts[1]),
-    publishedText: text(parts[2]),
+    viewCount: text(stats[0]?.text),
+    publishedText: text(stats[1]?.text),
     isLive: badges.some((badge) => badge.badge_style?.includes('LIVE')) ? true : undefined,
     progressPercent: lockupProgressPercent(image),
     isShort: lockup.content_type === 'SHORT' ? true : undefined,
@@ -722,7 +736,7 @@ export const normalizeLockupVideo = (input: unknown): SourceVideo | undefined =>
       : undefined,
     // empty because a lockup's overlay badges carry only the duration and the live pill, both read above
     badges: [],
-    channel: lockupChannel(lockup, parts),
+    channel: lockupChannel(lockup, byline),
   }
 }
 
@@ -734,13 +748,12 @@ export const normalizePlaylistLockup = (input: unknown): SourcePlaylist | undefi
   if (!id || !title) return undefined
   const image = lockup.content_image?.primary_thumbnail ?? lockup.content_image
   const badges = image?.overlays?.flatMap((overlay) => overlay.badges ?? []) ?? []
-  const parts = lockupParts(lockup)
   return {
     id,
     title,
     thumbnail: thumbnail(image?.image, STILL_WIDTH),
     videoCountText: badges.map((badge) => badge.text).find((value) => Boolean(value)),
-    channel: lockupChannel(lockup, parts),
+    channel: lockupChannel(lockup, lockupRows(lockup)[0]?.[0]),
   }
 }
 
@@ -807,7 +820,7 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
   for (const item of node?.content?.items ?? node?.content?.contents ?? node?.items ?? []) {
     const type = (item as { type?: string }).type
     if (type === 'LockupView') {
-      const video = normalizeLockupVideo(item)
+      const video = normalizeLockupVideo(item, { shelf: true })
       const playlist = video ? undefined : normalizePlaylistLockup(item)
       if (video) shelf.videos.push(video)
       if (playlist) shelf.playlists.push(playlist)
@@ -1009,7 +1022,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
       .map(String)[0]
   const related = [
     ...(memo.get('CompactVideo') ?? []).map(normalizeFeedVideo),
-    ...(memo.get('LockupView') ?? []).map(normalizeLockupVideo),
+    ...(memo.get('LockupView') ?? []).map((node) => normalizeLockupVideo(node)),
   ].filter((video) => video !== undefined)
   const status = likeStatus(likeButtonView?.like_status_entity?.like_status ?? likeButtonView?.like_status)
     ?? (likeLegacy?.like_button?.is_toggled === true

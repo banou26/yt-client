@@ -200,7 +200,25 @@
                                                   "avatarImageSize": "AVATAR_SIZE_M"
                                                 }
                                               },
-                                              "a11yLabel": "Go to channel Linus Tech Tips"
+                                              "a11yLabel": "Go to channel Linus Tech Tips",
+                                              "rendererContext": {
+                                                "commandContext": {
+                                                  "onTap": {
+                                                    "innertubeCommand": {
+                                                      "commandMetadata": {
+                                                        "webCommandMetadata": {
+                                                          "url": "/@LinusTechTips",
+                                                          "apiUrl": "/youtubei/v1/browse"
+                                                        }
+                                                      },
+                                                      "browseEndpoint": {
+                                                        "browseId": "UCXuqSBlHAE6Xw-yeJA0Tunw",
+                                                        "canonicalBaseUrl": "/@LinusTechTips"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
                                             }
                                           },
                                           "metadata": {
