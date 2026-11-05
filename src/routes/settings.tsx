@@ -2,6 +2,7 @@ import type { QualityPreference, Settings, ThemePreference } from '../settings'
 
 import { css } from '@emotion/react'
 import { useEffect, useState } from 'preact/hooks'
+import { Link } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { EXTENSION_URL, useExtensionExposed } from '../components/extension-notice'
@@ -241,6 +242,13 @@ export const SettingsPage = () => {
             </div>
           )
           : undefined}
+      </section>
+
+      <section className='section'>
+        <h2 className='section-title'>Privacy</h2>
+        <p className='section-note'>
+          <Link className='link' href='/privacy'>What yt-client keeps and where requests go</Link>
+        </p>
       </section>
     </main>
   )

@@ -22,6 +22,7 @@ const FeedSubscriptionsPage = lazy(() => import('./routes/feed-subscriptions'))
 const FeedYouPage = lazy(() => import('./routes/feed-you'))
 const GroupPage = lazy(() => import('./routes/group'))
 const PlaylistPage = lazy(() => import('./routes/playlist'))
+const PrivacyPage = lazy(() => import('./routes/privacy'))
 const SearchPage = lazy(() => import('./routes/search'))
 const SettingsPage = lazy(() => import('./routes/settings'))
 const AccountPage = lazy(() => import('./routes/account'))
@@ -206,6 +207,7 @@ export const App = () => {
               <Route path='/feed/groups/:id' component={GroupPage} />
               <Route path='/channel/:channelId' component={ChannelPage} />
               <Route path='/settings' component={SettingsPage} />
+              <Route path='/privacy' component={PrivacyPage} />
               <Route path='/account' component={AccountPage} />
               <Route path='/signin' component={SignInPage} />
               <Route path='/search/:query' component={LegacySearchRedirect} />

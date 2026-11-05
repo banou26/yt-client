@@ -312,7 +312,9 @@ const GuideSections = () => (
     <SubscriptionRail />
     <div className='footer'>
       <div className='footer-links'>
-        {FOOTER_LINKS.map(label => <span key={label}>{label}</span>)}
+        {FOOTER_LINKS.map(label => label === 'Privacy'
+          ? <Link key={label} href='/privacy'>{label}</Link>
+          : <span key={label}>{label}</span>)}
       </div>
       <div className='copyright'>© 2026 yt-client</div>
     </div>
