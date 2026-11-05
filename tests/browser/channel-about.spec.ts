@@ -17,8 +17,9 @@ test('opens the About dialog from the header, with the description, the links an
   await expect(dialog.getByRole('heading', { name: 'Description' })).toBeVisible()
   await expect(dialog.getByRole('heading', { name: 'Links' })).toBeVisible()
   expect(await dialog.locator('.about-links a').count()).toBeGreaterThan(1)
-  await expect(dialog.getByText(/ subscribers$/)).toBeVisible()
-  await expect(dialog.getByText(/^Joined /)).toBeVisible()
+  await expect(dialog.getByRole('heading', { name: 'More info' })).toBeVisible()
+  // youtube.com's order: the country, the joined date, then the counts
+  await expect(dialog.locator('.about-details li')).toHaveText([/\S/, /^Joined /, / subscribers$/, / videos$/, / views$/])
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 

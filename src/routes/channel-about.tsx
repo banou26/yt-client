@@ -76,11 +76,11 @@ export const ChannelAboutDialog = (
 ) => {
   const text = about?.description ?? description
   const details = [
+    about?.country,
+    about?.joinedDateText,
     about?.subscriberCountText,
     about?.videoCountText,
     about?.viewCountText,
-    about?.joinedDateText,
-    about?.country,
   ].filter(detail => detail !== undefined && detail !== null && detail !== '')
   return (
     <Dialog title={name} onClose={onClose}>
@@ -111,8 +111,8 @@ export const ChannelAboutDialog = (
         {details.length > 0
           ? (
             <>
-              <h3>Channel details</h3>
-              <ul>
+              <h3>More info</h3>
+              <ul className='about-details'>
                 {details.map(detail => <li key={detail}>{detail}</li>)}
               </ul>
             </>
