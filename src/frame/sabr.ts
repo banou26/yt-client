@@ -288,8 +288,9 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
   adapter.onMintPoToken(source.mint)
   adapter.attach(null)
 
-  /* Status 3 asks for a new BotGuard session. A session that gets status 2 with no media keeps getting it (9 of 95
-     sessions, 2026-11-05), and a new one cleared it on the same stream 5 of 5 times; once per stream, so it cannot loop. */
+  /* Status 3 asks for a new BotGuard session. About 1 session in 10 (9 of 95, 2026-11-05) is answered status 2 on an
+     enforced video and keeps it through every retry, and a new one cleared it on the same stream 5 of 5 times. So a
+     status 2 on a segment it could not use replaces the session too, once per stream so it cannot loop. */
   let replacedOnStatus2 = false
   const recoverFor = (streamStatus: number | undefined) => {
     if (streamStatus === 3) return source.recoverMint()

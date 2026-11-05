@@ -166,13 +166,14 @@ describe('a SABR session answered with no media', () => {
     startTimeMs: 90_000,
     snapshot: { currentTimeMs: 90_000, playbackRate: 1, bandwidthEstimate: 10_000_000, viewportWidth: 1_280, viewportHeight: 720 },
   }
+  const init: SegmentRequest = { ...seek, kind: 'init', range: { start: 0, end: 700 } }
 
   const answerWithStatus = (status: number) => vi.mocked(egressFetch).mockImplementation(async () =>
     new Response(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status }).finish())))
 
   // a request through every retry and its waits
-  const failure = async (session: ReturnType<typeof createSabrSession>) => {
-    const outcome = session.requestSegment(seek).then(() => 'played', (error: Error) => error.message)
+  const failure = async (session: ReturnType<typeof createSabrSession>, request = seek) => {
+    const outcome = session.requestSegment(request).then(() => 'played', (error: Error) => error.message)
     await vi.runAllTimersAsync()
     return outcome
   }
@@ -189,17 +190,21 @@ describe('a SABR session answered with no media', () => {
     vi.unstubAllGlobals()
   })
 
-  it('replaces the BotGuard session on status 2 once per stream, not on every attempt', async () => {
+  it.each([
+    ['a seek', seek, seek],
+    ['an init', init, init],
+    ['an init, then a seek', init, seek],
+  ])('replaces the BotGuard session on status 2 once per stream, not on every attempt: %s', async (_, first, then) => {
     answerWithStatus(2)
     const session = createSabrSession(source)
-    expect(await failure(session)).toBe('youtube: SABR stream status 2 after 3 attempts')
+    expect(await failure(session, first)).toBe('youtube: SABR stream status 2 after 3 attempts')
     expect(recoverMint).toHaveBeenCalledTimes(1)
-    expect(await failure(session)).toBe('youtube: SABR stream status 2 after 3 attempts')
+    expect(await failure(session, then)).toBe('youtube: SABR stream status 2 after 3 attempts')
     expect(recoverMint).toHaveBeenCalledTimes(1)
     expect(egressFetch).toHaveBeenCalledTimes(6)
     session.close()
     const next = createSabrSession(source)
-    await failure(next)
+    await failure(next, first)
     expect(recoverMint).toHaveBeenCalledTimes(2)
     next.close()
   })
