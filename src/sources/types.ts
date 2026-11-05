@@ -141,7 +141,9 @@ export type SourceNotificationPage = {
 
 export type SourceChannelLink = {
   title: string
+  // where the link goes, never upstream's redirect page
   url: string
+  displayUrl?: string
 }
 
 export type SourceChannelAbout = {

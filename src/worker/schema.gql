@@ -234,12 +234,15 @@ type NotificationPage {
 
 type ChannelLink {
   title: String!
+  # The destination itself, unwrapped from upstream's redirect page.
   url: String!
+  # The short form upstream shows for it, such as "lnk.to/abc".
+  displayUrl: String
 }
 
 # The About panel. Reached through its own call rather than as a field on
-# ChannelPage: getAbout() is a separate round trip and only the About tab needs
-# it, so folding it in would tax every other tab with a request it discards.
+# ChannelPage: getAbout() is a second round trip, and as its own query it is
+# made once per channel rather than once per tab.
 type ChannelAbout {
   description: String
   country: String

@@ -1,7 +1,8 @@
 import type { ChannelTab, ChannelViewQuery, CommunityPostsQuery } from '../generated/graphql'
 
 import { css } from '@emotion/react'
-import { useState } from 'preact/hooks'
+import { Link2 } from 'lucide-react'
+import { useCallback, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
@@ -14,25 +15,11 @@ import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact } from '../components/video-card-compact'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
+import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
 import { ChannelHome } from './channel-home'
 
 type VideosPage = ChannelViewQuery['channel']['videos']
 type PostsPage = CommunityPostsQuery['communityPosts']
-
-const CHANNEL_ABOUT_QUERY = gql(`
-  query ChannelAbout($id: ID!) {
-    channelAbout(id: $id) {
-      description
-      country
-      joinedDateText
-      viewCountText
-      subscriberCountText
-      videoCountText
-      canonicalUrl
-      links { title url }
-    }
-  }
-`)
 
 const COMMUNITY_POSTS_QUERY = gql(`
   query CommunityPosts($channelId: ID!, $cursor: String) {
@@ -177,9 +164,12 @@ const emptyMessageFor = (tab?: ChannelTab) => {
 }
 
 const style = css`
-  max-width: 128.4rem;
+  /* youtube.com widens the channel column in steps of one 214px row card, up
+     to six of them, and centres it. Measured on youtube.com/@RickAstleyYT at
+     1000 to 2560px wide, 2026-11-05. */
+  width: max(min(100% - 3.2rem, 64.2rem), min(128.4rem, round(down, 100% - 4.8rem, 21.4rem)));
   margin: 0 auto;
-  padding: 2.4rem 1.6rem;
+  padding: 2.4rem 0;
 
   .banner {
     display: block;
@@ -241,13 +231,61 @@ const style = css`
   }
 
   .description {
+    display: flex;
+    max-width: min(60rem, 100%);
     margin-top: 0.8rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
     font-size: 1.4rem;
     color: var(--text-secondary);
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
+    text-align: left;
+  }
+
+  button.description {
+    cursor: pointer;
+  }
+
+  .description-text {
+    min-width: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .description .more,
+  .more-links {
+    flex: none;
+    margin-left: 0.4rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+    font-size: 1.4rem;
+    color: var(--accent);
+  }
+
+  .links a {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--accent);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .links .more-links {
+    margin-left: 0;
   }
 
   .subscribe-row {
@@ -323,11 +361,11 @@ const style = css`
     margin-top: 2.4rem;
   }
 
-  /* Matches the video grid's column sizing so a Playlists tab lines up with the
-     Videos tab beside it in the strip. */
+  /* Matches the channel video grid's column sizing so a Playlists tab lines up
+     with the Videos tab beside it in the strip. */
   .playlist-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(38rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(31rem, 1fr));
     column-gap: 1.6rem;
     row-gap: 2.4rem;
   }
@@ -396,53 +434,6 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  .about {
-    max-width: 68rem;
-  }
-
-  .about-description {
-    margin: 0;
-    font-size: 1.4rem;
-    line-height: 2.2rem;
-    color: var(--text-primary);
-    white-space: pre-wrap;
-  }
-
-  .about-stats {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.8rem 2.4rem;
-    margin: 2.4rem 0 0;
-    font-size: 1.4rem;
-  }
-
-  .about-stats > div {
-    display: contents;
-  }
-
-  .about-stats dt {
-    color: var(--text-secondary);
-  }
-
-  .about-stats dd {
-    margin: 0;
-    color: var(--text-primary);
-  }
-
-  .about-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.6rem;
-    margin: 2.4rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .about-links a {
-    color: var(--accent);
-    font-size: 1.4rem;
-  }
-
   .status {
     margin-top: 2.4rem;
     color: var(--text-secondary);
@@ -464,6 +455,22 @@ const style = css`
       font-size: 4rem;
     }
 
+    /* full width rather than shrink-wrapped, or the one-line description
+       would size it to the whole unwrapped text */
+    .info {
+      width: 100%;
+    }
+
+    .description,
+    .links,
+    .subscribe-row {
+      justify-content: center;
+    }
+
+    .description {
+      margin-inline: auto;
+    }
+
     .name {
       font-size: 2.4rem;
       line-height: 3.2rem;
@@ -475,8 +482,11 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   const id = params.channelId ?? `@${params.handle ?? ''}`
   const search = useSearch()
   const urlParams = new URLSearchParams(search)
-  const [, navigate] = useLocation()
-  const tab = (urlParams.get('tab') ?? undefined) as ChannelTab | undefined
+  const [location, navigate] = useLocation()
+  const requestedTab = (urlParams.get('tab') ?? undefined) as ChannelTab | undefined
+  // youtube.com's /about opens the channel with its About dialog over it, which is what /about redirects here to
+  const aboutRequested = requestedTab === 'ABOUT'
+  const tab = aboutRequested ? undefined : requestedTab
   const sort = urlParams.get('sort') ?? undefined
   const channelQuery = urlParams.get('query') ?? undefined
   // tab, sort and in-channel query are part of the feed identity: switching any of them MUST restart paging
@@ -519,22 +529,22 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   }
 
   const activeTab = data?.channel.tab
-  const [{ data: aboutData, fetching: aboutFetching }] = useQuery({
+  const hasAbout = data?.channel.availableTabs.includes('ABOUT') === true
+  // asked with the page rather than on "...more": the header's links line is read off it
+  const [{ data: aboutData }] = useQuery({
     query: CHANNEL_ABOUT_QUERY,
     variables: { id },
-    pause: activeTab !== 'ABOUT',
+    pause: !hasAbout,
   })
-  const about = aboutData?.channelAbout
-  const aboutStats: [string, string][] = about
-    ? ([
-      ['Joined', about.joinedDateText],
-      ['Country', about.country],
-      ['Subscribers', about.subscriberCountText],
-      ['Videos', about.videoCountText],
-      ['Views', about.viewCountText],
-    ] as const)
-      .flatMap(([label, value]) => (value ? [[label, value] as [string, string]] : []))
-    : []
+  const about = aboutData?.channelAbout ?? undefined
+  const [firstLink, ...moreLinks] = about?.links ?? []
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const openAbout = () => setAboutOpen(true)
+  // stable, since the dialog re-runs its focus effect whenever onClose changes
+  const closeAbout = useCallback(() => {
+    setAboutOpen(false)
+    if (aboutRequested) navigate(location, { replace: true })
+  }, [aboutRequested, location, navigate])
 
   const [postPages, setPostPages] = useState<PostsPage[]>([])
   const [{ data: postsData, fetching: postsFetching }] = useQuery({
@@ -572,7 +582,31 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
             <div className='info'>
               <h1 className='name'>{channel.name}<VerifiedBadge channel={channel} size={20} /></h1>
               {meta ? <p className='meta'>{meta}</p> : undefined}
-              {channel.description ? <p className='description'>{channel.description}</p> : undefined}
+              {hasAbout
+                ? (
+                  <button type='button' className='description' onClick={openAbout}>
+                    <span className='description-text'>{channel.description ?? 'More about this channel'}</span>
+                    <span className='more'>...more</span>
+                  </button>
+                )
+                : channel.description
+                  ? <p className='description'><span className='description-text'>{channel.description}</span></p>
+                  : undefined}
+              {firstLink
+                ? (
+                  <p className='links'>
+                    <Link2 size={14} strokeWidth={2} aria-hidden='true' />
+                    <a href={firstLink.url} target='_blank' rel='noreferrer noopener'>{firstLink.displayUrl ?? firstLink.title}</a>
+                    {moreLinks.length > 0
+                      ? (
+                        <button type='button' className='more-links' onClick={openAbout}>
+                          and {moreLinks.length} more {moreLinks.length === 1 ? 'link' : 'links'}
+                        </button>
+                      )
+                      : undefined}
+                  </p>
+                )
+                : undefined}
               <div className='subscribe-row'>
                 <SubscribeButton
                   channelId={channel.id}
@@ -585,9 +619,12 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
           </header>
         )
         : undefined}
+      {channel && (aboutOpen || aboutRequested)
+        ? <ChannelAboutDialog name={channel.name} about={about} description={channel.description} onClose={closeAbout} />
+        : undefined}
       {error ? <p className='status'>{error.message}</p> : undefined}
       <nav className='tabs' aria-label='Channel sections'>
-        {(data?.channel.availableTabs ?? []).map(available => {
+        {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT').map(available => {
           const active = available === data?.channel.tab
           return (
             <button
@@ -656,69 +693,43 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
             <FeedSentinel onVisible={onMorePosts} disabled={postsFetching || !postsCursor} />
           </div>
         )
-        : activeTab === 'ABOUT'
+        : activeTab === 'HOME' && data?.channel.home
           ? (
-            <div className='videos about'>
-              {about?.description ? <p className='about-description'>{about.description}</p> : undefined}
-              <dl className='about-stats'>
-                {aboutStats.map(([label, value]) => (
-                  <div key={label}>
-                    <dt>{label}</dt>
-                    <dd>{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {about && about.links.length > 0
-                ? (
-                  <ul className='about-links'>
-                    {about.links.map(link => (
-                      <li key={link.url}>
-                        <a href={link.url} target='_blank' rel='noreferrer noopener'>{link.title}</a>
-                      </li>
-                    ))}
-                  </ul>
-                )
+            <div className='videos'>
+              <ChannelHome home={data.channel.home} />
+              {!data.channel.home.featured && data.channel.home.shelves.length === 0
+                ? <p className='status'>{emptyMessageFor('HOME')}</p>
                 : undefined}
-              {!aboutFetching && !about ? <p className='status'>This channel has no About panel.</p> : undefined}
             </div>
           )
-          : activeTab === 'HOME' && data?.channel.home
-            ? (
+          : (
+            <>
               <div className='videos'>
-                <ChannelHome home={data.channel.home} />
-                {!data.channel.home.featured && data.channel.home.shelves.length === 0
-                  ? <p className='status'>{emptyMessageFor('HOME')}</p>
+                <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />
+                {playlists.length > 0
+                  ? (
+                    <div className='playlist-grid'>
+                      {playlists.map(playlist => (
+                        <PlaylistCard
+                          key={playlist.id}
+                          id={playlist.id}
+                          title={playlist.title}
+                          thumbnail={playlist.thumbnail}
+                          videoCountText={playlist.videoCountText}
+                          updatedText={playlist.updatedText}
+                        />
+                      ))}
+                    </div>
+                  )
+                  : undefined}
+                {data && !fetching && !error && items.length === 0 && playlists.length === 0
+                  ? <p className='status'>{emptyMessageFor(tab)}</p>
                   : undefined}
               </div>
-            )
-            : (
-              <>
-                <div className='videos'>
-                  <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />
-                  {playlists.length > 0
-                    ? (
-                      <div className='playlist-grid'>
-                        {playlists.map(playlist => (
-                          <PlaylistCard
-                            key={playlist.id}
-                            id={playlist.id}
-                            title={playlist.title}
-                            thumbnail={playlist.thumbnail}
-                            videoCountText={playlist.videoCountText}
-                            updatedText={playlist.updatedText}
-                          />
-                        ))}
-                      </div>
-                    )
-                    : undefined}
-                  {data && !fetching && !error && items.length === 0 && playlists.length === 0
-                    ? <p className='status'>{emptyMessageFor(tab)}</p>
-                    : undefined}
-                </div>
-                {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
-                <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
-              </>
-            )}
+              {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
+              <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
+            </>
+          )}
     </main>
   )
 }

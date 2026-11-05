@@ -463,6 +463,19 @@ export const normalizeSearchChannel = (input: unknown): SourceChannel | undefine
   }
 }
 
+// youtube.com sends every link out through its /redirect page, which carries the destination in `q`
+const outboundUrl = (url: string | undefined) => {
+  try {
+    const parsed = new URL(url ?? '')
+    const target = parsed.hostname === 'www.youtube.com' && parsed.pathname === '/redirect'
+      ? new URL(parsed.searchParams.get('q') ?? '')
+      : parsed
+    return target.protocol === 'https:' || target.protocol === 'http:' ? target.href : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export const normalizeChannelAbout = (input: unknown): SourceChannelAbout | undefined => {
   const node = input as {
     metadata?: {
@@ -473,7 +486,7 @@ export const normalizeChannelAbout = (input: unknown): SourceChannelAbout | unde
       subscriber_count?: string
       video_count?: string
       canonical_channel_url?: string
-      links?: { title?: Text, link?: Text }[]
+      links?: { title?: Text, link?: Text & { endpoint?: { payload?: { url?: string } } } }[]
     }
     description?: Text
     country?: Text
@@ -495,8 +508,10 @@ export const normalizeChannelAbout = (input: unknown): SourceChannelAbout | unde
       canonicalUrl: view.canonical_channel_url,
       links: (view.links ?? []).flatMap((link) => {
         const title = presentText(link.title)
-        const url = presentText(link.link)
-        return title && url ? [{ title, url }] : []
+        // the shortened form upstream shows, such as lnk.to/abc
+        const displayUrl = presentText(link.link)
+        const url = outboundUrl(link.link?.endpoint?.payload?.url) ?? outboundUrl(displayUrl && `https://${displayUrl}`)
+        return title && url ? [{ title, url, displayUrl }] : []
       }),
     }
   }
@@ -510,7 +525,7 @@ export const normalizeChannelAbout = (input: unknown): SourceChannelAbout | unde
     canonicalUrl: legacy.canonical_channel_url,
     links: (legacy.primary_links ?? []).flatMap((link) => {
       const title = presentText(link.title)
-      const url = link.endpoint?.metadata?.url
+      const url = outboundUrl(link.endpoint?.metadata?.url)
       return title && url ? [{ title, url }] : []
     }),
   }

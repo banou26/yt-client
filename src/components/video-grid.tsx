@@ -13,8 +13,10 @@ const style = css`
   column-gap: 1.6rem;
   row-gap: 4rem;
 
+  /* The channel column is 642, 856, 1070 or 1284px wide, and youtube.com puts
+     two, two, three and three cards across them: 31rem is a minimum that does. */
   &.channel {
-    grid-template-columns: repeat(auto-fill, minmax(38rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(31rem, 1fr));
     row-gap: 2.4rem;
   }
 

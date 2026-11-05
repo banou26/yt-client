@@ -99,8 +99,23 @@ describe('youtube normalization', () => {
       subscriberCountText: '1.2M subscribers',
       videoCountText: '431 videos',
       canonicalUrl: 'https://www.youtube.com/@achannel',
-      links: [{ title: 'Site', url: 'example.com' }],
+      links: [{ title: 'Site', url: 'https://example.com/', displayUrl: 'example.com' }],
     })
+  })
+
+  it('links an About entry to its destination rather than to upstream\'s redirect page', () => {
+    const link = (shown: string, url: string) => ({
+      title: { text: 'Tickets' },
+      link: { text: shown, endpoint: { payload: { url } } },
+    })
+    expect(normalizeChannelAbout({ metadata: { links: [
+      link('lnk.to/abc', 'https://www.youtube.com/redirect?event=channel_description&redir_token=t&q=https%3A%2F%2Flnk.to%2Fabc'),
+      // a destination that is not a web address falls back to the shown text
+      link('example.org', 'https://www.youtube.com/redirect?event=channel_description&q=javascript%3Aalert(1)'),
+    ] } })?.links.map(({ url, displayUrl }) => [url, displayUrl])).toEqual([
+      ['https://lnk.to/abc', 'lnk.to/abc'],
+      ['https://example.org/', 'example.org'],
+    ])
   })
 
   it('falls back to the legacy About renderer, whose fields are Text nodes', () => {
@@ -115,7 +130,7 @@ describe('youtube normalization', () => {
       description: 'An older channel',
       country: 'Japan',
       viewCountText: '99 views',
-      links: [{ title: 'Blog', url: 'https://blog.example' }],
+      links: [{ title: 'Blog', url: 'https://blog.example/' }],
     })
     expect(normalizeChannelAbout({})).toBeUndefined()
     expect(normalizeChannelAbout(undefined)).toBeUndefined()
