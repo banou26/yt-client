@@ -109,9 +109,11 @@ test('every control keeps its label, and the bar fits a 1920, 1280, 640 and 400 
       radius: style ? Number.parseFloat(style.borderRadius) : 0,
       washed: style !== undefined && style.backgroundColor !== 'rgba(0, 0, 0, 0)',
       circle: control('Play')?.classList.contains('group') ?? false,
+      rail: Math.round(root.getBoundingClientRect().bottom - root.querySelector('.rail')!.getBoundingClientRect().bottom),
     }
   })
-  expect(grouping).toEqual({ shared: true, radius: 28, washed: true, circle: true })
+  // the rail as youtube.com draws it, 57 px up: 1 px above the 56 px row of groups
+  expect(grouping).toEqual({ shared: true, radius: 28, washed: true, circle: true, rail: 57 })
 
   await page.setViewportSize({ width: 1280, height: 800 })
   await expectFits(page, 1280)

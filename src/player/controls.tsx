@@ -25,7 +25,8 @@ export const clock = (seconds: number) => {
 }
 
 /* youtube.com's 2025 bar, measured headless at 1280 and 1920 (the sizes do not scale with the player):
-   40 px tall groups on a 30% black wash, 12 px in from each edge, and no gradient behind them */
+   40 px tall groups on a 30% black wash, 12 px from the sides and 8 px from the bottom, no gradient behind them, and the
+   4 px rail resting 1 px above the 56 px row of groups */
 const style = css`
   position: absolute;
   left: 0;
@@ -57,7 +58,8 @@ const style = css`
     position: relative;
     height: 1.6rem;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    padding-bottom: 0.1rem;
     cursor: pointer;
     touch-action: none;
   }
