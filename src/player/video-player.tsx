@@ -13,10 +13,11 @@ import { preferredTrack } from '../frame/captions'
 
 import { css } from '@emotion/react'
 import { createPortal } from 'preact/compat'
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
 import { resetEngine, startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
+import { createRestartBudget, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { getSettings, updateSettings } from '../settings'
 import { showToast } from '../components/ui/toast'
@@ -145,6 +146,7 @@ const VideoPlayer = (
   const videoRef = useRef<HTMLVideoElement>(null)
   const resumeAt = useRef(startAt ?? 0)
   const [attempt, setAttempt] = useState(0)
+  const restarts = useMemo(() => createRestartBudget(), [videoId])
   const [status, setStatus] = useState('Loading player')
   const [player, setPlayer] = useState<shaka.Player | undefined>(undefined)
   const [heights, setHeights] = useState<number[]>([])
@@ -190,21 +192,23 @@ const VideoPlayer = (
       if (abort.signal.aborted || retryTimer !== undefined) return
       resumeAt.current = video.currentTime || resumeAt.current
       const terminal = error instanceof Error && error.message === LIVE_UNSUPPORTED
-      if (terminal || attempt >= 3) {
+      if (terminal || !restarts.spend()) {
         void controller?.destroy()
         const message = error instanceof Error ? error.message : String(error)
         setStatus(`Playback failed: ${message}`)
         console.error(error)
         return
       }
-      const engineFailure = error instanceof Error && error.message.startsWith('youtube:')
+      const engineFailure = resetsEngine(error)
       retryTimer = setTimeout(() => {
         if (!abort.signal.aborted) {
           if (engineFailure) resetEngine()
           setAttempt((value) => value + 1)
         }
-      }, attempt === 0 && !engineFailure ? 100 : 1_000)
+      }, restarts.used === 1 && !engineFailure ? 100 : 1_000)
     }
+    const played = () => restarts.progress(video.currentTime)
+    video.addEventListener('timeupdate', played)
     setStatus('Loading player')
     void (async () => {
       const [api, { startShakaPlayback }] = await Promise.all([startEngine(), warmShaka()])
@@ -250,6 +254,7 @@ const VideoPlayer = (
     })
     return () => {
       abort.abort()
+      video.removeEventListener('timeupdate', played)
       clearTimeout(retryTimer)
       clearSeek(videoId)
       setPlayer(undefined)
