@@ -589,6 +589,18 @@ describe('youtube source', () => {
     expect(client.calls).toContain('livechat:stop')
   })
 
+  it('opens the chat again on a cursor it never issued, as after an engine reset', async () => {
+    const client = createFakeClient()
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    const reopened = source.liveChat('abc', 'youtube:livechat:abc:7')
+    await chatStarted(client)
+    client.emitChat({ item: chatItem('c1', 'back') })
+    const page = await reopened
+    expect(page.items.map((item) => item.id)).toEqual(['c1'])
+    expect(page.cursor).toBeTruthy()
+    expect(await source.liveChat('abc', page.cursor)).toMatchObject({ items: [] })
+  })
+
   it('reports chat being unavailable rather than throwing', async () => {
     // getLiveChat() THROWS when a video carries no chat, so absence is checked before calling it
     const client = createFakeClient()

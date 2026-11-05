@@ -1230,7 +1230,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     },
     liveChat: async (videoId, cursor) => {
       reapIdleLiveChats(videoId)
-      if (cursor) return liveChatContinuations.resolve(`livechat:${videoId}`, cursor)
+      // this video's cursor from an engine a reset replaced is unknown here: the chat opens again rather than failing every poll
+      const replaced = cursor?.startsWith(`youtube:livechat:${videoId}:`) && !liveChatContinuations.kindOf(cursor)
+      if (cursor && !replaced) return liveChatContinuations.resolve(`livechat:${videoId}`, cursor)
       const session = await openLiveChat(videoId)
       if (!session) return { items: [], disabled: true }
       if (!session.buffer.length && !session.ended) {
