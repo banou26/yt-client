@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* A signed-out home feed is EMPTY by design, and a channel is reached by
    following the app's own link rather than a guessed URL. */

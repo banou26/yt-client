@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* The watch page around the player, against the live source: `dQw4w9WgXcQ` has hashtags, a description whose second line is blank and whose third is short, and millions of comments. */
 

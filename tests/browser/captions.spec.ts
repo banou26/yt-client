@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* Captions end to end, against the live source: `dQw4w9WgXcQ` publishes an authored English track. */
 

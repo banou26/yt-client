@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import type { JarCookie } from '../../src/scramjet/jar'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 // the engine's Scramjet jar through the app's own reader, so a cookie seen here also proves the reader parses the real jar
 const readJar = (page: Page) => page.evaluate(async (path) => {

@@ -1,6 +1,7 @@
-import { chromium, expect, test } from '@playwright/test'
+import { chromium } from '@playwright/test'
 
 import { extensionBuild } from './extension-build'
+import { dismissFknNotice, expect, test } from './test'
 
 test.describe('with the FKN extension installed', () => {
   test('serves egress itself, and stops the header offering itself', async ({ baseURL }) => {
@@ -22,6 +23,7 @@ test.describe('with the FKN extension installed', () => {
       if (!context.serviceWorkers().length) await context.waitForEvent('serviceworker')
 
       const page = await context.newPage()
+      await dismissFknNotice(page)
       const egress: string[] = []
       page.on('console', message => {
         if (message.text().includes('egress →')) egress.push(message.text())

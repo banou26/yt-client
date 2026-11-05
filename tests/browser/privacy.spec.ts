@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 import { DIRECT_HOSTS, FKN_DOMAINS } from '../../src/privacy-hosts'
 

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* A fresh profile is signed out of FKN. The guide only lists groups when it is expanded, which needs a viewport wider
    than 1312px. */

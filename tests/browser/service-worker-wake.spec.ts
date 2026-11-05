@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* Chrome stops Scramjet's service worker after 30 s with no event, and the request that starts it again arrives
    before the page's controller registers with the new instance. Left to the network, a catalog POST reaches the

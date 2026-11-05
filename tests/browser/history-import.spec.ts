@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* exposure is simulated through the extension's page-visible contract, `data-fkn-extension` on <html>, as
    extension-notice.spec.ts does; the import itself runs through the real extension in history-import-extension.spec.ts */

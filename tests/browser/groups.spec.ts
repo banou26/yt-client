@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* Signed out. Groups live in this profile's localStorage, so each test starts with none. The guide only lists
    groups when it is expanded, which needs a viewport wider than 1312px. */

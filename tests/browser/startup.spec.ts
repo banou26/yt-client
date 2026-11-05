@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* Startup budgets: every other suite's timeouts are sized so a run never flakes, so a change
    that made startup twice as slow would pass all of them. These ceilings are the only ones that fail. */

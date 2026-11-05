@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* The player bar against the live source: `dQw4w9WgXcQ` has captions and a related list, so every control is drawn,
    and no chapters; `jNQXAC9IVRw` is 19 s long with three chapters, Intro, The cool thing (from 5 s) and End (from 17 s). */

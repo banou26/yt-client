@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* exposure is simulated through the extension's own page-visible contract, `data-fkn-extension` on <html> plus the content script's event, which is what `@fkn/lib`'s `isExtensionExposed()` reads */
 

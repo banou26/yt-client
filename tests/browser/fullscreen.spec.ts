@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* The player root carries BOTH a 16/9 aspect-ratio box and theater mode's
    max-height, either of which letterboxes the video inside a fullscreened container. */

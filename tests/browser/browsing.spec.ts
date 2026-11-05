@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 test('centres the search box, clears it, and opens the header menu', async ({ page }) => {
   for (const width of [1920, 1600, 1440, 1280]) {

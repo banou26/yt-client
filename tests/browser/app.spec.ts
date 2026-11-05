@@ -1,6 +1,6 @@
 import type { ConsoleMessage } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 import { FRAME_BOOTSTRAP_URL } from '../../src/scramjet/fkn-transport'
 

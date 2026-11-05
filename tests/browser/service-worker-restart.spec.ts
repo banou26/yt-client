@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* Chrome ends Scramjet's service worker with its network service, and the worker that starts next routes
    nothing until the page's controller registers with it again. Stopped right after the engine is ready,

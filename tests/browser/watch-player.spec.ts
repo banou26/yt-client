@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* The watch page's player against the live source: `dQw4w9WgXcQ` is a 213 s static video with a related list. */
 

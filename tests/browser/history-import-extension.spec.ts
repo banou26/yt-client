@@ -3,10 +3,11 @@ import type { BrowserContext, Page } from '@playwright/test'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { createServer } from 'node:https'
-import { chromium, expect, test } from '@playwright/test'
+import { chromium } from '@playwright/test'
 
 import { extensionBuild } from './extension-build'
 import { selfSigned } from './self-signed'
+import { dismissFknNotice, expect, test } from './test'
 
 /* www.youtube.com is a local TLS stand-in answering FEhistory for whichever account the browser's jar is signed in to,
    so the import runs end to end through the real unpacked extension; every other host keeps its own route */
@@ -99,6 +100,7 @@ test.describe('importing the history with the FKN extension installed', () => {
       await session.send('Extensions.loadUnpacked' as 'Browser.getVersion', { path: build.path } as object)
       if (!context.serviceWorkers().length) await context.waitForEvent('serviceworker')
       const page = await context.newPage()
+      await dismissFknNotice(page)
       const main = page.getByRole('main')
       const importOffer = main.getByRole('button', { name: 'Import from YouTube on this browser' })
       const importAgain = main.getByRole('button', { name: 'Import again' })

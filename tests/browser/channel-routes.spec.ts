@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* This client keeps a channel's tab in the query string, so every path form
    upstream uses has to bounce to that canonical shape. */

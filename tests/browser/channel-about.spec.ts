@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 
 /* youtube.com has no About tab: the header's "...more" and its links line open a dialog with the description, the
    links and the channel's details. */
