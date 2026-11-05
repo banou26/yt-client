@@ -288,6 +288,16 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
   adapter.onMintPoToken(source.mint)
   adapter.attach(null)
 
+  /* Status 3 asks for a new BotGuard session. A session that gets status 2 with no media keeps getting it (9 of 95
+     sessions, 2026-11-05), and a new one cleared it on the same stream 5 of 5 times; once per stream, so it cannot loop. */
+  let replacedOnStatus2 = false
+  const recoverFor = (streamStatus: number | undefined) => {
+    if (streamStatus === 3) return source.recoverMint()
+    if (streamStatus !== 2 || replacedOnStatus2) return
+    replacedOnStatus2 = true
+    return source.recoverMint()
+  }
+
   type CachedMedia = CollectedUmpSegment & {
     cacheKey: string
     durationMs?: number
@@ -727,7 +737,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
     if (response.metadata.streamInfo?.reloadPlaybackContext) throw refreshError(`youtube: ${describeNoMedia(response)}`)
     if (attempt + 1 < MAX_SEGMENT_ATTEMPTS) {
       const streamStatus = response.metadata.streamInfo?.streamProtectionStatus?.status
-      if (streamStatus === 3) await source.recoverMint()
+      await recoverFor(streamStatus)
       const serverBackoff = response.metadata.streamInfo?.nextRequestPolicy?.backoffTimeMs ?? 0
       progress('retry')
       await wait(Math.min(2_000, Math.max(serverBackoff, 200 * 2 ** attempt)), closeController.signal)
@@ -851,7 +861,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
           : describeNoMedia(response)
         if (response.metadata.streamInfo?.reloadPlaybackContext) throw refreshError(`youtube: ${reason}`)
         if (attempt + 1 < MAX_SEGMENT_ATTEMPTS) {
-          if (streamStatus === 3) await source.recoverMint()
+          await recoverFor(streamStatus)
           const serverBackoff = response.metadata.streamInfo?.nextRequestPolicy?.backoffTimeMs ?? 0
           progress('retry')
           await wait(Math.min(2_000, Math.max(serverBackoff, 200 * 2 ** attempt)), signal)

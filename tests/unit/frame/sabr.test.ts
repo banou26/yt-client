@@ -1,7 +1,13 @@
-import { describe, expect, it } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { MediaHeader, UMPPartId } from 'googlevideo/protos'
-import { createUmpFramer, createUmpSegmentCollector, inspectUmpChunks } from '../../../src/frame/sabr'
+import { MediaHeader, StreamProtectionStatus, UMPPartId } from 'googlevideo/protos'
+import type { SabrSource } from '../../../src/frame/innertube'
+import type { SegmentRequest } from '../../../src/frame/protocol'
+import { egressFetch } from '../../../src/frame/egress'
+import { createSabrSession, createUmpFramer, createUmpSegmentCollector, inspectUmpChunks } from '../../../src/frame/sabr'
+
+vi.mock('../../../src/frame/egress', () => ({ egressFetch: vi.fn() }))
+vi.mock('../../../src/frame/innertube', () => ({ GVS_ORIGIN_KEY: 'gvs-origin' }))
 
 const encodeVarInt = (value: number) => {
   if (value < 128) return [value]
@@ -126,5 +132,85 @@ describe('createUmpSegmentCollector', () => {
     ])
 
     expect(framer.push(envelope).flatMap((frame) => collector.push(frame) ?? [])).toEqual([])
+  })
+})
+
+describe('a SABR session answered with no media', () => {
+  const video = { itag: 399, lastModified: '1', width: 1_920, height: 1_080, mimeType: 'video/mp4; codecs="av01.0.08M.08"', bitrate: 1, approxDurationMs: 213_000 }
+  const audio = { itag: 251, lastModified: '1', mimeType: 'audio/webm; codecs="opus"', bitrate: 1, approxDurationMs: 213_000 }
+  const recoverMint = vi.fn(async () => {})
+  const source: SabrSource = {
+    videoId: 'video-1',
+    isLive: false,
+    durationMs: 213_000,
+    manifest: '<MPD/>',
+    streamingUrl: 'https://rr1---sn-test.googlevideo.com/videoplayback?id=1',
+    ustreamerConfig: 'AA==',
+    formats: [video, audio],
+    playbackFormats: [
+      { key: '399:', itag: 399, mimeType: video.mimeType, bitrate: 1, width: 1_920, height: 1_080 },
+      { key: '251:', itag: 251, mimeType: audio.mimeType, bitrate: 1 },
+    ],
+    storyboards: [],
+    captions: [],
+    clientInfo: { clientName: 1, clientVersion: '2.20261008.00.00' },
+    mint: async () => 'AAAA',
+    recoverMint,
+  }
+  const seek: SegmentRequest = {
+    requestId: 'request-1',
+    sessionId: 'session-1',
+    generation: 1,
+    track: 'video',
+    kind: 'media',
+    startTimeMs: 90_000,
+    snapshot: { currentTimeMs: 90_000, playbackRate: 1, bandwidthEstimate: 10_000_000, viewportWidth: 1_280, viewportHeight: 720 },
+  }
+
+  const answerWithStatus = (status: number) => vi.mocked(egressFetch).mockImplementation(async () =>
+    new Response(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status }).finish())))
+
+  // a request through every retry and its waits
+  const failure = async (session: ReturnType<typeof createSabrSession>) => {
+    const outcome = session.requestSegment(seek).then(() => 'played', (error: Error) => error.message)
+    await vi.runAllTimersAsync()
+    return outcome
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.stubGlobal('MediaSource', { isTypeSupported: () => true })
+    recoverMint.mockClear()
+    vi.mocked(egressFetch).mockReset()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('replaces the BotGuard session on status 2 once per stream, not on every attempt', async () => {
+    answerWithStatus(2)
+    const session = createSabrSession(source)
+    expect(await failure(session)).toBe('youtube: SABR stream status 2 after 3 attempts')
+    expect(recoverMint).toHaveBeenCalledTimes(1)
+    expect(await failure(session)).toBe('youtube: SABR stream status 2 after 3 attempts')
+    expect(recoverMint).toHaveBeenCalledTimes(1)
+    expect(egressFetch).toHaveBeenCalledTimes(6)
+    session.close()
+    const next = createSabrSession(source)
+    await failure(next)
+    expect(recoverMint).toHaveBeenCalledTimes(2)
+    next.close()
+  })
+
+  it('replaces it on status 3 before every retry', async () => {
+    answerWithStatus(3)
+    const session = createSabrSession(source)
+    expect(await failure(session)).toBe('youtube: SABR stream status 3 after 3 attempts')
+    expect(recoverMint).toHaveBeenCalledTimes(2)
+    await failure(session)
+    expect(recoverMint).toHaveBeenCalledTimes(4)
+    session.close()
   })
 })
