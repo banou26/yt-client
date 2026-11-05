@@ -79,9 +79,13 @@ type ChannelFeed = Feed & {
   getAbout?: () => Promise<unknown>
   has_about?: boolean
   applySort?: (sort: string) => Promise<ChannelFeed>
+  applyFilter?: (chip: SortChip) => Promise<ChannelFeed>
   search?: (query: string) => Promise<ChannelFeed>
   current_tab?: { content?: { contents?: Iterable<{ contents?: Iterable<unknown> }> } }
 }
+
+// youtubei.js 18 adds `selected`; 17 leaves the chip's state unparsed
+type SortChip = { text?: string, display_type?: string, selected?: boolean }
 
 type PostsFeed = Feed & {
   posts?: Iterable<unknown>
@@ -502,6 +506,13 @@ const channelHome = (feed: ChannelFeed): SourceChannelHome => {
     }
   }
   return home
+}
+
+// The Videos, Shorts and Live tabs sort by a chip bar rather than the sort menu youtubei.js reads. A bar led by a dropdown is a filter bar (members only, public) with the sorts inside the dropdown, which is not read.
+const sortChips = (feed: ChannelFeed) => {
+  const chips = (feed.memo?.get('ChipView') ?? []) as SortChip[]
+  if (chips.some((chip) => chip.display_type?.includes('DROP_DOWN'))) return []
+  return chips.filter((chip): chip is SortChip & { text: string } => Boolean(chip.text))
 }
 
 const openChannelTab = async (
@@ -1112,9 +1123,15 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const availableTabs = availableChannelTabs(result)
       const selected = tab && availableTabs.includes(tab) ? tab : defaultChannelTab(availableTabs)
       let feed = await openChannelTab(result, selected, query)
-      const sortOptions = feed.sort_filters ?? []
+      const chips = sortChips(feed)
+      const sortOptions = feed.sort_filters?.length ? feed.sort_filters : chips.map((chip) => chip.text)
       const appliedSort = sort && sortOptions.includes(sort) ? sort : undefined
-      if (appliedSort && feed.applySort) feed = await feed.applySort(appliedSort)
+      const chip = chips.find((candidate) => candidate.text === appliedSort)
+      if (chip) {
+        if (!chip.selected && feed.applyFilter) feed = await feed.applyFilter(chip)
+      } else if (appliedSort && feed.applySort) {
+        feed = await feed.applySort(appliedSort)
+      }
       const rest = { availableTabs, tab: selected, sortOptions, appliedSort }
       channels.set(id, { channel, page: rest })
       if (selected === 'HOME') return { ...rest, channel, videos: { items: [], playlists: [] }, home: channelHome(feed) }

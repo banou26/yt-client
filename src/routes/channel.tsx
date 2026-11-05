@@ -1,8 +1,10 @@
+import type { TargetedFocusEvent, TargetedSubmitEvent } from 'preact'
+
 import type { ChannelTab, ChannelViewQuery, CommunityPostsQuery } from '../generated/graphql'
 
 import { css } from '@emotion/react'
-import { Link2 } from 'lucide-react'
-import { useCallback, useState } from 'preact/hooks'
+import { Link2, Search } from 'lucide-react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
@@ -151,7 +153,7 @@ const TAB_LABELS: Record<ChannelTab, string> = {
   PODCASTS: 'Podcasts',
   COURSES: 'Courses',
   PLAYLISTS: 'Playlists',
-  COMMUNITY: 'Community',
+  COMMUNITY: 'Posts',
   ABOUT: 'About',
   SEARCH: 'Search',
 }
@@ -296,15 +298,24 @@ const style = css`
     margin-top: 1.2rem;
   }
 
+  /* The rule is an inset shadow rather than a border so the active tab's
+     underline can cover it inside the strip, which scrolls on a phone. */
   .tabs {
     display: flex;
+    align-items: center;
     gap: 2.4rem;
     margin-top: 2.4rem;
-    border-bottom: 1px solid var(--border-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: inset 0 -1px var(--border-subtle);
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tab {
-    margin-bottom: -0.1rem;
+    flex: none;
     padding: 1.2rem 0;
     border: none;
     border-bottom: 0.2rem solid transparent;
@@ -323,6 +334,31 @@ const style = css`
   .tab.active {
     color: var(--text-primary);
     border-bottom-color: var(--text-primary);
+  }
+
+  .tab-icon {
+    display: flex;
+    padding: 1rem 0;
+  }
+
+  .tab-search {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .tab-search input {
+    width: 22rem;
+    padding: 0.4rem 0;
+    border: none;
+    border-bottom: 1px solid var(--text-primary);
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 1.4rem;
+    outline: none;
   }
 
   /* Only rendered when the tab offers more than one ordering, so it never shows
@@ -538,6 +574,21 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   })
   const about = aboutData?.channelAbout ?? undefined
   const [firstLink, ...moreLinks] = about?.links ?? []
+  const hasSearch = data?.channel.availableTabs.includes('SEARCH') === true
+  const [searching, setSearching] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
+  // focused before the first paint, so the keystroke after the click lands in the box
+  useLayoutEffect(() => {
+    if (searching) searchRef.current?.focus()
+  }, [searching])
+  const onSearch = (event: TargetedSubmitEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const value = searchRef.current?.value.trim()
+    if (!value) return
+    setSearching(false)
+    navigate(`/channel/${id}?${new URLSearchParams({ tab: 'SEARCH', query: value })}`)
+  }
+
   const [aboutOpen, setAboutOpen] = useState(false)
   const openAbout = () => setAboutOpen(true)
   // stable, since the dialog re-runs its focus effect whenever onClose changes
@@ -624,7 +675,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
         : undefined}
       {error ? <p className='status'>{error.message}</p> : undefined}
       <nav className='tabs' aria-label='Channel sections'>
-        {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT').map(available => {
+        {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab
           return (
             <button
@@ -638,6 +689,30 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
             </button>
           )
         })}
+        {hasSearch && (searching || channelQuery !== undefined)
+          ? (
+            <form className='tab-search' onSubmit={onSearch}>
+              <Search size={20} strokeWidth={1.5} aria-hidden='true' />
+              <input
+                key={channelQuery}
+                ref={searchRef}
+                type='search'
+                placeholder='Search'
+                aria-label='Search this channel'
+                defaultValue={channelQuery}
+                onBlur={(event: TargetedFocusEvent<HTMLInputElement>) => {
+                  if (!event.currentTarget.value) setSearching(false)
+                }}
+              />
+            </form>
+          )
+          : hasSearch
+            ? (
+              <button type='button' className='tab tab-icon' aria-label='Search' onClick={() => setSearching(true)}>
+                <Search size={20} strokeWidth={1.5} />
+              </button>
+            )
+            : undefined}
       </nav>
       {(data?.channel.sortOptions.length ?? 0) > 1
         ? (

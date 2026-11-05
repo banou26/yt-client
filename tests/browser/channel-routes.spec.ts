@@ -13,6 +13,8 @@ test('bounces the tab paths a channel page links to', async ({ page }) => {
     ['/@Blender/streams', '/@Blender?tab=LIVE'],
     ['/@Blender/playlists', '/@Blender?tab=PLAYLISTS'],
     ['/@Blender/community', '/@Blender?tab=COMMUNITY'],
+    // youtube.com's own word for the tab now
+    ['/@Blender/posts', '/@Blender?tab=COMMUNITY'],
     ['/@Blender/about', '/@Blender?tab=ABOUT'],
     ['/@Blender/featured', '/@Blender'],
     [`/channel/${CHANNEL_ID}/videos`, `/channel/${CHANNEL_ID}?tab=VIDEOS`],
@@ -51,4 +53,29 @@ test('lands a channel handle on its Home tab, with the featured video and the sh
     .filter({ has: page.locator('a[href^="/watch?v="], a[href^="/shorts/"]') })
   expect(await shelves.count()).toBeGreaterThanOrEqual(2)
   await expect(shelves.first().locator('h2')).not.toBeEmpty()
+})
+
+test('names the tabs like youtube.com, sorts Videos by chips and searches from an icon', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto('/@RickAstleyYT?tab=VIDEOS')
+  const tabs = page.getByRole('navigation', { name: 'Channel sections' })
+  await expect(tabs.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  await expect(tabs.getByRole('button', { name: 'Posts', exact: true })).toBeVisible()
+  await expect(tabs.getByText('Community')).toHaveCount(0)
+
+  await expect(page.getByRole('button', { name: 'Latest', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: 'Popular', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Oldest', exact: true }).click()
+  await expect(page).toHaveURL(/sort=Oldest/)
+  await expect(page.getByRole('button', { name: 'Oldest', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.locator('main article a.thumb').first()).toHaveAttribute('href', '/watch?v=dQw4w9WgXcQ', { timeout: 120_000 })
+
+  await tabs.getByRole('button', { name: 'Search', exact: true }).click()
+  const box = tabs.getByRole('searchbox', { name: 'Search this channel' })
+  await expect(box).toBeFocused()
+  await page.keyboard.type('never gonna')
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/tab=SEARCH&query=never\+gonna/)
+  await expect(box).toHaveValue('never gonna')
+  await expect(page.locator('main article a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
 })

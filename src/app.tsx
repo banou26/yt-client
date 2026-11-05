@@ -109,6 +109,7 @@ const CHANNEL_TAB_PATHS: Record<string, ChannelTab> = {
   courses: 'COURSES',
   playlists: 'PLAYLISTS',
   community: 'COMMUNITY',
+  posts: 'COMMUNITY',
   about: 'ABOUT',
 }
 

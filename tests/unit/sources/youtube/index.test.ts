@@ -473,6 +473,52 @@ describe('youtube channel tabs', () => {
     expect(missing.tab).toBe('VIDEOS')
   })
 
+  it('sorts the Videos tab by its chip bar, through the chip itself', async () => {
+    const client = createFakeClient()
+    const applied: unknown[] = []
+    const chips = ['Latest', 'Popular', 'Oldest'].map((text) => ({ text, display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED' }))
+    const inner = client.getChannel
+    client.getChannel = async () => Object.assign(await inner(), {
+      async getVideos() {
+        return {
+          ...feed('latest'),
+          memo: new Map<string, unknown[]>([['ChipView', chips]]),
+          applyFilter: async (chip: unknown) => {
+            applied.push(chip)
+            return feed('oldest')
+          },
+        }
+      },
+    })
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    const latest = await source.channel('c', 'VIDEOS')
+    expect(latest.sortOptions).toEqual(['Latest', 'Popular', 'Oldest'])
+    expect(applied).toEqual([])
+    const oldest = await source.channel('c', 'VIDEOS', 'Oldest')
+    expect(oldest.appliedSort).toBe('Oldest')
+    expect(applied).toEqual([chips[2]])
+    expect(oldest.videos.items[0]?.id).toBe('oldest')
+  })
+
+  it('offers no sort for a chip bar led by a dropdown, which holds the sorts out of reach', async () => {
+    const client = createFakeClient()
+    const inner = client.getChannel
+    client.getChannel = async () => Object.assign(await inner(), {
+      async getVideos() {
+        return {
+          ...feed('latest'),
+          memo: new Map<string, unknown[]>([['ChipView', [
+            { text: 'Latest', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_DROP_DOWN' },
+            { text: 'Members only', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED' },
+            { text: 'Public', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED' },
+          ]]]),
+        }
+      },
+    })
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    expect((await source.channel('c', 'VIDEOS')).sortOptions).toEqual([])
+  })
+
   it('refuses a cursor minted for a different tab of the same channel', async () => {
     const source = createYoutubeSource({
       fetch: globalThis.fetch,
