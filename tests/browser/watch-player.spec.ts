@@ -241,6 +241,8 @@ test('answers youtube.com keyboard shortcuts, with a bezel for each change', asy
   expect(stepped).toBeLessThan(0.1)
   await page.keyboard.press(',')
   expect(await time()).toBeCloseTo(start, 2)
+  // Shaka holds the rate at 0 while a seek buffers and then restores its own stored rate, which can overwrite a rate set in that window
+  await expect.poll(() => video.evaluate(element => !(element as HTMLVideoElement).seeking && (element as HTMLVideoElement).readyState >= 3)).toBe(true)
 
   await page.keyboard.press('Shift+Period')
   expect((await media()).rate).toBe(1.25)
