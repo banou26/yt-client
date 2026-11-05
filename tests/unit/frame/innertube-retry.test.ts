@@ -9,6 +9,8 @@ const youtube = vi.hoisted(() => ({
   failPlayer: 0,
   pagePlayers: [] as string[],
   failPagePlayer: 0,
+  playerSession: undefined as { cache?: unknown, fetch?: unknown } | undefined,
+  pagePlayerFrom: [] as { cache: unknown, fetch: unknown }[],
 }))
 
 vi.mock('youtubei.js/web', () => {
@@ -28,8 +30,9 @@ vi.mock('youtubei.js/web', () => {
     Constants: { CLIENTS: { WEB: { VERSION: '' } }, CLIENT_NAME_IDS: { WEB: '1' } },
     Platform: { shim: {} },
     Player: {
-      create: async (_cache: unknown, _fetch: unknown, _token: unknown, id: string) => {
+      create: async (cache: unknown, fetch: unknown, _token: unknown, id: string) => {
         youtube.pagePlayers.push(id)
+        youtube.pagePlayerFrom.push({ cache, fetch })
         if (youtube.failPagePlayer-- > 0) throw new Error('Failed to get player data: 404')
         return player(id)
       },
@@ -38,12 +41,14 @@ vi.mock('youtubei.js/web', () => {
     Utils: { generateRandomString: () => 'nonce' },
     YT: { VideoInfo: class { constructor() { return info } } },
     Innertube: {
-      create: async (options: { retrieve_player: boolean }) => {
+      create: async (options: { retrieve_player: boolean, cache?: unknown, fetch?: unknown }) => {
         const kind = options.retrieve_player ? 'player' : 'catalog'
         youtube.builds.push(kind)
         if (kind === 'catalog' && youtube.failCatalog-- > 0) throw new TypeError('Failed to fetch')
         if (kind === 'player' && youtube.failPlayer-- > 0) throw new TypeError('Failed to fetch')
-        return { session: { context, player: player('ef321720') }, actions: {} }
+        if (kind === 'player') youtube.playerSession = options
+        // the session keeps the cache and the fetch it was built with, as youtubei.js's Session and HTTPClient do
+        return { session: { context, cache: options.cache, http: { fetch_function: options.fetch }, player: player('ef321720') }, actions: {} }
       },
     },
   }
@@ -78,6 +83,8 @@ describe('the frame Innertube sessions', () => {
     youtube.failPlayer = 0
     youtube.pagePlayers = []
     youtube.failPagePlayer = 0
+    youtube.playerSession = undefined
+    youtube.pagePlayerFrom = []
     const storage = new Map<string, string>()
     vi.stubGlobal('localStorage', {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -132,12 +139,17 @@ describe('the frame Innertube sessions', () => {
       playerJsUrl: playerId && `\\/s\\/player\\/${playerId}\\/player_ias.vflset\\/en_US\\/base.js`,
     })]))
 
-    it("uses the watch page's player when it is another than the session's, built once", async () => {
+    it("uses the watch page's player when it is another than the session's, built once through the session's fetch and cache", async () => {
       servePage('a5c2aafe')
       const { getSabrSource } = await loadFrame()
       expect(await decipheredBy(getSabrSource)).toBe('a5c2aafe')
       expect(await decipheredBy(getSabrSource)).toBe('a5c2aafe')
       expect(youtube.pagePlayers).toEqual(['a5c2aafe'])
+      const [from] = youtube.pagePlayerFrom
+      expect(from?.fetch).toBeTypeOf('function')
+      expect(from?.fetch).toBe(youtube.playerSession?.fetch)
+      expect(from?.cache).toBeTypeOf('object')
+      expect(from?.cache).toBe(youtube.playerSession?.cache)
     })
 
     it.each([['the same player', 'ef321720'], ['no player', undefined]])("uses the session's player for a page naming %s", async (_, playerId) => {

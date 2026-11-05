@@ -158,7 +158,8 @@ const decipherPlayer = async (session: Innertube['session'], pageId: string | un
   if (!pageId || pageId === player.player_id) return player
   let build = pagePlayers.get(pageId)
   if (!build) {
-    build = keepOnSuccess(() => Player.create(session.cache, globalThis.fetch.bind(globalThis), undefined, pageId))
+    // the fetch the session's own player came through: Session.create hands options.fetch to both Player.create and HTTPClient
+    build = keepOnSuccess(() => Player.create(session.cache, session.http.fetch_function, undefined, pageId))
     pagePlayers.set(pageId, build)
   }
   return build().catch((error: unknown) => {
