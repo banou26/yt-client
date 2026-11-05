@@ -18,7 +18,7 @@ export const GROUPS_SYNC_KEY = 'yt-client:groups-sync'
 /** When each deleted group went, by id, so a copy of it elsewhere does not bring it back. */
 export type Deleted = Record<string, number>
 
-/** `file` is the account file this list was last merged with, absent while the list is this browser's own. */
+/** `file` is the id of the account file this list was last read from, absent while the list is this browser's own. */
 export type GroupsSync = { file?: string, deleted: Deleted }
 
 export const groupHrefFor = (groupId: string) => `/feed/groups/${encodeURIComponent(groupId)}`

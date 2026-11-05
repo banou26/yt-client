@@ -180,6 +180,37 @@ describe('groupSync', () => {
     expect(names(onLaptop.store)).toEqual(['Music', 'News'])
   })
 
+  it('keeps both lists when two browsers each create the account\'s file at once', async () => {
+    const world = fknWorld()
+    const laptop = world.browser()
+    const phone = world.browser()
+    const onLaptop = laptop.open()
+    const onPhone = phone.open()
+    onLaptop.store.createGroup({ name: 'Music' })
+    onPhone.store.createGroup({ name: 'News' })
+    await onLaptop.sync.check()
+    await onPhone.sync.check()
+
+    // both find no file and each writes one under its own id, the phone's last
+    let releaseLaptop!: () => void
+    let releasePhone!: () => void
+    laptop.state.writeGate = new Promise(resolve => releaseLaptop = resolve)
+    phone.state.writeGate = new Promise(resolve => releasePhone = resolve)
+    laptop.signIn('ann')
+    phone.signIn('ann')
+    await vi.waitFor(() => expect(laptop.state.calls.write + phone.state.calls.write).toBe(2))
+    releaseLaptop()
+    await vi.waitFor(() => expect(world.namesOf('ann')).toEqual(['Music']))
+    releasePhone()
+    await vi.waitFor(() => expect(world.namesOf('ann')).toEqual(['News']))
+
+    await onLaptop.sync.check()
+    await onPhone.sync.check()
+    expect(world.namesOf('ann')).toEqual(['News', 'Music'])
+    expect(names(onLaptop.store)).toEqual(['News', 'Music'])
+    expect(names(onPhone.store)).toEqual(['News', 'Music'])
+  })
+
   it('carries an edit and a deletion from one browser to the other', async () => {
     const world = fknWorld()
     const laptop = world.browser('ann')
@@ -241,6 +272,8 @@ describe('groupSync', () => {
     const first = device.open()
     first.store.createGroup({ name: 'Ann\'s' })
     await first.sync.check()
+    // the second step reads the file back, which makes the list the account's
+    await first.sync.check()
 
     // fkn.app signed out and in as another account while yt-client was closed: no change was heard
     device.state.account = 'bob'
@@ -260,6 +293,7 @@ describe('groupSync', () => {
     const device = world.browser('ann')
     const { store, sync } = device.open()
     store.createGroup({ name: 'Music' })
+    await sync.check()
     await sync.check()
     const read = device.cloud.read
     device.cloud.read = async (path) => {
@@ -294,6 +328,7 @@ describe('groupSync', () => {
     const { store, sync } = device.open({ boundMs: 20 })
     store.createGroup({ name: 'Music' })
     await sync.check()
+    await sync.check()
     const file = world.fileOf('ann')?.file
 
     device.state.hang.add('availability')
@@ -305,7 +340,7 @@ describe('groupSync', () => {
     device.state.hang.add('unlocked')
     store.createGroup({ name: 'News' })
     await sync.check()
-    expect(device.state.calls.read).toBe(1)
+    expect(device.state.calls.read).toBe(2)
     device.state.hang.clear()
 
     for (const call of ['read', 'write'] as const) {
@@ -326,6 +361,7 @@ describe('groupSync', () => {
     store.createGroup({ name: 'Music' })
     store.deleteGroup(store.createGroup({ name: 'Old' }).id)
     await sync.check()
+    await sync.check()
     device.signIn(undefined)
     await sync.check()
     expect(names(store)).toEqual([])
@@ -344,6 +380,7 @@ describe('groupSync', () => {
     const onLaptop = laptop.open()
     const onPhone = phone.open()
     onLaptop.store.createGroup({ name: 'Music' })
+    await onLaptop.sync.check()
     await onLaptop.sync.check()
     const before = world.fileOf('ann')?.file
     onPhone.store.createGroup({ name: 'News' })
