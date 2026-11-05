@@ -52,6 +52,18 @@ const style = css`
   .arrow.right {
     right: -2rem;
   }
+
+  /* Without the guide a page's gutter can be narrower than the overhang,
+     which would scroll the whole page sideways. */
+  @media (max-width: 792px) {
+    .arrow.left {
+      left: 0;
+    }
+
+    .arrow.right {
+      right: 0;
+    }
+  }
 `
 
 // Roughly a screenful, so a click advances the rail rather than nudging it.

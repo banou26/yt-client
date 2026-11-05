@@ -88,3 +88,11 @@ test('keeps the channel\'s name in its header once its own videos fill the Home 
   await expect(page.locator('main h1')).toHaveText('Linus Tech Tips')
   await expect(shelf.locator('.channel-name')).toHaveCount(0)
 })
+
+test('fits a channel\'s Home shelves in a phone\'s width', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/@RickAstleyYT')
+  await expect(page.locator('main .arrow.right').first()).toBeVisible({ timeout: 120_000 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0)
+})
