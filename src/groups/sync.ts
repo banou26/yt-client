@@ -144,7 +144,7 @@ export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => c
     // another account's list, or one whose file was deleted or can no longer be opened, is never merged into this one.
     // A list on a file this page created with no account change heard since is this account's: two browsers that each
     // found no file both create one, and the later write wins.
-    const mine = minted?.generation === began && minted.file === before.file
+    const mine = minted?.generation === began
     const ours = before.file && before.file !== theirs?.file && !mine ? NONE : before
     const merged = mergeGroups(theirs ?? NONE, ours)
     const file = theirs?.file ?? newId()
