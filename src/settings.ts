@@ -18,6 +18,8 @@ export type Settings = {
   suggestExtension: boolean
   // a CACHE rather than a preference, and the live DOM signal always wins over it
   extensionSeen?: boolean
+  // set when a person picks a theme; before 2026-11-05 the first visit saved the old Dark default as if chosen
+  themeChosen?: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -45,7 +47,7 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
   const playbackRate = stored.playbackRate
   const captionsLanguage = stored.captionsLanguage
   return {
-    theme: theme === 'device' || theme === 'light' || theme === 'dark' ? theme : DEFAULT_SETTINGS.theme,
+    theme: theme === 'light' || (theme === 'dark' && stored.themeChosen === true) ? theme : DEFAULT_SETTINGS.theme,
     autoplay: typeof stored.autoplay === 'boolean' ? stored.autoplay : DEFAULT_SETTINGS.autoplay,
     volume: typeof volume === 'number' && Number.isFinite(volume) ? clamp(volume, 0, 1) : DEFAULT_SETTINGS.volume,
     muted: typeof stored.muted === 'boolean' ? stored.muted : DEFAULT_SETTINGS.muted,
@@ -61,6 +63,7 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
     guideCollapsed: typeof stored.guideCollapsed === 'boolean' ? stored.guideCollapsed : DEFAULT_SETTINGS.guideCollapsed,
     suggestExtension: typeof stored.suggestExtension === 'boolean' ? stored.suggestExtension : DEFAULT_SETTINGS.suggestExtension,
     extensionSeen: typeof stored.extensionSeen === 'boolean' ? stored.extensionSeen : undefined,
+    themeChosen: stored.themeChosen === true ? true : undefined,
   }
 }
 
@@ -90,7 +93,7 @@ export const subscribeSettings = (listener: (settings: Settings) => void) => {
 }
 
 export const updateSettings = (patch: Partial<Settings>) => {
-  const next = { ...current, ...patch }
+  const next = { ...current, ...patch, ...('theme' in patch ? { themeChosen: true } : {}) }
   current = next
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
