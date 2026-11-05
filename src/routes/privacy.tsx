@@ -116,7 +116,11 @@ export const PrivacyPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Where requests go</h2>
-        <p>yt-client reaches YouTube through FKN, the platform it runs on, so YouTube sees FKN's address rather than yours:</p>
+        <p>
+          Without the FKN browser extension, yt-client reaches YouTube's pages, API and video through FKN, the platform it
+          runs on, so YouTube sees FKN's address there rather than yours. Thumbnails, pictures and fonts are the
+          exception: your browser loads them itself, from the servers listed further down.
+        </p>
         <ul>
           <li>
             YouTube's pages and API go through the FKN relay, which makes each request for you. When you are signed in,
@@ -138,9 +142,9 @@ export const PrivacyPage = () => {
           can make them, so YouTube sees your IP address. Importing your watch history needs the extension: it reads your
           history with this browser's own youtube.com sign-in, through the extension and not through FKN.
         </p>
-        <p>When a video starts, yt-client sends YouTube the same playback report youtube.com sends.</p>
+        <p>When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at that point.</p>
         <p>
-          What FKN keeps of the requests that pass through it is in the{' '}
+          What FKN keeps, in this browser and on its servers, is in the{' '}
           <a className='link' href={FKN_PRIVACY_URL} target='_blank' rel='noreferrer'>FKN privacy policy</a>
           . What the extension keeps is in the{' '}
           <a className='link' href={EXTENSION_PRIVACY_URL} target='_blank' rel='noreferrer'>extension privacy policy</a>
