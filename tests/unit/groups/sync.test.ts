@@ -451,6 +451,28 @@ describe('groupSync', () => {
     expect(world.namesOf('ann')).toEqual(['On account'])
   })
 
+  it('keeps an edit whose write storage refused while a step was in flight', async () => {
+    const world = fknWorld()
+    const storage = memoryStorage()
+    const device = world.browser('ann', { storage })
+    const { store, sync } = device.open()
+    store.createGroup({ name: 'Music' })
+    await sync.check()
+    const read = device.cloud.read
+    device.cloud.read = async (path) => {
+      const text = await read(path)
+      device.cloud.read = read
+      storage.storage.setItem = () => {
+        throw new Error('QuotaExceededError')
+      }
+      store.createGroup({ name: 'News' })
+      return text
+    }
+    await sync.check()
+    await sync.check()
+    expect(names(store)).toEqual(['Music', 'News'])
+  })
+
   it('keeps an edit made while a step was in flight', async () => {
     const world = fknWorld()
     const device = world.browser('ann')

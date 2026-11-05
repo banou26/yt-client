@@ -112,10 +112,11 @@ export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => c
   let generation = 0
 
   const step = async () => {
-    // without storage the snapshot cannot see this tab's edits, and settling would undo them
-    if (!store.persists()) return
     const began = generation
-    const current = () => generation === began
+    // without storage the snapshot cannot see this tab's edits, and settling would undo them, so a step also stops
+    // once storage refused a write, even one made while the step waited on FKN
+    const current = () => generation === began && store.persists()
+    if (!current()) return
 
     // FKN not answering reads as "could not tell", never as a sign out
     const availability = await within(boundMs, cloud.availability, () => 'unknown' as const)
