@@ -92,7 +92,7 @@ test('every control keeps its label, and the bar fits a 1920, 1280, 640 and 400 
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const video = await startPlayback(page)
   await expect(page.getByRole('button', { name: 'Turn on captions' })).toBeAttached({ timeout: 60_000 })
-  await expect(page.getByRole('button', { name: 'Next' })).toBeAttached({ timeout: 60_000 })
+  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeAttached({ timeout: 60_000 })
   await video.evaluate(element => (element as HTMLVideoElement).pause())
   // Next comes from the same watch read as the chapters, so their absence here is settled
   await expect(player(page).locator('.chapter')).toHaveCount(0)

@@ -132,7 +132,7 @@ test('a playlist moves on to its next entry', async ({ page }) => {
 test('the player bar draws Next with its bar', async ({ page }) => {
   test.setTimeout(240_000)
   await page.goto(`/watch?v=${VIDEO_ID}`)
-  const next = page.getByRole('button', { name: 'Next' })
+  const next = page.getByRole('button', { name: 'Next', exact: true })
   await expect(next).toBeAttached({ timeout: 120_000 })
   // the bar of the skip icon is a bare line, which only a stroke draws: without one, Next reads as a second Play
   const strokes = await next.locator('svg path').evaluateAll(paths => paths.map(path => Number.parseFloat(getComputedStyle(path).strokeWidth)))
