@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useLocation } from 'wouter'
 
 import { FKN_BOUND_MS, within } from '../groups/sync'
-import { checkGroups, fknLib } from '../groups/sync-live'
+import { checkGroups, fknLib, fknStatus } from '../groups/sync-live'
 import { getSettings, updateSettings } from '../settings'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -35,10 +35,8 @@ const useFkn = () => {
   useEffect(() => {
     let open = true
     void fknLib().then(async (lib) => {
-      const info = await within(FKN_BOUND_MS, () => lib.account.info(), () => undefined)
-      if (info === undefined) return
-      const encryption = info && await within(FKN_BOUND_MS, () => lib.fs.encryption(), () => undefined)
-      if (open) setState({ lib, signedIn: !!info, locked: !!encryption && !encryption.unlocked && encryption.enrolled })
+      const status = await fknStatus(lib.fs)
+      if (status && open) setState({ lib, ...status })
     }, () => {})
     return () => {
       open = false
