@@ -17,14 +17,14 @@ export const fknLib = async () => {
 export type FknLib = Awaited<ReturnType<typeof fknLib>>
 
 /**
- * Whether this page is signed in to FKN and has to unlock its storage, or undefined when FKN did not answer.
- * `account.info()` cannot tell: it answers null for a sign out and for any failure alike.
+ * `lib`, whether this page is signed in to FKN and whether it has to unlock its storage, or undefined when FKN did not
+ * answer. `account.info()` cannot tell: it answers null for a sign out and for any failure alike.
  */
-export const fknStatus = async (fs: Pick<FknLib['fs'], 'availability' | 'encryption'>) => {
-  const availability = await fs.availability()
+export const readFkn = async (lib: FknLib) => {
+  const availability = await lib.fs.availability()
   if (availability === 'unknown') return undefined
-  const encryption = availability === 'connected' ? await within(FKN_BOUND_MS, () => fs.encryption(), () => undefined) : undefined
-  return { signedIn: availability === 'connected', locked: !!encryption && !encryption.unlocked && encryption.enrolled }
+  const encryption = availability === 'connected' ? await within(FKN_BOUND_MS, () => lib.fs.encryption(), () => undefined) : undefined
+  return { lib, signedIn: availability === 'connected', locked: !!encryption && !encryption.unlocked && encryption.enrolled }
 }
 
 const REFRESH_MS = 3 * 60_000

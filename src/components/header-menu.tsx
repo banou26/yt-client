@@ -1,4 +1,3 @@
-import type { FknLib } from '../groups/sync-live'
 import type { ThemePreference } from '../settings'
 
 import { css } from '@emotion/react'
@@ -7,7 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useLocation } from 'wouter'
 
 import { FKN_BOUND_MS, within } from '../groups/sync'
-import { checkGroups, fknLib, fknStatus } from '../groups/sync-live'
+import { checkGroups, fknLib, readFkn } from '../groups/sync-live'
 import { getSettings, updateSettings } from '../settings'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -27,16 +26,15 @@ const panelStyle = css`
 const Blank = ({ size = 20 }: { size?: number, strokeWidth?: number }) =>
   <span style={{ display: 'block', width: `${size}px`, height: `${size}px` }} aria-hidden='true' />
 
-type FknState = { lib: FknLib, signedIn: boolean, locked: boolean }
+type FknState = NonNullable<Awaited<ReturnType<typeof readFkn>>>
 
 /** Where this page stands with FKN, read when the menu opens; undefined until FKN answered. */
 const useFkn = () => {
   const [state, setState] = useState<FknState>()
   useEffect(() => {
     let open = true
-    void fknLib().then(async (lib) => {
-      const status = await fknStatus(lib.fs)
-      if (status && open) setState({ lib, ...status })
+    void fknLib().then(readFkn).then((read) => {
+      if (read && open) setState(read)
     }, () => {})
     return () => {
       open = false

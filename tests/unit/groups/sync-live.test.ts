@@ -1,3 +1,5 @@
+import type { FknLib } from '../../../src/groups/sync-live'
+
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 
 const onChange = vi.fn(async () => () => {})
@@ -11,17 +13,20 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('fknStatus', () => {
-  const fs = (availability: 'connected' | 'disconnected' | 'unknown', { unlocked = true, enrolled = true } = {}) =>
-    ({ availability: async () => availability, encryption: async () => ({ unlocked, enrolled, keyEpoch: null }) })
+describe('readFkn', () => {
+  // account.info() answers null for a sign out and for an FKN that failed alike
+  const lib = (availability: 'connected' | 'disconnected' | 'unknown', { unlocked = true, enrolled = true } = {}) => ({
+    account: { info: async () => null },
+    fs: { availability: async () => availability, encryption: async () => ({ unlocked, enrolled, keyEpoch: null }) },
+  }) as unknown as FknLib
 
   it('reads signed in or out only from an answer, so a failing FKN shows no FKN row', async () => {
-    const { fknStatus } = await import('../../../src/groups/sync-live')
-    expect(await fknStatus(fs('unknown'))).toBeUndefined()
-    expect(await fknStatus(fs('disconnected'))).toEqual({ signedIn: false, locked: false })
-    expect(await fknStatus(fs('connected'))).toEqual({ signedIn: true, locked: false })
-    expect(await fknStatus(fs('connected', { unlocked: false, enrolled: true }))).toEqual({ signedIn: true, locked: true })
-    expect(await fknStatus(fs('connected', { unlocked: false, enrolled: false }))).toEqual({ signedIn: true, locked: false })
+    const { readFkn } = await import('../../../src/groups/sync-live')
+    expect(await readFkn(lib('unknown'))).toBeUndefined()
+    expect(await readFkn(lib('disconnected'))).toMatchObject({ signedIn: false, locked: false })
+    expect(await readFkn(lib('connected'))).toMatchObject({ signedIn: true, locked: false })
+    expect(await readFkn(lib('connected', { unlocked: false, enrolled: true }))).toMatchObject({ signedIn: true, locked: true })
+    expect(await readFkn(lib('connected', { unlocked: false, enrolled: false }))).toMatchObject({ signedIn: true, locked: false })
   })
 })
 
