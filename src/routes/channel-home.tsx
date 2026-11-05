@@ -18,6 +18,10 @@ const style = css`
     border-bottom: 1px solid var(--border-subtle);
   }
 
+  > :first-of-type {
+    padding-top: 0;
+  }
+
   > :last-child {
     border-bottom: none;
   }
