@@ -3,7 +3,7 @@ import { chromium, expect, test } from '@playwright/test'
 import { extensionBuild } from './extension-build'
 
 test.describe('with the FKN extension installed', () => {
-  test('serves egress itself, and stops the header offering itself', async () => {
+  test('serves egress itself, and stops the header offering itself', async ({ baseURL }) => {
     test.setTimeout(180_000)
     const build = extensionBuild(process.env)
     test.skip(build.skip !== undefined, `YT_EXTENSION_BUILD=skip: ${build.skip}`)
@@ -27,7 +27,7 @@ test.describe('with the FKN extension installed', () => {
         if (message.text().includes('egress →')) egress.push(message.text())
       })
 
-      await page.goto('http://localhost:4561/results?search_query=blender', { waitUntil: 'domcontentloaded' })
+      await page.goto(`${baseURL}/results?search_query=blender`, { waitUntil: 'domcontentloaded' })
       await expect(page.locator('a[href^="/watch"]').first()).toBeVisible({ timeout: 90_000 })
 
       await expect(page.locator('html')).toHaveAttribute('data-fkn-extension', 'true')
