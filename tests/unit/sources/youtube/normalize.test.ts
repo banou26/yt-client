@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
+import { YTNodes } from 'youtubei.js'
+
 import { normalizeChannel, normalizeChannelAbout, normalizeNotification, normalizeRuns, normalizeCommentThread, normalizeCommunityPost, normalizeFeedVideo, normalizeShortsLockup, normalizeGridPlaylist, normalizeLockupVideo, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistPanelVideo, normalizeSearchChannel, normalizeSession, normalizeVideoDetails, normalizeWatchMeta, normalizeWatchPlaylist } from '../../../../src/sources/youtube/normalize'
 
 describe('youtube normalization', () => {
@@ -496,6 +498,65 @@ describe('youtube normalization', () => {
       thumbnail: 'cover',
       videoCountText: '50 videos',
       channel: { id: 'UC123', name: 'Channel', avatar: 'avatar' },
+    })
+  })
+
+  it('reads an album lockup as a playlist', () => {
+    // cut from the Releases row on Rick Astley's Home, 2026-11-05
+    const lockup = new YTNodes.LockupView({
+      contentId: 'OLAK5uy_k0Ob3gxnIKX5SU4di2PRhpNiVfGe7_rbk',
+      contentType: 'LOCKUP_CONTENT_TYPE_ALBUM',
+      contentImage: {
+        collectionThumbnailViewModel: {
+          primaryThumbnail: {
+            thumbnailViewModel: {
+              image: { sources: [{ url: 'cover', width: 180, height: 180 }] },
+              overlays: [{
+                thumbnailOverlayBadgeViewModel: {
+                  thumbnailBadges: [{ thumbnailBadgeViewModel: { text: '2 songs', badgeStyle: 'THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT' } }],
+                  position: 'THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END',
+                },
+              }],
+            },
+          },
+        },
+      },
+      metadata: {
+        lockupMetadataViewModel: {
+          title: { content: 'Raindrops' },
+          metadata: {
+            contentMetadataViewModel: {
+              metadataRows: [{
+                metadataParts: [
+                  {
+                    text: {
+                      content: 'Rick Astley',
+                      commandRuns: [{
+                        startIndex: 0,
+                        length: 11,
+                        onTap: {
+                          innertubeCommand: {
+                            commandMetadata: { webCommandMetadata: { url: '/channel/UCuAXFkgsw1L7xaCfnd5JJOw', apiUrl: '/youtubei/v1/browse' } },
+                            browseEndpoint: { browseId: 'UCuAXFkgsw1L7xaCfnd5JJOw' },
+                          },
+                        },
+                      }],
+                    },
+                  },
+                  { text: { content: 'Album' } },
+                ],
+              }],
+            },
+          },
+        },
+      },
+    })
+    expect(normalizePlaylistLockup(lockup)).toMatchObject({
+      id: 'OLAK5uy_k0Ob3gxnIKX5SU4di2PRhpNiVfGe7_rbk',
+      title: 'Raindrops',
+      thumbnail: 'cover',
+      videoCountText: '2 songs',
+      channel: { id: 'UCuAXFkgsw1L7xaCfnd5JJOw', name: 'Rick Astley' },
     })
   })
 

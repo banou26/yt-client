@@ -740,9 +740,12 @@ export const normalizeLockupVideo = (input: unknown, { shelf = false }: { shelf?
   }
 }
 
+// an album's OLAK5uy_ id opens at /playlist?list= like any playlist's
+const PLAYLIST_LOCKUPS = new Set(['PLAYLIST', 'ALBUM'])
+
 export const normalizePlaylistLockup = (input: unknown): SourcePlaylist | undefined => {
   const lockup = input as LockupVideo
-  if (lockup.content_type !== 'PLAYLIST') return undefined
+  if (!PLAYLIST_LOCKUPS.has(lockup.content_type ?? '')) return undefined
   const id = lockup.content_id
   const title = presentText(lockup.metadata?.title)
   if (!id || !title) return undefined
