@@ -33,7 +33,7 @@
     "shaka-player": "4.16.37",
     "urql": "^5.0.1",
     "wouter": "^3.7.1",
-    "youtubei.js": "17.0.1"
+    "youtubei.js": "18.3.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.7",

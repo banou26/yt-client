@@ -21,7 +21,7 @@ export { GVS_ORIGIN_KEY }
 
 type YoutubeFormat = {
   itag: number
-  target_duration_dec?: number
+  target_duration_sec?: number
   width?: number
   height?: number
   bitrate: number
@@ -56,7 +56,7 @@ type InnertubeContext = {
 
 /* Evaluates only what youtubei.js already built: Player.decipher appends its own processor ending in
    `return process(n, sp, s)`, so `env` is deliberately unused. Do not re-add a second `return` reading
-   `exportedVars.nFunction`/`sigFunction`: neither name exists in youtubei.js 17.0.1, whose only export is `nsigFunction`. */
+   `exportedVars.nFunction`/`sigFunction`: neither name exists in youtubei.js 18.3.0, whose only export is `nsigFunction`. */
 Platform.shim.eval = async (data: Types.BuildScriptResult, _env: Record<string, Types.VMPrimative>) =>
   new Function(data.output)()
 
@@ -238,7 +238,7 @@ const playbackFormat = (format: YoutubeFormat, isLive: boolean): PlaybackFormat 
     language: format.language ?? undefined,
     initRange: format.init_range,
     indexRange: format.index_range,
-    targetDurationMs: format.target_duration_dec ? format.target_duration_dec * 1_000 : undefined,
+    targetDurationMs: format.target_duration_sec ? format.target_duration_sec * 1_000 : undefined,
   }
 }
 

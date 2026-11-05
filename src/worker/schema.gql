@@ -618,7 +618,7 @@ type Mutation {
   renamePlaylist(id: ID!, title: String!): Playlist!
   setPlaylistDescription(id: ID!, description: String!): Playlist!
   # The one write here whose upstream action name is not attested by youtubei.js
-  # 17.0.1. It is sent verbatim and may be ignored by the server; the resolved
+  # 18.3.0. It is sent verbatim and may be ignored by the server; the resolved
   # entity is optimistic either way. Prefer setting privacy through
   # createPlaylist, which goes through an endpoint the library does implement.
   setPlaylistPrivacy(id: ID!, privacy: PlaylistPrivacy!): Playlist!

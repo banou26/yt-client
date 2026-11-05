@@ -86,7 +86,7 @@ type ContinuationNode = {
 }
 
 type CommentThreadNode = {
-  comment_replies_data?: { contents?: Iterable<unknown> } | null
+  comment_replies_data?: { contents?: Iterable<unknown>, sub_threads?: Iterable<unknown> } | null
 }
 
 type EndpointNode = {
@@ -284,7 +284,7 @@ const shortsItems = (feed: Feed) => {
  * where the shorts are the grid.
  */
 const pageItems = (feed: Feed, { includeShorts = true }: { includeShorts?: boolean } = {}) => {
-  // The `videos` getter surfaces legacy Video/GridVideo nodes but NOT LockupView, and a modern feed MIXES the two: merging rather than either/or is essential.
+  // normalizeFeedVideo reads the legacy Video/GridVideo nodes of the `videos` getter but not a LockupView, and a modern feed MIXES the two: merging rather than either/or is essential.
   const seen = new Set<string>()
   const items: SourceVideo[] = []
   const add = (video: SourceVideo | undefined) => {
@@ -405,7 +405,7 @@ const text = (value: unknown): string | undefined => {
 const chipId = (chip: { endpoint?: { payload?: { token?: string, params?: string } } }) =>
   chip.endpoint?.payload?.token ?? chip.endpoint?.payload?.params
 
-// removeVideo defaults to scanning a single page, so anything the user has scrolled past would report 'Unable to find video in watch history'.
+// removeVideo defaults to scanning a single page, so anything the user has scrolled past would report 'Video not found in watch history'.
 const HISTORY_REMOVAL_PAGES = 10
 
 // filter_chips THROWS when a feed carries no chip bar (and when it carries more than one), so it cannot be read with optional chaining.
@@ -894,8 +894,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       items: [...comments.contents].flatMap((node) => {
         const comment = normalizeCommentThread(node)
         if (!comment) return []
-        const thread = node as CommentThreadNode
-        const continuation = [...(thread.comment_replies_data?.contents ?? [])]
+        const replies = (node as CommentThreadNode).comment_replies_data
+        // youtubei.js 18 parses a threaded comment's replies continuation into `sub_threads`, apart from `contents`
+        const continuation = [...(replies?.contents ?? []), ...(replies?.sub_threads ?? [])]
           .find((item) => (item as ContinuationNode).endpoint !== undefined) as ContinuationNode | undefined
         const token = actionsToken((node as { comment?: unknown }).comment, comment.id)
         if (!continuation?.endpoint) return [{ ...comment, actionsToken: token }]
@@ -1180,10 +1181,10 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     removeFromHistory: async (videoId) => {
       const active = await client
       requireSignIn(active, 'change your history')
-      // A FRESH feed every time: removeVideo replaces its instance's contents when it has to page forward.
       const history = await active.getHistory()
       if (!history.removeVideo) throw new Error('youtube: this history feed cannot be edited')
-      await history.removeVideo(videoId, HISTORY_REMOVAL_PAGES)
+      // youtubei.js 18 answers a removal YouTube did not process with false rather than a throw
+      if (await history.removeVideo(videoId, HISTORY_REMOVAL_PAGES) === false) throw new Error('youtube: the video was not removed from your history')
       return videoId
     },
     liveChat: async (videoId, cursor) => {
@@ -1271,7 +1272,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       })))
       return writtenPlaylist(playlistId, {})
     },
-    // Takes setVideoIds rather than video ids because youtubei.js's removeVideos translates video ids by browsing and paging until it has matched as many rows as ids given: an id not in the playlist makes it walk every page then throw, and a single Shorts lockup on any page throws a ParsingError before the edit is attempted (core/managers/PlaylistManager.js:123).
+    // Takes setVideoIds rather than video ids because youtubei.js's removeVideos translates video ids by browsing and paging until it has matched as many rows as ids given: an id not in the playlist makes it walk every page then throw, and a single Shorts lockup on any page throws a ParsingError before the edit is attempted (core/managers/PlaylistManager.js:129).
     removeFromPlaylist: async (playlistId, setVideoIds) => {
       if (setVideoIds.length === 0) return writtenPlaylist(playlistId, {})
       await editPlaylist(playlistId, 'change a playlist', setVideoIds.map((setVideoId) => ({
@@ -1280,7 +1281,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       })))
       return writtenPlaylist(playlistId, {})
     },
-    // youtubei.js's create() can only send a title and video ids, but the endpoint it calls copies privacyStatus and description too.
+    // youtubei.js's create() refuses a call with no video ids, which an empty playlist is.
     createPlaylist: async (title, videoIds, privacy, description) => {
       const active = await client
       requireSignIn(active, 'create a playlist')
@@ -1295,7 +1296,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       if (!id) throw new Error('youtube: the playlist was created but its id did not come back')
       return rememberPlaylist({ id, title, description, privacy })
     },
-    // Calls the endpoint path directly, and must not switch back to the manager: youtubei.js's delete() throws before the network, building the raw key `deletePlaylistServiceEndpoint` (core/managers/PlaylistManager.js:40) that parser/nodes.js registers no class for, while the registered DeletePlaylistEndpoint guards on `playlistId` but assigns from `sourcePlaylistId` (parser/classes/endpoints/DeletePlaylistEndpoint.js:15) and so emits a body only when both keys are passed.
+    // Calls the endpoint path directly, and must not switch back to the manager: youtubei.js's delete() throws before the network, building the raw key `deletePlaylistServiceEndpoint` (core/managers/PlaylistManager.js:45) that parser/nodes.js registers no class for, while the registered DeletePlaylistEndpoint guards on `playlistId` but assigns from `sourcePlaylistId` (parser/classes/endpoints/DeletePlaylistEndpoint.js:15) and so emits a body only when both keys are passed.
     deletePlaylist: async (id) => {
       const active = await client
       requireSignIn(active, 'delete a playlist')
@@ -1303,7 +1304,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       knownPlaylists.delete(id)
       return id
     },
-    // Goes through browse/edit_playlist directly because youtubei.js's setName builds `{ playlist_id, actions }` in snake_case (core/managers/PlaylistManager.js:200, the only snake_case payload in that manager) while PlaylistEditEndpoint copies only `actions`, `playlistId` and `params` (parser/classes/endpoints/PlaylistEditEndpoint.js:13), so the id is dropped and the POST says which name to set but not on what.
+    // Goes through browse/edit_playlist directly because youtubei.js's setName builds `{ playlist_id, actions }` in snake_case (core/managers/PlaylistManager.js:204, the only snake_case payload in that manager) while PlaylistEditEndpoint copies only `actions`, `playlistId` and `params` (parser/classes/endpoints/PlaylistEditEndpoint.js:13), so the id is dropped and the POST says which name to set but not on what.
     renamePlaylist: async (id, title) => {
       await editPlaylist(id, 'rename a playlist', [{ action: 'ACTION_SET_PLAYLIST_NAME', playlistName: title }])
       return writtenPlaylist(id, { title })
@@ -1315,7 +1316,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       }])
       return writtenPlaylist(id, { description })
     },
-    // The one action name here that youtubei.js 17.0.1 does not attest: the package has no privacy edit path at all.
+    // The one action name here that youtubei.js 18.3.0 does not attest: the package has no privacy edit path at all.
     setPlaylistPrivacy: async (id, privacy) => {
       await editPlaylist(id, 'change a playlist privacy', [{
         action: 'ACTION_SET_PLAYLIST_PRIVACY',

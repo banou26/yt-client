@@ -5,8 +5,9 @@ import { YTNodes } from 'youtubei.js'
 
 const { CommentView } = YTNodes
 
-/* Guards `patches/youtubei.js+17.0.1.patch`: upstream reads `comment.avatar.endpoint`, which YouTube
-   dropped, throwing out of the `Comments` constructor so every video rendered with NO comment section. */
+/* youtubei.js 18 reads both comment shapes YouTube moved to, which 17.0.1 needed a patch for: an entity with no
+   `avatar` (reading `comment.avatar.endpoint` threw out of the `Comments` constructor, so no video had a comment
+   section) and a replies continuation under `subThreads` (left out, no thread could open its replies). */
 
 const entity = () => ({
   key: 'comment-key',
@@ -29,7 +30,7 @@ const entity = () => ({
   },
 })
 
-describe('youtubei.js comment replies patch', () => {
+describe('youtubei.js comment replies', () => {
   const subThreads = [{
     continuationItemRenderer: {
       trigger: 'CONTINUATION_TRIGGER_ON_ITEM_SHOWN',
@@ -40,12 +41,12 @@ describe('youtubei.js comment replies patch', () => {
     },
   }]
 
-  it('finds the continuation under subThreads', () => {
+  it('parses the continuation under subThreads', () => {
     const replies = new YTNodes.CommentReplies({
       viewReplies: { buttonRenderer: { text: { runs: [{ text: '961 replies' }] } } },
       subThreads,
     })
-    const continuation = [...replies.contents].find(item => (item as { endpoint?: unknown }).endpoint !== undefined)
+    const continuation = [...replies.sub_threads].find(item => (item as { endpoint?: unknown }).endpoint !== undefined)
     expect(continuation).toBeDefined()
   })
 
@@ -56,11 +57,11 @@ describe('youtubei.js comment replies patch', () => {
 
   it('stays empty when a thread carries neither', () => {
     const replies = new YTNodes.CommentReplies({ viewReplies: { buttonRenderer: {} } })
-    expect([...replies.contents]).toHaveLength(0)
+    expect([...replies.contents, ...replies.sub_threads]).toHaveLength(0)
   })
 })
 
-describe('youtubei.js comment entity patch', () => {
+describe('youtubei.js comment entity', () => {
   it('applies a mutation whose payload carries no avatar', () => {
     const view = new CommentView({ commentId: 'c1' })
     expect(() => view.applyMutations(entity())).not.toThrow()
@@ -68,7 +69,7 @@ describe('youtubei.js comment entity patch', () => {
     expect(view.author?.name).toBe('@YouTube')
   })
 
-  it('reads the avatar off the author and keeps the size hint', () => {
+  it('reads the avatar off the author', () => {
     const view = new CommentView({ commentId: 'c1' })
     view.applyMutations(entity())
     expect(view.author?.thumbnails?.[0]).toEqual({

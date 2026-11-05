@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
+import { YTNodes } from 'youtubei.js'
+
 import { createYoutubeSource } from '../../../../src/sources/youtube'
 import { SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
 
@@ -259,7 +261,7 @@ const createFakeClient = () => {
         { header: { title: 'Today' }, contents: [{ video_id: 'today', title: { text: 'Today video' } }] },
         { header: { title: 'Yesterday' }, contents: [{ video_id: 'older', title: { text: 'Older video' } }] },
       ],
-      removeVideo: async (videoId: string, _pagesToLoad?: number) => void calls.push(`removeHistory:${videoId}`),
+      removeVideo: async (videoId: string, _pagesToLoad?: number): Promise<boolean | undefined> => void calls.push(`removeHistory:${videoId}`),
     }),
     getChannelsFeed: async () => ({
       channels: [{ author: { id: 'UC1', name: 'Chan', thumbnails: [{ url: 'a' }] } }],
@@ -930,7 +932,7 @@ describe('youtube source', () => {
   it('deletes through the path youtubei.js cannot reach', async () => {
     const client = createFakeClient()
     const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
-    // client.playlist.delete throws before the network in 17.0.1: it builds a raw key with no registered endpoint class
+    // client.playlist.delete throws before the network in 18.3.0: it builds a raw key with no registered endpoint class
     await expect(source.deletePlaylist('PL1')).resolves.toBe('PL1')
     expect(client.payloads[0]).toEqual({ endpoint: 'playlist/delete', args: { playlistId: 'PL1' } })
   })
@@ -1105,9 +1107,19 @@ describe('youtube source', () => {
       createClient: async () => client,
       signedIn: () => true,
     })
-    // removeVideo replaces its instance's contents when it has to page forward, so each removal takes a fresh feed
     await expect(source.removeFromHistory('today')).resolves.toBe('today')
     expect(client.calls).toContain('removeHistory:today')
+  })
+
+  it('fails a history removal YouTube did not process', async () => {
+    const client = createFakeClient()
+    client.getHistory = async () => ({
+      ...feed('watched'),
+      sections: [] as { header: { title: string }, contents: { video_id: string, title: { text: string } }[] }[],
+      removeVideo: async () => false,
+    })
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client, signedIn: () => true })
+    await expect(source.removeFromHistory('kept')).rejects.toThrow('not removed from your history')
   })
 
   it('asks removeVideo to look past the first page', async () => {
@@ -1169,6 +1181,33 @@ describe('youtube source', () => {
     const list = await source.comments('abc')
     expect(list.cursor).toBeTruthy()
     await expect(source.commentReplies(list.cursor!)).rejects.toThrow('not a reply thread')
+  })
+
+  it('opens the replies of a thread whose continuation sits under subThreads', async () => {
+    const client = createFakeClient()
+    // parsed by youtubei.js itself, which keeps `subThreads` apart from `contents` since 18.0.0
+    const thread = new YTNodes.CommentThread({
+      commentViewModel: { commentViewModel: { commentId: 'threaded' } },
+      replies: {
+        commentRepliesRenderer: {
+          subThreads: [{
+            continuationItemRenderer: {
+              continuationEndpoint: {
+                commandMetadata: { webCommandMetadata: { sendPost: true, apiUrl: '/youtubei/v1/next' } },
+                continuationCommand: { token: 'REPLY_TOKEN', request: 'CONTINUATION_REQUEST_TYPE_WATCH_NEXT' },
+              },
+            },
+          }],
+        },
+      },
+    })
+    client.getComments = async () => ({ contents: [thread], has_continuation: false, getContinuation: async () => { throw new Error('no continuation') } }) as never
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    const list = await source.comments('abc')
+    expect(list.items[0]?.id).toBe('threaded')
+    expect(list.items[0]?.repliesCursor).toBeTruthy()
+    await source.commentReplies(list.items[0]!.repliesCursor!)
+    expect(client.payloads.at(-1)?.args).toMatchObject({ continuation: 'REPLY_TOKEN' })
   })
 
   it('only lets a cursored read opt out of replay through a cursor argument', () => {
