@@ -20,8 +20,13 @@ const REFRESH_MS = 3 * 60_000
 
 let started: Promise<GroupSync> | undefined
 
-/** Keeps the groups in step with the FKN account signed in, from now on. A start that failed is tried again on the next call. */
+/**
+ * Keeps the groups in step with the FKN account signed in, from now on. A start that could not load the lib is tried
+ * again on the next call; one without navigator.locks never starts.
+ */
 export const startGroupSync = (): Promise<GroupSync> => started ??= fknLib().then(({ account, fs }) => {
+  // only a secure context has navigator.locks, and without it two tabs' steps could undo each other's writes
+  if (!('locks' in navigator)) throw new Error('groups: no navigator.locks, so no FKN account sync')
   const sync = groupSync({
     store: groupStore,
     cloud: {
@@ -37,8 +42,7 @@ export const startGroupSync = (): Promise<GroupSync> => started ??= fknLib().the
       write: (path, text) => fs.promises.writeFile(path, text),
     },
     onAccountChange: account.onChange,
-    // navigator.locks exists only in a secure context
-    lock: work => 'locks' in navigator ? navigator.locks.request('yt-client:groups', work) : work(),
+    lock: work => navigator.locks.request('yt-client:groups', work),
   })
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') void sync.check()

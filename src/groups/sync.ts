@@ -104,7 +104,7 @@ export const groupSync = ({ store, cloud, onAccountChange, lock, newId = () => c
   cloud: GroupsCloud
   /** `account.onChange` of the @fkn/lib realm `cloud` calls. */
   onAccountChange: (listener: (change?: { switched: boolean }) => void) => unknown
-  /** One step at a time across every tab of the origin. */
+  /** One step at a time across every tab of the origin. Runs `work` after it returns, or only one step ever runs. */
   lock: (work: () => Promise<void>) => Promise<void>
   newId?: () => string
   boundMs?: number
