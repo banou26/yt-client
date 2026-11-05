@@ -175,6 +175,22 @@ const installScheme = () => {
   }, shaka.net.NetworkingEngine.PluginPriority.PREFERRED, false)
 }
 
+const codecsOf = (mimeType: string) => mimeType.match(/codecs="([^"]+)"/)?.[1] ?? ''
+
+/* Shaka opens a live stream on the formats the frame's session already streams. Its own pick differs (it rounds the
+   element height UP and keeps the cheapest codec per resolution, the frame rounds down: 244 against 134 on a 1280x720
+   window, measured 2026-11-06), and every listed segment the session holds only in another format is a fetch by address. */
+const liveOpening = (session: PlaybackSession) => {
+  const video = session.videoFormats.find((format) => format.key === session.selectedVideoKey)
+  const audio = session.audioFormats.find((format) => format.key === session.selectedAudioKey)
+  if (!video?.height || !audio) return {}
+  return {
+    preferredVideoCodecs: [codecsOf(video.mimeType).split('.')[0]!],
+    preferredAudioCodecs: [codecsOf(audio.mimeType)],
+    abr: { restrictToElementSize: false, restrictions: { minHeight: video.height, maxHeight: video.height } },
+  }
+}
+
 const describeShakaError = (error: shaka.util.Error) => {
   const cause = error.data.find((value: unknown) => value instanceof Error) as Error | undefined
   return cause ?? Object.assign(new Error(`shaka: error ${error.code} in category ${error.category}`), { cause: error })
@@ -327,15 +343,13 @@ export const startShakaPlayback = async ({
         // live runs WITHOUT automatic ABR: the SABR session streams one video format at a time, so every switch costs its cached readahead
         abr: { enabled: false, defaultBandwidthEstimate: 400_000 },
       })
+      activePlayer.configure(liveOpening(session))
     }
     await activePlayer.load(loadUrl, startTime || undefined, 'application/dash+xml')
     if (signal.aborted) throw signal.reason
     // no goToLive(): it seeks to the availability end, which is where the NEXT segment will begin, not where the newest one is
     if (session.isLive) {
-      // the Representation id in the generated manifest IS the SABR format key
-      const opening = activePlayer.getVariantTracks()
-        .find((track) => track.originalVideoId === session.selectedVideoKey)
-      if (opening && !opening.active) activePlayer.selectVariantTrack(opening, true)
+      activePlayer.configure({ abr: { restrictToElementSize: true, restrictions: { minHeight: 0, maxHeight: Infinity } } })
       const settle = Date.now() + 10_000
       while (!destroyed && !signal.aborted && Date.now() < settle) {
         const buffered = video.buffered
