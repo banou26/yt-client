@@ -75,7 +75,8 @@ const refreshSession = async (entry: PlaybackEntry) => {
   const audioMimeType = previous.audioFormat.mimeType
   const source = await getSabrSource(entry.videoId)
   if (entry.closed) throw new Error('youtube: playback session closed during refresh')
-  const next = createSabrSession(source, entry.maxHeight)
+  // a new live session asked at 0 is answered at the oldest end of the DVR window, so it continues where this one got to
+  const next = createSabrSession(source, entry.maxHeight, source.isLive ? previous.liveEndMs : undefined)
   const videoFormat = next.videoFormats.find((format) => format.key === videoKey && format.mimeType === videoMimeType)
   const audioFormat = next.audioFormats.find((format) => format.key === audioKey && format.mimeType === audioMimeType)
   if (!videoFormat || !audioFormat) {

@@ -1,7 +1,7 @@
 import type { PlaybackFormat } from './protocol'
 
 /* segments are addressed by SEQUENCE, not by byte range, and sequence maps onto time exactly (sequence 4717 * 5000 = startMs 23585000).
-   THE SERVER IGNORES THE ADDRESS AND ALWAYS SENDS ITS CURRENT EDGE, which is why this generator describes only segments that have ALREADY ARRIVED. */
+   This generator describes only segments that have ALREADY ARRIVED, at the times their media headers give. */
 
 const seconds = (value: number) => `PT${(value / 1_000).toFixed(3)}S`
 

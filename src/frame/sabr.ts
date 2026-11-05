@@ -12,7 +12,7 @@ import type { PlaybackFormat, PlaybackSnapshot, SegmentEnvelope, SegmentRequest 
 import type { SabrSource } from './innertube'
 
 import { SabrStreamingAdapter, SabrUmpProcessor } from 'googlevideo/sabr-streaming-adapter'
-import { MediaHeader, UMPPartId, VideoPlaybackAbrRequest } from 'googlevideo/protos'
+import { LiveMetadata, MediaHeader, UMPPartId, VideoPlaybackAbrRequest } from 'googlevideo/protos'
 import { FormatKeyUtils } from 'googlevideo/utils'
 import { GVS_ORIGIN_KEY } from './innertube'
 import { egressFetch } from './egress'
@@ -45,6 +45,9 @@ const REFRESH_ERROR = 'SabrSessionRefreshError'
 const LIVE_SEGMENT_WAIT_MS = 20_000
 // Segments kept in the advertised timeline, which is also the rewind window.
 const LIVE_TIMELINE_LIMIT = 48
+// a live session opens this many segments behind the server's head, which is also the first manifest's depth
+const LIVE_START_SEGMENTS = 3
+const LIVE_REFUSALS = 2
 
 const bytes = (value: ArrayBuffer | ArrayBufferView | null | undefined) => {
   if (!value) return undefined
@@ -249,7 +252,13 @@ const initSegmentPrefix = (data: Uint8Array) => {
   return data
 }
 
-export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
+/**
+ * One SABR playback session over a source.
+ *
+ * `liveFromMs` is where a live session starts asking: a refreshed session passes the previous session's timeline end so
+ * it continues there. Without it, the first answer's LIVE_METADATA decides the start, a few segments behind the head.
+ */
+export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFromMs?: number) => {
   const videoFormats = source.playbackFormats.filter((format) => format.width && format.height)
   const audioFormats = source.playbackFormats.filter((format) => !format.width)
   const initialVideoFormat = videoFormats
@@ -314,8 +323,23 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
   }
   const mediaCache = new Map<string, CachedMedia>()
   let mediaCacheBytes = 0
-  // the server ignores the address on a request and answers with its current edge, so only delivered segments can be advertised
+  // only delivered segments are advertised; the server answers a live request at its address clamped into its DVR window (12 h deep on a 24/7 stream, measured 2026-11-06), so an answer to media time 0 is the window's OLDEST segment
   const liveTimeline = new Map<number, { sequenceNumber: number, startMs: number, durationMs: number }>()
+  // LIVE_METADATA's head: the start of the newest segment the server has
+  let liveHeadMs: number | undefined
+  let liveStartMs = liveFromMs
+  const noteLiveHead = (payload: Uint8Array) => {
+    const headMs = Number(LiveMetadata.decode(payload).headTimeMs)
+    if (!Number.isFinite(headMs) || headMs <= 0) return
+    liveHeadMs = Math.max(liveHeadMs ?? headMs, headMs)
+    liveStartMs ??= headMs - LIVE_START_SEGMENTS * targetDurationMs
+  }
+  /* before the start, only an answer near its address is kept: the opening probe's answer to media time 0 is not. Near,
+     not at: an address on a segment's start was measured answered with the segment before it (2026-11-06). */
+  const keepsLiveMedia = (startMs: number, askedMs: number) => liveStartMs !== undefined
+    && (startMs >= liveStartMs || Math.abs(startMs - askedMs) <= LIVE_START_SEGMENTS * targetDurationMs)
+  const liveEndMs = () => [...liveTimeline.values()]
+    .reduce((end, segment) => Math.max(end, segment.startMs + segment.durationMs), liveStartMs ?? 0)
   const recordLiveSegment = (segment: CachedMedia, targetMs: number) => {
     const { sequenceNumber, startMs, track } = segment
     if (sequenceNumber === undefined) return
@@ -345,7 +369,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
     resolve()
   }
 
-  const storeCollectedSegment = (segment: CollectedUmpSegment) => {
+  const storeCollectedSegment = (segment: CollectedUmpSegment, askedMs: number) => {
     const sabrFormat = byKey.get(segment.formatKey)
     if (!sabrFormat) return
     if (segment.header.isInitSeg) {
@@ -360,6 +384,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
     const format = playbackByKey.get(segment.formatKey)
     const startMs = Number(segment.header.startMs)
     if (!format || !Number.isFinite(startMs)) return
+    if (source.isLive && !keepsLiveMedia(startMs, askedMs)) return
     const cacheKey = `${segment.formatKey}:${startMs}:${segment.header.sequenceNumber ?? ''}`
     if (mediaCache.has(cacheKey)) return
     const cached: CachedMedia = {
@@ -510,6 +535,8 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
         decoded.selectedFormatIds = []
         decoded.bufferedRanges = []
       }
+      // the adapter claims the segment the pump just delivered as buffered, and a live init asked there is answered with no video at all (measured 2026-11-06: three empty answers, then a session refresh)
+      if (init && source.isLive) decoded.bufferedRanges = []
       requestBody = VideoPlaybackAbrRequest.encode(decoded).finish()
       filtered.body = requestBody
     }
@@ -550,8 +577,9 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
     const process = async (chunk: Uint8Array) => {
       for (const frame of framer.push(chunk)) {
         partTypes.push(frame.type)
+        if (frame.type === UMPPartId.LIVE_METADATA) noteLiveHead(frame.payload)
         const collected = collector.push(frame)
-        if (collected) storeCollectedSegment(collected)
+        if (collected) storeCollectedSegment(collected, startTimeMs)
         const mediaPart = frame.type === UMPPartId.MEDIA_HEADER
           || frame.type === UMPPartId.MEDIA
           || frame.type === UMPPartId.MEDIA_END
@@ -615,6 +643,10 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
       metadata.streamInfo ??= {}
       metadata.streamInfo.mediaHeader = mediaHeader
     }
+    // a live answer with no LIVE_METADATA at all: the session starts at what it was answered
+    const settleLiveStart = () => {
+      if (source.isLive) liveStartMs ??= Number(metadata.streamInfo?.mediaHeader?.startMs ?? startTimeMs)
+    }
     if (reader && result?.done && !readerDone) {
       const harvest = {
         done: Promise.resolve(),
@@ -634,40 +666,64 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
         }
       })().catch(() => {}).finally(() => {
         collector.clear()
+        settleLiveStart()
         if (activeHarvest === harvest) activeHarvest = undefined
         notifyCacheChange()
       })
     } else {
       collector.clear()
+      settleLiveStart()
     }
     output.elapsedMs = performance.now() - started
     return output
   }
 
   let livePump: Promise<void> | undefined
+  // a position the server keeps answering with no media
+  let refused: { atMs: number, count: number } | undefined
 
   const runLivePump = async () => {
     while (!closeController.signal.aborted) {
       try {
-        if (!activeHarvest) {
-          const startTimeMs = [...liveTimeline.values()]
-            .reduce((newest, segment) => Math.max(newest, segment.startMs + segment.durationMs), 0)
-          const run = chain.then(() => execute(
-            `sabr://video?key=${encodeURIComponent(videoFormat.key)}`,
-            {},
-            startTimeMs,
-            false,
-            seekGeneration,
-            () => {},
-            closeController.signal,
-          ))
-          chain = run.catch(() => {})
-          serialTail = chain
-          await run
+        const filing = activeHarvest
+        if (filing) {
+          await filing.done
+          continue
         }
-        const harvest = activeHarvest
-        if (harvest) await harvest.done
-        else await wait(Math.round(targetDurationMs / 2), closeController.signal)
+        const fromMs = liveEndMs()
+        /* NOT on `chain`: at the head the server holds this request until the next segment exists (about one segment,
+           measured 4.4 to 5.5 s), and every cached answer queued behind it waited as long. So it runs beside Shaka's
+           requests on the one adapter: they share its request counter (each answer finds its own metadata by `rn`), its
+           playback cookie (the newest answer's wins) and the activeHarvest slot (the newest harvest's), and every answer
+           is filed by its own media headers, whichever request carried it. */
+        const response = await execute(
+          `sabr://video?key=${encodeURIComponent(videoFormat.key)}`,
+          {},
+          fromMs,
+          false,
+          seekGeneration,
+          () => {},
+          closeController.signal,
+        )
+        await activeHarvest?.done
+        if (liveEndMs() > fromMs) {
+          refused = undefined
+          continue
+        }
+        if (!response.data?.byteLength) {
+          await recoverFor(response.metadata.streamInfo?.streamProtectionStatus?.status)
+          refused = refused?.atMs === fromMs ? { atMs: fromMs, count: refused.count + 1 } : { atMs: fromMs, count: 1 }
+          /* measured 2026-11-06: a position answered "backoff, no media" again once the head is past it stays refused
+             for good, to a new SABR session too (7 and 11 reopened sessions in a row), while the next one is served. So
+             the pump steps past it, and the manifest lists only the run after the hole ($Number$ is positional, see
+             contiguousTail), which Shaka moves forward into. */
+          if (refused.count >= LIVE_REFUSALS && liveHeadMs !== undefined && liveHeadMs > fromMs) {
+            liveStartMs = Math.max(liveStartMs ?? 0, fromMs + targetDurationMs)
+            refused = undefined
+          }
+        }
+        // never asked again at once: the adapter already waits out the server's own backoff before its next request
+        await wait(Math.round(targetDurationMs / 2), closeController.signal)
       } catch {
         if (closeController.signal.aborted) return
         await wait(1_000, closeController.signal).catch(() => {})
@@ -765,6 +821,10 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
         ? selectFormat(request.track, request.formatKey)
         : currentFormat
       const requestedRange = request.range ?? (request.kind === 'init' ? format.initRange : undefined)
+      // a live init is answered with media too, so it is asked at the timeline rather than at 0
+      const startTimeMs = source.isLive && request.kind === 'init'
+        ? [...liveTimeline.values()].reduce((newest, segment) => Math.max(newest, segment.startMs), Math.max(request.startTimeMs, liveStartMs ?? 0))
+        : request.startTimeMs
       const range = requestedRange ? `bytes=${requestedRange.start}-${requestedRange.end}` : undefined
       const getCachedSegment = (): SegmentEnvelope | undefined => {
         if (request.kind === 'init' && requestedRange) {
@@ -826,7 +886,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
         const response = await execute(
           `sabr://${request.track}?key=${encodeURIComponent(format.key)}`,
           range ? { Range: range } : {},
-          request.startTimeMs,
+          startTimeMs,
           request.kind === 'init',
           request.generation,
           progress,
@@ -873,11 +933,38 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
       const awaitLiveSequence = async (sequenceNumber: number): Promise<SegmentEnvelope> => {
         const deadline = Date.now() + LIVE_SEGMENT_WAIT_MS
         ensureLivePump()
+        let fetched = false
         for (;;) {
           // captured BEFORE the lookup: a segment can land between the miss and the await
           const changed = cacheChange
           const cached = getCachedSegment()
           if (cached) return cached
+          /* behind what the pump has reached, so the pump will never bring it in this format: listed because another
+             format or the other track delivered it (Shaka opening on its own pick, a quality switch), or older than a
+             refreshed session's start. The server answers it by its address. */
+          const addressMs = liveTimeline.get(sequenceNumber)?.startMs
+            ?? (request.startTimeMs < liveEndMs() ? request.startTimeMs : undefined)
+          if (addressMs !== undefined && !fetched) {
+            const harvest = activeHarvest
+            if (harvest?.formatKeys.has(format.key)) {
+              progress('live-wait')
+              await withAbort(Promise.race([changed, harvest.done]), signal)
+              continue
+            }
+            fetched = true
+            progress('live-fetch')
+            const response = await execute(
+              `sabr://${request.track}?key=${encodeURIComponent(format.key)}`,
+              {},
+              addressMs,
+              false,
+              request.generation,
+              progress,
+              signal,
+            )
+            if (!response.data?.byteLength) await recoverFor(response.metadata.streamInfo?.streamProtectionStatus?.status)
+            continue
+          }
           // Plain errors, NEVER refreshError: a refresh starts with an empty live timeline and the manifest is generated from it
           const { oldest, newest } = cachedSequenceRange(request.track, format.key)
           if (oldest !== undefined && sequenceNumber < oldest) {
@@ -902,7 +989,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
         let blobPromise = initFetches.get(format.key)
         if (!blobPromise) {
           const wantDual = initFetches.size === 0
-          blobPromise = fetchInitBlob(request.track, format, request.startTimeMs, request.generation, progress, wantDual)
+          blobPromise = fetchInitBlob(request.track, format, startTimeMs, request.generation, progress, wantDual)
           initFetches.set(format.key, blobPromise)
           void blobPromise.catch(() => {}).finally(() => {
             if (initFetches.get(format.key) === blobPromise) initFetches.delete(format.key)
@@ -941,6 +1028,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080) => {
     audioFormats,
     targetDurationMs,
     get liveSegments() { return [...liveTimeline.values()] },
+    get liveEndMs() { return liveEndMs() },
     startLivePump: ensureLivePump,
     get videoFormat() { return videoFormat },
     get audioFormat() { return audioFormat },
