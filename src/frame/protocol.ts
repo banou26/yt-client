@@ -173,7 +173,50 @@ export type FrameEgressResponse = {
   error: string
 }
 
+/** The lane's state, published on the app's `<html>` as `data-yt-direct`: `on` once a direct call was answered, `off`
+ * while every call takes the frame's own fetch (the step is off, or the frame is signed in), `skipped` for the window
+ * after a direct call failed and the frame's own fetch answered it. */
+export type DirectReport = 'on' | 'off' | 'skipped'
+
+/** The frame to the app realm on the direct lane: an InnerTube POST for the app realm to send, its cancel, or the lane's state. */
+export type DirectRequest = {
+  type: 'fetch'
+  id: number
+  url: string
+  body: string
+} | {
+  type: 'cancel'
+  id: number
+} | {
+  type: 'report'
+  value: DirectReport
+}
+
+/** The app realm's answer: YouTube's own, whatever its status, or a failure, `network` when the browser's fetch threw a TypeError. */
+export type DirectResponse = {
+  id: number
+  response: { status: number, statusText: string, headers: [string, string][], body: ArrayBuffer }
+  error?: never
+} | {
+  id: number
+  response?: never
+  error: string
+  network: boolean
+}
+
+/** The only requests the direct lane carries: InnerTube on www.youtube.com, which answers youtube.fkn.app's origin. */
+export const isDirectUrl = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' && parsed.hostname === 'www.youtube.com' && parsed.pathname.startsWith('/youtubei/v1/')
+  } catch {
+    return false
+  }
+}
+
 export const FRAME_CONNECT = 'yt-client-frame-connect'
 export const FRAME_EGRESS_CONNECT = 'yt-client-frame-egress-connect'
 // behind yt-client:step:y1 only: the frame's end of the app realm's bridge to the BotGuard agent (src/engine/agent-host.ts)
 export const FRAME_AGENT_CONNECT = 'yt-client-frame-agent-connect'
+// behind yt-client:step:direct only: the frame's end of the app realm's direct lane (src/scramjet/direct-lane.ts)
+export const FRAME_DIRECT_CONNECT = 'yt-client-frame-direct-connect'

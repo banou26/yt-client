@@ -11,6 +11,7 @@ import type { CaptionSource } from './captions'
 import type { Storyboard } from './storyboard'
 
 import { parseCaptionTracks } from './captions'
+import { createYoutubeFetch, directLane, reportDirect } from './direct'
 import { egressFetch } from './egress'
 import { playableFormats } from './formats'
 import { parseStoryboards } from './storyboard'
@@ -88,6 +89,13 @@ const authCookie = readAuthCookie()
 
 const accountIndex = readAccountIndex()
 
+const youtubeFetch = createYoutubeFetch({
+  fetch: (input, init) => globalThis.fetch(input, init),
+  direct: directLane,
+  signedIn: hasSessionCookie,
+  report: reportDirect,
+})
+
 // One build per frame, but a failed build is dropped so the next call builds it again: a kept rejection fails every later playback in the frame.
 const keepOnSuccess = <T>(build: () => Promise<T>) => {
   let pending: Promise<T> | undefined
@@ -98,7 +106,7 @@ const keepOnSuccess = <T>(build: () => Promise<T>) => {
 }
 
 export const catalogInnertube = keepOnSuccess(() => Innertube.create({
-  fetch: globalThis.fetch.bind(globalThis),
+  fetch: youtubeFetch,
   generate_session_locally: false,
   retrieve_innertube_config: true,
   retrieve_player: false,
@@ -119,7 +127,7 @@ export const catalogInnertube = keepOnSuccess(() => Innertube.create({
 const innertube = keepOnSuccess(() => catalogInnertube().then((client) => {
   const context = client.session.context as unknown as InnertubeContext
   return Innertube.create({
-    fetch: globalThis.fetch.bind(globalThis),
+    fetch: youtubeFetch,
     generate_session_locally: true,
     retrieve_innertube_config: false,
     retrieve_player: true,

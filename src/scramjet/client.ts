@@ -5,6 +5,7 @@ import { FRAME_METHODS } from '../frame/protocol'
 import { openAgentBridge, startAgentHost } from '../engine/agent-host'
 import { stepEnabled } from '../engine/step-flag'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
+import { openDirectLane, reportDirectOff } from './direct-lane'
 import { abortPlatformEgress, startPlatform } from './platform'
 import { CLEAR_COOKIES, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
 
@@ -15,6 +16,7 @@ let engineCleanup: (() => void) | undefined
 let engineReject: ((error: Error) => void) | undefined
 let engineGeneration = 0
 let engineControl: MessagePort | undefined
+let engineDirect: ReturnType<typeof openDirectLane> | undefined
 let controlRequestId = 0
 const CONTROL_TIMEOUT_MS = 15_000
 const clearPending = new Map<number, { resolve: () => void, reject: (error: Error) => void }>()
@@ -129,6 +131,8 @@ const invalidateEngine = (generation: number, error: Error) => {
   engineReject = undefined
   engineControl?.close()
   engineControl = undefined
+  engineDirect?.close()
+  engineDirect = undefined
   for (const pending of clearPending.values()) pending.reject(error)
   clearPending.clear()
   engineFrame?.remove()
@@ -152,6 +156,8 @@ export const startEngine = () => {
     platformReady.catch(() => {})
     const agentStep = stepEnabled('y1')
     if (agentStep) startAgentHost()
+    const directStep = stepEnabled('direct')
+    if (!directStep) reportDirectOff()
 
     const frame = document.createElement('iframe')
     engineFrame = frame
@@ -165,10 +171,12 @@ export const startEngine = () => {
         const egress = platform.openEgressPort()
         const extFetch = platform.openExtFetchPort()
         const agent = agentStep ? openAgentBridge() : undefined
+        engineDirect?.close()
+        engineDirect = directStep ? openDirectLane() : undefined
         frame.contentWindow?.postMessage(
-          { type: HOST_BOOTSTRAP, build: BUILD_ID } satisfies HostBootstrap,
+          { type: HOST_BOOTSTRAP, build: BUILD_ID, ...(engineDirect && { direct: true }) } satisfies HostBootstrap,
           location.origin,
-          agent ? [egress, extFetch, agent] : [egress, extFetch],
+          [egress, extFetch, ...(agent ? [agent] : []), ...(engineDirect ? [engineDirect.port] : [])],
         )
       } catch (error) {
         invalidateEngine(generation, error instanceof Error ? error : new Error(String(error)))

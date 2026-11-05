@@ -7,7 +7,7 @@ import { Controller } from '@mercuryworkshop/scramjet-controller'
 import { expose } from 'osra'
 
 import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
-import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
+import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_DIRECT_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
 import { CONTROLLER_CONFIG, scramjetWorker } from './scramjet-setup'
@@ -17,6 +17,7 @@ type FrameWindow = Window & {
   [FRAME_CONNECT]?: (port: MessagePort) => void
   [FRAME_EGRESS_CONNECT]?: (port: MessagePort) => void
   [FRAME_AGENT_CONNECT]?: (port: MessagePort) => void
+  [FRAME_DIRECT_CONNECT]?: (port: MessagePort) => void
   $scramerr?: (error: unknown) => void
 }
 
@@ -26,7 +27,7 @@ const stage = (value: string) => {
 
 const BOOTSTRAP_TIMEOUT_MS = 30_000
 
-const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agent?: MessagePort }>((resolve, reject) => {
+const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agent?: MessagePort, direct?: MessagePort }>((resolve, reject) => {
   const timeout = setTimeout(
     () => reject(new Error('yt-client: engine bootstrap ports never arrived')),
     BOOTSTRAP_TIMEOUT_MS,
@@ -42,12 +43,14 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agen
       reject(new Error(ENGINE_BUILD_MISMATCH))
       return
     }
-    const [egress, extFetch, agent] = event.ports
+    const ports = [...event.ports]
+    const direct = message.direct ? ports.pop() : undefined
+    const [egress, extFetch, agent] = ports
     if (!egress || !extFetch) {
       reject(new Error('yt-client: engine bootstrap ports are missing'))
       return
     }
-    resolve({ egress, extFetch, agent })
+    resolve({ egress, extFetch, agent, direct })
   }
   window.addEventListener('message', onMessage)
   window.parent.postMessage({ type: HOST_HELLO, build: BUILD_ID } satisfies HostHello, location.origin)
@@ -87,7 +90,7 @@ const boot = async () => {
   const workerReady = scramjetWorker()
   const frameCodePromise = fetch('/__yt_scramjet__/youtube-frame.js').then((response) => response.text())
   stage('bootstrap')
-  const transportReady = bootstrap.then(async ({ egress, extFetch: extFetchPort, agent }) => {
+  const transportReady = bootstrap.then(async ({ egress, extFetch: extFetchPort, agent, direct }) => {
     egress.start()
     const remote = expose<EgressApi>({}, {
       key: EGRESS_KEY,
@@ -96,9 +99,9 @@ const boot = async () => {
     const extFetch = createExtFetch(extFetchPort)
     const transport = createFknTransport(remote, extFetch)
     await transport.init()
-    return { egress, extFetchPort, remote, transport, extFetch, agent }
+    return { egress, extFetchPort, remote, transport, extFetch, agent, direct }
   })
-  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch, agent }] = await Promise.all([workerReady, transportReady])
+  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch, agent, direct }] = await Promise.all([workerReady, transportReady])
 
   stage('controller')
   const controller = new Controller({
@@ -196,6 +199,10 @@ const boot = async () => {
     // a frame with no connector mints in its own realm, as it does with no port
     if (agent && connectAgent) connectAgent(agent)
     else agent?.close()
+    const connectDirect = frameWindow[FRAME_DIRECT_CONNECT]
+    delete frameWindow[FRAME_DIRECT_CONNECT]
+    if (direct && connectDirect) connectDirect(direct)
+    else direct?.close()
     const connect = frameWindow[FRAME_CONNECT]
     if (!connect) throw new Error('yt-client: frame connector is missing')
     delete frameWindow[FRAME_CONNECT]
@@ -212,6 +219,7 @@ const boot = async () => {
     frameEgressPort?.close()
     controlPort?.close()
     agent?.close()
+    direct?.close()
   }, { once: true })
 
   return { controller, frame: proxiedFrame }
