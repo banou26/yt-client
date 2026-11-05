@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact'
 
 import { css } from '@emotion/react'
 import { X } from 'lucide-react'
-import { useEffect, useRef } from 'preact/hooks'
+import { useLayoutEffect, useRef } from 'preact/hooks'
 
 const style = css`
   position: fixed;
@@ -88,7 +88,8 @@ export const Dialog = (
 ) => {
   const panelRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  // a layout effect, so Escape and the focus trap are live before the dialog first paints
+  useLayoutEffect(() => {
     const previous = document.activeElement as HTMLElement | null
     const panel = panelRef.current
     // Not `first?.focus() ?? panel?.focus()`: focus() returns undefined, so `??` always evaluated its right side too
