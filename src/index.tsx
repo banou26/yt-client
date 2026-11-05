@@ -5,6 +5,7 @@ import { Provider } from 'urql'
 import App from './app'
 import Toasts from './components/ui/toast'
 import { client } from './graphql'
+import { startGroupSync } from './groups/sync-live'
 import { markStartup } from './perf'
 import { startEngine } from './scramjet/client'
 import { applyTheme, watchDeviceTheme } from './settings'
@@ -189,6 +190,7 @@ void startEngine().then(
     document.documentElement.dataset.engineError = error instanceof Error ? error.message : String(error)
   },
 )
+startGroupSync().catch((error: unknown) => console.warn('groups: FKN account sync did not start', error))
 
 render(
   <Provider value={client}>

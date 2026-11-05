@@ -16,5 +16,5 @@ export const DIRECT_HOSTS: readonly DirectHost[] = [
   { domain: 'fonts.gstatic.com', what: 'The Roboto font and live chat emoji' },
 ]
 
-/** FKN's own servers: the broker, relay and WebVPN under fkn.app, and the render proxy page the BotGuard agent runs in on sdbx.app. */
+/** FKN's own servers: the broker, relay, WebVPN and storage.fkn.app under fkn.app, and the render proxy page the BotGuard agent runs in on sdbx.app. */
 export const FKN_DOMAINS: readonly string[] = ['fkn.app', 'sdbx.app']
