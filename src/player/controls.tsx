@@ -333,6 +333,24 @@ const style = css`
     top: auto;
   }
 
+  /* below these player widths the clock would clip, so the chapter goes first, then the volume slider and 8 px of each
+     right-hand button (yt-client draws Next and PiP, which youtube.com's bar does not) */
+  @container player (max-width: 760px) {
+    .chapter {
+      display: none;
+    }
+  }
+
+  @container player (max-width: 700px) {
+    .volume-slider {
+      display: none;
+    }
+
+    .right .control {
+      width: 4rem;
+    }
+  }
+
   /* the 400 px miniplayer dock: youtube.com narrows its controls to 32 px here */
   @container player (max-width: 600px) {
     padding: 0 0.8rem;
@@ -359,9 +377,7 @@ const style = css`
     }
 
     .autoplay,
-    .theater-toggle,
-    .volume-slider,
-    .chapter {
+    .theater-toggle {
       display: none;
     }
   }

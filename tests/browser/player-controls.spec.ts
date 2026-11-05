@@ -25,22 +25,45 @@ const labels = (page: Page) => player(page).evaluate((root) => {
   return [...controls.querySelectorAll('button, input, [role]')].map(control => control.getAttribute('aria-label') ?? '')
 })
 
+// the clock is the group that shrinks, so a squeezed bar shows up as a clipped clock long before anything overflows
 const fit = (page: Page) => player(page).evaluate((root) => {
   const edge = root.getBoundingClientRect()
   const bar = root.querySelector('.bar')!
+  const time = bar.querySelector('.time')!
   const shown = [...bar.querySelectorAll('button, .group')].map(item => item.getBoundingClientRect()).filter(box => box.width > 0)
   return {
     width: Math.round(edge.width),
     overflow: bar.scrollWidth - bar.clientWidth,
     outside: shown.filter(box => box.left < edge.left - 0.5 || box.right > edge.right + 0.5 || box.bottom > edge.bottom + 0.5).length,
+    clipped: time.scrollWidth - time.clientWidth > 1,
+    chapter: bar.querySelector('.chapter')?.clientWidth ?? 0,
   }
 })
 
+// the volume slider opens on a 0.2 s transition, and a measure taken before it ends sees the room it has not taken yet
+const settle = (page: Page) => player(page).evaluate(async (root) => {
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  await Promise.all(root.querySelector('.bar')!.getAnimations({ subtree: true }).map(animation => animation.finished))
+})
+
+const pointAt = async (page: Page, target: 'player' | 'volume') => {
+  if (target === 'volume') await player(page).locator('.volume').hover()
+  else {
+    const box = (await player(page).boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 4)
+  }
+  await settle(page)
+}
+
 const expectFits = async (page: Page, width: number) => {
   await expect.poll(async () => (await fit(page)).width, { message: `the player is not ${width} px wide` }).toBe(width)
-  const { overflow, outside } = await fit(page)
-  expect(overflow, `the bar overflows a ${width} px player`).toBeLessThanOrEqual(0)
-  expect(outside, `a control sits outside a ${width} px player`).toBe(0)
+  for (const target of ['player', 'volume'] as const) {
+    await pointAt(page, target)
+    const { overflow, outside, clipped } = await fit(page)
+    expect(overflow, `the bar overflows a ${width} px player, pointer on the ${target}`).toBeLessThanOrEqual(0)
+    expect(outside, `a control sits outside a ${width} px player, pointer on the ${target}`).toBe(0)
+    expect(clipped, `the clock clips in a ${width} px player, pointer on the ${target}`).toBe(false)
+  }
 }
 
 const EVERY_CONTROL = [
@@ -62,7 +85,7 @@ const expectLabelled = async (page: Page) => {
   for (const pattern of EVERY_CONTROL) expect(named.some(label => pattern.test(label)), `no control is labelled ${pattern}`).toBe(true)
 }
 
-test('every control keeps its label, and the bar fits a 1920, 1280 and 400 px player', async ({ page }) => {
+test('every control keeps its label, and the bar fits a 1920, 1280, 640 and 400 px player', async ({ page }) => {
   test.setTimeout(300_000)
   await page.addInitScript(() => localStorage.setItem('yt-client:settings', JSON.stringify({ theater: true })))
   await page.setViewportSize({ width: 1920, height: 1080 })
@@ -92,6 +115,10 @@ test('every control keeps its label, and the bar fits a 1920, 1280 and 400 px pl
 
   await page.setViewportSize({ width: 1280, height: 800 })
   await expectFits(page, 1280)
+  await expectLabelled(page)
+
+  await page.setViewportSize({ width: 640, height: 800 })
+  await expectFits(page, 640)
   await expectLabelled(page)
 
   await page.evaluate(() => {
@@ -130,4 +157,23 @@ test('names the chapter the playhead is in, beside the clock', async ({ page }) 
   expect(title!.x).toBeGreaterThanOrEqual(clock!.x + clock!.width)
   expect(title!.y).toBeCloseTo(clock!.y, 0)
   expect((await fit(page)).overflow).toBeLessThanOrEqual(0)
+
+  // narrower, the title goes before the clock would clip, rather than shrinking to an empty pill
+  await seek(6)
+  await expect(chapter).toHaveText('The cool thing')
+  // 792, 736 and 616 px players: each window is narrower than the last, so the poll waits for the resize
+  let previous = (await fit(page)).width
+  for (const width of [840, 760, 640]) {
+    await page.setViewportSize({ width, height: 800 })
+    await expect.poll(async () => (await fit(page)).width).toBeLessThan(previous)
+    for (const target of ['player', 'volume'] as const) {
+      await pointAt(page, target)
+      const measured = await fit(page)
+      const where = `a ${measured.width} px player, pointer on the ${target}`
+      expect(measured.clipped, `the clock clips in ${where}`).toBe(false)
+      expect(measured.overflow, `the bar overflows ${where}`).toBeLessThanOrEqual(0)
+      expect(measured.chapter === 0 || measured.chapter >= 80, `the chapter is a ${measured.chapter} px sliver in ${where}`).toBe(true)
+      previous = measured.width
+    }
+  }
 })
