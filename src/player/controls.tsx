@@ -24,13 +24,14 @@ export const clock = (seconds: number) => {
     : `${minutes}:${String(rest).padStart(2, '0')}`
 }
 
+/* youtube.com's 2025 bar, measured headless at 1280 and 1920 (the sizes do not scale with the player):
+   40 px tall groups on a 30% black wash, 12 px in from each edge, and no gradient behind them */
 const style = css`
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 1.2rem 0.8rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 0 1.2rem;
   color: #ffffff;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -52,23 +53,6 @@ const style = css`
     display: none;
   }
 
-  .live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 1.3rem;
-    font-weight: 500;
-    color: var(--text-on-media);
-  }
-
-  .live-badge::before {
-    content: '';
-    width: 0.8rem;
-    height: 0.8rem;
-    border-radius: 50%;
-    background: #f00;
-  }
-
   .scrubber {
     position: relative;
     height: 1.6rem;
@@ -81,14 +65,15 @@ const style = css`
   .rail {
     position: relative;
     width: 100%;
-    height: 0.3rem;
-    background: rgba(255, 255, 255, 0.3);
+    height: 0.4rem;
+    border-radius: 0.3rem;
+    background: rgba(40, 40, 40, 0.6);
     transition: height 0.1s ease;
   }
 
   .scrubber:hover .rail,
   .scrubber.scrubbing .rail {
-    height: 0.5rem;
+    height: 0.6rem;
   }
 
   .buffered,
@@ -97,31 +82,32 @@ const style = css`
     top: 0;
     bottom: 0;
     left: 0;
+    border-radius: 0.3rem 0 0 0.3rem;
   }
 
   .buffered {
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.4);
   }
 
   .played {
-    background: var(--brand);
+    background: var(--brand-red);
   }
 
   .knob {
     position: absolute;
     top: 50%;
-    width: 1.3rem;
-    height: 1.3rem;
-    margin-left: -0.65rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-left: -0.6rem;
     border-radius: 50%;
-    background: var(--brand);
-    transform: translateY(-50%) scale(0);
+    background: var(--brand-red);
+    transform: translateY(-50%);
     transition: transform 0.1s ease;
   }
 
   .scrubber:hover .knob,
   .scrubber.scrubbing .knob {
-    transform: translateY(-50%) scale(1);
+    transform: translateY(-50%) scale(1.3);
   }
 
   .preview {
@@ -141,17 +127,20 @@ const style = css`
   }
 
   .preview-time {
+    display: inline-block;
     margin-top: 0.4rem;
+    padding: 0 0.8rem;
+    border-radius: 1.2rem;
+    background: rgba(0, 0, 0, 0.6);
     font-size: 1.3rem;
+    line-height: 2.4rem;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 1px 3px #000;
   }
 
   .bar {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    height: 4.8rem;
+    height: 5.6rem;
   }
 
   .spacer {
@@ -159,27 +148,80 @@ const style = css`
   }
 
   .control {
+    position: relative;
     flex: none;
-    width: 4rem;
+    width: 4.8rem;
     height: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
     border: none;
+    border-radius: 2.8rem;
     background: transparent;
     color: #ffffff;
     cursor: pointer;
-    opacity: 0.9;
-    transition: opacity 0.1s ease;
   }
 
-  .control:hover {
+  /* after .control, whose transparent background would otherwise win on a control that is its own group */
+  .group {
+    position: relative;
+    flex: none;
+    height: 4rem;
+    border-radius: 2.8rem;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  /* the hover wash: a 32 px band inside the shared group, and the whole shape of a control that is its own group */
+  .control::after,
+  .volume::after {
+    content: '';
+    position: absolute;
+    inset: 0.4rem 0;
+    border-radius: 4rem;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.1s ease;
+    pointer-events: none;
+  }
+
+  .control:hover::after,
+  .volume:hover::after {
     opacity: 1;
+  }
+
+  .play {
+    width: 4rem;
+    border-radius: 50%;
+  }
+
+  .play::after {
+    inset: 0.4rem;
+    border-radius: 50%;
+  }
+
+  .next {
+    margin-left: 0.8rem;
+  }
+
+  .next::after,
+  .volume::after {
+    inset: 0;
+    border-radius: inherit;
   }
 
   .volume {
     display: flex;
     align-items: center;
+    margin-left: 1.2rem;
+  }
+
+  .volume .control {
+    width: 4rem;
+  }
+
+  .volume .control::after {
+    display: none;
   }
 
   .volume-slider {
@@ -190,75 +232,91 @@ const style = css`
 
   .volume:hover .volume-slider,
   .volume:focus-within .volume-slider {
-    width: 7.2rem;
-    margin-right: 0.8rem;
+    width: 5.2rem;
+    margin-right: 1.6rem;
   }
 
   .volume-slider input {
-    width: 7.2rem;
+    width: 5.2rem;
     accent-color: #ffffff;
     cursor: pointer;
   }
 
-  /* the one item that gives way, so an hour-long clock clips rather than pushing a button out of the player */
-  .time {
+  /* the one group that gives way, so an hour-long clock clips rather than pushing a button out of the player */
+  .time,
+  .live-badge {
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
-    padding: 0 0.8rem;
-    font-size: 1.3rem;
+    margin-left: 0.8rem;
+    padding: 0 1.6rem;
+    font-size: 1.4rem;
+    line-height: 4rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+
+  .time .current {
+    font-weight: 500;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 500;
+  }
+
+  .live-badge::before {
+    content: '';
+    flex: none;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: #f00;
+  }
+
+  .right {
+    display: flex;
+    margin-left: 0.8rem;
+    padding: 0 0.4rem;
   }
 
   .menu-anchor {
     position: relative;
   }
 
-  .autoplay {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 4.8rem;
-    height: 4rem;
-    padding: 0;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    opacity: 0.9;
-  }
-
-  .autoplay:hover {
-    opacity: 1;
-  }
-
   .autoplay-track {
     position: relative;
-    width: 3.6rem;
-    height: 1.4rem;
-    border-radius: 0.7rem;
-    background: rgba(255, 255, 255, 0.3);
+    width: 3rem;
+    height: 1.8rem;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.15s ease;
   }
 
   .autoplay-knob {
     position: absolute;
-    top: 50%;
-    left: 0;
+    top: 0.2rem;
+    left: 0.2rem;
     display: grid;
     place-items: center;
-    width: 2rem;
-    height: 2rem;
+    width: 1.4rem;
+    height: 1.4rem;
     border-radius: 50%;
-    background: #717171;
-    color: #ffffff;
-    transform: translateY(-50%);
+    background: #ffffff;
+    color: #000000;
     transition: transform 0.15s ease, background 0.15s ease;
   }
 
-  .autoplay[aria-checked='true'] .autoplay-knob {
+  .autoplay[aria-checked='true'] .autoplay-track {
     background: #ffffff;
-    color: #000000;
-    transform: translate(1.6rem, -50%);
+  }
+
+  .autoplay[aria-checked='true'] .autoplay-knob {
+    background: #000000;
+    color: #ffffff;
+    transform: translateX(1.2rem);
   }
 
   .settings-menu {
@@ -266,9 +324,29 @@ const style = css`
     top: auto;
   }
 
+  /* the 400 px miniplayer dock: youtube.com narrows its controls to 32 px here */
   @container player (max-width: 600px) {
-    .bar {
-      gap: 0;
+    padding: 0 0.8rem;
+
+    .next,
+    .volume,
+    .time,
+    .live-badge,
+    .right {
+      margin-left: 0.4rem;
+    }
+
+    .time,
+    .live-badge {
+      padding: 0 1rem;
+    }
+
+    .right {
+      padding: 0 0.2rem;
+    }
+
+    .right .control {
+      width: 3.2rem;
     }
 
     .autoplay,
@@ -468,13 +546,13 @@ export const PlayerControls = (
           : undefined}
       </div>
       <div className='bar'>
-        <button type='button' className='control' aria-label={state.ended ? 'Replay' : state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
+        <button type='button' className='control group play' aria-label={state.ended ? 'Replay' : state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
           {state.ended
-            ? <RotateCcw size={24} strokeWidth={2} />
-            : state.paused ? <Play size={26} fill='currentColor' strokeWidth={0} /> : <Pause size={26} fill='currentColor' strokeWidth={0} />}
+            ? <RotateCcw size={22} strokeWidth={2} />
+            : state.paused ? <Play size={22} fill='currentColor' strokeWidth={0} /> : <Pause size={22} fill='currentColor' strokeWidth={0} />}
         </button>
-        {onNext ? <button type='button' className='control' aria-label='Next' onClick={onNext}><SkipForward size={24} fill='currentColor' strokeWidth={2} /></button> : undefined}
-        <div className='volume'>
+        {onNext ? <button type='button' className='control group next' aria-label='Next' onClick={onNext}><SkipForward size={22} fill='currentColor' strokeWidth={2} /></button> : undefined}
+        <div className='group volume'>
           <button type='button' className='control' aria-label={state.muted ? 'Unmute' : 'Mute'} onClick={toggleMute}>
             <VolumeIcon size={24} strokeWidth={1.8} />
           </button>
@@ -492,163 +570,165 @@ export const PlayerControls = (
         </div>
         {/* a live presentation timeline is the stream's own clock: the position reads like 3348:05:43 and the duration is 0 */}
         {isLive
-          ? <span className='live-badge'>LIVE</span>
-          : <span className='time'>{clock(position)} / {clock(duration)}</span>}
+          ? <span className='group live-badge'>LIVE</span>
+          : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
         <span className='spacer' />
-        {onAutoplay && !isLive
-          ? (
-            <button
-              type='button'
-              className='autoplay'
-              role='switch'
-              aria-label='Autoplay'
-              aria-checked={autoplay === true}
-              onClick={() => onAutoplay(!autoplay)}
-            >
-              <span className='autoplay-track'>
-                <span className='autoplay-knob'>
-                  {autoplay ? <Play size={12} fill='currentColor' strokeWidth={0} /> : <Pause size={12} fill='currentColor' strokeWidth={0} />}
+        <div className='group right'>
+          {onAutoplay && !isLive
+            ? (
+              <button
+                type='button'
+                className='control autoplay'
+                role='switch'
+                aria-label='Autoplay'
+                aria-checked={autoplay === true}
+                onClick={() => onAutoplay(!autoplay)}
+              >
+                <span className='autoplay-track'>
+                  <span className='autoplay-knob'>
+                    {autoplay ? <Play size={9} fill='currentColor' strokeWidth={0} /> : <Pause size={9} fill='currentColor' strokeWidth={0} />}
+                  </span>
                 </span>
-              </span>
-            </button>
-          )
-          : undefined}
-        {captionTracks.length > 0
-          ? (
+              </button>
+            )
+            : undefined}
+          {captionTracks.length > 0
+            ? (
+              <button
+                type='button'
+                className='control'
+                aria-label={caption ? 'Turn off captions' : 'Turn on captions'}
+                aria-pressed={caption !== undefined}
+                onClick={onToggleCaption}
+              >
+                {caption ? <Captions size={24} strokeWidth={1.8} /> : <CaptionsOff size={24} strokeWidth={1.8} />}
+              </button>
+            )
+            : undefined}
+          <div className='menu-anchor' ref={menuRef}>
             <button
+              ref={menuTriggerRef}
               type='button'
               className='control'
-              aria-label={caption ? 'Turn off captions' : 'Turn on captions'}
-              aria-pressed={caption !== undefined}
-              onClick={onToggleCaption}
+              aria-label='Settings'
+              aria-haspopup='menu'
+              aria-expanded={menu !== undefined}
+              onClick={() => setMenu(value => (value === undefined ? 'root' : undefined))}
             >
-              {caption ? <Captions size={24} strokeWidth={1.8} /> : <CaptionsOff size={24} strokeWidth={1.8} />}
+              <Settings size={24} strokeWidth={1.8} />
             </button>
-          )
-          : undefined}
-        <div className='menu-anchor' ref={menuRef}>
-          <button
-            ref={menuTriggerRef}
-            type='button'
-            className='control'
-            aria-label='Settings'
-            aria-haspopup='menu'
-            aria-expanded={menu !== undefined}
-            onClick={() => setMenu(value => (value === undefined ? 'root' : undefined))}
-          >
-            <Settings size={24} strokeWidth={1.8} />
-          </button>
-          {menu === 'root'
-            ? (
-              <Popup label='Player settings' class='settings-menu'>
-                <MenuItem detail={state.playbackRate === 1 ? 'Normal' : `${state.playbackRate}x`} onSelect={() => setMenu('speed')}>
-                  Playback speed
-                </MenuItem>
-                <MenuItem
-                  detail={activeCaption ? activeCaption.label : 'Off'}
-                  disabled={captionTracks.length === 0}
-                  onSelect={() => setMenu('captions')}
-                >
-                  Subtitles
-                </MenuItem>
-                <MenuItem
-                  detail={quality === 'auto' ? `Auto${activeLabel ? ` (${activeLabel})` : ''}` : `${quality}p`}
-                  disabled={heights.length === 0}
-                  onSelect={() => setMenu('quality')}
-                >
-                  Quality
-                </MenuItem>
-              </Popup>
-            )
-            : menu === 'speed'
+            {menu === 'root'
               ? (
-                <Popup label='Playback speed' class='settings-menu'>
-                  {RATES.map(rate => (
-                    <MenuItem key={rate} icon={rate === state.playbackRate ? Check : undefined} onSelect={() => onRate(rate)}>
-                      {rate === 1 ? 'Normal' : `${rate}x`}
-                    </MenuItem>
-                  ))}
+                <Popup label='Player settings' class='settings-menu'>
+                  <MenuItem detail={state.playbackRate === 1 ? 'Normal' : `${state.playbackRate}x`} onSelect={() => setMenu('speed')}>
+                    Playback speed
+                  </MenuItem>
+                  <MenuItem
+                    detail={activeCaption ? activeCaption.label : 'Off'}
+                    disabled={captionTracks.length === 0}
+                    onSelect={() => setMenu('captions')}
+                  >
+                    Subtitles
+                  </MenuItem>
+                  <MenuItem
+                    detail={quality === 'auto' ? `Auto${activeLabel ? ` (${activeLabel})` : ''}` : `${quality}p`}
+                    disabled={heights.length === 0}
+                    onSelect={() => setMenu('quality')}
+                  >
+                    Quality
+                  </MenuItem>
                 </Popup>
               )
-              : menu === 'captions'
+              : menu === 'speed'
                 ? (
-                  <Popup label='Subtitles' class='settings-menu'>
-                    <MenuItem
-                      icon={caption === undefined ? Check : undefined}
-                      onSelect={() => {
-                        onCaption(undefined)
-                        setMenu(undefined)
-                      }}
-                    >
-                      Off
-                    </MenuItem>
-                    {captionTracks.map(track => (
-                      <MenuItem
-                        key={track.id}
-                        icon={caption === track.id ? Check : undefined}
-                        detail={track.auto ? 'auto' : undefined}
-                        onSelect={() => {
-                          onCaption(track.id)
-                          setMenu(undefined)
-                        }}
-                      >
-                        {track.label}
+                  <Popup label='Playback speed' class='settings-menu'>
+                    {RATES.map(rate => (
+                      <MenuItem key={rate} icon={rate === state.playbackRate ? Check : undefined} onSelect={() => onRate(rate)}>
+                        {rate === 1 ? 'Normal' : `${rate}x`}
                       </MenuItem>
                     ))}
                   </Popup>
                 )
-                : menu === 'quality'
+                : menu === 'captions'
                   ? (
-                    <Popup label='Quality' class='settings-menu'>
+                    <Popup label='Subtitles' class='settings-menu'>
                       <MenuItem
-                        icon={quality === 'auto' ? Check : undefined}
-                        detail={activeLabel}
+                        icon={caption === undefined ? Check : undefined}
                         onSelect={() => {
-                          onQuality('auto')
+                          onCaption(undefined)
                           setMenu(undefined)
                         }}
                       >
-                        Auto
+                        Off
                       </MenuItem>
-                      {heights.map(height => (
+                      {captionTracks.map(track => (
                         <MenuItem
-                          key={height}
-                          icon={quality === height ? Check : undefined}
+                          key={track.id}
+                          icon={caption === track.id ? Check : undefined}
+                          detail={track.auto ? 'auto' : undefined}
                           onSelect={() => {
-                            onQuality(height)
+                            onCaption(track.id)
                             setMenu(undefined)
                           }}
                         >
-                          {`${height}p`}
+                          {track.label}
                         </MenuItem>
                       ))}
                     </Popup>
                   )
-                  : undefined}
+                  : menu === 'quality'
+                    ? (
+                      <Popup label='Quality' class='settings-menu'>
+                        <MenuItem
+                          icon={quality === 'auto' ? Check : undefined}
+                          detail={activeLabel}
+                          onSelect={() => {
+                            onQuality('auto')
+                            setMenu(undefined)
+                          }}
+                        >
+                          Auto
+                        </MenuItem>
+                        {heights.map(height => (
+                          <MenuItem
+                            key={height}
+                            icon={quality === height ? Check : undefined}
+                            onSelect={() => {
+                              onQuality(height)
+                              setMenu(undefined)
+                            }}
+                          >
+                            {`${height}p`}
+                          </MenuItem>
+                        ))}
+                      </Popup>
+                    )
+                    : undefined}
+          </div>
+          {pipSupported
+            ? (
+              <button
+                type='button'
+                className='control'
+                aria-label={pip ? 'Exit picture in picture' : 'Picture in picture'}
+                aria-pressed={pip}
+                onClick={togglePip}
+              >
+                <PictureInPicture2 size={24} strokeWidth={1.8} />
+              </button>
+            )
+            : undefined}
+          <button type='button' className='control theater-toggle' aria-label='Theater mode' aria-pressed={theater} onClick={onTheater}>
+            {/* two nested rectangles read as "wide screen" */}
+            <svg width='24' height='24' viewBox='0 0 24 24' aria-hidden='true' fill='none' stroke='currentColor' strokeWidth='1.8'>
+              <rect x='2' y='6' width='20' height='12' rx='1.5' />
+              {theater ? <rect x='6' y='9' width='12' height='6' rx='1' /> : undefined}
+            </svg>
+          </button>
+          <button type='button' className='control' aria-label={fullscreen ? 'Exit full screen' : 'Full screen'} onClick={toggleFullscreen}>
+            {fullscreen ? <Minimize size={24} strokeWidth={1.8} /> : <Maximize size={24} strokeWidth={1.8} />}
+          </button>
         </div>
-        {pipSupported
-          ? (
-            <button
-              type='button'
-              className='control'
-              aria-label={pip ? 'Exit picture in picture' : 'Picture in picture'}
-              aria-pressed={pip}
-              onClick={togglePip}
-            >
-              <PictureInPicture2 size={24} strokeWidth={1.8} />
-            </button>
-          )
-          : undefined}
-        <button type='button' className='control theater-toggle' aria-label='Theater mode' aria-pressed={theater} onClick={onTheater}>
-          {/* two nested rectangles read as "wide screen" */}
-          <svg width='24' height='24' viewBox='0 0 24 24' aria-hidden='true' fill='none' stroke='currentColor' strokeWidth='1.8'>
-            <rect x='2' y='6' width='20' height='12' rx='1.5' />
-            {theater ? <rect x='6' y='9' width='12' height='6' rx='1' /> : undefined}
-          </svg>
-        </button>
-        <button type='button' className='control' aria-label={fullscreen ? 'Exit full screen' : 'Full screen'} onClick={toggleFullscreen}>
-          {fullscreen ? <Minimize size={24} strokeWidth={1.8} /> : <Maximize size={24} strokeWidth={1.8} />}
-        </button>
       </div>
     </div>
   )
