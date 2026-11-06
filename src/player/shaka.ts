@@ -4,6 +4,7 @@ import shaka from 'shaka-player'
 
 import { codecsOf } from '../frame/protocol'
 import { markStartup } from '../perf'
+import { createStallWatch } from './restart'
 
 type Bridge = {
   api: FrameApi
@@ -190,6 +191,9 @@ const liveOpening = (session: PlaybackSession) => {
   }
 }
 
+// a live session's own error, so the restart reopens the playback and keeps the engine
+const LIVE_STALLED = 'youtube: live stream stopped delivering'
+
 const describeShakaError = (error: shaka.util.Error) => {
   const cause = error.data.find((value: unknown) => value instanceof Error) as Error | undefined
   return cause ?? Object.assign(new Error(`shaka: error ${error.code} in category ${error.category}`), { cause: error })
@@ -230,6 +234,7 @@ export const startShakaPlayback = async ({
   let playerError: ((event: Event) => void) | undefined
   let buffering: ((event: Event) => void) | undefined
   let seeking: (() => void) | undefined
+  let stallTimer: ReturnType<typeof setInterval> | undefined
   const captionUrls: string[] = []
   // eslint-disable-next-line prefer-const
   let abortListener: (() => void) | undefined
@@ -239,6 +244,7 @@ export const startShakaPlayback = async ({
     if (destroyed) return
     destroyed = true
     if (abortListener) signal.removeEventListener('abort', abortListener)
+    clearInterval(stallTimer)
     bridges.delete(bridgeId)
     if (networking && requestFilter) networking.unregisterRequestFilter(requestFilter)
     if (player && playerError) player.removeEventListener('error', playerError)
@@ -359,6 +365,11 @@ export const startShakaPlayback = async ({
         }
         await new Promise((resolve) => setTimeout(resolve, 250))
       }
+      const stalled = createStallWatch()
+      if (!destroyed) stallTimer = setInterval(() => {
+        const playing = !video.paused && !video.ended && document.visibilityState === 'visible'
+        if (!destroyed && stalled(video.currentTime, playing, Date.now())) onError(new Error(LIVE_STALLED))
+      }, 1_000)
     }
     diagnosticBridgeId = bridgeId
     markStartup('player-attached')

@@ -32,3 +32,23 @@ export const createRestartBudget = (limit = 3, settleSeconds = 30) => {
     },
   }
 }
+
+/**
+ * Whether a clock that should be moving has stood still for `limitMs`. Shaka only asks for the segments its live
+ * manifest lists, so a session that stops delivering leaves it buffering for good with no error of its own. Time while
+ * not `playing` (paused, ended, hidden) does not count, and it fires once per stretch of `limitMs`.
+ */
+export const createStallWatch = (limitMs = 30_000) => {
+  let last: number | undefined
+  let since = 0
+  return (time: number, playing: boolean, now: number) => {
+    if (!playing || time !== last) {
+      last = time
+      since = now
+      return false
+    }
+    if (now - since < limitMs) return false
+    since = now
+    return true
+  }
+}
