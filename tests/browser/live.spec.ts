@@ -105,20 +105,22 @@ test('a 24/7 live stream plays near its head for 60 s on one engine, with its ch
     await page.waitForTimeout(1_000)
   }
   // only steps of real play count: the player also jumps forward over missing media, which a frozen stream does too
-  let played = 0
-  for (let index = 1; index < samples.length; index += 1) {
-    const step = samples[index]!.time - samples[index - 1]!.time
-    if (step > 0 && step < 1.5 && samples[index]!.readyState >= 3) played += step
-  }
+  const steps = samples.slice(1).map((point, index) => {
+    const step = point.time - samples[index]!.time
+    return step > 0 && step < 1.5 && point.readyState >= 3 ? step : 0
+  })
+  const played = steps.reduce((total, step) => total + step, 0)
+  const playedLast = steps.slice(-10).reduce((total, step) => total + step, 0)
   const behind = Math.max(...samples.map((point) => (point.edge ?? Infinity) - point.time))
   const edges = samples.map((point) => point.edge ?? 0)
   const advanced = edges.at(-1)! - edges[0]!
   const log = await frameApiLog(page)
   const rows = await chatRows(page)
-  console.log(`live: played ${played.toFixed(1)} s of 60, at most ${behind.toFixed(1)} s behind the timeline's end, `
+  console.log(`live: played ${played.toFixed(1)} s of 60 (${playedLast.toFixed(1)} of the last 10), at most ${behind.toFixed(1)} s behind the timeline's end, `
     + `which moved ${advanced.toFixed(1)} s; engine loads ${engineLoads}, playback opens ${log.openPlayback}, `
     + `video formats ${[...new Set(log.videoKeys)].join(' ')} against ${log.selectedVideoKeys.join(' ')}, chat rows ${rows}`)
   expect(played, 'the stream did not keep playing').toBeGreaterThan(45)
+  expect(playedLast, 'the stream stopped playing before the end').toBeGreaterThan(7)
   expect(behind, 'the playhead fell behind the live timeline').toBeLessThan(60)
   // the timeline follows the server's head in real time, not a race through the 12 h DVR window behind it
   expect(advanced).toBeGreaterThan(30)
