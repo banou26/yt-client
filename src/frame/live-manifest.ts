@@ -1,5 +1,7 @@
 import type { PlaybackFormat } from './protocol'
 
+import { codecsOf } from './protocol'
+
 /* segments are addressed by SEQUENCE, not by byte range, and sequence maps onto time exactly (sequence 4717 * 5000 = startMs 23585000).
    This generator describes only segments that have ALREADY ARRIVED, at the times their media headers give. */
 
@@ -7,8 +9,6 @@ const seconds = (value: number) => `PT${(value / 1_000).toFixed(3)}S`
 
 const escapeAttribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
-
-const codecsOf = (mimeType: string) => mimeType.match(/codecs="([^"]+)"/)?.[1] ?? ''
 
 const containerOf = (mimeType: string) => mimeType.split(';')[0] ?? 'video/mp4'
 

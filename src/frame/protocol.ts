@@ -29,6 +29,9 @@ export type PlaybackFormat = {
   targetDurationMs?: number
 }
 
+// a format mimeType's codecs parameter, '' when it names none
+export const codecsOf = (mimeType: string) => mimeType.match(/codecs="([^"]+)"/)?.[1] ?? ''
+
 export type PlaybackSnapshot = {
   currentTimeMs: number
   playbackRate: number

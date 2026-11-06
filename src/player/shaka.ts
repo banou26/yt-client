@@ -2,6 +2,7 @@ import type { FrameApi, PlaybackSession } from '../frame/protocol'
 
 import shaka from 'shaka-player'
 
+import { codecsOf } from '../frame/protocol'
 import { markStartup } from '../perf'
 
 type Bridge = {
@@ -174,8 +175,6 @@ const installScheme = () => {
     })
   }, shaka.net.NetworkingEngine.PluginPriority.PREFERRED, false)
 }
-
-const codecsOf = (mimeType: string) => mimeType.match(/codecs="([^"]+)"/)?.[1] ?? ''
 
 /* Shaka opens a live stream on the formats the frame's session already streams. Its own pick differs (it rounds the
    element height UP and keeps the cheapest codec per resolution, the frame rounds down: 244 against 134 on a 1280x720
