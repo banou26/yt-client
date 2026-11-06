@@ -643,10 +643,6 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       metadata.streamInfo ??= {}
       metadata.streamInfo.mediaHeader = mediaHeader
     }
-    // a live answer with no LIVE_METADATA at all: the session starts at what it was answered
-    const settleLiveStart = () => {
-      if (source.isLive) liveStartMs ??= Number(metadata.streamInfo?.mediaHeader?.startMs ?? startTimeMs)
-    }
     if (reader && result?.done && !readerDone) {
       const harvest = {
         done: Promise.resolve(),
@@ -666,13 +662,11 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
         }
       })().catch(() => {}).finally(() => {
         collector.clear()
-        settleLiveStart()
         if (activeHarvest === harvest) activeHarvest = undefined
         notifyCacheChange()
       })
     } else {
       collector.clear()
-      settleLiveStart()
     }
     output.elapsedMs = performance.now() - started
     return output

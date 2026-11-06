@@ -64,6 +64,8 @@ let openedAt = 0
 const head = () => HEAD + Math.floor((Date.now() - openedAt) / 5_000)
 let pastHead: 'hold' | 'status 3' = 'hold'
 let status: number | undefined
+// the status of the next answer only, with no media and no LIVE_METADATA, as a status 3 answer was measured
+let nextStatus: number | undefined
 // positions answered "backoff, no media" whatever the head
 const refused = new Set<number>()
 // the next answer is the segment before the one its address falls in, as measured once after a refusal
@@ -79,6 +81,9 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
   const sequence = Math.max(head() - WINDOW, sequenceAt(playerTimeMs)) - (answerBehind ? 1 : 0)
   answerBehind = false
   if (sequence > head() && pastHead === 'status 3') status = 3
+  const once = nextStatus
+  nextStatus = undefined
+  if (once !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status: once }).finish())))
   if (status !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status }).finish())))
   while (sequence > head()) await sleep(250)
   const body = [...part(UMPPartId.LIVE_METADATA, LiveMetadata.encode({ headSequenceNumber: String(head()), headTimeMs: String(startMsOf(head())) }).finish())]
@@ -111,6 +116,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     openedAt = Date.now()
     pastHead = 'hold'
     status = undefined
+    nextStatus = undefined
     refused.clear()
     answerBehind = false
     asked.length = 0
@@ -145,6 +151,18 @@ describe('a live SABR session on a stream with a DVR window', () => {
     const session = await open()
     expect(listed(session)).toEqual([HEAD - 3, HEAD - 2, HEAD - 1, HEAD])
     expect(asked.slice(1).every((request) => request.playerTimeMs >= startMsOf(HEAD - 3))).toBe(true)
+    session.close()
+  })
+
+  it('opens near the head when the probe is first answered status 3, which names no head', async () => {
+    nextStatus = 3
+    const session = createSabrSession(source, 360)
+    const opening = session.requestSegment(probe)
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect((await opening).sequenceNumber).toBe(HEAD - WINDOW)
+    session.startLivePump()
+    await vi.advanceTimersByTimeAsync(3_000)
+    expect(Math.min(...listed(session))).toBe(HEAD - 3)
     session.close()
   })
 
