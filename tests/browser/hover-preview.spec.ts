@@ -75,14 +75,16 @@ const plain = test.extend<object, object>({
   }, { scope: 'worker' }],
 })
 
-// the first row is Blender Guru's 4 h donut course (read 2026-11-10): long enough that every 5% of the bar is minutes
-const SEARCH = '/results?search_query=blender+tutorial'
+// Blender Guru's 4 h donut course, with English captions: long enough that every 5% of the bar is minutes. Signed-out
+// results are reordered per visitor, so the row is found by its link rather than its place.
+const COURSE = 'z-Xl9tGqH14'
+const SEARCH = '/results?search_query=blender+guru+donut+full+course'
 
 const seconds = (clock: string) => clock.split(':').reduce((total, part) => total * 60 + Number(part), 0)
 
-const hoverFirstResult = async (page: Page) => {
+const hoverCourse = async (page: Page) => {
   await page.goto(SEARCH)
-  const card = page.locator('article.result').filter({ has: page.locator('a.thumb') }).first()
+  const card = page.locator('article.result').filter({ has: page.locator(`a.thumb[href="/watch?v=${COURSE}"]`) })
   await expect(card.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
   await card.locator('a.thumb').hover()
   await expect(card.locator('[data-painted]')).toBeVisible({ timeout: 90_000 })
@@ -103,7 +105,7 @@ const countSeeks = async (page: Page, card: Locator) => {
 
 plain('a click on the bar seeks there, and a drag scrubs storyboard frames and seeks once, on release', async ({ page }) => {
   plain.setTimeout(240_000)
-  const card = await hoverFirstResult(page)
+  const card = await hoverCourse(page)
   const video = card.locator('video')
   const seeks = await countSeeks(page, card)
   const duration = await video.evaluate((element: HTMLVideoElement) => element.duration)
@@ -152,7 +154,7 @@ plain('a click on the bar seeks there, and a drag scrubs storyboard frames and s
 
 plain('a playing preview counts down the time left, mutes on request and stops when the pointer leaves', async ({ page }) => {
   plain.setTimeout(240_000)
-  const card = await hoverFirstResult(page)
+  const card = await hoverCourse(page)
   const video = card.locator('video')
   const left = card.locator('[data-painted] .time')
   await expect(left).toHaveText(/^\d+(:\d{2}){1,2}$/)
