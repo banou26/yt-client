@@ -45,6 +45,10 @@ test('a past premiere replays its chat in step with the video, through seeks bac
   await expect.poll(async () => (await lineTimes(page)).length, { timeout: 60_000 }).toBeGreaterThan(0)
   const early = await lineTimes(page)
   expect(Math.max(...early)).toBeLessThanOrEqual(await playhead(page) + 1)
+  // youtube.com's panel is 596 px tall at any window height, and a one-line message takes 32 px of it
+  expect((await panel.boundingBox())?.height).toBeCloseTo(596, 0)
+  const rows = await panel.locator('.row').evaluateAll((lines) => lines.map((line) => line.getBoundingClientRect().height))
+  expect(Math.min(...rows)).toBeCloseTo(32, 0)
 
   await seek(page, 180)
   // youtube.com skips the chat between the two points rather than paging through it to catch up

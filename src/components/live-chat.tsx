@@ -56,9 +56,8 @@ export const chatStyles = css`
   border-radius: 1.2rem;
   background: var(--surface);
   overflow: hidden;
-  /* Tall enough to be worth reading, short enough to leave the related rail
-     visible underneath on a normal window. */
-  height: 42rem;
+  /* youtube.com's chat panel, live or replay, at any window height (measured 2026-11-10) */
+  height: 59.6rem;
 
   .head {
     display: flex;
@@ -78,16 +77,16 @@ export const chatStyles = css`
     padding: 0.6rem 0;
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
   }
 
+  /* youtube.com's line: 32 px for a one-line message */
   .row {
     display: grid;
     grid-template-columns: 2.4rem 1fr;
-    gap: 0.8rem;
-    padding: 0.4rem 1.2rem;
-    font-size: 1.3rem;
-    line-height: 1.4;
+    column-gap: 1.6rem;
+    padding: 0.4rem 2.4rem;
+    font-size: 1.4rem;
+    line-height: 2rem;
   }
 
   .row img.avatar {
