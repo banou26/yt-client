@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { dismissFknNotice, expect, hideFknNotice, plainTest, test } from './test'
+import { answerLookups, dismissFknNotice, expect, hideFknNotice, plainTest, test } from './test'
 
 /* The inline preview must never paint over a thumbnail it cannot yet replace: its root is an opaque black box mounted the moment the pointer lands.
    Sampled continuously because the defect is a flash, which a before-and-after assertion passes straight through. */
@@ -209,9 +209,12 @@ test('a related video plays its moving thumbnail on hover, in place of the durat
   let played = false
   for (let visitor = 0; visitor < 3 && !played; visitor += 1) {
     const context = await browser.newContext({ baseURL })
+    await answerLookups(context)
     const page = await context.newPage()
     await dismissFknNotice(page)
+    const dislikes = page.waitForResponse(response => response.url().startsWith('https://returnyoutubedislikeapi.com/'))
     await page.goto(`/watch?v=${COURSE}`)
+    expect(await (await dislikes).json(), 'the dislike lookup reached the live service').toEqual({ likes: 0, dislikes: 0 })
     const row = page.locator('aside.secondary article').nth(1)
     await expect(row.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
     await expect(row.locator('img.moving')).toHaveCount(0)

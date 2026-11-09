@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { BrowserContext, Page } from '@playwright/test'
 
 import { test as base } from '@playwright/test'
 
@@ -25,14 +25,20 @@ export const hideFknNotice = async (page: Page) => {
   })
 }
 
+/**
+ * Answers the watch page's third-party lookups with nothing, so no spec depends on their live data. Every fixture
+ * context gets it; a spec that makes its own context calls it too. A page route still wins over these.
+ */
+export const answerLookups = async (context: BrowserContext) => {
+  await context.route('https://returnyoutubedislikeapi.com/**', route =>
+    route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { likes: 0, dislikes: 0 } }))
+  await context.route('https://sponsor.ajay.app/**', route =>
+    route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: [] }))
+}
+
 export const test = base.extend({
-  // the watch page's third-party lookups answer with nothing unless a spec routes them itself (a page route wins over
-  // a context route), so no spec depends on their live data
   context: async ({ context }, use) => {
-    await context.route('https://returnyoutubedislikeapi.com/**', route =>
-      route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { likes: 0, dislikes: 0 } }))
-    await context.route('https://sponsor.ajay.app/**', route =>
-      route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: [] }))
+    await answerLookups(context)
     await use(context)
   },
   page: async ({ page }, use) => {
