@@ -1,4 +1,4 @@
-import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -74,6 +74,9 @@ type MetadataParts = {
 }
 
 type ChannelHeader = {
+  // a game channel's header: its name and its box art
+  title?: Text
+  box_art?: Thumbnail[]
   author?: { thumbnails?: Thumbnail[], is_verified?: boolean, is_verified_artist?: boolean }
   banner?: Thumbnail[]
   subscribers?: Text
@@ -83,9 +86,12 @@ type ChannelHeader = {
     title?: { text?: Text }
     banner?: { image?: Thumbnail[] }
     image?: { image?: Thumbnail[], avatar?: { image?: Thumbnail[] } }
+    animated_image?: { image?: Thumbnail[] }
     metadata?: MetadataParts
     description?: { description?: Text }
   }
+  // a carousel header's slides, then its TopicChannelDetails
+  contents?: { type?: string, title?: Text, avatar?: Thumbnail[], subtitle?: Text }[]
 }
 
 // state_entity_store_key and entity_mutations are this repo's patch of youtubei.js (patches/), which otherwise drops both
@@ -420,14 +426,18 @@ export const normalizeChannel = (input: unknown, fallbackId?: string): SourceCha
   // the legacy header badges its author, the page header its title
   const fromAuthor = authorBadges(header?.author)
   const fromTitle = iconBadges(runIcons(view?.title?.text))
+  // the name youtube.com shows is the header's: Music's carousel says "Music" where its metadata says "The Music Channel",
+  // a game's header "Grand Theft Auto V" where it says "Grand Theft Auto V - Topic", and Live's page header is all it has
+  const topic = header?.contents?.find((node) => node.type === 'TopicChannelDetails')
   return {
     id,
-    name: channel.metadata?.title ?? id,
+    name: presentText(topic?.title) ?? presentText(header?.title) ?? channel.metadata?.title ?? presentText(view?.title?.text) ?? id,
     avatar: thumbnail(channel.metadata?.avatar ?? channel.metadata?.thumbnail, AVATAR_WIDTH)
       ?? thumbnail(header?.author?.thumbnails, AVATAR_WIDTH)
-      ?? thumbnail(view?.image?.avatar?.image ?? view?.image?.image, AVATAR_WIDTH),
+      ?? thumbnail(view?.image?.avatar?.image ?? view?.image?.image ?? view?.animated_image?.image, AVATAR_WIDTH)
+      ?? thumbnail(topic?.avatar ?? header?.box_art, AVATAR_WIDTH),
     handle,
-    subscriberCountText: text(header?.subscribers) ?? details[0],
+    subscriberCountText: text(header?.subscribers) ?? details[0] ?? presentText(topic?.subtitle),
     videoCountText: text(header?.videos_count) ?? details[1],
     banner: thumbnail(header?.banner) ?? thumbnail(view?.banner?.image),
     description: channel.metadata?.description ?? text(view?.description?.description),
@@ -655,7 +665,8 @@ export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
     thumbnailSrcset: srcset(video.thumbnails),
     durationSeconds: duration(video),
     viewCount: text(video.short_view_count ?? video.view_count),
-    publishedText: text(video.published),
+    // a live VideoCard's one line holds no date, which youtubei.js reads as 'N/A'
+    publishedText: presentText(video.published),
     isLive: video.is_live === true ? true : undefined,
     progressPercent: legacyProgressPercent(video),
     isUpcoming: video.is_upcoming === true ? true : undefined,
@@ -747,8 +758,8 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
   }
 }
 
-// an album's OLAK5uy_ id opens at /playlist?list= like any playlist's
-const PLAYLIST_LOCKUPS = new Set(['PLAYLIST', 'ALBUM'])
+// an album's OLAK5uy_ id and a station's RDCLAK5uy_ one open at /playlist?list= like any playlist's
+const PLAYLIST_LOCKUPS = new Set(['PLAYLIST', 'ALBUM', 'STATION'])
 
 export const normalizePlaylistLockup = (input: unknown): SourcePlaylist | undefined => {
   const lockup = input as LockupVideo
@@ -806,35 +817,60 @@ export const normalizeFeaturedVideo = (input: unknown): SourceVideo | undefined 
   }
 }
 
+// a box art is drawn 210px wide, so 420 covers it at 2x
+const BOX_ART_WIDTH = 420
+
+const normalizeGame = (input: unknown): SourceGame | undefined => {
+  const game = (input as {
+    game?: { title?: Text, box_art?: Thumbnail[], endpoint?: { payload?: { browseId?: string } } }
+  }).game
+  const id = game?.endpoint?.payload?.browseId
+  const title = presentText(game?.title)
+  return id && title ? { id, title, boxArt: thumbnail(game?.box_art, BOX_ART_WIDTH) } : undefined
+}
+
+// a topic channel's rows link to browses of their own (/channel/UC4R8DWoMoI7CAwX8_LjQHig/livetab?ss=CKEK) that no route
+// here opens
+const UNROUTED_ROW = /\/(livetab|sportstab)\b/
+
 // Dispatched on the node type: a GridVideo also passes normalizeGridPlaylist's id-and-title check, and normalizeFeedChannel's author check.
 export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | undefined => {
   const node = input as {
+    type?: string
     title?: Text
     subtitle?: Text
+    header?: { title?: Text, subtitle?: Text }
     endpoint?: { metadata?: { url?: string } }
     content?: { items?: unknown[], contents?: unknown[] }
     items?: unknown[]
+    contents?: unknown[]
+    cards?: unknown[]
   } | undefined
-  const title = presentText(node?.title)
+  const title = presentText(node?.title) ?? presentText(node?.header?.title)
   if (!title) return undefined
   const url = node?.endpoint?.metadata?.url
+  const rich = node?.type === 'RichShelf'
   const shelf: SourceChannelShelf = {
     title,
-    subtitle: presentText(node?.subtitle),
-    url: url?.startsWith('/') && !url.startsWith('//') ? url : undefined,
+    subtitle: presentText(node?.subtitle) ?? presentText(node?.header?.subtitle),
+    url: url?.startsWith('/') && !url.startsWith('//') && !UNROUTED_ROW.test(url) ? url : undefined,
+    expandable: rich ? true : undefined,
     videos: [],
     shorts: [],
     playlists: [],
     channels: [],
+    games: [],
+    posts: [],
   }
-  for (const item of node?.content?.items ?? node?.content?.contents ?? node?.items ?? []) {
-    const type = (item as { type?: string }).type
+  for (const entry of node?.content?.items ?? node?.content?.contents ?? node?.items ?? node?.contents ?? node?.cards ?? []) {
+    const item = (entry as { type?: string }).type === 'RichItem' ? (entry as { content?: unknown }).content : entry
+    const type = (item as { type?: string } | undefined)?.type
     if (type === 'LockupView') {
       const video = normalizeLockupVideo(item, { own: true })
       const playlist = video ? undefined : normalizePlaylistLockup(item)
       if (video) shelf.videos.push(video)
       if (playlist) shelf.playlists.push(playlist)
-    } else if (type === 'GridVideo' || type === 'Video') {
+    } else if (type === 'GridVideo' || type === 'Video' || type === 'VideoCard') {
       const video = normalizeFeedVideo(item)
       if (video) shelf.videos.push(video)
     } else if (type === 'ShortsLockupView') {
@@ -846,10 +882,17 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
     } else if (type === 'GridChannel') {
       const channel = normalizeFeedChannel(item)
       if (channel) shelf.channels.push(channel)
+    } else if (type === 'GameCard') {
+      const game = normalizeGame(item)
+      if (game) shelf.games.push(game)
+    } else if (type === 'Post' && rich) {
+      // only a topic channel's rich row: a channel's own Home lays its posts sideways, which is not built here
+      const post = normalizeCommunityPost(item)
+      if (post) shelf.posts.push(post)
     }
   }
-  const { videos, shorts, playlists, channels } = shelf
-  return videos.length + shorts.length + playlists.length + channels.length > 0 ? shelf : undefined
+  const { videos, shorts, playlists, channels, games, posts } = shelf
+  return videos.length + shorts.length + playlists.length + channels.length + games.length + posts.length > 0 ? shelf : undefined
 }
 
 type CardAction = {

@@ -299,6 +299,13 @@ type PostPage {
   cursor: String
 }
 
+# A game's own channel, which youtube.com pictures by the game's box art.
+type Game {
+  id: ID!
+  title: String!
+  boxArt: String
+}
+
 # A row of a channel's Home tab. Upstream fills a row with one kind of item,
 # so normally only one of the lists has entries.
 type ChannelShelf {
@@ -307,17 +314,25 @@ type ChannelShelf {
   # Upstream's own path for the row's title (a playlist, or one of the
   # channel's tabs), which the app's routes accept as they are.
   url: String
+  # A row of full-size cards that "Show more" opens to all of them, as
+  # youtube.com draws a topic channel's rows. Otherwise the row scrolls.
+  expandable: Boolean
   videos: [Video!]!
   shorts: [Video!]!
   playlists: [Playlist!]!
   channels: [Channel!]!
+  games: [Game!]!
+  posts: [Post!]!
 }
 
 type ChannelHome {
   featured: Video
-  # In upstream's order. Rows of a kind this client does not render, such as
-  # posts, are left out.
+  # In upstream's order. Rows of a kind this client does not render, such as a
+  # channel's own posts, are left out.
   shelves: [ChannelShelf!]!
+  # Upstream's own line for a Home it does not serve in this region ("This
+  # page is not available.").
+  message: String
 }
 
 type ChannelPage {

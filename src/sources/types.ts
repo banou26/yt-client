@@ -198,21 +198,34 @@ export type SourcePostPage = {
   cursor?: string
 }
 
+// a game's own channel, which youtube.com pictures by the game's box art
+export type SourceGame = {
+  id: string
+  title: string
+  boxArt?: string
+}
+
 // One kind of item per row upstream, but nothing stops a row mixing them, so each list is kept rather than a tagged union
 export type SourceChannelShelf = {
   title: string
   subtitle?: string
   // upstream's own path, which the app's routes take as they are
   url?: string
+  // a row of full-size cards that opens to all of them, as youtube.com draws a topic channel's rows; otherwise it scrolls
+  expandable?: boolean
   videos: SourceVideo[]
   shorts: SourceVideo[]
   playlists: SourcePlaylist[]
   channels: SourceChannel[]
+  games: SourceGame[]
+  posts: SourcePost[]
 }
 
 export type SourceChannelHome = {
   featured?: SourceVideo
   shelves: SourceChannelShelf[]
+  // upstream's own line for a Home it does not serve in this region ("This page is not available.")
+  message?: string
 }
 
 export type SourceChannelPage = {

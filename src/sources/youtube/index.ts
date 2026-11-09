@@ -69,7 +69,6 @@ type ChannelFeed = Feed & {
   has_community?: boolean
   has_search?: boolean
   sort_filters?: string[]
-  getHome?: () => Promise<ChannelFeed>
   getVideos?: () => Promise<ChannelFeed>
   getShorts?: () => Promise<ChannelFeed>
   getLiveStreams?: () => Promise<ChannelFeed>
@@ -83,7 +82,10 @@ type ChannelFeed = Feed & {
   applySort?: (sort: string) => Promise<ChannelFeed>
   applyFilter?: (chip: SortChip) => Promise<ChannelFeed>
   search?: (query: string) => Promise<ChannelFeed>
-  current_tab?: { content?: { contents?: Iterable<{ contents?: Iterable<unknown> }> } }
+  current_tab?: {
+    endpoint?: { metadata?: { url?: string } }
+    content?: { contents?: Iterable<{ contents?: Iterable<unknown>, content?: unknown }> }
+  }
 }
 
 // youtubei.js 18 adds `selected`; 17 leaves the chip's state unparsed
@@ -472,18 +474,19 @@ const filterKey = (filters: SourceSearchFilters | undefined) =>
     [...(filters?.features ?? [])].sort().join('+'),
   ].join('|')
 
-// Upstream's display order, which is also the order the tab strip renders in.
+// Upstream's display order, which is also the order the tab strip renders in. `path` is the last word of the tab's URL.
+// Home has no opener: the browse lands on it.
 const CHANNEL_TABS = [
-  { tab: 'HOME', has: 'has_home', open: 'getHome' },
-  { tab: 'VIDEOS', has: 'has_videos', open: 'getVideos' },
-  { tab: 'SHORTS', has: 'has_shorts', open: 'getShorts' },
-  { tab: 'LIVE', has: 'has_live_streams', open: 'getLiveStreams' },
-  { tab: 'RELEASES', has: 'has_releases', open: 'getReleases' },
-  { tab: 'PODCASTS', has: 'has_podcasts', open: 'getPodcasts' },
-  { tab: 'COURSES', has: 'has_courses', open: 'getCourses' },
-  { tab: 'PLAYLISTS', has: 'has_playlists', open: 'getPlaylists' },
-  { tab: 'COMMUNITY', has: 'has_community', open: 'getCommunity' },
-] as const satisfies readonly { tab: SourceChannelTab, has: keyof ChannelFeed, open: keyof ChannelFeed }[]
+  { tab: 'HOME', path: 'featured', has: 'has_home' },
+  { tab: 'VIDEOS', path: 'videos', has: 'has_videos', open: 'getVideos' },
+  { tab: 'SHORTS', path: 'shorts', has: 'has_shorts', open: 'getShorts' },
+  { tab: 'LIVE', path: 'streams', has: 'has_live_streams', open: 'getLiveStreams' },
+  { tab: 'RELEASES', path: 'releases', has: 'has_releases', open: 'getReleases' },
+  { tab: 'PODCASTS', path: 'podcasts', has: 'has_podcasts', open: 'getPodcasts' },
+  { tab: 'COURSES', path: 'courses', has: 'has_courses', open: 'getCourses' },
+  { tab: 'PLAYLISTS', path: 'playlists', has: 'has_playlists', open: 'getPlaylists' },
+  { tab: 'COMMUNITY', path: 'posts', has: 'has_community', open: 'getCommunity' },
+] as const satisfies readonly { tab: SourceChannelTab, path: string, has: keyof ChannelFeed, open?: keyof ChannelFeed }[]
 
 const availableChannelTabs = (feed: ChannelFeed): SourceChannelTab[] => {
   // Annotated rather than inferred: CHANNEL_TABS is narrower than the tab union, so an inferred element type rejects the two appended tabs. Do not drop the annotation.
@@ -498,14 +501,27 @@ const availableChannelTabs = (feed: ChannelFeed): SourceChannelTab[] => {
 const defaultChannelTab = (available: SourceChannelTab[]): SourceChannelTab =>
   available.find((tab) => tab === 'HOME') ?? available.find((tab) => tab === 'VIDEOS') ?? available[0] ?? 'HOME'
 
+// The tab the browse landed on, which is the one youtube.com opens the channel on. A topic channel's Home has no URL
+// (News's is /feed/news_destination, a game's /home), so youtubei.js cannot open it by the word 'featured' as it does a
+// channel's: an unknown landing is the Home.
+const landedTab = (feed: ChannelFeed): SourceChannelTab | undefined => {
+  if (!feed.current_tab) return undefined
+  const path = feed.current_tab.endpoint?.metadata?.url?.split('/').pop()
+  return CHANNEL_TABS.find((entry) => entry.path === path)?.tab ?? 'HOME'
+}
+
+const HOME_SHELVES = new Set(['Shelf', 'ReelShelf', 'RichShelf', 'HorizontalCardList'])
+
 // Walked rather than read off the memo, which files shelves and Shorts shelves under separate keys and so loses their order.
+// A section list holds its rows in item sections, a topic channel's rich grid one row per rich section.
 const channelHome = (feed: ChannelFeed): SourceChannelHome => {
   const home: SourceChannelHome = { shelves: [] }
   for (const section of feed.current_tab?.content?.contents ?? []) {
-    for (const node of section.contents ?? []) {
-      const type = (node as { type?: string }).type
+    for (const node of section.contents ?? [section.content]) {
+      const type = (node as { type?: string } | undefined)?.type
       if (type === 'ChannelVideoPlayer') home.featured ??= normalizeFeaturedVideo(node)
-      const shelf = type === 'Shelf' || type === 'ReelShelf' ? normalizeChannelShelf(node) : undefined
+      if (type === 'BackgroundPromo') home.message ??= (node as { body_text?: { text?: string } }).body_text?.text
+      const shelf = type && HOME_SHELVES.has(type) ? normalizeChannelShelf(node) : undefined
       if (shelf) home.shelves.push(shelf)
     }
   }
@@ -530,7 +546,7 @@ const openChannelTab = async (
     return feed.search(query)
   }
   const entry = CHANNEL_TABS.find((candidate) => candidate.tab === tab)
-  const open = entry && feed[entry.open]
+  const open = entry && 'open' in entry ? feed[entry.open] : undefined
   if (typeof open !== 'function') return feed
   // `.call(feed)` rather than `open()`: every one of these is a prototype method that reaches for `this.getTabByURL`.
   return (open as (this: ChannelFeed) => Promise<ChannelFeed>).call(feed)
@@ -1147,8 +1163,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const result = await fetchChannel(id)
       const channel = normalizeChannel(result, id)
       const availableTabs = availableChannelTabs(result)
-      const selected = tab && availableTabs.includes(tab) ? tab : defaultChannelTab(availableTabs)
-      let feed = await openChannelTab(result, selected, query)
+      const landed = landedTab(result)
+      const selected = tab && availableTabs.includes(tab) ? tab : landed ?? defaultChannelTab(availableTabs)
+      let feed = selected === landed ? result : await openChannelTab(result, selected, query)
       const chips = sortChips(feed)
       const sortOptions = feed.sort_filters?.length ? feed.sort_filters : chips.map((chip) => chip.text)
       const appliedSort = sort && sortOptions.includes(sort) ? sort : undefined

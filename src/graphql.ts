@@ -43,6 +43,7 @@ const cache = cacheExchange({
     ChannelPage: () => null,
     ChannelHome: () => null,
     ChannelShelf: () => null,
+    Game: () => null,
     ChannelAbout: () => null,
     ChannelLink: () => null,
     SearchPage: () => null,
