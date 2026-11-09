@@ -32,6 +32,7 @@ export const WATCH_META_QUERY = gql(`
         title
         thumbnail
         thumbnailSrcset
+        animatedThumbnail
         durationSeconds
         viewCount
         publishedText

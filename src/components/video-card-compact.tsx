@@ -1,6 +1,9 @@
+import type { TargetedPointerEvent } from 'preact'
+
 import type { VideoCardData, WatchContext } from './video-card'
 
 import { css } from '@emotion/react'
+import { useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
@@ -31,6 +34,11 @@ const style = css`
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .thumb img.moving {
+    position: absolute;
+    inset: 0;
   }
 
   .badge {
@@ -151,8 +159,22 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
   const meta = formatMeta(video.viewCount, video.publishedText)
   const progress = resumePercent(video.progressPercent)
   const prefetch = usePrefetchOnIntent(video.id)
+  const [hovered, setHovered] = useState(false)
+  // youtube.com plays these few seconds over the still in the watch page's column, where it mounts no player
+  const moving = hovered && video.animatedThumbnail ? video.animatedThumbnail : undefined
   return (
-    <article css={style} {...prefetch}>
+    <article
+      css={style}
+      onPointerEnter={(event: TargetedPointerEvent<HTMLElement>) => {
+        prefetch.onPointerEnter()
+        if (event.pointerType === 'mouse') setHovered(true)
+      }}
+      onPointerLeave={() => {
+        prefetch.onPointerLeave()
+        setHovered(false)
+      }}
+      onPointerDown={prefetch.onPointerDown}
+    >
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
         {video.thumbnail
           ? (
@@ -165,9 +187,10 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
             />
           )
           : undefined}
+        {moving ? <img className='moving' src={moving} alt='' /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
-          : duration ? <span className='badge'>{duration}</span> : undefined}
+          : duration && !moving ? <span className='badge'>{duration}</span> : undefined}
         {/* After the badge so the resume bar wins wherever the two overlap. */}
         {progress !== undefined
           ? (

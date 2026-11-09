@@ -124,15 +124,22 @@ type WatchNextResponse = {
   contents_memo?: WatchNextMemo
 }
 
+type LockupOverlay = {
+  type?: string
+  badges?: { text?: string, badge_style?: string }[]
+  progress_bar?: { start_percent?: number }
+  thumbnail?: Thumbnail[]
+}
+
 type LockupVideo = {
   content_id?: string
   content_type?: string
   content_image?: {
     image?: Thumbnail[]
-    overlays?: { badges?: { text?: string, badge_style?: string }[], progress_bar?: { start_percent?: number } }[]
+    overlays?: LockupOverlay[]
     primary_thumbnail?: {
       image?: Thumbnail[]
-      overlays?: { badges?: { text?: string, badge_style?: string }[], progress_bar?: { start_percent?: number } }[]
+      overlays?: LockupOverlay[]
     }
   }
   metadata?: {
@@ -737,6 +744,9 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
     title,
     thumbnail: thumbnail(image?.image, STILL_WIDTH),
     thumbnailSrcset: srcset(image?.image),
+    animatedThumbnail: thumbnail(
+      image?.overlays?.find((overlay) => overlay.type === 'AnimatedThumbnailOverlayView')?.thumbnail,
+    ),
     durationSeconds: badges
       .map((badge) => durationSeconds(badge.text))
       .find((seconds) => seconds !== undefined),

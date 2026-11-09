@@ -28,6 +28,7 @@ export type SourceVideo = {
   descriptionSnippet?: string
   thumbnail?: string
   thumbnailSrcset?: string
+  animatedThumbnail?: string
   durationSeconds?: number
   viewCount?: string
   publishedText?: string

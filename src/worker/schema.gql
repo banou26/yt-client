@@ -47,6 +47,9 @@ type Video {
   # for anything that cannot express a slot width, and this lets the browser
   # pick per slot and per pixel ratio.
   thumbnailSrcset: String
+  # A few seconds of the video as an animated image, which youtube.com plays
+  # over a related video's still on hover. Only lockups carry it.
+  animatedThumbnail: String
   durationSeconds: Int
   viewCount: String
   publishedText: String

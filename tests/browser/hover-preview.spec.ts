@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, hideFknNotice, test } from './test'
+import { dismissFknNotice, expect, hideFknNotice, test } from './test'
 
 /* The inline preview must never paint over a thumbnail it cannot yet replace: its root is an opaque black box mounted the moment the pointer lands.
    Sampled continuously because the defect is a flash, which a before-and-after assertion passes straight through. */
@@ -215,4 +215,35 @@ plain('a click on a preview moved past its start opens the video where the previ
   await expect.poll(() => watch.evaluate((element: HTMLVideoElement) => element.currentTime), { timeout: 120_000 })
     .toBeGreaterThan(asked - 1)
   expect(await watch.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeLessThan(asked + 60)
+})
+
+test('a related video plays its moving thumbnail on hover, in place of the duration', async ({ browser, baseURL }) => {
+  test.setTimeout(480_000)
+  /* Upstream sends these stills per visitor: on 2026-11-10 seven of nine fresh visitors got one on nearly every related
+     row and two got none, the same as youtube.com itself would draw. So a fresh visitor is a fresh draw, up to three. */
+  let played = false
+  for (let visitor = 0; visitor < 3 && !played; visitor += 1) {
+    const context = await browser.newContext({ baseURL })
+    const page = await context.newPage()
+    await dismissFknNotice(page)
+    await page.goto(`/watch?v=${COURSE}`)
+    const row = page.locator('aside.secondary article').nth(1)
+    await expect(row.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
+    await expect(row.locator('img.moving')).toHaveCount(0)
+    await row.locator('a.thumb').hover()
+    const moving = row.locator('img.moving')
+    played = await moving.waitFor({ timeout: 3_000 }).then(() => true, () => false)
+    if (played) {
+      await expect(moving).toHaveAttribute('src', /^https:\/\/i\.ytimg\.com\/an_webp\//)
+      await expect.poll(() => moving.evaluate((image: HTMLImageElement) => image.naturalWidth), { timeout: 15_000 })
+        .toBeGreaterThan(0)
+      await expect(row.locator('.badge')).toHaveCount(0)
+      const box = (await row.boundingBox())!
+      await page.mouse.move(box.x - 60, box.y + box.height / 2, { steps: 4 })
+      await expect(moving).toHaveCount(0)
+      await expect(row.locator('.badge')).toHaveCount(1)
+    }
+    await context.close()
+  }
+  expect(played, 'no related row played a moving thumbnail for three visitors').toBe(true)
 })

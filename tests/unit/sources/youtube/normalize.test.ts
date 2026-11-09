@@ -457,6 +457,23 @@ describe('youtube normalization', () => {
     })
   })
 
+  it('reads the moving thumbnail a related lockup plays on hover', () => {
+    const moving = 'https://i.ytimg.com/an_webp/abc/mqdefault_6s.webp?du=3000&sqp=x&rs=y'
+    expect(normalizeLockupVideo({
+      content_id: 'abc',
+      content_type: 'VIDEO',
+      content_image: {
+        image: [{ url: 'thumb', width: 640 }],
+        overlays: [
+          { type: 'ThumbnailBottomOverlayView', badges: [{ text: '12:34' }] },
+          { type: 'ThumbnailHoverOverlayToggleActionsView' },
+          { type: 'AnimatedThumbnailOverlayView', thumbnail: [{ url: moving, width: 320 }] },
+        ],
+      },
+      metadata: { title: { text: 'Related video' } },
+    })).toMatchObject({ id: 'abc', thumbnail: 'thumb', animatedThumbnail: moving, durationSeconds: 754 })
+  })
+
   it('drops non-video lockups', () => {
     expect(normalizeLockupVideo({
       content_id: 'PL123',

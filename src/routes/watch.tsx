@@ -329,6 +329,7 @@ const RELATED_MORE_QUERY = gql(`
         title
         thumbnail
         thumbnailSrcset
+        animatedThumbnail
         durationSeconds
         viewCount
         publishedText

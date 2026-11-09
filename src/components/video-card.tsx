@@ -26,6 +26,7 @@ export type VideoCardData =
   & Partial<
     Pick<
       Video,
+      | 'animatedThumbnail'
       | 'description'
       | 'durationSeconds'
       | 'progressPercent'
