@@ -4,11 +4,13 @@ import { test as base } from '@playwright/test'
 
 export { expect } from '@playwright/test'
 
-// FKN shows this notice over the bottom corner once the day's free data is used
+// FKN shows this notice over the bottom corner once the day's free data is used. A dispatched click, never a pointer
+// one: clicking into FKN's frame takes the focus off the page, so a box being typed in closes its suggestions and the
+// spec's next key lands at the start of the box (measured 2026-11-10, the notice up about 1 s after the engine ready)
 export const dismissFknNotice = (page: Page) =>
   page.addLocatorHandler(
     page.frameLocator('iframe[title="FKN"]').getByRole('button', { name: 'Dismiss', exact: true }),
-    dismiss => dismiss.click(),
+    dismiss => dismiss.dispatchEvent('click'),
   )
 
 export const test = base.extend({
