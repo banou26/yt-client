@@ -190,6 +190,16 @@ const style = css`
   @media (max-width: 439px) {
     display: none;
   }
+
+  /* the pill sits mid-row in the narrow header, so a panel anchored to it would
+     run off the left edge */
+  @media (max-width: 656px) {
+    .panel {
+      position: fixed;
+      top: var(--header-height);
+      right: 1.6rem;
+    }
+  }
 `
 
 /**

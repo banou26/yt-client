@@ -66,6 +66,15 @@ test('paints the offer on the first render once it has been seen before', async 
   await expect(pillOf(page)).toBeVisible({ timeout: 500 })
 })
 
+test('keeps the panel on screen in a narrow window', async ({ page }) => {
+  await page.setViewportSize({ width: 440, height: 800 })
+  await page.goto('/settings')
+  await openPanel(page)
+  const panel = (await panelOf(page).boundingBox())!
+  expect(panel.x, 'the panel runs off the left edge').toBeGreaterThanOrEqual(0)
+  expect(panel.x + panel.width, 'the panel runs off the right edge').toBeLessThanOrEqual(440)
+})
+
 test('closes the panel on escape and on a click outside it', async ({ page }) => {
   await page.goto('/settings')
   await openPanel(page)
