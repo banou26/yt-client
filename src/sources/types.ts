@@ -327,6 +327,33 @@ export type SourceWatchMeta = {
   playlist?: SourceWatchPlaylist
   /** In playback order, and empty when the video has none. */
   chapters: SourceChapter[]
+  /** What youtube.com's description section "Transcript" opens, absent for a video without one. */
+  transcriptPanel?: SourceTranscriptPanel
+}
+
+/** The get_panel arguments of a video's transcript, as youtube.com's description button sends them. */
+export type SourceTranscriptPanel = {
+  panelId: string
+  params: string
+}
+
+export type SourceTranscriptLine = {
+  startSeconds: number
+  /** As youtube.com prints it, "1:02". */
+  timestamp: string
+  text: string
+}
+
+/** One per chapter, titled "Chapter 1: ...", or a single untitled one for a video without chapters. */
+export type SourceTranscriptSection = {
+  title?: string
+  lines: SourceTranscriptLine[]
+}
+
+export type SourceTranscript = {
+  sections: SourceTranscriptSection[]
+  /** What `transcriptSearch` takes with a query; absent on a search's own answer. */
+  searchToken?: string
 }
 
 export type SourceChapter = {
@@ -479,6 +506,9 @@ export type Source = {
   post(id: string): Promise<SourcePost | undefined>
   // `playlistIndex` is 0-based; the server corrects an out-of-range one, so the honoured position is the one on the result
   watch(id: string, playlistId?: string, playlistIndex?: number): Promise<SourceWatchMeta | undefined>
+  transcript(panelId: string, params: string): Promise<SourceTranscript>
+  // the lines whose text matches `query`, by youtube.com's own search; `token` comes from the transcript's answer
+  transcriptSearch(token: string, query: string): Promise<SourceTranscript>
   comments(videoId: string, sort?: SourceCommentSort, cursor?: string): Promise<SourceCommentPage>
   commentReplies(cursor: string): Promise<SourceCommentPage>
   // Polled rather than streamed: the emitter is kept running and each call drains what it buffered since the previous cursor
@@ -533,6 +563,8 @@ export const SOURCE_METHODS = [
   'communityPosts',
   'post',
   'watch',
+  'transcript',
+  'transcriptSearch',
   'comments',
   'commentReplies',
   'liveChat',
@@ -603,6 +635,8 @@ export const SOURCE_REPLAY = {
   communityPosts: 'unless-cursor',
   post: 'always',
   watch: 'always',
+  transcript: 'always',
+  transcriptSearch: 'always',
   comments: 'unless-cursor',
   commentReplies: 'unless-cursor',
   liveChat: 'unless-cursor',

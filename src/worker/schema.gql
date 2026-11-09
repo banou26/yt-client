@@ -474,6 +474,36 @@ type WatchMeta {
   playlist: WatchPlaylist
   # In playback order, and empty when the video has none.
   chapters: [Chapter!]!
+  # What youtube.com's description section "Transcript" opens: pass it to
+  # `transcript`. Null for a video without one.
+  transcriptPanel: TranscriptPanel
+}
+
+type TranscriptPanel {
+  panelId: String!
+  params: String!
+}
+
+# A video's spoken text, as youtube.com's transcript panel lists it.
+type Transcript {
+  # One per chapter, or a single untitled one for a video without chapters.
+  sections: [TranscriptSection!]!
+  # Pass it to `transcriptSearch` with a query. Null on a search's own answer.
+  searchToken: String
+}
+
+type TranscriptSection {
+  # As youtube.com heads it, "Chapter 1: Hardware and performance".
+  title: String
+  lines: [TranscriptLine!]!
+}
+
+# A line runs until the next one starts, as youtube.com highlights it.
+type TranscriptLine {
+  startSeconds: Float!
+  # As youtube.com prints it, "1:02".
+  timestamp: String!
+  text: String!
 }
 
 # A chapter of a video, as the player bar names it. It runs until the next one
@@ -713,6 +743,11 @@ type Query {
   # out-of-range one rather than failing, so read the position back off
   # `playlist.currentIndex` instead of assuming the request was honoured.
   watch(id: ID!, playlistId: ID, playlistIndex: Int): WatchMeta
+  # The panel and params come from `WatchMeta.transcriptPanel`.
+  transcript(panelId: String!, params: String!): Transcript!
+  # The lines matching `query`, by youtube.com's own search, which matches words
+  # rather than any substring. `token` is `Transcript.searchToken`.
+  transcriptSearch(token: String!, query: String!): Transcript!
   # A cursor is bound to the sort that minted it: switching order has to start a
   # new feed rather than page the previous ordering's results.
   comments(videoId: ID!, sort: CommentSort, cursor: String): CommentPage!

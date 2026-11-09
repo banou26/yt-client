@@ -1,4 +1,4 @@
-import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -1269,6 +1269,90 @@ export const chatReplayToken = (input: unknown) => {
   return bar?.is_replay === true && bar.continuation ? bar.continuation : undefined
 }
 
+type PanelCommand = {
+  identifier?: { tag?: string }
+  contentSourcePanelIdentifier?: { tag?: string }
+  globalConfiguration?: { params?: string }
+}
+
+type TranscriptSectionNode = {
+  type?: string
+  primary_button?: {
+    endpoint?: {
+      payload?: PanelCommand & {
+        commands?: { updateEngagementPanelContentCommand?: PanelCommand, showEngagementPanelEndpoint?: PanelCommand }[]
+      }
+    }
+  }
+}
+
+/* The description's "Show transcript" opens youtube.com's own panel with a get_panel call, never the older
+   engagement-panel-searchable-transcript /next still lists (measured 2026-11-10): a video with chapters names it in an
+   updateEngagementPanelContentCommand, one without in a showEngagementPanelEndpoint. */
+const normalizeTranscriptPanel = (input: unknown): SourceTranscriptPanel | undefined => {
+  const panels = (input as { engagement_panels?: { content?: { items?: TranscriptSectionNode[] } }[] }).engagement_panels ?? []
+  const section = panels.flatMap((panel) => panel.content?.items ?? []).find((item) => item?.type === 'VideoDescriptionTranscriptSection')
+  const payload = section?.primary_button?.endpoint?.payload
+  const commands = [
+    payload,
+    ...(payload?.commands ?? []).map((command) => command.updateEngagementPanelContentCommand ?? command.showEngagementPanelEndpoint),
+  ]
+  for (const command of commands) {
+    const panelId = command?.contentSourcePanelIdentifier?.tag ?? command?.identifier?.tag
+    const params = command?.globalConfiguration?.params
+    if (panelId && params) return { panelId, params }
+  }
+  return undefined
+}
+
+type TranscriptItem = {
+  macroMarkersPanelItemViewModel?: {
+    item?: {
+      timelineItemViewModel?: { timestamp?: string, contentItems?: { transcriptSegmentViewModel?: { simpleText?: string } }[] }
+      timelineChapterViewModel?: { title?: string }
+    }
+  }
+}
+
+type TranscriptItemSection = { itemSectionRenderer?: { header?: TranscriptItem, contents?: TranscriptItem[] } }
+
+type TranscriptAnswer = {
+  content?: {
+    engagementPanelSectionListRenderer?: {
+      content?: {
+        sectionListRenderer?: {
+          contents?: TranscriptItemSection[]
+          header?: { searchInputViewModel?: { onInputAction?: { command?: { innertubeCommand?: { continuationCommand?: { token?: string } } } } } }
+        }
+      }
+    }
+  }
+  onResponseReceivedCommand?: { reloadContinuationItemsCommand?: { continuationItems?: TranscriptItemSection[] } }
+}
+
+const transcriptLines = (items: readonly TranscriptItem[]): SourceTranscriptLine[] => items.flatMap((item) => {
+  const line = item.macroMarkersPanelItemViewModel?.item?.timelineItemViewModel
+  const timestamp = line?.timestamp
+  const text = line?.contentItems?.map((content) => content.transcriptSegmentViewModel?.simpleText ?? '').join(' ').trim()
+  const startSeconds = timestamp?.split(':').reduce((total, part) => total * 60 + Number(part), 0)
+  return timestamp && text && Number.isFinite(startSeconds) ? [{ startSeconds: startSeconds!, timestamp, text }] : []
+})
+
+/** A transcript from get_panel's answer: the panel's first answer, or a search's, which reloads the lines alone. */
+export const normalizeTranscript = (input: unknown): SourceTranscript => {
+  const answer = input as TranscriptAnswer | undefined
+  const list = answer?.content?.engagementPanelSectionListRenderer?.content?.sectionListRenderer
+  const sections = list?.contents ?? answer?.onResponseReceivedCommand?.reloadContinuationItemsCommand?.continuationItems ?? []
+  return {
+    sections: sections.flatMap(({ itemSectionRenderer: section }) => {
+      const lines = transcriptLines(section?.contents ?? [])
+      const title = section?.header?.macroMarkersPanelItemViewModel?.item?.timelineChapterViewModel?.title || undefined
+      return lines.length > 0 ? [{ title, lines }] : []
+    }),
+    searchToken: list?.header?.searchInputViewModel?.onInputAction?.command?.innertubeCommand?.continuationCommand?.token,
+  }
+}
+
 export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta | undefined => {
   const memo = (input as WatchNextResponse | undefined)?.contents_memo
   if (!memo) return undefined
@@ -1388,6 +1472,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     autoplayId: watchNext?.autoplay?.sets?.[0]?.autoplay_video?.payload?.videoId || undefined,
     playlist: normalizeWatchPlaylist(watchNext?.playlist),
     chapters: normalizeChapters(input),
+    transcriptPanel: normalizeTranscriptPanel(input),
   }
 }
 

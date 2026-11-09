@@ -5,7 +5,7 @@ import { Innertube, Utils } from 'youtubei.js/web'
 
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -282,6 +282,8 @@ export type YoutubeClient = {
     execute(endpoint: '/account/accounts_list', args: { client: 'WEB', parse: true }): Promise<{ actions_memo?: { get(type: string): unknown[] | undefined } }>
     execute(endpoint: '/browse', args: { browseId: string, params?: string, parse: true }): Promise<{ contents_memo?: Map<string, unknown[]> }>
     execute(endpoint: 'live_chat/get_live_chat_replay', args: { continuation: string, currentPlayerState: { playerOffsetMs: string }, parse: true }): Promise<unknown>
+    // unparsed: youtubei.js 18.3.0 has no parser for the view models of youtube.com's transcript panel
+    execute(endpoint: '/get_panel', args: { panelId: string, params: string } | { continuation: string, formData: { searchInputFormData: { query: string } } }): Promise<{ data: unknown }>
   }
 }
 
@@ -1362,6 +1364,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       if (!continuation) return meta
       return { ...meta, relatedCursor: registerRelated(id, continuation) }
     },
+    transcript: async (panelId, params) =>
+      normalizeTranscript((await (await client).actions.execute('/get_panel', { panelId, params })).data),
+    transcriptSearch: async (token, query) => normalizeTranscript((await (await client).actions.execute('/get_panel', {
+      continuation: token,
+      formData: { searchInputFormData: { query } },
+    })).data),
     relatedVideos: async (cursor) => {
       const kind = videoContinuations.kindOf(cursor)
       if (kind !== undefined && !kind.startsWith('related:')) {

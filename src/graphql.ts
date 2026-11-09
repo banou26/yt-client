@@ -62,6 +62,10 @@ export const createCache = () => cacheExchange({
     LiveChatRun: () => null,
     TextRun: () => null,
     BylinePart: () => null,
+    TranscriptPanel: () => null,
+    Transcript: () => null,
+    TranscriptSection: () => null,
+    TranscriptLine: () => null,
     Session: () => null,
   },
   updates: {

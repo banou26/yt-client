@@ -1,0 +1,1111 @@
+{
+ "nextChapters": {
+  "engagementPanels": [
+   {
+    "engagementPanelSectionListRenderer": {
+     "targetId": "engagement-panel-structured-description",
+     "content": {
+      "structuredDescriptionContentRenderer": {
+       "items": [
+        {
+         "videoDescriptionTranscriptSectionRenderer": {
+          "sectionTitle": {
+           "runs": [
+            {
+             "text": "Transcript"
+            }
+           ]
+          },
+          "subHeaderText": {
+           "runs": [
+            {
+             "text": "Follow along using the transcript."
+            }
+           ]
+          },
+          "primaryButton": {
+           "buttonRenderer": {
+            "style": "STYLE_SUGGESTIVE",
+            "size": "SIZE_DEFAULT",
+            "isDisabled": false,
+            "text": {
+             "runs": [
+              {
+               "text": "Show transcript"
+              }
+             ]
+            },
+            "command": {
+             "commandExecutorCommand": {
+              "commands": [
+               {
+                "updateEngagementPanelContentCommand": {
+                 "targetPanelIdentifier": {
+                  "surface": "ENGAGEMENT_PANEL_SURFACE_WATCH",
+                  "tag": "engagement-panel-timeline-view-consolidated"
+                 },
+                 "contentSourcePanelIdentifier": {
+                  "surface": "ENGAGEMENT_PANEL_SURFACE_WATCH",
+                  "tag": "PAmodern_transcript_view"
+                 },
+                 "globalConfiguration": {
+                  "params": "qgkPCgtnNkRpZThnVkZuMBgB"
+                 }
+                }
+               },
+               {
+                "updateTimedMarkersSyncObserverCommand": {
+                 "isEnabled": false,
+                 "timedSyncEntityKey": "Eh10aW1lbGluZV92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+                 "panelSyncEntityKey": "Eh10aW1lbGluZV92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+                }
+               },
+               {
+                "updateTimedMarkersSyncObserverCommand": {
+                 "isEnabled": true,
+                 "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+                 "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+                }
+               },
+               {
+                "entityUpdateCommand": {
+                 "entityBatchUpdate": {
+                  "mutations": [
+                   {
+                    "entityKey": "EiRlbmdhZ2VtZW50X3BhbmVsX2NoaXBzX2Jhcl9lbnRpdHlfaWQggwQoAQ%3D%3D",
+                    "type": "ENTITY_MUTATION_TYPE_REPLACE",
+                    "payload": {
+                     "chipBarStateEntity": {
+                      "key": "EiRlbmdhZ2VtZW50X3BhbmVsX2NoaXBzX2Jhcl9lbnRpdHlfaWQggwQoAQ%3D%3D",
+                      "selectedIndex": 1
+                     }
+                    }
+                   }
+                  ]
+                 }
+                }
+               },
+               {
+                "scrollToEngagementPanelCommand": {
+                 "panelIdentifier": {
+                  "tag": "engagement-panel-timeline-view-consolidated"
+                 }
+                }
+               }
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "nextPlain": {
+  "engagementPanels": [
+   {
+    "engagementPanelSectionListRenderer": {
+     "targetId": "engagement-panel-structured-description",
+     "content": {
+      "structuredDescriptionContentRenderer": {
+       "items": [
+        {
+         "videoDescriptionTranscriptSectionRenderer": {
+          "sectionTitle": {
+           "runs": [
+            {
+             "text": "Transcript"
+            }
+           ]
+          },
+          "subHeaderText": {
+           "runs": [
+            {
+             "text": "Follow along using the transcript."
+            }
+           ]
+          },
+          "primaryButton": {
+           "buttonRenderer": {
+            "style": "STYLE_SUGGESTIVE",
+            "size": "SIZE_DEFAULT",
+            "isDisabled": false,
+            "text": {
+             "runs": [
+              {
+               "text": "Show transcript"
+              }
+             ]
+            },
+            "command": {
+             "commandExecutorCommand": {
+              "commands": [
+               {
+                "showEngagementPanelEndpoint": {
+                 "sourcePanelIdentifier": "video-description-ep-identifier",
+                 "identifier": {
+                  "surface": "ENGAGEMENT_PANEL_SURFACE_WATCH",
+                  "tag": "PAmodern_transcript_view"
+                 },
+                 "globalConfiguration": {
+                  "params": "qgkPCgtkUXc0dzlXZ1hjURgC"
+                 }
+                }
+               },
+               {
+                "scrollToEngagementPanelCommand": {
+                 "targetId": "PAmodern_transcript_view"
+                }
+               }
+              ]
+             }
+            }
+           }
+          }
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "panelChapters": {
+  "content": {
+   "engagementPanelSectionListRenderer": {
+    "header": {
+     "engagementPanelTitleHeaderRenderer": {
+      "title": {
+       "runs": [
+        {
+         "text": "Transcript"
+        }
+       ]
+      },
+      "visibilityButton": {
+       "buttonRenderer": {
+        "icon": {
+         "iconType": "CLOSE"
+        },
+        "command": {
+         "hideEngagementPanelEndpoint": {
+          "identifier": {
+           "tag": "PAmodern_transcript_view"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "content": {
+     "sectionListRenderer": {
+      "contents": [
+       {
+        "itemSectionRenderer": {
+         "contents": [
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:05",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "Okay, so Apple finally updates the iPad Mini. We've been waiting years for this... and you know, on its surface, it's not really too surprising. It's about what we'd expect. But...",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:05",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 180,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "5 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 1,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 5
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:13",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "the more I've used this, the more I've also realized that it's maybe the most Apple product... we've seen in a really long time...",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:13",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 130,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "13 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 2,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 13
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:22",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "You'll see what I mean. Matter of fact, how about the first half of this video we tell you about why this is a solid update and it's what we were expecting...",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:22",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 158,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "22 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 3,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 22,
+               "playerParams": "0gcJCUEAhQB8QzpG"
+              }
+             }
+            }
+           }
+          }
+         ],
+         "header": {
+          "macroMarkersPanelItemViewModel": {
+           "item": {
+            "timelineChapterViewModel": {
+             "title": "Chapter 1: Hardware and performance",
+             "style": "TIMELINE_VIEW_STYLE_MODERN",
+             "index": 0
+            }
+           },
+           "index": 0,
+           "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+           "panelId": "PAmodern_transcript_view",
+           "onTap": {
+            "innertubeCommand": {
+             "watchEndpoint": {
+              "videoId": "g6Die8gVFn0",
+              "continuePlayback": true,
+              "startTimeSeconds": 0
+             }
+            }
+           }
+          }
+         },
+         "sectionIdentifier": "timeline_view_section0"
+        }
+       },
+       {
+        "itemSectionRenderer": {
+         "contents": [
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "2:49",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "I don't know how else to say it. It's the most Apple product we've seen in a long time. So I guess let's just start with the price.",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "2:49",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 131,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "2 minutes, 49 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 28,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 169
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "2:54",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "You probably remember iPad Mini as the fun little tablet in the corner that you could grab for 500 bucks and then get it for a kid or just have it sort of for reading or whatever 'cause that's what it was.",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "2:54",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 205,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "2 minutes, 54 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 29,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 174
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "3:04",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "But this new 8th-generation iPad Mini... starts at $700. But Apple, Apple is also very famous for their...",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "3:04",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 106,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "3 minutes, 4 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 30,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "g6Die8gVFn0",
+               "continuePlayback": true,
+               "startTimeSeconds": 184
+              }
+             }
+            }
+           }
+          }
+         ],
+         "header": {
+          "macroMarkersPanelItemViewModel": {
+           "item": {
+            "timelineChapterViewModel": {
+             "title": "Chapter 2: Pricing and restrictions",
+             "style": "TIMELINE_VIEW_STYLE_MODERN",
+             "index": 0
+            }
+           },
+           "index": 27,
+           "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+           "panelId": "PAmodern_transcript_view",
+           "onTap": {
+            "innertubeCommand": {
+             "watchEndpoint": {
+              "videoId": "g6Die8gVFn0",
+              "continuePlayback": true,
+              "startTimeSeconds": 161
+             }
+            }
+           }
+          }
+         },
+         "sectionIdentifier": "timeline_view_section1"
+        }
+       }
+      ],
+      "header": {
+       "searchInputViewModel": {
+        "placeholderText": "Search transcript",
+        "isFocused": false,
+        "onInputAction": {
+         "command": {
+          "innertubeCommand": {
+           "continuationCommand": {
+            "token": "kta-ngs-EhhQQW1vZGVybl90cmFuc2NyaXB0X3ZpZXcaInFna1VDZ3RuTmtScFpUaG5Wa1p1TUJnQk1nTXVaVzQlM0Q%3D",
+            "request": "CONTINUATION_REQUEST_TYPE_GET_PANEL"
+           }
+          }
+         }
+        },
+        "formSchema": {
+         "id": "timeline_search_input_form_id"
+        },
+        "clearButtonA11yLabel": "Clear",
+        "backgroundStyle": "SEARCH_INPUT_BACKGROUND_STYLE_EP"
+       }
+      },
+      "hideBottomSeparator": true,
+      "targetId": "PAmodern_transcript_view",
+      "floatingPillRenderers": {
+       "buttonRenderer": {
+        "buttonRenderer": {
+         "style": "STYLE_MONO_FILLED",
+         "size": "SIZE_DEFAULT",
+         "isDisabled": false,
+         "text": {
+          "simpleText": "Sync to video time"
+         }
+        }
+       },
+       "floatingPillType": "FLOATING_PILL_TYPE_MODERN_TRANSCRIPT"
+      },
+      "syncModelEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+      "selectedItemAlignmentPercentOffset": 0.1,
+      "webComponentHint": {
+       "componentVersion": "WEB_COMPONENT_VERSION_SHARED"
+      },
+      "headerStyle": "SECTION_LIST_HEADER_STYLE_STICKY"
+     }
+    },
+    "veType": 297672,
+    "disablePullRefresh": true,
+    "onShowCommands": [
+     {
+      "updateTimedMarkersSyncObserverCommand": {
+       "isEnabled": true,
+       "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+       "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+      }
+     }
+    ],
+    "continuationService": "ENGAGEMENT_PANEL_CONTINUATION_SERVICE_PANEL",
+    "onCloseCommand": {
+     "updateTimedMarkersSyncObserverCommand": {
+      "isEnabled": false,
+      "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+      "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+     }
+    },
+    "identifier": {
+     "surface": "ENGAGEMENT_PANEL_SURFACE_WATCH",
+     "tag": "PAmodern_transcript_view"
+    },
+    "onDestroyCommand": {
+     "updateTimedMarkersSyncObserverCommand": {
+      "isEnabled": false,
+      "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+      "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+     }
+    }
+   }
+  }
+ },
+ "panelPlain": {
+  "content": {
+   "engagementPanelSectionListRenderer": {
+    "header": {
+     "engagementPanelTitleHeaderRenderer": {
+      "title": {
+       "runs": [
+        {
+         "text": "Transcript"
+        }
+       ]
+      },
+      "visibilityButton": {
+       "buttonRenderer": {
+        "icon": {
+         "iconType": "CLOSE"
+        },
+        "command": {
+         "hideEngagementPanelEndpoint": {
+          "identifier": {
+           "tag": "PAmodern_transcript_view"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "content": {
+     "sectionListRenderer": {
+      "contents": [
+       {
+        "itemSectionRenderer": {
+         "contents": [
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:01",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "[♪♪♪]",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:01",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 5,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "1 second"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 0,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "dQw4w9WgXcQ",
+               "continuePlayback": true,
+               "startTimeSeconds": 1
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:18",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "♪ We're no strangers to love ♪ ♪ You know the rules and so do I ♪",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:18",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 65,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "18 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 1,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "dQw4w9WgXcQ",
+               "continuePlayback": true,
+               "startTimeSeconds": 18
+              }
+             }
+            }
+           }
+          },
+          {
+           "macroMarkersPanelItemViewModel": {
+            "item": {
+             "timelineItemViewModel": {
+              "timestamp": "0:27",
+              "contentItems": [
+               {
+                "transcriptSegmentViewModel": {
+                 "simpleText": "♪ A full commitment's what I'm thinking of ♪ ♪ You wouldn't get this from any other guy ♪",
+                 "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+                 "timestamp": "0:27",
+                 "timestampUtf16Length": 4,
+                 "textUtf16Length": 89,
+                 "accessibilityHint": "Double tap to skip to this point in the video.",
+                 "timestampA11yLabel": "27 seconds"
+                }
+               }
+              ],
+              "style": "TIMELINE_VIEW_STYLE_MODERN"
+             }
+            },
+            "index": 2,
+            "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+            "panelId": "PAmodern_transcript_view",
+            "onTap": {
+             "innertubeCommand": {
+              "watchEndpoint": {
+               "videoId": "dQw4w9WgXcQ",
+               "continuePlayback": true,
+               "startTimeSeconds": 27
+              }
+             }
+            }
+           }
+          }
+         ],
+         "sectionIdentifier": "timeline_view_section0"
+        }
+       }
+      ],
+      "header": {
+       "searchInputViewModel": {
+        "placeholderText": "Search transcript",
+        "isFocused": false,
+        "onInputAction": {
+         "command": {
+          "innertubeCommand": {
+           "continuationCommand": {
+            "token": "kta-ngs-EhhQQW1vZGVybl90cmFuc2NyaXB0X3ZpZXcaInFna1VDZ3RrVVhjMGR6bFhaMWhqVVJnQ01nTXVaVzQlM0Q%3D",
+            "request": "CONTINUATION_REQUEST_TYPE_GET_PANEL"
+           }
+          }
+         }
+        },
+        "formSchema": {
+         "id": "timeline_search_input_form_id"
+        },
+        "clearButtonA11yLabel": "Clear",
+        "backgroundStyle": "SEARCH_INPUT_BACKGROUND_STYLE_EP"
+       }
+      },
+      "hideBottomSeparator": true,
+      "targetId": "PAmodern_transcript_view",
+      "floatingPillRenderers": {
+       "buttonRenderer": {
+        "buttonRenderer": {
+         "style": "STYLE_MONO_FILLED",
+         "size": "SIZE_DEFAULT",
+         "isDisabled": false,
+         "text": {
+          "simpleText": "Sync to video time"
+         }
+        }
+       },
+       "floatingPillType": "FLOATING_PILL_TYPE_MODERN_TRANSCRIPT"
+      },
+      "syncModelEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+      "selectedItemAlignmentPercentOffset": 0.1,
+      "webComponentHint": {
+       "componentVersion": "WEB_COMPONENT_VERSION_SHARED"
+      },
+      "headerStyle": "SECTION_LIST_HEADER_STYLE_STICKY"
+     }
+    },
+    "veType": 297672,
+    "disablePullRefresh": true,
+    "onShowCommands": [
+     {
+      "updateTimedMarkersSyncObserverCommand": {
+       "isEnabled": true,
+       "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+       "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+      }
+     }
+    ],
+    "continuationService": "ENGAGEMENT_PANEL_CONTINUATION_SERVICE_PANEL",
+    "onCloseCommand": {
+     "updateTimedMarkersSyncObserverCommand": {
+      "isEnabled": false,
+      "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+      "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+     }
+    },
+    "identifier": {
+     "surface": "ENGAGEMENT_PANEL_SURFACE_WATCH",
+     "tag": "PAmodern_transcript_view"
+    },
+    "onDestroyCommand": {
+     "updateTimedMarkersSyncObserverCommand": {
+      "isEnabled": false,
+      "timedSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSD-ASgB",
+      "panelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB"
+     }
+    }
+   }
+  }
+ },
+ "search": {
+  "onResponseReceivedCommand": {
+   "reloadContinuationItemsCommand": {
+    "targetId": "PAmodern_transcript_view",
+    "continuationItems": [
+     {
+      "itemSectionRenderer": {
+       "contents": [
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "0:59",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "OLED display.",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "0:59",
+               "timestampUtf16Length": 4,
+               "textUtf16Length": 13,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "59 seconds"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 1,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 59
+            }
+           }
+          }
+         }
+        },
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "1:00",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "So for years we've been wanting a nice OLED display on the smallest iPad, and it's great to finally get that. It's a great-looking screen.",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "1:00",
+               "timestampUtf16Length": 4,
+               "textUtf16Length": 138,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "1 minute"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 2,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 60
+            }
+           }
+          }
+         }
+        },
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "2:07",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "I did some longer benchmarks because I was curious if being ridiculously thin meant that it actually cooled worse, like maybe even worse than the iPhone with the same-ish chip...",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "2:07",
+               "timestampUtf16Length": 4,
+               "textUtf16Length": 178,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "2 minutes, 7 seconds"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 3,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 127
+            }
+           }
+          }
+         }
+        }
+       ],
+       "header": {
+        "macroMarkersPanelItemViewModel": {
+         "item": {
+          "timelineChapterViewModel": {
+           "title": "Chapter 1: Hardware and performance",
+           "style": "TIMELINE_VIEW_STYLE_MODERN",
+           "index": 0
+          }
+         },
+         "index": 0,
+         "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+         "panelId": "PAmodern_transcript_view",
+         "onTap": {
+          "innertubeCommand": {
+           "watchEndpoint": {
+            "videoId": "g6Die8gVFn0",
+            "continuePlayback": true,
+            "startTimeSeconds": 0
+           }
+          }
+         }
+        }
+       },
+       "sectionIdentifier": "timeline_view_section0"
+      }
+     },
+     {
+      "itemSectionRenderer": {
+       "contents": [
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "5:47",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "And then there's the 60Hz... In case you didn't catch it... this brand-new OLED that's so beautiful and has the nano-texture and everything...",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "5:47",
+               "timestampUtf16Length": 4,
+               "textUtf16Length": 142,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "5 minutes, 47 seconds"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 5,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 347
+            }
+           }
+          }
+         }
+        },
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "6:31",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "Where do you even buy- Where do you even source 60Hz OLED displays right now?... I mean, TVs maybe? Even those, like...",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "6:31",
+               "timestampUtf16Length": 4,
+               "textUtf16Length": 119,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "6 minutes, 31 seconds"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 6,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 391
+            }
+           }
+          }
+         }
+        }
+       ],
+       "header": {
+        "macroMarkersPanelItemViewModel": {
+         "item": {
+          "timelineChapterViewModel": {
+           "title": "Chapter 2: The 60Hz display debate",
+           "style": "TIMELINE_VIEW_STYLE_MODERN",
+           "index": 0
+          }
+         },
+         "index": 4,
+         "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+         "panelId": "PAmodern_transcript_view",
+         "onTap": {
+          "innertubeCommand": {
+           "watchEndpoint": {
+            "videoId": "g6Die8gVFn0",
+            "continuePlayback": true,
+            "startTimeSeconds": 347
+           }
+          }
+         }
+        }
+       },
+       "sectionIdentifier": "timeline_view_section1"
+      }
+     },
+     {
+      "itemSectionRenderer": {
+       "contents": [
+        {
+         "macroMarkersPanelItemViewModel": {
+          "item": {
+           "timelineItemViewModel": {
+            "timestamp": "11:32",
+            "contentItems": [
+             {
+              "transcriptSegmentViewModel": {
+               "simpleText": "with the chip, but with a 120Hz OLED... and Face ID. There's a free idea for ya.",
+               "style": "TIMELINE_VIEW_STYLE_MODERN_INLINE_TIMESTAMPS",
+               "timestamp": "11:32",
+               "timestampUtf16Length": 5,
+               "textUtf16Length": 80,
+               "accessibilityHint": "Double tap to skip to this point in the video.",
+               "timestampA11yLabel": "11 minutes, 32 seconds"
+              }
+             }
+            ],
+            "style": "TIMELINE_VIEW_STYLE_MODERN"
+           }
+          },
+          "index": 8,
+          "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+          "panelId": "PAmodern_transcript_view",
+          "onTap": {
+           "innertubeCommand": {
+            "watchEndpoint": {
+             "videoId": "g6Die8gVFn0",
+             "continuePlayback": true,
+             "startTimeSeconds": 692
+            }
+           }
+          }
+         }
+        }
+       ],
+       "header": {
+        "macroMarkersPanelItemViewModel": {
+         "item": {
+          "timelineChapterViewModel": {
+           "title": "Chapter 3: Usage and impressions",
+           "style": "TIMELINE_VIEW_STYLE_MODERN",
+           "index": 0
+          }
+         },
+         "index": 7,
+         "markersEngagementPanelSyncEntityKey": "EiZtb2Rlcm5fdHJhbnNjcmlwdF92aWV3X3N5bmNfZW50aXR5X2tleSDEASgB",
+         "panelId": "PAmodern_transcript_view",
+         "onTap": {
+          "innertubeCommand": {
+           "watchEndpoint": {
+            "videoId": "g6Die8gVFn0",
+            "continuePlayback": true,
+            "startTimeSeconds": 578
+           }
+          }
+         }
+        }
+       },
+       "sectionIdentifier": "timeline_view_section2"
+      }
+     }
+    ],
+    "slot": "RELOAD_CONTINUATION_SLOT_BODY"
+   }
+  }
+ },
+ "noResults": {
+  "onResponseReceivedCommand": {
+   "reloadContinuationItemsCommand": {
+    "targetId": "PAmodern_transcript_view",
+    "continuationItems": [
+     {
+      "itemSectionRenderer": {
+       "contents": [
+        {
+         "timelineSearchNoResultsViewModel": {
+          "text": "No results found."
+         }
+        }
+       ]
+      }
+     }
+    ],
+    "slot": "RELOAD_CONTINUATION_SLOT_BODY"
+   }
+  }
+ }
+}

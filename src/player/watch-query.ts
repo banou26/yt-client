@@ -33,6 +33,7 @@ export const WATCH_META_QUERY = gql(`
       relatedCursor
       autoplayId
       chapters { title startSeconds thumbnail }
+      transcriptPanel { panelId params }
       related {
         id
         title

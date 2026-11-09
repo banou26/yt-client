@@ -47,6 +47,8 @@ export const resolvers = {
     post: (_, { id }, context) => context.source.post(id).then((post) => post ?? null),
     watch: (_, { id, playlistId, playlistIndex }, context) =>
       context.source.watch(id, playlistId ?? undefined, playlistIndex ?? undefined).then((meta) => meta ?? null),
+    transcript: (_, { panelId, params }, context) => context.source.transcript(panelId, params),
+    transcriptSearch: (_, { token, query }, context) => context.source.transcriptSearch(token, query),
     comments: (_, { videoId, sort, cursor }, context) =>
       context.source.comments(videoId, sort ?? undefined, cursor ?? undefined),
     liveChat: (_, { videoId, cursor }, context) => context.source.liveChat(videoId, cursor ?? undefined),
