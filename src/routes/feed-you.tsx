@@ -31,6 +31,8 @@ const YOU_HISTORY_QUERY = gql(`
           isShort
           progressPercent
           channel { id name avatar isVerified isVerifiedArtist }
+          byline { text isVerified isVerifiedArtist }
+          collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
         }
       }
     }

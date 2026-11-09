@@ -461,7 +461,10 @@ const lockupLines = (lockup: LockupVideo, own: boolean): { byline: LockupPart[],
   if (rows.length > 1) return { byline: rows[0] ?? [], stats: rows[1] ?? [] }
   const parts = rows[0] ?? []
   if (own) return { byline: parts.slice(0, -2), stats: parts.slice(-2) }
-  return { byline: parts.slice(0, 1), stats: parts.slice(1) }
+  // a collaboration's later names are parts of their own ('and Invicta')
+  const names = parts.findIndex((part, index) => index > 0 && !presentText(part.text)?.startsWith('and '))
+  const end = names === -1 ? parts.length : names
+  return { byline: parts.slice(0, end), stats: parts.slice(end) }
 }
 
 const lockupChannel = (lockup: LockupVideo, byline: LockupPart | undefined): SourceChannel | undefined => {

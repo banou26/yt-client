@@ -6,8 +6,9 @@ import { Parser, YT } from 'youtubei.js'
 
 import { rowByline } from '../../../../src/components/format'
 import { createYoutubeSource } from '../../../../src/sources/youtube'
-import { normalizeWatchMeta } from '../../../../src/sources/youtube/normalize'
+import { normalizeLockupVideo, normalizeWatchMeta } from '../../../../src/sources/youtube/normalize'
 import home from '../../fixtures/channel-home-mkbhd.json'
+import blender from '../../fixtures/channel-videos-blender.json'
 import threeChannels from '../../fixtures/search-colin-and-samir.json'
 import search from '../../fixtures/search-collaboration.json'
 import watch from '../../fixtures/watch-collaboration.json'
@@ -126,5 +127,16 @@ describe('a video two channels made', () => {
 
     const signedIn = JSON.parse(JSON.stringify(watch).replaceAll('"isSignedOut":true', '"isSignedOut":false').replace('"subscribed":false', '"subscribed":true'))
     expect(normalizeWatchMeta(Parser.parseResponse(signedIn), 'e3fz3dqhN44')?.collaborators?.map((channel) => channel.isSubscribed)).toEqual([true, false])
+  })
+
+  // the layout of a lockup in history or a lockup search: names, views and date on one row
+  it('keeps a one-row lockup\'s later names out of its views and date', () => {
+    const parsed = Parser.parseResponse(blender as never)
+    const lockup = (parsed.contents_memo?.get('LockupView') ?? []).find((node) => (node as { content_id?: string }).content_id === 'cM3NJuY_xLc')
+    expect(normalizeLockupVideo(lockup)).toMatchObject({
+      viewCount: '10K',
+      publishedText: '1mo ago',
+      byline: [{ text: 'Blender', isVerified: true }, { text: 'and Invicta', isVerified: true }],
+    })
   })
 })
