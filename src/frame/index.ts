@@ -3,13 +3,14 @@ import type { FrameApi, FrameProgress, FrameRequest, FrameResponse, SegmentEnvel
 import type { YoutubeClient } from '../sources/youtube'
 
 import type { CaptionSource } from './captions'
+import type { PlaybackEntry } from './playback'
 
 import { createYoutubeSource } from '../sources/youtube'
 import { json3ToWebVtt, parseCaptionTracks, timedTextUrl } from './captions'
-import { catalogInnertube, getSabrSource, hasSessionCookie, prefetchInitialPlayerResponse } from './innertube'
+import { catalogInnertube, hasSessionCookie, prefetchInitialPlayerResponse } from './innertube'
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
 import { openLiveManifest } from './live-open'
-import { createSabrSession, isSabrSessionRefreshError } from './sabr'
+import { closePlaybackEntry, openPlaybackEntry, requestPlaybackSegment } from './playback'
 import { resetIdentity } from './identity'
 import { FRAME_CONNECT, isFrameMethod } from './protocol'
 
@@ -18,23 +19,6 @@ const { id: _sourceId, ...sourceApi } = createYoutubeSource({
   createClient: () => catalogInnertube() as unknown as Promise<YoutubeClient>,
   signedIn: hasSessionCookie,
 })
-
-type PlaybackEntry = {
-  videoId: string
-  maxHeight?: number
-  player: ReturnType<typeof createSabrSession>
-  chain: Promise<unknown>
-  serial: Promise<unknown>
-  requests: Map<string, AbortController>
-  generation: number
-  closed: boolean
-  refreshing?: Promise<void>
-  captions: CaptionSource[]
-  cueSources?: Promise<CaptionSource[]>
-
-  lastLiveManifest?: string
-  liveAnchorMs?: number
-}
 
 const sessions = new Map<string, PlaybackEntry>()
 let sessionId = 0
@@ -65,31 +49,6 @@ const cueSourceFor = async (entry: PlaybackEntry, track: CaptionSource) => {
   return match
 }
 
-const refreshSession = async (entry: PlaybackEntry) => {
-  if (entry.closed) throw new Error('youtube: playback session closed during refresh')
-  const previous = entry.player
-  const videoKey = previous.videoFormat.key
-  const videoMimeType = previous.videoFormat.mimeType
-  const audioKey = previous.audioFormat.key
-  const audioMimeType = previous.audioFormat.mimeType
-  const source = await getSabrSource(entry.videoId)
-  if (entry.closed) throw new Error('youtube: playback session closed during refresh')
-  // a new live session asked at 0 is answered at the oldest end of the DVR window, so it continues where this one got to
-  const next = createSabrSession(source, entry.maxHeight, source.isLive ? previous.liveEndMs : undefined)
-  const videoFormat = next.videoFormats.find((format) => format.key === videoKey && format.mimeType === videoMimeType)
-  const audioFormat = next.audioFormats.find((format) => format.key === audioKey && format.mimeType === audioMimeType)
-  if (!videoFormat || !audioFormat) {
-    next.close()
-    throw new Error('youtube: playback formats changed during session refresh')
-  }
-  next.selectVideoFormat(videoFormat.key)
-  next.selectAudioFormat(audioFormat.key)
-  previous.close()
-  entry.player = next
-  if (!source.isLive) entry.captions = source.captions
-  next.startLivePump()
-}
-
 // the anchor is carried on the entry rather than recomputed, so every refresh hangs off the same presentation zero
 const liveManifestFor = (entry: PlaybackEntry) => {
   const player = entry.player
@@ -116,20 +75,8 @@ const api = {
   },
   openPlayback: async (videoId, maxHeight) => {
     const id = `playback:${++sessionId}`
-    const source = await getSabrSource(videoId)
-    const player = createSabrSession(source, maxHeight)
-    const entry: PlaybackEntry = {
-      videoId,
-      maxHeight,
-      player,
-      chain: Promise.resolve(),
-      serial: Promise.resolve(),
-      requests: new Map(),
-      generation: 0,
-      closed: false,
-      // Shaka rejects a side-loaded text track against an infinite presentation
-      captions: source.isLive ? [] : source.captions,
-    }
+    const { source, entry } = await openPlaybackEntry(videoId, maxHeight)
+    const player = entry.player
     const manifest = source.isLive
       ? await openLiveManifest(player, { sessionId: id, videoId, manifestFor: () => liveManifestFor(entry) })
       : player.manifest
@@ -150,46 +97,7 @@ const api = {
   requestSegment: async (request, progress: (phase: string) => void = () => {}) => {
     const entry = sessions.get(request.sessionId)
     if (!entry) throw new Error(`youtube: unknown playback session ${request.sessionId}`)
-    const controller = new AbortController()
-    entry.requests.set(request.requestId, controller)
-    entry.generation = Math.max(entry.generation, request.generation)
-    document.documentElement.dataset.segmentStartMs = String(request.startTimeMs)
-    const assertActive = () => {
-      if (controller.signal.aborted || request.generation < entry.generation) {
-        throw new Error('youtube: segment request cancelled')
-      }
-      if (entry.closed) throw new Error(`youtube: unknown playback session ${request.sessionId}`)
-    }
-    const base = request.kind === 'init' ? entry.serial : entry.chain
-    const run = base.then(async () => {
-      assertActive()
-      const player = entry.player
-      try {
-        const segment = await player.requestSegment(request, progress, controller.signal)
-        assertActive()
-        return segment
-      } catch (error) {
-        assertActive()
-        if (!isSabrSessionRefreshError(error)) throw error
-        document.documentElement.dataset.segmentRecovery = error.message
-        progress('session-refresh')
-        // refresh only if the player that failed is still current, or a stale failure disposes a fresh session
-        if (entry.player === player) {
-          await (entry.refreshing ??= refreshSession(entry).finally(() => {
-            entry.refreshing = undefined
-          }))
-        }
-        assertActive()
-        return entry.player.requestSegment(request, progress, controller.signal)
-      }
-    }).finally(() => entry.requests.delete(request.requestId))
-    if (request.kind === 'init') {
-      entry.chain = Promise.allSettled([entry.chain, run]).then(() => {})
-    } else {
-      entry.chain = run.catch(() => {})
-      entry.serial = entry.chain
-    }
-    return run
+    return requestPlaybackSegment(entry, request, progress)
   },
   liveManifest: async (id) => {
     const entry = sessions.get(id)
@@ -238,10 +146,7 @@ const api = {
   closePlayback: async (id) => {
     const entry = sessions.get(id)
     if (!entry) return
-    entry.closed = true
-    for (const controller of entry.requests.values()) controller.abort()
-    entry.requests.clear()
-    entry.player.close()
+    closePlaybackEntry(entry)
     sessions.delete(id)
   },
 } satisfies FrameApi
