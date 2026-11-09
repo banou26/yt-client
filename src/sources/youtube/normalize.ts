@@ -54,7 +54,7 @@ type FeedVideo = {
   thumbnail_overlays?: unknown[]
   expandable_metadata?: {
     header?: { expanded_title?: Text }
-    expanded_content?: { cards?: { type?: string, title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
+    expanded_content?: { cards?: { title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
   }
 }
 
@@ -663,7 +663,7 @@ const searchChapters = (metadata: FeedVideo['expandable_metadata']) => {
   const chapters = (metadata?.expanded_content?.cards ?? []).flatMap((card) => {
     const title = presentText(card.title)
     const start = durationSeconds(text(card.time_description))
-    return card.type === 'MacroMarkersListItem' && title && start !== undefined
+    return title && start !== undefined
       ? [{ title, startSeconds: start, thumbnail: thumbnail(card.thumbnail) }]
       : []
   })
