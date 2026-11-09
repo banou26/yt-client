@@ -25,9 +25,10 @@ import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
-import { setChaptersOpen, useChapterView } from '../player/chapters'
 import { prefetchPlayback } from '../player/prefetch'
-import { claimPlayer, closePlayer, getPlayerSession, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
+import {
+  claimPlayer, closePlayer, getPlayerSession, openPlayer, setChaptersOpen, setTheater as setPlayerTheater, usePlayerSession,
+} from '../player/session'
 import { WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
 import { showToast } from '../components/ui/toast'
@@ -512,15 +513,16 @@ const WatchPage = () => {
     : undefined
 
   const chapters = watch?.chapters ?? []
-  const chapterView = useChapterView(videoId)
-  const chaptersPanel = chapterView.open && chapters.length > 0
+  const playingHere = playerSession.videoId === videoId
+  const chapter = playingHere ? playerSession.chapter : -1
+  const chaptersPanel = playingHere && playerSession.chaptersOpen && chapters.length > 0
     ? (
       <ChaptersPanel
         key={videoId}
         videoId={videoId}
         chapters={chapters}
-        current={chapterView.index}
-        onClose={() => setChaptersOpen(videoId, false)}
+        current={chapter}
+        onClose={() => setChaptersOpen(false)}
       />
     )
     : undefined
@@ -644,8 +646,8 @@ const WatchPage = () => {
                 runs={watch.descriptionRuns}
                 videoId={videoId}
                 chapters={chapters}
-                currentChapter={chapterView.index}
-                onViewChapters={() => setChaptersOpen(videoId, true)}
+                currentChapter={chapter}
+                onViewChapters={() => setChaptersOpen(true)}
               />
             )
             : undefined}

@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'preact/hooks'
-
 export type PlayerChapter = {
   title: string
   startSeconds: number
@@ -61,40 +59,4 @@ export const timeAtOffset = (parts: readonly BarPart[], boxes: readonly { left: 
   if (!part || !box) return 0
   const ratio = box.width > 0 ? Math.max(0, Math.min(1, (x - box.left) / box.width)) : 0
   return part.start + ratio * (part.end - part.start)
-}
-
-/*
- * The chapter list panel is opened from the player bar and drawn by the watch page, or by the player itself in full
- * screen, and both highlight the chapter playing. The player publishes that chapter here, keyed by video, so a page
- * that moved on to another video reads a closed panel.
- */
-type ChapterView = { videoId?: string, index: number, open: boolean }
-
-let view: ChapterView = { index: -1, open: false }
-const listeners = new Set<() => void>()
-
-const update = (next: ChapterView) => {
-  if (next.videoId === view.videoId && next.index === view.index && next.open === view.open) return
-  view = next
-  for (const listener of listeners) listener()
-}
-
-const forVideo = (videoId: string) => (view.videoId === videoId ? view : { videoId, index: -1, open: false })
-
-export const publishChapter = (videoId: string, index: number) => update({ ...forVideo(videoId), index })
-
-export const setChaptersOpen = (videoId: string, open: boolean) => update({ ...forVideo(videoId), open })
-
-/** The chapter playing in `videoId` and whether its chapter list is open. */
-export const useChapterView = (videoId: string) => {
-  const [value, setValue] = useState(() => forVideo(videoId))
-  useEffect(() => {
-    const listener = () => setValue(forVideo(videoId))
-    listeners.add(listener)
-    listener()
-    return () => {
-      listeners.delete(listener)
-    }
-  }, [videoId])
-  return value
 }

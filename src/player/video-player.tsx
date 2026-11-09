@@ -21,11 +21,12 @@ import { resetEngine, startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
 import { createRestartBudget, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
+import { setChaptersOpen, setPlayingChapter } from './session'
 import { getSettings, updateSettings } from '../settings'
 import { ChaptersPanel } from '../components/chapters'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
-import { chapterIndexAt, chapterStep, publishChapter, setChaptersOpen, useChapterView } from './chapters'
+import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { RefusalScreen } from './refusal-screen'
@@ -64,20 +65,12 @@ const playerStyle = css`
     height: 100%;
   }
 
-  /* the chapter list is the watch page's outside full screen, and takes the right of the player inside it */
-  .chapters-panel {
-    display: none;
-  }
-
-  &:fullscreen.chapters-open {
+  /* in full screen the chapter list takes the right of the player, which the watch page draws outside it */
+  &.chapters-open {
     --panel-room: 35.2rem;
   }
 
-  &:fullscreen .chapters-panel {
-    display: flex;
-  }
-
-  &:fullscreen.chapters-open video {
+  &.chapters-open video {
     width: calc(100% - var(--panel-room));
   }
 
@@ -191,7 +184,10 @@ export type PlayerUpNext = {
 const FALLBACK_FPS = 30
 
 const VideoPlayer = (
-  { videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [] }: {
+  {
+    videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, chaptersOpen = false,
+    segments = [],
+  }: {
     videoId: string
     list?: string
     title?: string
@@ -202,6 +198,7 @@ const VideoPlayer = (
     onMiniplayer?: () => void
     upNext?: PlayerUpNext
     chapters?: readonly PlayerChapter[]
+    chaptersOpen?: boolean
     segments?: readonly SkipSegment[]
   },
 ) => {
@@ -238,8 +235,9 @@ const VideoPlayer = (
   const state = usePlayerState(videoRef.current, player)
   const chapterList = chapters ?? []
   const chapterIndex = chapterIndexAt(chapterList, state.currentTime)
-  const chapterView = useChapterView(videoId)
-  useEffect(() => publishChapter(videoId, chapterIndex), [videoId, chapterIndex])
+  useEffect(() => setPlayingChapter(chapterIndex), [chapterIndex])
+  const [fullscreen, setFullscreen] = useState(false)
+  const chapterListOpen = fullscreen && chaptersOpen && chapterList.length > 0
   const ending = state.ended && upNext
     ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
     : undefined
@@ -442,10 +440,16 @@ const VideoPlayer = (
 
   useEffect(() => () => clearTimeout(idleTimer.current), [])
 
-  // the menu is drawn on the fullscreen element or the body, so a switch between the two would strand it
+  // the menu is drawn on the fullscreen element or the body, so a switch between the two would strand it, and youtube.com
+  // closes the chapter list on every switch, in or out
   useEffect(() => {
-    document.addEventListener('fullscreenchange', closeMenu)
-    return () => document.removeEventListener('fullscreenchange', closeMenu)
+    const onChange = () => {
+      closeMenu()
+      setChaptersOpen(false)
+      setFullscreen(document.fullscreenElement !== null)
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
   }, [closeMenu])
 
   const onContextMenu = (event: MouseEvent) => {
@@ -589,7 +593,7 @@ const VideoPlayer = (
     <div
       css={playerStyle}
       data-player-root
-      className={[!active && !state.paused && !menu && 'idle', chapterView.open && chapterList.length > 0 && 'chapters-open'].filter(Boolean).join(' ') || undefined}
+      className={[!active && !state.paused && !menu && 'idle', chapterListOpen && 'chapters-open'].filter(Boolean).join(' ') || undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
@@ -647,7 +651,7 @@ const VideoPlayer = (
             onAutoplay={upNext?.onAutoplay}
             isLive={isLive}
             chapters={chapters}
-            onChapters={() => setChaptersOpen(videoId, true)}
+            onChapters={() => setChaptersOpen(true)}
             segments={segments}
             visible={active || state.paused}
           />
@@ -666,14 +670,14 @@ const VideoPlayer = (
             </button>
           )
           : undefined}
-      {chapterView.open && chapterList.length > 0
+      {chapterListOpen
         ? (
           <ChaptersPanel
             overlay
             videoId={videoId}
             chapters={chapterList}
             current={chapterIndex}
-            onClose={() => setChaptersOpen(videoId, false)}
+            onClose={() => setChaptersOpen(false)}
           />
         )
         : undefined}

@@ -19,6 +19,8 @@ const CHAPTERS = [
 const player = (page: Page) => page.locator('[data-player-root]')
 const video = (page: Page) => player(page).locator('video')
 const currentTime = (page: Page) => video(page).evaluate(element => (element as HTMLVideoElement).currentTime)
+const fullscreen = (page: Page) => page.evaluate(() => document.fullscreenElement?.hasAttribute('data-player-root') ?? false)
+const videoWidth = async (page: Page) => (await video(page).boundingBox())?.width
 
 const openPaused = async (page: Page, at: number) => {
   await page.goto(VIDEO)
@@ -89,6 +91,8 @@ plainTest('opens the chapter list from the chapter title, on the chapter playing
 
   const panel = page.locator('main aside section[aria-label="Chapters"]')
   await expect(panel).toBeVisible()
+  // the player draws its own list only in full screen
+  await expect(player(page).locator('.chapters-panel')).toHaveCount(0)
   const rows = panel.locator('.chapter-row')
   await expect(rows).toHaveCount(CHAPTERS.length)
   await expect(rows.nth(0)).toHaveText(`${CHAPTERS[0]!.title}${CHAPTERS[0]!.time}`)
@@ -109,7 +113,7 @@ plainTest('opens the chapter list over the right of the player in full screen', 
   await openPaused(page, 400)
   await wake(page)
   await page.keyboard.press('f')
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement?.hasAttribute('data-player-root') ?? false)).toBe(true)
+  await expect.poll(() => fullscreen(page)).toBe(true)
   await wake(page)
   await player(page).locator('.chapter').click()
 
@@ -122,6 +126,25 @@ plainTest('opens the chapter list over the right of the player in full screen', 
   await panel.locator('.chapter-row').nth(4).click()
   await expect.poll(() => currentTime(page)).toBeGreaterThanOrEqual(CHAPTERS[4]!.start - 0.1)
   expect(await page.evaluate(() => document.fullscreenElement !== null)).toBe(true)
+
+  // youtube.com closes the list on the way out of full screen, and does not open it beside the player
+  await page.keyboard.press('f')
+  await expect.poll(() => fullscreen(page)).toBe(false)
+  await expect(page.locator('.chapters-panel')).toHaveCount(0)
+})
+
+plainTest('a list open beside the player closes in full screen, as on youtube.com', async ({ page }) => {
+  plainTest.setTimeout(300_000)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await openPaused(page, 400)
+  await wake(page)
+  await player(page).locator('.chapter').click()
+  await expect(page.locator('main aside section[aria-label="Chapters"]')).toBeVisible()
+
+  await page.keyboard.press('f')
+  await expect.poll(() => fullscreen(page)).toBe(true)
+  await expect.poll(() => videoWidth(page)).toBe(1280)
+  await expect(page.locator('.chapters-panel')).toHaveCount(0)
 })
 
 plainTest('Ctrl+Right and Ctrl+Left seek to the next and the previous chapter, as the shortcuts list says', async ({ page }) => {
@@ -168,7 +191,7 @@ plainTest('lists the chapters in the expanded description, where a card seeks an
   await expect(page.locator('main aside section[aria-label="Chapters"]')).toBeVisible()
 })
 
-test('opens the chapter list under the player at 412 px, where the bar has no room for the chapter title', async ({ page }) => {
+test('opens the chapter list under the player at 412 px, where the bar has no room for the chapter title, and closes it in full screen', async ({ page }) => {
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 412, height: 860 })
   await page.goto(VIDEO)
@@ -182,6 +205,11 @@ test('opens the chapter list under the player at 412 px, where the bar has no ro
   const [frame, list, title] = await Promise.all([player(page).boundingBox(), panel.boundingBox(), page.locator('main h1.title').boundingBox()])
   expect(list!.y).toBeGreaterThan(frame!.y + frame!.height)
   expect(list!.y + list!.height).toBeLessThan(title!.y)
+
+  await page.keyboard.press('f')
+  await expect.poll(() => fullscreen(page)).toBe(true)
+  await expect.poll(() => videoWidth(page)).toBe(412)
+  await expect(page.locator('.chapters-panel')).toHaveCount(0)
 })
 
 test('a search row lists its chapters on one line, and opens on cards that start the video at each', async ({ page }) => {

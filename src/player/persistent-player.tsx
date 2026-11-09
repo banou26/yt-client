@@ -217,6 +217,7 @@ const PersistentPlayer = () => {
               onTheater={() => setTheater(!session.theater)}
               onMiniplayer={toggleMiniplayer}
               chapters={watch?.chapters}
+              chaptersOpen={session.chaptersOpen}
               segments={segments}
               upNext={{
                 autoplay,

@@ -12,9 +12,12 @@ export type PlayerSession = {
   index?: number
   theater: boolean
   claimed: boolean
+  // the index of the chapter playing, which the player publishes for the watch page's list and cards
+  chapter: number
+  chaptersOpen: boolean
 }
 
-let session: PlayerSession = { theater: false, claimed: false }
+let session: PlayerSession = { theater: false, claimed: false, chapter: -1, chaptersOpen: false }
 const listeners = new Set<() => void>()
 
 const emit = () => {
@@ -53,7 +56,7 @@ export const openPlayer = (
     }
     return
   }
-  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater })
+  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater, chapter: -1, chaptersOpen: false })
 }
 
 // the ONLY thing that closes the frame's SABR session: route unmount deliberately does not
@@ -64,10 +67,21 @@ export const openPlayer = (
  * unmount deliberately does not, which is the whole point of the dock.
  */
 export const closePlayer = () => {
-  update({ videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined, theater: false })
+  update({
+    videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined, theater: false,
+    chapter: -1, chaptersOpen: false,
+  })
 }
 
 export const setTheater = (theater: boolean) => update({ theater })
+
+export const setPlayingChapter = (chapter: number) => {
+  if (chapter !== session.chapter) update({ chapter })
+}
+
+export const setChaptersOpen = (chaptersOpen: boolean) => {
+  if (chaptersOpen !== session.chaptersOpen) update({ chaptersOpen })
+}
 
 export const usePlayerSession = () => {
   const [value, setValue] = useState(session)
