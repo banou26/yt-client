@@ -6,15 +6,15 @@ import { css } from '@emotion/react'
 import { Link2, Search } from 'lucide-react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
-import { Link, useLocation, useSearch } from 'wouter'
+import { useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
+import { PostCard } from '../components/post-card'
 import { SubscribeButton } from '../components/subscribe-button'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
-import { VideoCardCompact } from '../components/video-card-compact'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
 import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
@@ -106,6 +106,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           title
           subtitle
           url
+          expandable
           videos {
             id
             title
@@ -118,7 +119,7 @@ const CHANNEL_VIEW_QUERY = gql(`
             isShort
             isUpcoming
             badges
-            channel { id name isVerified isVerifiedArtist }
+            channel { id name avatar isVerified isVerifiedArtist }
           }
           shorts {
             id
@@ -138,7 +139,31 @@ const CHANNEL_VIEW_QUERY = gql(`
             avatar
             subscriberCountText
           }
+          games {
+            id
+            title
+            boxArt
+          }
+          posts {
+            id
+            text
+            publishedText
+            voteCountText
+            attachedImage
+            author { id name avatar }
+            attachedVideo {
+              id
+              title
+              thumbnail
+              thumbnailSrcset
+              durationSeconds
+              viewCount
+              publishedText
+              channel { id name }
+            }
+          }
         }
+        message
       }
     }
   }
@@ -415,61 +440,6 @@ const style = css`
     max-width: 68rem;
   }
 
-  .post {
-    padding: 1.6rem;
-    border: 1px solid var(--border-subtle);
-    border-radius: 1.2rem;
-  }
-
-  .post-head {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    font-size: 1.3rem;
-    color: var(--text-secondary);
-  }
-
-  .post-author {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.8rem;
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-
-  .post-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 50%;
-    object-fit: cover;
-    background: var(--bg-chip);
-    font-size: 1.1rem;
-  }
-
-  .post-text {
-    margin: 1.2rem 0 0;
-    font-size: 1.4rem;
-    line-height: 2rem;
-    color: var(--text-primary);
-    white-space: pre-wrap;
-  }
-
-  .post-image {
-    display: block;
-    width: 100%;
-    margin-top: 1.2rem;
-    border-radius: 0.8rem;
-  }
-
-  .post-votes {
-    margin-top: 1.2rem;
-    font-size: 1.3rem;
-    color: var(--text-secondary);
-  }
-
   .status {
     margin-top: 2.4rem;
     color: var(--text-secondary);
@@ -738,29 +708,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
         ? (
           <div className='videos'>
             <div className='posts'>
-              {posts.map(post => (
-                <article className='post' key={post.id}>
-                  <div className='post-head'>
-                    {post.author
-                      ? (
-                        <Link href={`/channel/${post.author.id}`} className='post-author'>
-                          {post.author.avatar
-                            ? <img className='post-avatar' src={post.author.avatar} alt='' loading='lazy' />
-                            : <span className='post-avatar' aria-hidden='true'>{post.author.name.slice(0, 1)}</span>}
-                          <span>{post.author.name}</span>
-                        </Link>
-                      )
-                      : undefined}
-                    {post.publishedText ? <span className='post-date'>{post.publishedText}</span> : undefined}
-                  </div>
-                  {post.text ? <p className='post-text'>{post.text}</p> : undefined}
-                  {post.attachedImage
-                    ? <img className='post-image' src={post.attachedImage} alt='' loading='lazy' />
-                    : undefined}
-                  {post.attachedVideo ? <VideoCardCompact video={post.attachedVideo} /> : undefined}
-                  {post.voteCountText ? <div className='post-votes'>{post.voteCountText}</div> : undefined}
-                </article>
-              ))}
+              {posts.map(post => <PostCard key={post.id} post={post} />)}
             </div>
             {!postsFetching && posts.length === 0
               ? <p className='status'>This channel has no posts.</p>
@@ -773,7 +721,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
             <div className='videos'>
               <ChannelHome home={data.channel.home} />
               {!data.channel.home.featured && data.channel.home.shelves.length === 0
-                ? <p className='status'>{emptyMessageFor('HOME')}</p>
+                ? <p className='status'>{data.channel.home.message ?? emptyMessageFor('HOME')}</p>
                 : undefined}
             </div>
           )

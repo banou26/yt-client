@@ -216,7 +216,7 @@ test('plays Shorts signed out, with the comment count, the pager and the ⋮ men
   await expect(page.getByRole('button', { name: 'Previous short' })).toBeVisible()
 })
 
-test('has a You page and Explore entries that lead to videos', async ({ page }) => {
+test('has a You page', async ({ page }) => {
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 1600, height: 900 })
   await page.goto('/feed/you')
@@ -228,20 +228,42 @@ test('has a You page and Explore entries that lead to videos', async ({ page }) 
   const guide = page.getByRole('navigation', { name: 'Guide' })
   await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('href', '/feed/you')
   await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('aria-current', 'page')
-  const homeLinks = await guide.locator('a[href="/"]').count()
-  expect(homeLinks, 'an Explore entry still points at Home').toBe(1)
-
-  // back on the You page between entries, so a row still up from the previous search cannot pass for the next one
-  const rows = main.locator('article.result').filter({ has: page.locator('a.thumb') })
-  for (const label of ['Music', 'Live', 'Gaming']) {
-    await guide.getByRole('link', { name: 'You', exact: true }).click()
-    await expect(rows).toHaveCount(0)
-    await guide.getByRole('link', { name: label, exact: true }).click()
-    await expect(rows.first(), `the ${label} entry leads to no videos`).toBeVisible({ timeout: 120_000 })
-  }
 
   await page.setViewportSize({ width: 1280, height: 900 })
   await expect(page.getByRole('navigation', { name: 'Guide' }).getByRole('link', { name: 'You' })).toHaveAttribute('href', '/feed/you')
+})
+
+test('opens Gaming and Music from Explore on their shelves, as youtube.com does', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1600, height: 900 })
+  await page.goto('/feed/you')
+  const guide = page.getByRole('navigation', { name: 'Guide' })
+  for (const [label, id] of [
+    ['Music', 'UC-9-kyTW8ZkZNDHQJ6FgpwQ'],
+    ['Live', 'UC4R8DWoMoI7CAwX8_LjQHig'],
+    ['Gaming', 'UCOpNcN46UbXVtpKMrmU4Abg'],
+    ['News', 'UCYfdidRxbB8Qhf0Nx7ioOYw'],
+    ['Sports', 'UCEgdi0XIXXZ-qJOFPf4JSKw'],
+  ]) await expect(guide.getByRole('link', { name: label, exact: true })).toHaveAttribute('href', `/channel/${id}`)
+
+  const main = page.locator('main')
+  const shelves = main.locator('section[aria-label]')
+    .filter({ has: page.locator('h2') })
+    .filter({ has: page.locator('a[href^="/watch?v="], a[href^="/playlist?list="], a[href^="/channel/"]') })
+  for (const [label, name] of [['Gaming', 'Gaming'], ['Music', 'Music']]) {
+    await guide.getByRole('link', { name: label, exact: true }).click()
+    await expect(main.getByRole('heading', { level: 1, name })).toBeVisible({ timeout: 120_000 })
+    await expect(shelves.nth(1), `${label} opens on fewer than two shelves`).toBeVisible({ timeout: 120_000 })
+    await expect(main.locator('.status')).toHaveCount(0)
+  }
+
+  // Music's rows are youtube.com's rich rows: one row of cards until Show more
+  const first = shelves.first()
+  const cards = first.locator('a.card, article')
+  const collapsed = await cards.count()
+  await first.getByRole('button', { name: 'Show more' }).click()
+  await expect.poll(() => cards.count()).toBeGreaterThan(collapsed)
+  await expect(first.getByRole('button', { name: 'Show less' })).toHaveAttribute('aria-expanded', 'true')
 })
 
 test('leaves an empty Watch later shelf off the signed-in You page', async ({ page }) => {

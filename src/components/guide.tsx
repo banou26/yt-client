@@ -3,7 +3,7 @@ import type { FunctionComponent } from 'preact'
 import type { Group } from '../groups/store'
 
 import { css } from '@emotion/react'
-import { ChevronRight, CircleUserRound, Clapperboard, Clock, Gamepad2, History, House, Library, ListVideo, Menu, Music2, Plus, Radio, ThumbsUp } from 'lucide-react'
+import { ChevronRight, CircleUserRound, Clapperboard, Clock, Gamepad2, History, House, Library, ListVideo, Menu, Music2, Newspaper, Plus, Radio, ThumbsUp, Trophy } from 'lucide-react'
 import { useEffect, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -47,11 +47,16 @@ const YOU_ENTRIES: GuideEntry[] = [
   { label: 'Liked videos', href: playlistHrefFor(LIKED_VIDEOS_ID), Icon: ThumbsUp, match: playlistHrefFor(LIKED_VIDEOS_ID) }
 ]
 
-// youtube.com links these to its topic channels, whose Home tab of shelves the channel page cannot show yet (one is empty, two error), so each is a search
+const topicEntry = (label: string, channelId: string, Icon: GuideEntry['Icon']): GuideEntry =>
+  ({ label, href: `/channel/${channelId}`, Icon, match: `/channel/${channelId}` })
+
+// youtube.com's topic channels
 const EXPLORE_ENTRIES: GuideEntry[] = [
-  { label: 'Music', href: '/results?search_query=Music', Icon: Music2, match: '/results?search_query=Music' },
-  { label: 'Live', href: '/results?search_query=Live&features=LIVE', Icon: Radio, match: '/results?search_query=Live&features=LIVE' },
-  { label: 'Gaming', href: '/results?search_query=Gaming', Icon: Gamepad2, match: '/results?search_query=Gaming' }
+  topicEntry('Music', 'UC-9-kyTW8ZkZNDHQJ6FgpwQ', Music2),
+  topicEntry('Live', 'UC4R8DWoMoI7CAwX8_LjQHig', Radio),
+  topicEntry('Gaming', 'UCOpNcN46UbXVtpKMrmU4Abg', Gamepad2),
+  topicEntry('News', 'UCYfdidRxbB8Qhf0Nx7ioOYw', Newspaper),
+  topicEntry('Sports', 'UCEgdi0XIXXZ-qJOFPf4JSKw', Trophy),
 ]
 
 const MINI_ENTRIES: GuideEntry[] = [...MAIN_ENTRIES, YOU_ENTRY]

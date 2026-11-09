@@ -1,10 +1,13 @@
 import type { ChannelViewQuery } from '../generated/graphql'
 
 import { css } from '@emotion/react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { formatMeta } from '../components/format'
 import { PlaylistCard } from '../components/playlist-card'
+import { PostCard } from '../components/post-card'
 import { Rail } from '../components/rail'
 import { ShortsShelf } from '../components/shorts-shelf'
 import { VideoCard, watchHrefFor } from '../components/video-card'
@@ -149,6 +152,72 @@ const style = css`
     color: var(--text-secondary);
   }
 
+  /* youtube.com's box art is 210 by 290px on a 214px step */
+  .game-tile {
+    display: flex;
+    flex-direction: column;
+    width: 20.6rem;
+    color: var(--text-primary);
+  }
+
+  .game-tile .box-art {
+    width: 100%;
+    aspect-ratio: 210 / 290;
+    border-radius: 0.8rem;
+    object-fit: cover;
+    background: var(--bg-elevated);
+  }
+
+  .game-tile .name {
+    margin-top: 0.8rem;
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 2rem;
+  }
+
+  /* A topic channel's rows on youtube.com: home-feed cards, three across at
+     the 1070px column (four for playlists), one row until Show more. Measured
+     on youtube.com's Live, News, Sports and Music, 2026-11-10. */
+  .rich-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(31rem, 100%), 1fr));
+    column-gap: 1.6rem;
+    row-gap: 2.4rem;
+    margin-top: 1.6rem;
+  }
+
+  .rich-grid.playlists {
+    grid-template-columns: repeat(auto-fill, minmax(min(23rem, 100%), 1fr));
+  }
+
+  .rich-grid .post-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .show-more {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    height: 3.6rem;
+    margin: 2.4rem auto 0;
+    padding: 0 1.6rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 1.8rem;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 1.4rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .show-more:hover {
+    background: var(--bg-hover);
+  }
+
   @media (max-width: 768px) {
     .featured {
       flex-direction: column;
@@ -156,15 +225,68 @@ const style = css`
   }
 `
 
-const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
-  if (shelf.shorts.length > 0 && shelf.videos.length + shelf.playlists.length + shelf.channels.length === 0) {
-    return <ShortsShelf shorts={shelf.shorts} />
-  }
-  const count = shelf.videos.length + shelf.playlists.length + shelf.channels.length
+const ShelfHeading = ({ shelf }: { shelf: Shelf }) => (
+  <>
+    <h2 className='shelf-title'>{shelf.url ? <Link href={shelf.url}>{shelf.title}</Link> : shelf.title}</h2>
+    {shelf.subtitle ? <p className='shelf-subtitle'>{shelf.subtitle}</p> : undefined}
+  </>
+)
+
+const RichShelfRow = ({ shelf }: { shelf: Shelf }) => {
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [columns, setColumns] = useState<number>()
+  const [expanded, setExpanded] = useState(false)
+  // the grid's own track count, so the first row is whole at any width
+  useLayoutEffect(() => {
+    const grid = gridRef.current
+    if (!grid) return
+    const measure = () => setColumns(getComputedStyle(grid).gridTemplateColumns.split(' ').length)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(grid)
+    return () => observer.disconnect()
+  }, [])
+  const cards = [
+    ...shelf.videos.map(video => <VideoCard key={video.id} video={video} />),
+    ...shelf.playlists.map(playlist => (
+      <PlaylistCard
+        key={playlist.id}
+        id={playlist.id}
+        title={playlist.title}
+        thumbnail={playlist.thumbnail}
+        videoCountText={playlist.videoCountText}
+      />
+    )),
+    ...shelf.posts.map(post => <PostCard key={post.id} post={post} />),
+  ]
+  const more = columns !== undefined && cards.length > columns
   return (
     <section aria-label={shelf.title}>
-      <h2 className='shelf-title'>{shelf.url ? <Link href={shelf.url}>{shelf.title}</Link> : shelf.title}</h2>
-      {shelf.subtitle ? <p className='shelf-subtitle'>{shelf.subtitle}</p> : undefined}
+      <ShelfHeading shelf={shelf} />
+      <div ref={gridRef} className={shelf.videos.length + shelf.posts.length > 0 ? 'rich-grid' : 'rich-grid playlists'}>
+        {more && !expanded ? cards.slice(0, columns) : cards}
+      </div>
+      {more
+        ? (
+          <button type='button' className='show-more' aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+            {expanded ? 'Show less' : 'Show more'}
+            {expanded ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+          </button>
+        )
+        : undefined}
+    </section>
+  )
+}
+
+const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
+  if (shelf.shorts.length > 0 && shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length + shelf.posts.length === 0) {
+    return <ShortsShelf shorts={shelf.shorts} />
+  }
+  if (shelf.expandable) return <RichShelfRow shelf={shelf} />
+  const count = shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length
+  return (
+    <section aria-label={shelf.title}>
+      <ShelfHeading shelf={shelf} />
       <div className='shelf-rail'>
         <Rail label={shelf.title} count={count}>
           {shelf.videos.map(video => (
@@ -189,6 +311,14 @@ const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
                 : <span className='initial' aria-hidden='true'>{channel.name.slice(0, 1).toUpperCase()}</span>}
               <span className='name'>{channel.name}</span>
               {channel.subscriberCountText ? <span className='subscribers'>{channel.subscriberCountText}</span> : undefined}
+            </Link>
+          ))}
+          {shelf.games.map(game => (
+            <Link className='game-tile' href={`/channel/${game.id}`} key={game.id}>
+              {game.boxArt
+                ? <img className='box-art' src={game.boxArt} alt='' loading='lazy' />
+                : <span className='box-art' aria-hidden='true' />}
+              <span className='name'>{game.title}</span>
             </Link>
           ))}
         </Rail>
