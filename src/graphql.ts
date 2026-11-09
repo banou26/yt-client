@@ -60,6 +60,7 @@ const cache = cacheExchange({
     LiveChatPage: () => null,
     LiveChatRun: () => null,
     TextRun: () => null,
+    BylinePart: () => null,
     Session: () => null,
   },
   updates: {

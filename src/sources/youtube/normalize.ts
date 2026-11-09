@@ -1,4 +1,4 @@
-import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -33,7 +33,18 @@ type Author = {
   url?: string
   is_verified?: boolean
   is_verified_artist?: boolean
+  endpoint?: CollaboratorsEndpoint
 }
+
+type ChoiceItem = {
+  title?: Text
+  subtitle?: Text
+  leading_accessory?: { image?: Thumbnail[] }
+  renderer_context?: { command_context?: { on_tap?: { payload?: { browseId?: string } } } }
+}
+
+// the Collaborators dialog a collaboration's avatars open
+type CollaboratorsEndpoint = { command?: { inline_content?: { custom_content?: { items?: ChoiceItem[] } } } }
 
 type FeedVideo = {
   id?: string
@@ -154,7 +165,7 @@ type LockupVideo = {
     title?: Text
     image?: {
       avatar?: { image?: Thumbnail[] }
-      renderer_context?: { command_context?: { on_tap?: { payload?: { browseId?: string } } } }
+      renderer_context?: { command_context?: { on_tap?: CollaboratorsEndpoint & { payload?: { browseId?: string } } } }
     }
     metadata?: MetadataParts
   }
@@ -375,6 +386,49 @@ const badgeTexts = (badges: { label?: string, text?: string }[] | undefined) =>
 const hasBadgeStyle = (badges: { style?: string }[] | undefined, fragment: string) =>
   (badges ?? []).some((badge) => badge.style?.includes(fragment))
 
+// a choice row's subtitle is '@mkbhd • 21.4M subscribers', wrapped in direction marks
+const DIRECTION_MARKS = /[\u200e\u200f\u2066-\u2069]/g
+
+const collaboratorChannels = (endpoint: CollaboratorsEndpoint | undefined): SourceChannel[] =>
+  (endpoint?.command?.inline_content?.custom_content?.items ?? []).flatMap((item) => {
+    const id = item.renderer_context?.command_context?.on_tap?.payload?.browseId
+    const name = presentText(item.title)
+    if (!id || !name) return []
+    const details = (text(item.subtitle) ?? '').replace(DIRECTION_MARKS, '').split(' • ')
+    return [{
+      id,
+      name,
+      avatar: thumbnail(item.leading_accessory?.image, AVATAR_WIDTH),
+      handle: details.find((detail) => detail.startsWith('@')),
+      subscriberCountText: details.find((detail) => detail.length > 0 && !detail.startsWith('@')),
+      ...iconBadges(runIcons(item.title)),
+    }]
+  })
+
+const bylinePart = (value: string, badges?: Pick<SourceChannel, 'isVerified' | 'isVerifiedArtist'>): SourceBylinePart => ({
+  text: value,
+  isVerified: badges?.isVerified,
+  isVerifiedArtist: badges?.isVerifiedArtist,
+})
+
+type Byline = Pick<SourceVideo, 'channel' | 'byline' | 'collaborators'>
+
+// A search row prints a collaboration's names as one run ('Cleo Abram and Marques Brownlee'), cut here after the first
+// name so each name is badged as a lockup's parts are. A later name can hold 'and' ('Colin and Samir and 2 more').
+const authorByline = (author: Author | undefined): Byline => {
+  const collaborators = collaboratorChannels(author?.endpoint)
+  const name = presentText(author?.name)
+  const [first] = collaborators
+  const last = collaborators.at(-1)
+  if (!first || !last || collaborators.length < 2 || !name) return { channel: authorChannel(author) }
+  const rest = name.startsWith(`${first.name} `) ? name.slice(first.name.length + 1) : undefined
+  return {
+    channel: first,
+    byline: rest ? [bylinePart(first.name, first), bylinePart(rest, rest.endsWith(last.name) ? last : undefined)] : [bylinePart(name)],
+    collaborators,
+  }
+}
+
 const bylineChannel = (author: Author | Text | undefined): SourceChannel | undefined => {
   const fromAuthor = authorChannel(author as Author | undefined)
   if (fromAuthor) return fromAuthor
@@ -393,15 +447,15 @@ const lockupRows = (lockup: LockupVideo) =>
 type LockupPart = ReturnType<typeof lockupRows>[number][number]
 
 // The byline leads the first row: alone above the views and date (watch next, shelves) or ahead of them on the one row
-// (search, history). A channel's own videos, on its Home shelves and its tabs, have no byline: their one row ends in the
-// views and date, after the names of a collaboration, and their avatar still taps through to the channel, so read as a
+// (search, history). A channel's own videos, on its Home shelves and its tabs, have no byline but a collaboration's
+// names: their one row ends in the views and date, and their avatar still taps through to the channel, so read as a
 // byline that row named the channel '784K'.
-const lockupLines = (lockup: LockupVideo, own: boolean): { byline?: LockupPart, stats: LockupPart[] } => {
+const lockupLines = (lockup: LockupVideo, own: boolean): { byline: LockupPart[], stats: LockupPart[] } => {
   const rows = lockupRows(lockup)
-  if (rows.length > 1) return { byline: rows[0]?.[0], stats: rows[1] ?? [] }
-  if (own) return { stats: rows[0]?.slice(-2) ?? [] }
-  const [byline, ...stats] = rows[0] ?? []
-  return { byline, stats }
+  if (rows.length > 1) return { byline: rows[0] ?? [], stats: rows[1] ?? [] }
+  const parts = rows[0] ?? []
+  if (own) return { byline: parts.slice(0, -2), stats: parts.slice(-2) }
+  return { byline: parts.slice(0, 1), stats: parts.slice(1) }
 }
 
 const lockupChannel = (lockup: LockupVideo, byline: LockupPart | undefined): SourceChannel | undefined => {
@@ -414,6 +468,20 @@ const lockupChannel = (lockup: LockupVideo, byline: LockupPart | undefined): Sou
     name,
     avatar: thumbnail(lockup.metadata?.image?.avatar?.image, AVATAR_WIDTH),
     ...iconBadges([byline?.icon_name]),
+  }
+}
+
+// a collaboration's names are one part each ('Marques Brownlee', 'and Auto Focus'), and none of them links
+const lockupByline = (lockup: LockupVideo, parts: LockupPart[]): Byline => {
+  if (parts.length < 2) return { channel: lockupChannel(lockup, parts[0]) }
+  const collaborators = collaboratorChannels(lockup.metadata?.image?.renderer_context?.command_context?.on_tap)
+  return {
+    channel: collaborators[0],
+    byline: parts.flatMap((part) => {
+      const value = presentText(part.text)
+      return value ? [bylinePart(value, iconBadges([part.icon_name]))] : []
+    }),
+    collaborators: collaborators.length > 0 ? collaborators : undefined,
   }
 }
 
@@ -706,7 +774,7 @@ export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
     isUpcoming: video.is_upcoming === true ? true : undefined,
     isMembersOnly: hasBadgeStyle(video.badges, 'MEMBERS_ONLY') ? true : undefined,
     badges: badgeTexts(video.badges),
-    channel: authorChannel(video.author),
+    ...authorByline(video.author),
     ...searchChapters(video.expandable_metadata),
   }
 }
@@ -798,7 +866,7 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
       : undefined,
     // empty because a lockup's overlay badges carry only the length, the live pill and the corner label, all read above
     badges: [],
-    channel: lockupChannel(lockup, byline),
+    ...lockupByline(lockup, byline),
   }
 }
 

@@ -1,6 +1,7 @@
 import type { TargetedPointerEvent } from 'preact'
 
 import type { Channel, SavePlaylistsQuery, Video } from '../generated/graphql'
+import type { CollaborationData } from './byline'
 
 import { css } from '@emotion/react'
 import { Check, ChevronLeft, Clock, EllipsisVertical, ListPlus, Share2 } from 'lucide-react'
@@ -13,7 +14,8 @@ import { AddToPlaylistDocument, SavePlaylistsDocument } from '../generated/graph
 import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
-import { formatDuration, formatMeta, readable } from './format'
+import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
+import { formatDuration, formatMeta, readable, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
 import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
@@ -47,6 +49,7 @@ export type VideoCardData =
     isUpcoming?: boolean | null
     channel?: (Pick<Channel, 'id' | 'name'> & Partial<Pick<Channel, 'avatar' | 'isVerified' | 'isVerifiedArtist'>>) | null
   }
+  & CollaborationData
 
 /**
  * The playlist a link is being followed from, so /watch opens the queue the
@@ -375,6 +378,12 @@ const style = css`
     font-weight: 500;
   }
 
+  .avatars {
+    --avatar-size: 2.4rem;
+    flex: none;
+    margin-top: 0.6rem;
+  }
+
   .text {
     flex: 1;
     min-width: 0;
@@ -406,6 +415,14 @@ const style = css`
     color: var(--text-primary);
   }
 
+  /* a collaboration's names stay on one line, cut as youtube.com cuts them */
+  .names {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .meta {
     font-size: 1.4rem;
     font-weight: 400;
@@ -425,6 +442,7 @@ const style = css`
 
   &.channel .meta,
   &.shelf .meta,
+  &.channel .channel-name,
   &.shelf .channel-name {
     font-size: 1.2rem;
   }
@@ -464,6 +482,7 @@ export const VideoCard = (
 ) => {
   const watchHref = watchHrefFor(video.id, context)
   const channelHref = video.channel ? `/channel/${video.channel.id}` : undefined
+  const byline = rowByline(video, variant === 'channel')
   const duration = formatDuration(video.durationSeconds)
   const meta = formatMeta(video.viewCount, video.publishedText)
   const progress = resumePercent(video.progressPercent)
@@ -507,7 +526,13 @@ export const VideoCard = (
           : undefined}
       </Link>
       <div className='details'>
-        {video.channel && channelHref && variant === undefined
+        {byline === 'names' && video.collaborators?.length && variant === undefined
+          ? (
+            <CollaboratorsButton channels={video.collaborators} className='avatars' label='Collaboration channels'>
+              <AvatarStack channels={video.collaborators} />
+            </CollaboratorsButton>
+          )
+          : video.channel && channelHref && variant === undefined
           ? (
             <Link
               href={channelHref}
@@ -524,7 +549,13 @@ export const VideoCard = (
           <h3 className='title'>
             <Link href={watchHref}>{video.title}</Link>
           </h3>
-          {video.channel && channelHref && variant !== 'channel'
+          {byline === 'names'
+            ? (
+              <CollaboratorsButton channels={video.collaborators} className='channel-name names'>
+                <BylineNames parts={video.byline} />
+              </CollaboratorsButton>
+            )
+            : byline === 'channel' && video.channel && channelHref
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
           {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}

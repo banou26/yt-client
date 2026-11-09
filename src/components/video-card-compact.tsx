@@ -7,7 +7,8 @@ import { useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
-import { formatDuration, formatMeta } from './format'
+import { BylineNames, CollaboratorsButton } from './byline'
+import { formatDuration, formatMeta, rowByline } from './format'
 import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
@@ -200,7 +201,13 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
         <h3 className='title'>
           <Link href={watchHref}>{video.title}</Link>
         </h3>
-        {video.channel
+        {rowByline(video) === 'names'
+          ? (
+            <CollaboratorsButton channels={video.collaborators} className='channel-name'>
+              <span className='name'><BylineNames parts={video.byline} badgeSize={12} /></span>
+            </CollaboratorsButton>
+          )
+          : video.channel
           ? (
             <Link href={`/channel/${video.channel.id}`} className='channel-name'>
               <span className='name'>{video.channel.name}</span>

@@ -9,8 +9,9 @@ import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byline'
 import { ChapterStrip } from '../components/chapters'
-import { formatDuration, formatMeta } from '../components/format'
+import { formatDuration, formatMeta, rowByline } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
 import { MusicNote } from '../components/row-marks'
 import { SearchCard } from '../components/search-card'
@@ -105,6 +106,8 @@ const SEARCH_RESULTS_QUERY = gql(`
     channel { id name avatar isVerified isVerifiedArtist }
     chapters { title startSeconds thumbnail }
     chaptersTitle
+    byline { text isVerified isVerifiedArtist }
+    collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
   }
 `)
 
@@ -695,7 +698,14 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
             </div>
           )
           : undefined}
-        {row.channel
+        {rowByline(row) === 'names'
+          ? (
+            <CollaboratorsButton channels={row.collaborators} className='channel'>
+              {row.collaborators?.length ? <AvatarStack channels={row.collaborators} /> : undefined}
+              <span><BylineNames parts={row.byline} badgeSize={12} /></span>
+            </CollaboratorsButton>
+          )
+          : row.channel
           ? (
             <Link href={`/channel/${row.channel.id}`} className='channel'>
               <span className={row.channel.avatar ? 'avatar' : 'avatar fallback'}>

@@ -113,7 +113,8 @@ test('keeps the channel\'s name in its header once its own videos fill the Home 
   const shelf = page.getByRole('region', { name: 'Videos', exact: true })
   await expect(shelf.locator('a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
   await expect(page.locator('main h1')).toHaveText('Linus Tech Tips')
-  await expect(shelf.locator('.channel-name')).toHaveCount(0)
+  // a collaboration's names are text, never a link to one channel
+  await expect(shelf.locator('a.channel-name')).toHaveCount(0)
 })
 
 test('shows youtube.com\'s own line for a channel that does not exist', async ({ page }) => {

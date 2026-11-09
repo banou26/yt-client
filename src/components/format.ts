@@ -52,6 +52,15 @@ export const formatAgo = (iso?: string | null, now = Date.now()) => {
 
 export const formatCount = (count: number, noun: string) => `${count} ${noun}${count === 1 ? '' : 's'}`
 
+/**
+ * What a video row prints under its title: a collaboration's names wherever it shows, otherwise its channel's name,
+ * except on a list of the channel's own uploads, which youtube.com prints without it.
+ */
+export const rowByline = (video: { byline?: readonly unknown[] | null, channel?: unknown }, uploads = false) => {
+  if (video.byline?.length) return 'names'
+  return video.channel && !uploads ? 'channel' : undefined
+}
+
 export const formatMeta = (viewCount?: string | null, publishedText?: string | null) => {
   const parts = [formatViews(viewCount), publishedText ?? undefined].filter(part => part !== undefined)
   return parts.length > 0 ? parts.join(' • ') : undefined

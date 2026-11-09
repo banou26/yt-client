@@ -83,11 +83,25 @@ type Video {
   # Upstream's own badge texts (4K, CC, New), already localized. Kept as text
   # because the vocabulary changes and an unknown badge should still render.
   badges: [String!]!
+  # A collaboration's first channel, when the answer lists them.
   channel: Channel
   # Set only on search rows, which list a video's chapters under its
   # description, with upstream's heading for them ('3 chapters in this video').
   chapters: [Chapter!]
   chaptersTitle: String
+  # Set only on a video two or more channels made (a collaboration): its
+  # byline as youtube.com prints it, one part per name ('Cleo Abram', 'and
+  # Marques Brownlee', or 'and 2 more').
+  byline: [BylinePart!]
+  # A collaboration's channels, as the choice youtube.com opens from its
+  # avatars lists them. A channel's Videos tab names them without these.
+  collaborators: [Channel!]
+}
+
+type BylinePart {
+  text: String!
+  isVerified: Boolean
+  isVerifiedArtist: Boolean
 }
 
 type VideoPage {

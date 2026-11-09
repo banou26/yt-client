@@ -48,10 +48,24 @@ export type SourceVideo = {
   isMembersOnly?: boolean
   isShort?: boolean
   badges: string[]
+  // a collaboration's first channel, when the answer lists them
   channel?: SourceChannel
   /** Only a search row carries them, with upstream's heading for the list ('3 chapters in this video'). */
   chapters?: SourceChapter[]
   chaptersTitle?: string
+  /**
+   * Set only on a video two or more channels made (a collaboration): its byline as youtube.com prints it, one part per
+   * name ('Cleo Abram', 'and Marques Brownlee', or 'and 2 more').
+   */
+  byline?: SourceBylinePart[]
+  // a collaboration's channels, as the choice youtube.com opens from its avatars lists them; a channel's Videos tab has none
+  collaborators?: SourceChannel[]
+}
+
+export type SourceBylinePart = {
+  text: string
+  isVerified?: boolean
+  isVerifiedArtist?: boolean
 }
 
 export type SourceVideoPage = {

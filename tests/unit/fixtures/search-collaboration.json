@@ -1,0 +1,413 @@
+{
+  "estimatedResults": "8135351",
+  "contents": {
+    "twoColumnSearchResultsRenderer": {
+      "primaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "itemSectionRenderer": {
+                "contents": [
+                  {
+                    "videoRenderer": {
+                      "videoId": "RQWpF2Gb-gU",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/RQWpF2Gb-gU/hq720.jpg",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/RQWpF2Gb-gU/hq720.jpg",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "But what is quantum computing?  (Grover's Algorithm)"
+                          }
+                        ],
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "But what is quantum computing?  (Grover's Algorithm) 36 minutes"
+                          }
+                        }
+                      },
+                      "lengthText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "36 minutes, 54 seconds"
+                          }
+                        },
+                        "simpleText": "36:54"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=RQWpF2Gb-gU&pp=ygUbcXVhbnR1bSBjb21wdXRpbmcgZXhwbGFpbmVk",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "RQWpF2Gb-gU",
+                          "params": "qgMbcXVhbnR1bSBjb21wdXRpbmcgZXhwbGFpbmVkugMKCKCCi6nDps26B7oDCgjRzt7--Mffuhy6AwoI79aaqcKE84gmugMKCNfBycvavsP_KroDCgijwLDcvb2f8kK6AwoIju-E1d37_Lt7ugMLCM2S2bjG-NvbugG6AwoItYuVrKqF2cd1ugMLCMuj26Cxorel-QG6AwoIv8OAjYKrxuFfugMLCMqJnt6kybDjtgG6AwoIkOSh387PkLE5ugMLCO_rhrz94-__wwG6AwsIvpq00t7KhvmDAboDCgi8ium6urjimCO6AwoIgrKy3M-4yLgEugMLCOe56K37-NCN0AG6AwsIoK2RkM-j3KT5AboDCwjtmYLc9rSC_NcB8gMFDYjftD6CBAIYAQ%3D%3D"
+                        }
+                      },
+                      "badges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "style": "BADGE_STYLE_TYPE_MEDIA",
+                            "label": "4K"
+                          }
+                        },
+                        {
+                          "metadataBadgeRenderer": {
+                            "style": "BADGE_STYLE_TYPE_MEDIA",
+                            "label": "CC",
+                            "accessibilityData": {
+                              "label": "Closed captions"
+                            }
+                          }
+                        }
+                      ],
+                      "ownerBadges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "icon": {
+                              "iconType": "CHECK_CIRCLE_THICK"
+                            },
+                            "style": "BADGE_STYLE_TYPE_VERIFIED",
+                            "tooltip": "Verified",
+                            "accessibilityData": {
+                              "label": "Verified"
+                            }
+                          }
+                        }
+                      ],
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "3Blue1Brown",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@3blue1brown",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCYO_jab_esuFRV4b17AJtAw",
+                                "canonicalBaseUrl": "/@3blue1brown"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "showActionMenu": false,
+                      "shortViewCountText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "4.2 million views"
+                          }
+                        },
+                        "simpleText": "4.2M"
+                      }
+                    }
+                  },
+                  {
+                    "videoRenderer": {
+                      "videoId": "e3fz3dqhN44",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/e3fz3dqhN44/hq720.jpg",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/e3fz3dqhN44/hq720.jpg",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Quantum Computers, explained with MKBHD"
+                          }
+                        ],
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "Quantum Computers, explained with MKBHD 17 minutes"
+                          }
+                        }
+                      },
+                      "lengthText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "17 minutes, 1 second"
+                          }
+                        },
+                        "simpleText": "17:01"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=e3fz3dqhN44&pp=ygUbcXVhbnR1bSBjb21wdXRpbmcgZXhwbGFpbmVk0gcJCUcMAYcqIYzv",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "e3fz3dqhN44",
+                          "params": "qgMbcXVhbnR1bSBjb21wdXRpbmcgZXhwbGFpbmVkugMKCKCCi6nDps26B7oDCgiF9O-M9qLqgkW6AwoI0c7e_vjH37ocugMKCO_WmqnChPOIJroDCgjXwcnL2r7D_yq6AwoIo8Cw3L29n_JCugMLCM2S2bjG-NvbugG6AwoItYuVrKqF2cd1ugMLCMuj26Cxorel-QG6AwoIv8OAjYKrxuFfugMLCMqJnt6kybDjtgG6AwoIkOSh387PkLE5ugMLCO_rhrz94-__wwG6AwsIvpq00t7KhvmDAboDCgi8ium6urjimCO6AwoIgrKy3M-4yLgEugMLCOe56K37-NCN0AG6AwsIoK2RkM-j3KT5AboDCwjtmYLc9rSC_NcB6gMCEAHyAwUNiN-0PoIEAhgB"
+                        }
+                      },
+                      "badges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "icon": {
+                              "iconType": "OUTLINE_BAG"
+                            },
+                            "style": "BADGE_STYLE_TYPE_SIMPLE",
+                            "label": "4 products"
+                          }
+                        },
+                        {
+                          "metadataBadgeRenderer": {
+                            "style": "BADGE_STYLE_TYPE_MEDIA",
+                            "label": "4K"
+                          }
+                        }
+                      ],
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "Cleo Abram and Marques Brownlee",
+                            "navigationEndpoint": {
+                              "commandMetadata": {},
+                              "showDialogCommand": {
+                                "panelLoadingStrategy": {
+                                  "inlineContent": {
+                                    "dialogViewModel": {
+                                      "customContent": {
+                                        "listViewModel": {
+                                          "listItems": [
+                                            {
+                                              "listItemViewModel": {
+                                                "title": {
+                                                  "content": "Cleo Abram",
+                                                  "attachmentRuns": [
+                                                    {
+                                                      "startIndex": 10,
+                                                      "length": 0,
+                                                      "element": {
+                                                        "type": {
+                                                          "imageType": {
+                                                            "image": {
+                                                              "sources": [
+                                                                {
+                                                                  "clientResource": {
+                                                                    "imageName": "CHECK_CIRCLE_FILLED"
+                                                                  },
+                                                                  "width": 14,
+                                                                  "height": 14
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        "properties": {
+                                                          "layoutProperties": {
+                                                            "height": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "width": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "margin": {
+                                                              "left": {
+                                                                "value": 4,
+                                                                "unit": "DIMENSION_UNIT_POINT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                                                    }
+                                                  ]
+                                                },
+                                                "subtitle": {
+                                                  "content": "‎⁨@CleoAbram⁩ • ⁨8.94M subscribers⁩"
+                                                },
+                                                "leadingAccessory": {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.ggpht.com/RdjombbmvvGQGTokXHgVRF7qijHDLcnXs7h4S6N0oOua-veEap9RO7htFE30v7xnWDM1GUlCmI4=s68-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ],
+                                                      "processor": {
+                                                        "borderImageProcessor": {
+                                                          "circular": true
+                                                        }
+                                                      }
+                                                    },
+                                                    "accessibilityText": "Cleo Abram. Go to channel.",
+                                                    "avatarImageSize": "AVATAR_SIZE_M"
+                                                  }
+                                                },
+                                                "rendererContext": {
+                                                  "commandContext": {
+                                                    "onTap": {
+                                                      "innertubeCommand": {
+                                                        "commandMetadata": {
+                                                          "webCommandMetadata": {
+                                                            "url": "/channel/UC415bOPUcGSamy543abLmRA",
+                                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                            "rootVe": 3611,
+                                                            "apiUrl": "/youtubei/v1/browse"
+                                                          }
+                                                        },
+                                                        "browseEndpoint": {
+                                                          "browseId": "UC415bOPUcGSamy543abLmRA"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "listItemViewModel": {
+                                                "title": {
+                                                  "content": "Marques Brownlee",
+                                                  "attachmentRuns": [
+                                                    {
+                                                      "startIndex": 16,
+                                                      "length": 0,
+                                                      "element": {
+                                                        "type": {
+                                                          "imageType": {
+                                                            "image": {
+                                                              "sources": [
+                                                                {
+                                                                  "clientResource": {
+                                                                    "imageName": "CHECK_CIRCLE_FILLED"
+                                                                  },
+                                                                  "width": 14,
+                                                                  "height": 14
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        "properties": {
+                                                          "layoutProperties": {
+                                                            "height": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "width": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "margin": {
+                                                              "left": {
+                                                                "value": 4,
+                                                                "unit": "DIMENSION_UNIT_POINT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                                                    }
+                                                  ]
+                                                },
+                                                "subtitle": {
+                                                  "content": "‎⁨@mkbhd⁩ • ⁨21.4M subscribers⁩"
+                                                },
+                                                "leadingAccessory": {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.ggpht.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s88-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ],
+                                                      "processor": {
+                                                        "borderImageProcessor": {
+                                                          "circular": true
+                                                        }
+                                                      }
+                                                    },
+                                                    "accessibilityText": "Marques Brownlee. Go to channel.",
+                                                    "avatarImageSize": "AVATAR_SIZE_M"
+                                                  }
+                                                },
+                                                "rendererContext": {
+                                                  "commandContext": {
+                                                    "onTap": {
+                                                      "innertubeCommand": {
+                                                        "commandMetadata": {
+                                                          "webCommandMetadata": {
+                                                            "url": "/channel/UCBJycsmduvYEL83R_U4JriQ",
+                                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                            "rootVe": 3611,
+                                                            "apiUrl": "/youtubei/v1/browse"
+                                                          }
+                                                        },
+                                                        "browseEndpoint": {
+                                                          "browseId": "UCBJycsmduvYEL83R_U4JriQ"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "screenVe": 269990
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "showActionMenu": false,
+                      "shortViewCountText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "11 million views"
+                          }
+                        },
+                        "simpleText": "11M"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

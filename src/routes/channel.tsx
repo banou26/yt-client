@@ -84,6 +84,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           isShort
           isUpcoming
           badges
+          byline { text isVerified isVerifiedArtist }
         }
         playlists {
           id
@@ -129,6 +130,8 @@ const CHANNEL_VIEW_QUERY = gql(`
             isUpcoming
             badges
             channel { id name avatar isVerified isVerifiedArtist }
+            byline { text isVerified isVerifiedArtist }
+            collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
           }
           shorts {
             id

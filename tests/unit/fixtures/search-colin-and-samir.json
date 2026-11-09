@@ -1,0 +1,372 @@
+{
+  "estimatedResults": "266146",
+  "contents": {
+    "twoColumnSearchResultsRenderer": {
+      "primaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "itemSectionRenderer": {
+                "contents": [
+                  {
+                    "videoRenderer": {
+                      "videoId": "TIqA43EeVLI",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/TIqA43EeVLI/hq720.jpg",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/TIqA43EeVLI/hq720.jpg",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "How SubwayTakes Became the Internet's Favorite Show"
+                          }
+                        ],
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "How SubwayTakes Became the Internet's Favorite Show 1 hour, 36 minutes"
+                          }
+                        }
+                      },
+                      "lengthText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "1 hour, 36 minutes, 52 seconds"
+                          }
+                        },
+                        "simpleText": "1:36:52"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=TIqA43EeVLI&pp=ygUPY29saW4gYW5kIHNhbWly",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "TIqA43EeVLI",
+                          "params": "qgMPY29saW4gYW5kIHNhbWlyugMLCPmLhe3Q7qyMswG6AwoIsqSog8iG5qcCugMKCLP_oa2TrLyKcboDCgig9cO6w8DRnHK6AwoIkbHZ0Mbl8a9iugMKCK7CnKfFwqGUW7oDCwjfpO3nva2n-rYBugMLCKH4pOKdj8napQG6AwoI9tOA47z28bpyugMLCOGkus2qo-Pi7AG6AwsIzL319p_i3LGeAboDCwiZgrDuwOG73csBugMKCLaRhqKb5r6qcboDCgjqg_WvgquGmRa6AwoIoLfjw7Gql-sSugMLCLn4h-6Hlqu68QG6AwoIj9L4iqf_mfZC8gMFDVKSND0%3D"
+                        }
+                      },
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "Colin and Samir and 2 more",
+                            "navigationEndpoint": {
+                              "commandMetadata": {},
+                              "showDialogCommand": {
+                                "panelLoadingStrategy": {
+                                  "inlineContent": {
+                                    "dialogViewModel": {
+                                      "customContent": {
+                                        "listViewModel": {
+                                          "listItems": [
+                                            {
+                                              "listItemViewModel": {
+                                                "title": {
+                                                  "content": "Colin and Samir",
+                                                  "attachmentRuns": [
+                                                    {
+                                                      "startIndex": 15,
+                                                      "length": 0,
+                                                      "element": {
+                                                        "type": {
+                                                          "imageType": {
+                                                            "image": {
+                                                              "sources": [
+                                                                {
+                                                                  "clientResource": {
+                                                                    "imageName": "CHECK_CIRCLE_FILLED"
+                                                                  },
+                                                                  "width": 14,
+                                                                  "height": 14
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        "properties": {
+                                                          "layoutProperties": {
+                                                            "height": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "width": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "margin": {
+                                                              "left": {
+                                                                "value": 4,
+                                                                "unit": "DIMENSION_UNIT_POINT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                                                    }
+                                                  ]
+                                                },
+                                                "subtitle": {
+                                                  "content": "‎⁨@ColinandSamir⁩ • ⁨1.63M subscribers⁩"
+                                                },
+                                                "leadingAccessory": {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.ggpht.com/ytc/AIdro_k-3YijnZNqr_9SNBOzN2sFB3xJ6SrHy9q3LJ0b1HApVHI=s68-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ],
+                                                      "processor": {
+                                                        "borderImageProcessor": {
+                                                          "circular": true
+                                                        }
+                                                      }
+                                                    },
+                                                    "accessibilityText": "Colin and Samir. Go to channel.",
+                                                    "avatarImageSize": "AVATAR_SIZE_M"
+                                                  }
+                                                },
+                                                "rendererContext": {
+                                                  "commandContext": {
+                                                    "onTap": {
+                                                      "innertubeCommand": {
+                                                        "commandMetadata": {
+                                                          "webCommandMetadata": {
+                                                            "url": "/channel/UCamLstJyCa-t5gfZegxsFMw",
+                                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                            "rootVe": 3611,
+                                                            "apiUrl": "/youtubei/v1/browse"
+                                                          }
+                                                        },
+                                                        "browseEndpoint": {
+                                                          "browseId": "UCamLstJyCa-t5gfZegxsFMw"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "listItemViewModel": {
+                                                "title": {
+                                                  "content": "SubwayTakes with Kareem Rahma",
+                                                  "attachmentRuns": [
+                                                    {
+                                                      "startIndex": 29,
+                                                      "length": 0,
+                                                      "element": {
+                                                        "type": {
+                                                          "imageType": {
+                                                            "image": {
+                                                              "sources": [
+                                                                {
+                                                                  "clientResource": {
+                                                                    "imageName": "CHECK_CIRCLE_FILLED"
+                                                                  },
+                                                                  "width": 14,
+                                                                  "height": 14
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        "properties": {
+                                                          "layoutProperties": {
+                                                            "height": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "width": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "margin": {
+                                                              "left": {
+                                                                "value": 4,
+                                                                "unit": "DIMENSION_UNIT_POINT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                                                    }
+                                                  ]
+                                                },
+                                                "subtitle": {
+                                                  "content": "‎⁨@SubwayTakes⁩ • ⁨1.24M subscribers⁩"
+                                                },
+                                                "leadingAccessory": {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.ggpht.com/2vUg1AI_QCj-6WvJYeR09RhviFuDMZ5HO0s8l_U1XAJJn4twrEhRLHx6YHP_U7Drpc_CHl2Zvpo=s88-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ],
+                                                      "processor": {
+                                                        "borderImageProcessor": {
+                                                          "circular": true
+                                                        }
+                                                      }
+                                                    },
+                                                    "accessibilityText": "SubwayTakes with Kareem Rahma. Go to channel.",
+                                                    "avatarImageSize": "AVATAR_SIZE_M"
+                                                  }
+                                                },
+                                                "rendererContext": {
+                                                  "commandContext": {
+                                                    "onTap": {
+                                                      "innertubeCommand": {
+                                                        "commandMetadata": {
+                                                          "webCommandMetadata": {
+                                                            "url": "/channel/UCYLf5YEC59GX69au3yb1-KQ",
+                                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                            "rootVe": 3611,
+                                                            "apiUrl": "/youtubei/v1/browse"
+                                                          }
+                                                        },
+                                                        "browseEndpoint": {
+                                                          "browseId": "UCYLf5YEC59GX69au3yb1-KQ"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "listItemViewModel": {
+                                                "title": {
+                                                  "content": "Kareem Rahma",
+                                                  "attachmentRuns": [
+                                                    {
+                                                      "startIndex": 12,
+                                                      "length": 0,
+                                                      "element": {
+                                                        "type": {
+                                                          "imageType": {
+                                                            "image": {
+                                                              "sources": [
+                                                                {
+                                                                  "clientResource": {
+                                                                    "imageName": "CHECK_CIRCLE_FILLED"
+                                                                  },
+                                                                  "width": 14,
+                                                                  "height": 14
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        "properties": {
+                                                          "layoutProperties": {
+                                                            "height": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "width": {
+                                                              "value": 14,
+                                                              "unit": "DIMENSION_UNIT_POINT"
+                                                            },
+                                                            "margin": {
+                                                              "left": {
+                                                                "value": 4,
+                                                                "unit": "DIMENSION_UNIT_POINT"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "alignment": "ALIGNMENT_VERTICAL_CENTER"
+                                                    }
+                                                  ]
+                                                },
+                                                "subtitle": {
+                                                  "content": "‎⁨@kareem⁩ • ⁨136K subscribers⁩"
+                                                },
+                                                "leadingAccessory": {
+                                                  "avatarViewModel": {
+                                                    "image": {
+                                                      "sources": [
+                                                        {
+                                                          "url": "https://yt3.ggpht.com/wiNlmvYjC36qbxo776oorG-FN7wXdVtEdKiW4LDoXss95OebKrKM3OMvEVNVvvYC1LEUIUA21A=s88-c-k-c0x00ffffff-no-rj"
+                                                        }
+                                                      ],
+                                                      "processor": {
+                                                        "borderImageProcessor": {
+                                                          "circular": true
+                                                        }
+                                                      }
+                                                    },
+                                                    "accessibilityText": "Kareem Rahma. Go to channel.",
+                                                    "avatarImageSize": "AVATAR_SIZE_M"
+                                                  }
+                                                },
+                                                "rendererContext": {
+                                                  "commandContext": {
+                                                    "onTap": {
+                                                      "innertubeCommand": {
+                                                        "commandMetadata": {
+                                                          "webCommandMetadata": {
+                                                            "url": "/channel/UCqM6o8mD0p0y6JF2xGJN5Mw",
+                                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                            "rootVe": 3611,
+                                                            "apiUrl": "/youtubei/v1/browse"
+                                                          }
+                                                        },
+                                                        "browseEndpoint": {
+                                                          "browseId": "UCqM6o8mD0p0y6JF2xGJN5Mw"
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "screenVe": 269990
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "showActionMenu": false,
+                      "shortViewCountText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "59 thousand views"
+                          }
+                        },
+                        "simpleText": "59K"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -382,6 +382,8 @@ const RELATED_MORE_QUERY = gql(`
         publishedText
         isLive
         channel { id name isVerified isVerifiedArtist }
+        byline { text isVerified isVerifiedArtist }
+        collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
       }
       cursor
     }

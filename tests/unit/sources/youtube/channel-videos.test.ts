@@ -44,6 +44,24 @@ describe('channel Videos tab', () => {
     expect(stats(page.videos.items)).toEqual(BLENDER_STATS)
   })
 
+  // the tab names neither channel by id, so youtube.com prints the names as text
+  it('keeps a collaboration\'s names, and no byline on the channel\'s own videos', async () => {
+    const page = await sourceFor().channel(BLENDER, 'VIDEOS')
+    expect(page.videos.items.map(({ id, byline, collaborators }) => ({ id, byline, collaborators }))).toEqual([
+      { id: 'mHrHLqQj7Ts', byline: undefined, collaborators: undefined },
+      { id: 'dVrELpmfcEQ', byline: undefined, collaborators: undefined },
+      { id: 'sO_lhW8av3U', byline: undefined, collaborators: undefined },
+      {
+        id: 'cM3NJuY_xLc',
+        byline: [
+          { text: 'Blender', isVerified: true, isVerifiedArtist: undefined },
+          { text: 'and Invicta', isVerified: true, isVerifiedArtist: undefined },
+        ],
+        collaborators: undefined,
+      },
+    ])
+  })
+
   it('reads the views and date the same way on the pages after the first', async () => {
     const source = sourceFor(withNextPage)
     const page = await source.channel(BLENDER, 'VIDEOS')

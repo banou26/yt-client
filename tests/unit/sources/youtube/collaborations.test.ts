@@ -1,0 +1,77 @@
+import type { SourceVideo } from '../../../../src/sources/types'
+
+import { describe, expect, it } from 'vite-plus/test'
+
+import { Parser, YT } from 'youtubei.js'
+
+import { createYoutubeSource } from '../../../../src/sources/youtube'
+import home from '../../fixtures/channel-home-mkbhd.json'
+import threeChannels from '../../fixtures/search-colin-and-samir.json'
+import search from '../../fixtures/search-collaboration.json'
+
+/* Signed-out answers captured on 2026-11-10 and stripped of tracking, menus and playback fields:
+   - search-collaboration.json, the search for "quantum computing explained" cut to a 3Blue1Brown row and Cleo Abram's
+     video with Marques Brownlee, whose byline opens a Collaborators dialog instead of a channel;
+   - search-colin-and-samir.json, the search for "colin and samir" cut to a video of three channels;
+   - channel-home-mkbhd.json, Marques Brownlee's Home cut to its Videos row (two of his own videos and one with Auto
+     Focus), its First Impressions row (one of those two and the one with Auto Focus) and its Collaborations row. */
+
+const MKBHD = 'UCBJycsmduvYEL83R_U4JriQ'
+const CLEO = 'UC415bOPUcGSamy543abLmRA'
+
+const searchFor = async (answer: unknown) => {
+  const source = createYoutubeSource({
+    fetch: globalThis.fetch,
+    createClient: async () => ({ search: async () => new YT.Search(undefined as never, Parser.parseResponse(answer as never), true) }) as never,
+  })
+  const { results } = await source.search('query')
+  return (id: string) => results.find((result): result is SourceVideo & { kind: 'video' } => result.kind === 'video' && result.id === id)
+}
+
+const homeShelves = async () => {
+  const source = createYoutubeSource({
+    fetch: globalThis.fetch,
+    createClient: async () => ({
+      getChannel: async () => new YT.Channel(undefined as never, Parser.parseResponse(home as never), true),
+    }) as never,
+  })
+  return (await source.channel(MKBHD)).home?.shelves ?? []
+}
+
+describe('a video two channels made', () => {
+  it('keeps a search row\'s byline and the channels its dialog lists, the first as its channel', async () => {
+    const row = await searchFor(search)
+    expect(row('e3fz3dqhN44')).toMatchObject({
+      channel: { id: CLEO, name: 'Cleo Abram' },
+      byline: [{ text: 'Cleo Abram', isVerified: true }, { text: 'and Marques Brownlee', isVerified: true }],
+      collaborators: [
+        { id: CLEO, name: 'Cleo Abram', handle: '@CleoAbram', subscriberCountText: '8.94M subscribers', isVerified: true, avatar: expect.stringMatching(/^https:\/\/yt3\./) },
+        { id: MKBHD, name: 'Marques Brownlee', handle: '@mkbhd', subscriberCountText: '21.4M subscribers', isVerified: true },
+      ],
+    })
+    const single = row('RQWpF2Gb-gU')
+    expect(single?.channel).toMatchObject({ id: 'UCYO_jab_esuFRV4b17AJtAw', name: '3Blue1Brown' })
+    expect(single?.byline).toBeUndefined()
+    expect(single?.collaborators).toBeUndefined()
+  })
+
+  it('cuts a search row\'s byline after the first name, which can hold an "and" itself', async () => {
+    const row = (await searchFor(threeChannels))('TIqA43EeVLI')
+    expect(row?.byline).toEqual([
+      { text: 'Colin and Samir', isVerified: true, isVerifiedArtist: undefined },
+      { text: 'and 2 more', isVerified: undefined, isVerifiedArtist: undefined },
+    ])
+    expect(row?.collaborators?.map((channel) => channel.name)).toEqual(['Colin and Samir', 'SubwayTakes with Kareem Rahma', 'Kareem Rahma'])
+  })
+
+  it('keeps a Home row\'s names and the channels its avatars list', async () => {
+    const [videos] = await homeShelves()
+    expect(videos?.videos.find((video) => video.id === 'scwlR0QHGOk')).toMatchObject({
+      viewCount: '12M',
+      publishedText: '3w ago',
+      channel: { id: MKBHD, name: 'Marques Brownlee' },
+      byline: [{ text: 'Marques Brownlee', isVerified: true }, { text: 'and Auto Focus', isVerified: true }],
+      collaborators: [{ id: MKBHD, handle: '@mkbhd' }, { name: 'Auto Focus', handle: '@AutoFocus' }],
+    })
+  })
+})
