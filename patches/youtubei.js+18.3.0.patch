@@ -10,6 +10,41 @@ index 6e9c132..8ddf90b 100644
                  enable_truncation: data.enableTruncation
              })),
              badges: Parser.parseArray(row.badges, BadgeView)
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalShelfView.js b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalShelfView.js
+new file mode 100644
+index 0000000..9d30210
+--- /dev/null
++++ b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalShelfView.js
+@@ -0,0 +1,10 @@
++import { YTNode } from '../helpers.js';
++import { Parser } from '../index.js';
++export default class HorizontalShelfView extends YTNode {
++    static type = 'HorizontalShelfView';
++    items;
++    constructor(data) {
++        super();
++        this.items = Parser.parseArray(data.items);
++    }
++}
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/OfficialCardView.js b/node_modules/youtubei.js/dist/src/parser/classes/OfficialCardView.js
+new file mode 100644
+index 0000000..cfa24b0
+--- /dev/null
++++ b/node_modules/youtubei.js/dist/src/parser/classes/OfficialCardView.js
+@@ -0,0 +1,13 @@
++import { YTNode } from '../helpers.js';
++import { Parser } from '../index.js';
++import PageHeaderView from './PageHeaderView.js';
++export default class OfficialCardView extends YTNode {
++    static type = 'OfficialCardView';
++    header;
++    contents;
++    constructor(data) {
++        super();
++        this.header = Parser.parseItem(data.header, PageHeaderView);
++        this.contents = Parser.parseArray(data.contents);
++    }
++}
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js b/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js
 index 07596db..b907770 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/SubscribeButtonView.js
@@ -22,6 +57,26 @@ index 07596db..b907770 100644
          this.enable_subscribe_button_post_click_animation = data.enableSubscribeButtonPostClickAnimation;
          if ('bellAccessibilityData' in data) {
              this.bell_accessibility_data = {
+diff --git a/node_modules/youtubei.js/dist/src/parser/nodes.js b/node_modules/youtubei.js/dist/src/parser/nodes.js
+index 1b6b23b..6bd294a 100644
+--- a/node_modules/youtubei.js/dist/src/parser/nodes.js
++++ b/node_modules/youtubei.js/dist/src/parser/nodes.js
+@@ -217,6 +217,7 @@ export { default as HighlightsCarousel } from './classes/HighlightsCarousel.js';
+ export { default as HistorySuggestion } from './classes/HistorySuggestion.js';
+ export { default as HorizontalCardList } from './classes/HorizontalCardList.js';
+ export { default as HorizontalList } from './classes/HorizontalList.js';
++export { default as HorizontalShelfView } from './classes/HorizontalShelfView.js';
+ export { default as HorizontalMovieList } from './classes/HorizontalMovieList.js';
+ export { default as HowThisWasMadeSectionView } from './classes/HowThisWasMadeSectionView.js';
+ export { default as HypeFanCreditsSectionView } from './classes/HypeFanCreditsSectionView.js';
+@@ -371,6 +372,7 @@ export { default as TopbarMenuButton } from './classes/mweb/TopbarMenuButton.js'
+ export { default as NavigationEndpoint } from './classes/NavigationEndpoint.js';
+ export { default as Notification } from './classes/Notification.js';
+ export { default as NotificationAction } from './classes/NotificationAction.js';
++export { default as OfficialCardView } from './classes/OfficialCardView.js';
+ export { default as OpenOnePickAddVideoModalCommand } from './classes/OpenOnePickAddVideoModalCommand.js';
+ export { default as PageHeader } from './classes/PageHeader.js';
+ export { default as PageHeaderView } from './classes/PageHeaderView.js';
 diff --git a/node_modules/youtubei.js/dist/src/parser/parser.js b/node_modules/youtubei.js/dist/src/parser/parser.js
 index d907b82..e35ecad 100644
 --- a/node_modules/youtubei.js/dist/src/parser/parser.js
