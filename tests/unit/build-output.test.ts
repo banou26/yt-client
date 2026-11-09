@@ -54,3 +54,21 @@ describe('repeat visits take the build\'s hashed files from the browser cache', 
     expect(publicFiles.filter(path => path.startsWith('/assets/'))).toEqual(['/assets/404.html'])
   })
 })
+
+describe('Roboto comes from the build', () => {
+  it('the built index.html preloads the latin Roboto file its linked stylesheet draws with', () => {
+    const html = files.get('index.html') ?? ''
+    const preload = /<link rel="preload" href="(\/assets\/roboto-latin-[\w-]{8}\.woff2)" as="font" type="font\/woff2" crossorigin/.exec(html)?.[1]
+    expect(preload).toBeDefined()
+    const stylesheet = /<link rel="stylesheet" crossorigin href="\/(assets\/[^"]+\.css)">/.exec(html)?.[1] ?? ''
+    const faces = [...(files.get(stylesheet) ?? '').matchAll(/@font-face\{font-family:Roboto;[^}]*src:url\(([^)]+)\)/g)].map(([, url]) => url)
+    expect(faces).toHaveLength(9)
+    expect(faces).toContain(preload)
+    expect(faces.filter(url => !files.has(url!.slice(1)))).toEqual([])
+  })
+
+  it('no built file names fonts.googleapis.com', () => {
+    expect(files.size).toBeGreaterThan(40)
+    expect([...files].filter(([, text]) => text.includes('fonts.googleapis.com')).map(([name]) => name)).toEqual([])
+  })
+})

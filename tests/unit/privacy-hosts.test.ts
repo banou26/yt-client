@@ -42,9 +42,8 @@ const NOT_FETCHED_FROM_THE_PAGE: Record<string, string[]> = {
   'yt-client.local': ['src/graphql.ts'],
 }
 
-// Named by no code or fixture: the font files Google's stylesheet links to, the standard live chat emoji in YouTube's
-// own emoji list (fonts.gstatic.com/s/e/notoemoji, read 2026-11-05), and the channel pictures and banners a signed-in
-// session on youtube.fkn.app loaded on 2026-11-02
+// Named by no code or fixture: the standard emoji in live chat messages (fonts.gstatic.com/s/e/notoemoji, read again
+// 2026-11-10), and the channel pictures and banners a signed-in session on youtube.fkn.app loaded on 2026-11-02
 const MEASURED = ['fonts.gstatic.com', 'yt3.googleusercontent.com']
 
 const urlHosts = (text: string) => [...text.matchAll(/\bhttps?:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)/gi)].map(([, host]) => host!.toLowerCase())

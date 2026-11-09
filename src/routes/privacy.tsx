@@ -139,8 +139,8 @@ export const PrivacyPage = () => {
         <h2 className='section-title'>Where requests go</h2>
         <p>
           Without the FKN browser extension, yt-client reaches YouTube's pages, API and video through FKN, the platform it
-          runs on, so YouTube sees FKN's address there rather than yours. Thumbnails, pictures and fonts are the
-          exception, and so are dislike counts and sponsor segments while they are on: your browser loads them itself, from
+          runs on, so YouTube sees FKN's address there rather than yours. Thumbnails and pictures are the exception,
+          and so are dislike counts and sponsor segments while they are on: your browser loads them itself, from
           the servers listed further down.
         </p>
         <ul>

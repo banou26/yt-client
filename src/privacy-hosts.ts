@@ -12,8 +12,7 @@ export const DIRECT_HOSTS: readonly DirectHost[] = [
   { domain: 'ytimg.com', what: 'Video thumbnails and preview frames' },
   { domain: 'ggpht.com', what: 'Channel pictures, post images and channel emoji' },
   { domain: 'googleusercontent.com', what: 'Channel pictures and banners' },
-  { domain: 'fonts.googleapis.com', what: 'The Roboto font' },
-  { domain: 'fonts.gstatic.com', what: 'The Roboto font and live chat emoji' },
+  { domain: 'fonts.gstatic.com', what: 'Live chat emoji' },
   { domain: 'returnyoutubedislikeapi.com', what: 'Dislike counts from Return YouTube Dislike, which gets the ID of each video you open' },
   {
     domain: 'ajay.app',

@@ -173,7 +173,7 @@ const style = css`
   .byline .name {
     color: #fff;
     font-size: 1.4rem;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
   }
 
@@ -215,7 +215,7 @@ const style = css`
     padding: 1.6rem;
     border-bottom: 1px solid var(--border-subtle);
     font-size: 1.6rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
   }
 

@@ -121,7 +121,7 @@ const styles = css`
     align-items: center;
     gap: 0.8rem;
     padding: 0.8rem 1rem;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .row.paid .paid-body {

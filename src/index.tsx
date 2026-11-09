@@ -1,3 +1,5 @@
+import './fonts/roboto.css'
+
 import { css, Global } from '@emotion/react'
 import { render } from 'preact'
 import { Provider } from 'urql'
@@ -12,8 +14,6 @@ import { applyTheme, watchDeviceTheme } from './settings'
 import { setSource } from './sources/runtime'
 
 const globalStyles = css`
-  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-
   /* Dark is the base palette; the light block below overrides only what
      changes. 'Device' is resolved to one of the two in JS rather than by a
      media query, so an explicit choice always wins without a specificity
