@@ -1,12 +1,14 @@
 import { css } from '@emotion/react'
-import { Volume2, VolumeX } from 'lucide-react'
+import { Captions, CaptionsOff, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
-import type { Storyboard } from '../frame/protocol'
+import type { CaptionTrack, Storyboard } from '../frame/protocol'
 
+import { preferredTrack } from '../frame/captions'
 import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { startEngine } from '../scramjet/client'
+import { getSettings } from '../settings'
 import { clock } from './controls'
 import { warmShaka } from './prefetch'
 
@@ -19,6 +21,16 @@ const DWELL_MS = 700
 
 // carried between previews and deliberately NOT persisted: a feed may never start talking on its own
 let preferMuted = true
+
+// on by default, as youtube.com's previews are, in the viewer's language; the switch is not carried to the next card
+const previewCaption = (tracks: CaptionTrack[]) =>
+  preferredTrack(tracks, getSettings().captionsLanguage ?? navigator.language)
+
+// the preview sits inside the card's watch link, so an unguarded press or click on a control opens the video
+const guard = (event: Event) => {
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 // a card wants the largest sheet that FITS, not the sharpest one `bestStoryboard` picks
 const previewStoryboard = (boards: Storyboard[], stripWidth: number) => {
@@ -75,6 +87,12 @@ const style = css`
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /* the browser sizes cues to 5% of the element's height, which is 14 px on a 500 px card */
+  video::cue {
+    font-size: 1.8rem;
+    background: rgba(8, 8, 8, 0.75);
   }
 
   /* The grab area is deliberately several times the height of the bar it draws.
@@ -212,10 +230,16 @@ const style = css`
     pointer-events: none;
   }
 
-  .muted {
+  .corner {
     position: absolute;
     top: 0.8rem;
     right: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .corner button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -229,7 +253,7 @@ const style = css`
     cursor: pointer;
   }
 
-  .muted:hover {
+  .corner button:hover {
     background: rgba(0, 0, 0, 0.8);
   }
 `
@@ -249,6 +273,9 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
   const [painted, setPainted] = useState(false)
   const [muted, setMuted] = useState(preferMuted)
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
+  const [captionTracks, setCaptionTracks] = useState<CaptionTrack[]>([])
+  const [caption, setCaption] = useState<string | undefined>()
+  const selectCaption = useRef<(trackId: string | undefined) => Promise<void>>(undefined)
   const [hover, setHover] = useState<{ x: number, width: number, time: number } | undefined>()
   const [scrub, setScrub] = useState<{ ratio: number, width: number, height: number } | undefined>()
 
@@ -275,7 +302,14 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
         if (abort.signal.aborted) return
         void video.play().catch(() => {})
         setStoryboards(controller.storyboards)
+        setCaptionTracks(controller.captionTracks)
+        selectCaption.current = controller.selectCaption
         setReady(true)
+        const wanted = previewCaption(controller.captionTracks)
+        if (wanted) {
+          setCaption(wanted.id)
+          void controller.selectCaption(wanted.id).catch(() => setCaption(undefined))
+        }
       })().catch(() => {
         // silent: the thumbnail underneath is still the right thing to show
       })
@@ -331,6 +365,12 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     setTime(video.currentTime)
   }
 
+  const toggleCaption = () => {
+    const next = caption ? undefined : (previewCaption(captionTracks) ?? preferredTrack(captionTracks, undefined))?.id
+    setCaption(next)
+    void selectCaption.current?.(next).catch(() => setCaption(undefined))
+  }
+
   const trackHover = (event: PointerEvent) => {
     const video = videoRef.current
     if (!video?.duration) return
@@ -376,26 +416,28 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
       {scrub ? <div className='scrub-time'>{clock(scrub.ratio * duration)}</div> : undefined}
       {ready && !scrub
         ? (
-          <button
-            type='button'
-            className='muted'
-            aria-label={muted ? 'Unmute preview' : 'Mute preview'}
-            onPointerDown={(event: PointerEvent) => {
-              event.preventDefault()
-              event.stopPropagation()
-            }}
-            onClick={(event: MouseEvent) => {
-              event.preventDefault()
-              event.stopPropagation()
-              const video = videoRef.current
-              if (!video) return
-              video.muted = !video.muted
-              preferMuted = video.muted
-              setMuted(video.muted)
-            }}
-          >
-            {muted ? <VolumeX size={16} strokeWidth={2} /> : <Volume2 size={16} strokeWidth={2} />}
-          </button>
+          <div className='corner' onPointerDown={guard} onClick={guard}>
+            <button
+              type='button'
+              aria-label={muted ? 'Unmute preview' : 'Mute preview'}
+              onClick={() => {
+                const video = videoRef.current
+                if (!video) return
+                video.muted = !video.muted
+                preferMuted = video.muted
+                setMuted(video.muted)
+              }}
+            >
+              {muted ? <VolumeX size={16} strokeWidth={2} /> : <Volume2 size={16} strokeWidth={2} />}
+            </button>
+            {captionTracks.length > 0
+              ? (
+                <button type='button' aria-label='Subtitles/CC' aria-pressed={caption !== undefined} onClick={toggleCaption}>
+                  {caption ? <Captions size={16} strokeWidth={2} /> : <CaptionsOff size={16} strokeWidth={2} />}
+                </button>
+              )
+              : undefined}
+          </div>
         )
         : undefined}
       {/* time LEFT, as youtube.com's preview counts, and out of the way while the pointer is on the bar */}
@@ -406,9 +448,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
             className={scrub ? 'scrubber scrubbing' : 'scrubber'}
             onPointerLeave={() => setHover(undefined)}
             onPointerDown={(event: PointerEvent) => {
-              // this is drawn INSIDE the card's watch link, so an unguarded press opens the video
-              event.preventDefault()
-              event.stopPropagation()
+              guard(event)
               ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
               scrubFromPointer(event)
             }}
@@ -420,10 +460,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
               if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId)) seekFromPointer(event)
             }}
             onPointerCancel={() => setScrub(undefined)}
-            onClick={(event: MouseEvent) => {
-              event.preventDefault()
-              event.stopPropagation()
-            }}
+            onClick={guard}
           >
             <div className='track'>
               <div className='buffered' style={{ width: `${Math.round(buffered * 100)}%` }} />

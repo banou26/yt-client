@@ -179,3 +179,19 @@ plain('a playing preview counts down the time left, mutes on request and stops w
   await page.mouse.move(row.x - 40, row.y + row.height / 2, { steps: 4 })
   await expect(card.locator('video')).toHaveCount(0)
 })
+
+plain('a preview shows captions by default, and its CC button turns them off', async ({ page }) => {
+  plain.setTimeout(240_000)
+  const card = await hoverCourse(page)
+  const video = card.locator('video')
+  const cc = card.getByRole('button', { name: 'Subtitles/CC', includeHidden: true })
+  await expect(cc).toHaveAttribute('aria-pressed', 'true')
+  const showing = () => video.evaluate((element: HTMLVideoElement) =>
+    [...element.textTracks].filter(track => track.mode === 'showing').map(track => track.activeCues?.length ?? 0))
+  await expect.poll(async () => (await showing()).some(cues => cues > 0), { timeout: 20_000 }).toBe(true)
+
+  await cc.click()
+  await expect(cc).toHaveAttribute('aria-pressed', 'false')
+  await expect.poll(showing).toEqual([])
+  expect(new URL(page.url()).pathname).toBe('/results')
+})
