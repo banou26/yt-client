@@ -145,13 +145,10 @@ const CollaboratorsDialog = ({ channels, onClose }: { channels: Collaborator[], 
   </Dialog>
 )
 
-/**
- * A collaboration's byline or avatars, which open the choice of its channels as youtube.com's avatars do. Without the
- * channels (a channel's Videos tab names them only) it is plain text.
- */
+/** A collaboration's avatars, which open the choice of its channels as youtube.com's do. */
 export const CollaboratorsButton = (
   { channels, className, label, children }: {
-    channels?: Collaborator[] | null
+    channels: Collaborator[]
     className: string
     label?: string
     children: ComponentChildren
@@ -159,7 +156,6 @@ export const CollaboratorsButton = (
 ) => {
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
-  if (!channels?.length) return <span className={className}>{children}</span>
   return (
     <>
       <button type='button' css={buttonStyle} className={className} aria-label={label} aria-haspopup='dialog' onClick={() => setOpen(true)}>

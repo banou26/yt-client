@@ -549,12 +549,9 @@ export const VideoCard = (
           <h3 className='title'>
             <Link href={watchHref}>{video.title}</Link>
           </h3>
+          {/* youtube.com opens the video from a collaboration's names, and the choice of its channels from the avatars */}
           {byline === 'names'
-            ? (
-              <CollaboratorsButton channels={video.collaborators} className='channel-name names'>
-                <BylineNames parts={video.byline} />
-              </CollaboratorsButton>
-            )
+            ? <Link href={watchHref} className='channel-name names' tabIndex={-1}><BylineNames parts={video.byline} /></Link>
             : byline === 'channel' && video.channel && channelHref
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}

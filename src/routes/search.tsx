@@ -698,12 +698,19 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
             </div>
           )
           : undefined}
+        {/* youtube.com opens the choice of a collaboration's channels from its avatars, and the video from its names */}
         {rowByline(row) === 'names'
           ? (
-            <CollaboratorsButton channels={row.collaborators} className='channel'>
-              {row.collaborators?.length ? <AvatarStack channels={row.collaborators} /> : undefined}
-              <span><BylineNames parts={row.byline} badgeSize={12} /></span>
-            </CollaboratorsButton>
+            <div className='channel'>
+              {row.collaborators?.length
+                ? (
+                  <CollaboratorsButton channels={row.collaborators} className='avatars' label='Collaboration channels'>
+                    <AvatarStack channels={row.collaborators} />
+                  </CollaboratorsButton>
+                )
+                : undefined}
+              <Link href={watchHref} className='names' tabIndex={-1}><BylineNames parts={row.byline} badgeSize={12} /></Link>
+            </div>
           )
           : row.channel
           ? (
