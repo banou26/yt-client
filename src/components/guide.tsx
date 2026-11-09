@@ -11,6 +11,7 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { gql } from '../generated'
 import { groupHrefFor, useGroups } from '../groups/store'
 import { useSession } from '../session'
+import { signIn } from '../sign-in'
 import GroupDialog from './group-dialog'
 import { Logo } from './header'
 import { LIKED_VIDEOS_ID, playlistHrefFor, WATCH_LATER_ID } from './playlist'
@@ -40,8 +41,13 @@ const MAIN_ENTRIES: GuideEntry[] = [
 
 const YOU_ENTRY: GuideEntry = { label: 'You', href: '/feed/you', Icon: CircleUserRound, match: '/feed/you' }
 
+const HISTORY_ENTRY: GuideEntry = { label: 'History', href: '/feed/history', Icon: History, match: '/feed/history' }
+
+// youtube.com signed out keeps these two in its first section and puts a Sign in button where the rest of You would be
+const SIGNED_OUT_ENTRIES: GuideEntry[] = [YOU_ENTRY, HISTORY_ENTRY]
+
 const YOU_ENTRIES: GuideEntry[] = [
-  { label: 'History', href: '/feed/history', Icon: History, match: '/feed/history' },
+  HISTORY_ENTRY,
   { label: 'Playlists', href: '/feed/playlists', Icon: Library, match: '/feed/playlists' },
   { label: 'Watch later', href: playlistHrefFor(WATCH_LATER_ID), Icon: Clock, match: playlistHrefFor(WATCH_LATER_ID) },
   { label: 'Liked videos', href: playlistHrefFor(LIKED_VIDEOS_ID), Icon: ThumbsUp, match: playlistHrefFor(LIKED_VIDEOS_ID) }
@@ -60,8 +66,6 @@ const EXPLORE_ENTRIES: GuideEntry[] = [
 ]
 
 const MINI_ENTRIES: GuideEntry[] = [...MAIN_ENTRIES, YOU_ENTRY]
-
-const FOOTER_LINKS = ['About', 'Press', 'Contact', 'Terms', 'Privacy', 'Developers']
 
 // prefix rather than equality, so a nested route keeps its entry lit; Home's prefix is every path, so it only ever matches exactly
 const isActive = (match: string | undefined, path: string, search: string) => {
@@ -278,6 +282,30 @@ const sectionsStyle = css`
     text-overflow: ellipsis;
   }
 
+  .sign-in {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    height: 3.6rem;
+    margin: 0 1.2rem;
+    padding: 0 1.5rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 1.8rem;
+    background: transparent;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 1.4rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .sign-in:hover {
+    background: var(--accent-hover);
+    border-color: transparent;
+  }
+
   .footer {
     border-top: 1px solid var(--border-subtle);
     margin-top: 1.2rem;
@@ -300,31 +328,47 @@ const sectionsStyle = css`
   }
 `
 
-const GuideSections = () => (
-  <div css={sectionsStyle}>
-    <div className='section'>
-      {MAIN_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
-    </div>
-    <GroupsSection />
-    <div className='section'>
-      <YouSectionLink />
-      {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
-    </div>
-    <div className='section'>
-      <div className='section-title'>Explore</div>
-      {EXPLORE_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
-    </div>
-    <SubscriptionRail />
-    <div className='footer'>
-      <div className='footer-links'>
-        {FOOTER_LINKS.map(label => label === 'Privacy'
-          ? <Link key={label} href='/privacy'>{label}</Link>
-          : <span key={label}>{label}</span>)}
+const GuideSections = () => {
+  const { signedIn } = useSession()
+  return (
+    <div css={sectionsStyle}>
+      <div className='section'>
+        {MAIN_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
+        {signedIn ? undefined : SIGNED_OUT_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
       </div>
-      <div className='copyright'>© 2026 yt-client</div>
+      {signedIn
+        ? undefined
+        : (
+          <div className='section'>
+            <button type='button' className='sign-in' onClick={signIn}>
+              <CircleUserRound size={24} strokeWidth={1.5} />
+              Sign in
+            </button>
+          </div>
+        )}
+      <GroupsSection />
+      {signedIn
+        ? (
+          <div className='section'>
+            <YouSectionLink />
+            {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
+          </div>
+        )
+        : undefined}
+      <div className='section'>
+        <div className='section-title'>Explore</div>
+        {EXPLORE_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
+      </div>
+      <SubscriptionRail />
+      <div className='footer'>
+        <div className='footer-links'>
+          <Link href='/privacy'>Privacy</Link>
+        </div>
+        <div className='copyright'>© 2026 yt-client</div>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 const expandedStyle = css`
   position: fixed;
