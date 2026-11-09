@@ -234,7 +234,7 @@ const HomePage = () => {
 
   return (
     <main css={style}>
-      <div className='rail'>
+      <div className='rail' hidden={chips.length === 0}>
         {arrows.start
           ? (
             <button type='button' className='rail-arrow start' aria-label='Scroll filters left' onClick={() => scrollRail(-1)}>

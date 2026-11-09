@@ -54,3 +54,19 @@ test('signed in, the guide keeps its You section and asks no one to sign in', as
   await expect(signedOut.getByRole('button', { name: 'Sign in' })).toBeVisible()
   await expect(signedOut.getByRole('link', { name: 'Watch later', exact: true })).toHaveCount(0)
 })
+
+test('an empty Home has no lone All chip, and a Home with filters keeps All first', async ({ page }) => {
+  test.setTimeout(180_000)
+  await engineReady(page)
+  await mountHarness(page, '/tests/browser/fixtures/home-harness.tsx', 'mountHome', false)
+  await mountHarness(page, '/tests/browser/fixtures/home-harness.tsx', 'mountHome', true)
+
+  const empty = page.locator('[data-home-harness="empty"]')
+  await expect(empty.getByRole('heading', { name: 'Try searching to get started' })).toBeVisible()
+  await expect(empty.getByRole('button', { name: 'All', exact: true })).toBeHidden()
+
+  const filtered = page.locator('[data-home-harness="filters"]')
+  await expect(filtered.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(filtered.getByRole('button', { name: 'All', exact: true })).toBeVisible()
+  await expect(filtered.getByRole('button', { name: 'Music', exact: true })).toBeVisible()
+})
