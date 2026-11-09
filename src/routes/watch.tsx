@@ -633,9 +633,9 @@ const WatchPage = () => {
       {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0)
         ? (
           <aside className='secondary'>
+            {oneColumn ? undefined : replay}
             {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
             {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
-            {oneColumn ? undefined : replay}
             {related
               ? related.map(item => <VideoCardCompact key={item.id} video={item} />)
               : RELATED_SKELETON_KEYS.map(key => <VideoCardCompactSkeleton key={key} />)}

@@ -4,6 +4,8 @@ import { expect, plainTest as test } from './test'
 
 // a 3:54 premiere whose chat replay runs from its start to past its end (read 2026-11-10)
 const PREMIERE = 'fOT0BUpITw8'
+// a playlist that holds it, from YTB-3's audit
+const PLAYLIST = 'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI'
 
 // every line's author name carries its timestampText, the point of the video it was said at ('2:54', '-0:03')
 const lineTimes = (page: Page) =>
@@ -69,4 +71,16 @@ test('a past premiere replays its chat in step with the video, through seeks bac
   await panel.getByRole('button', { name: 'Close' }).click()
   await expect(panel).toHaveCount(0)
   await expect(open).toBeEnabled()
+})
+
+test('the panel opens at the top of the column, above the playlist', async ({ page }) => {
+  await page.goto(`/watch?v=${PREMIERE}&list=${PLAYLIST}`)
+  const queue = page.getByRole('region', { name: 'Playlist queue' })
+  await expect(queue).toBeVisible({ timeout: 120_000 })
+  await page.getByRole('button', { name: 'Open panel' }).click({ timeout: 120_000 })
+  const panel = page.getByRole('region', { name: 'Chat replay', exact: true })
+  await expect(panel).toBeVisible()
+  const chat = await panel.boundingBox()
+  const list = await queue.boundingBox()
+  expect(chat!.y + chat!.height).toBeLessThanOrEqual(list!.y)
 })
