@@ -12,7 +12,7 @@ import { showToast } from './ui/toast'
 import { RichText } from './rich-text'
 
 type ChatPage = LiveChatQuery['liveChat']
-type ChatRow = ChatPage['items'][number]
+export type ChatRow = ChatPage['items'][number]
 type ChatRun = ChatRow['runs'][number]
 
 const LIVE_CHAT_QUERY = gql(`
@@ -44,11 +44,12 @@ const SEND_LIVE_CHAT = gql(`
   }
 `)
 
-const TRANSCRIPT_LIMIT = 250
+// youtube.com's own maxItemsToDisplay
+export const TRANSCRIPT_LIMIT = 250
 
 const PINNED_SLACK_PX = 40
 
-const styles = css`
+export const chatStyles = css`
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
@@ -197,7 +198,7 @@ const styles = css`
   }
 `
 
-const ChatLine = ({ message }: { message: ChatRow }) => {
+export const ChatLine = ({ message }: { message: ChatRow }) => {
   const badge = message.isOwner
     ? 'owner'
     : message.isModerator
@@ -243,14 +244,33 @@ const ChatLine = ({ message }: { message: ChatRow }) => {
   )
 }
 
+/** Keeps a chat log on its newest line until the reader scrolls up, which `pinned` false offers a way back from. */
+export const usePinnedLog = (lines: unknown) => {
+  const [pinned, setPinned] = useState(true)
+  const logRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const log = logRef.current
+    if (!log || !pinned) return
+    log.scrollTop = log.scrollHeight
+  }, [lines, pinned])
+
+  const onScroll = () => {
+    const log = logRef.current
+    if (!log) return
+    setPinned(log.scrollHeight - log.scrollTop - log.clientHeight <= PINNED_SLACK_PX)
+  }
+
+  return { logRef, onScroll, pinned, setPinned }
+}
+
 export const LiveChat = ({ videoId }: { videoId: string }) => {
   const { ready, signedIn } = useSession()
   const [cursor, setCursor] = useState<string | undefined>(undefined)
   const [messages, setMessages] = useState<ChatRow[]>([])
   const [ended, setEnded] = useState(false)
   const [draft, setDraft] = useState('')
-  const [pinned, setPinned] = useState(true)
-  const logRef = useRef<HTMLDivElement>(null)
+  const { logRef, onScroll, pinned, setPinned } = usePinnedLog(messages)
   const [, send] = useMutation(SEND_LIVE_CHAT)
 
   /* the server parks each request until something arrives, so the cursor chain IS the poll: no interval belongs here */
@@ -293,18 +313,6 @@ export const LiveChat = ({ videoId }: { videoId: string }) => {
     else if (page.cursor !== cursor) setCursor(page.cursor)
   }, [page])
 
-  useEffect(() => {
-    const log = logRef.current
-    if (!log || !pinned) return
-    log.scrollTop = log.scrollHeight
-  }, [messages, pinned])
-
-  const onScroll = () => {
-    const log = logRef.current
-    if (!log) return
-    setPinned(log.scrollHeight - log.scrollTop - log.clientHeight <= PINNED_SLACK_PX)
-  }
-
   const submit = async (event: TargetedEvent<HTMLFormElement, Event>) => {
     event.preventDefault()
     const text = draft.trim()
@@ -318,11 +326,11 @@ export const LiveChat = ({ videoId }: { videoId: string }) => {
   }
 
   if (page?.disabled) {
-    return <div css={styles}><div className='notice'>Live chat is turned off for this stream.</div></div>
+    return <div css={chatStyles}><div className='notice'>Live chat is turned off for this stream.</div></div>
   }
 
   return (
-    <div css={styles}>
+    <div css={chatStyles}>
       <div className='head'>
         <span>Live chat</span>
         {ended ? <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>Ended</span> : undefined}

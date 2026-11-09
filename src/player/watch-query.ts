@@ -12,6 +12,7 @@ export const WATCH_META_QUERY = gql(`
       id
       unavailableText
       isLive
+      hasChatReplay
       concurrentViewers
       title
       isMembersOnly

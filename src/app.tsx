@@ -134,7 +134,8 @@ const ChannelTabRedirect = ({ base, tab }: { base: string, tab?: string }) => {
 const ChannelPathRoute = ({ path, tab }: { path: string, tab?: string }) =>
   tab === undefined ? <ChannelPage params={{ channelId: path }} /> : <ChannelTabRedirect base={`/${path}`} tab={tab} />
 
-const useMediaQuery = (query: string) => {
+/** Whether a CSS media query matches, kept current as the window changes. */
+export const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
   useEffect(() => {
     const media = window.matchMedia(query)

@@ -9,7 +9,8 @@ import { useCallback, useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 import { Link, useSearch } from 'wouter'
 
-import { useDocumentTitle } from '../app'
+import { useDocumentTitle, useMediaQuery } from '../app'
+import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
 import DescriptionBox from '../components/description-box'
 import { formatCompact, parseStartSeconds, readable } from '../components/format'
@@ -128,6 +129,27 @@ const style = css`
   &.theater .secondary {
     grid-row: 2;
     padding: 2.4rem 2.4rem 0 0;
+  }
+
+  .primary > .chat-replay {
+    margin-top: 1.2rem;
+  }
+
+  .about {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 1.2rem;
+  }
+
+  .about > * {
+    flex: 1 1 30rem;
+    min-width: 0;
+  }
+
+  /* an opened description takes the whole row, as youtube.com's does, and the chat replay card moves under it */
+  .about > div:not(.collapsed) {
+    flex-basis: 100%;
   }
 
   .title {
@@ -473,6 +495,14 @@ const WatchPage = () => {
   }
 
   const [sharing, setSharing] = useState(false)
+  // held as the video it was opened on, so the next video starts with the panel closed
+  const [replayFor, setReplayFor] = useState<string | undefined>(undefined)
+  const replayOpen = watch?.hasChatReplay === true && replayFor === videoId
+  // the same width the layout drops to one column at: youtube.com then opens the panel under the player
+  const oneColumn = useMediaQuery('(max-width: 1017px)')
+  const replay = replayOpen
+    ? <ChatReplay key={`replay:${videoId}`} videoId={videoId} onClose={() => setReplayFor(undefined)} />
+    : undefined
 
   if (unavailable) {
     return (
@@ -490,6 +520,7 @@ const WatchPage = () => {
         <div className='player-slot' ref={claimPlayer} />
       </div>
       <div className='primary'>
+        {oneColumn ? replay : undefined}
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
         {watch?.isMembersOnly
           ? (
@@ -577,30 +608,34 @@ const WatchPage = () => {
             </div>
           )
           : undefined}
-        {watch?.description || watch?.viewCountText || watch?.publishedDateText
-          ? (
-            <DescriptionBox
-              key={`description:${videoId}`}
-              viewCountText={watch.viewCountText}
-              publishedDateText={watch.publishedDateText}
-              shortViewCountText={watch.shortViewCountText}
-              relativeDateText={watch.relativeDateText}
-              hashtags={watch.hashtags}
-              description={watch.description}
-              runs={watch.descriptionRuns}
-              videoId={videoId}
-            />
-          )
-          : undefined}
+        <div className='about'>
+          {watch?.description || watch?.viewCountText || watch?.publishedDateText
+            ? (
+              <DescriptionBox
+                key={`description:${videoId}`}
+                viewCountText={watch.viewCountText}
+                publishedDateText={watch.publishedDateText}
+                shortViewCountText={watch.shortViewCountText}
+                relativeDateText={watch.relativeDateText}
+                hashtags={watch.hashtags}
+                description={watch.description}
+                runs={watch.descriptionRuns}
+                videoId={videoId}
+              />
+            )
+            : undefined}
+          {watch?.hasChatReplay ? <ChatReplayTeaser open={replayOpen} onOpen={() => setReplayFor(videoId)} /> : undefined}
+        </div>
         {!watchFetching && !watch?.commentsHidden
           ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
           : undefined}
       </div>
-      {watchFetching || playlist || watch?.isLive || (related && related.length > 0)
+      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0)
         ? (
           <aside className='secondary'>
             {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
             {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
+            {oneColumn ? undefined : replay}
             {related
               ? related.map(item => <VideoCardCompact key={item.id} video={item} />)
               : RELATED_SKELETON_KEYS.map(key => <VideoCardCompactSkeleton key={key} />)}

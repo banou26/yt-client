@@ -8,18 +8,23 @@ export const registerSeek = (videoId: string, seek: SeekHandler, playhead: Playh
   current = { videoId, seek, playhead }
 }
 
-// undefined rather than 0 when the video is not the one mounted: 0 is a real position
 /**
- * Where the mounted video is, for the share dialog's "start at" offset.
+ * Where the mounted video is, in seconds with their fraction, for the chat replay.
  *
  * Undefined rather than 0 when the video is not the one mounted: 0 is a real
  * position, and a caller cannot tell a genuine start-of-video from "no player"
  * if both answer the same.
  */
-export const playheadOf = (videoId: string) => {
+export const playheadAt = (videoId: string) => {
   if (current?.videoId !== videoId) return undefined
   const seconds = current.playhead()
-  return Number.isFinite(seconds) && seconds >= 0 ? Math.floor(seconds) : undefined
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
+}
+
+/** {@link playheadAt} in whole seconds, for the share dialog's "start at" offset. */
+export const playheadOf = (videoId: string) => {
+  const seconds = playheadAt(videoId)
+  return seconds === undefined ? undefined : Math.floor(seconds)
 }
 
 // takes the id it is releasing so a teardown that arrives AFTER the next player has registered cannot clear the live handle
