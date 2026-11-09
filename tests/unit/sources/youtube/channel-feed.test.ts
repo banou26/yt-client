@@ -201,4 +201,40 @@ describe('channelUploads', () => {
     expect(starts).toEqual([0, 100, 200])
     await Promise.all(reads)
   })
+
+  it('spaces each browse of a failed feed\'s Videos tab 100 ms apart from every other request', async () => {
+    vi.useFakeTimers()
+    const begin = Date.now()
+    const starts: [string, number][] = []
+    const record = (what: string) => starts.push([what, Date.now() - begin])
+    const source = createYoutubeSource({
+      fetch: (async () => {
+        record('feed')
+        return new Response(notFound, { status: 404 })
+      }) as typeof globalThis.fetch,
+      createClient: async () => ({
+        getChannel: async (id: string) => {
+          record(`channel ${id}`)
+          return {
+            has_videos: true,
+            getVideos: async () => {
+              record(`videos ${id}`)
+              return new YT.Channel(undefined as never, Parser.parseResponse(videosTab as never), true)
+            },
+          }
+        },
+      }) as never,
+    })
+    const reads = Promise.all([BLENDER, CHANNEL].map((id) => source.channelUploads(id)))
+    await vi.runAllTimersAsync()
+    await reads
+    expect(starts).toEqual([
+      ['feed', 0],
+      ['feed', 100],
+      [`channel ${BLENDER}`, 200],
+      [`channel ${CHANNEL}`, 300],
+      [`videos ${BLENDER}`, 400],
+      [`videos ${CHANNEL}`, 500],
+    ])
+  })
 })

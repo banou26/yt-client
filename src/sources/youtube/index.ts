@@ -540,7 +540,8 @@ const LIKE_ENDPOINT = {
   INDIFFERENT: '/like/removelike',
 } as const satisfies Record<SourceLikeStatus, string>
 
-// a group page reads one feed per channel, and the relay refuses more than 20 requests a second from one address
+// a group page reads one feed per channel, and two browses more for each feed that fails; the relay refuses more than
+// 20 requests a second from one address
 const FEED_INTERVAL_MS = 100
 
 const SUBSCRIPTION_PAGES = 20
@@ -715,10 +716,11 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
   // YouTube's feed server answers 404 to every feed for hours at a time (public reports since 2025-12), so the Videos
   // tab stands in, dated only as finely as its '6d ago'
   const tabUploads = async (channelId: string): Promise<SourceVideo[]> => {
-    const result = await fetchChannel(channelId)
+    const result = await paceFeed(() => fetchChannel(channelId))
     if (result.has_videos !== true) return []
+    const tab = await paceFeed(() => openChannelTab(result, 'VIDEOS', undefined))
     const now = Date.now()
-    return pageItems(await openChannelTab(result, 'VIDEOS', undefined), { own: true }).map((video) => {
+    return pageItems(tab, { own: true }).map((video) => {
       const views = approximateCount(video.viewCount)
       return { ...video, viewCount: views === undefined ? undefined : String(views), publishedAt: timeFromAgo(video.publishedText, now) }
     })
@@ -1104,7 +1106,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const response = await paceFeed(() => fetch(channelFeedUrl(channelId, Date.now())))
       if (response.ok) return parseChannelFeed(await response.text())
       void response.body?.cancel().catch(() => {})
-      return paceFeed(() => tabUploads(channelId))
+      return tabUploads(channelId)
     },
     search: async (query, filters, cursor) => {
       const kind = `search:${query}:${filterKey(filters)}`
