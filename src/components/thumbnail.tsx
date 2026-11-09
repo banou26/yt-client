@@ -10,13 +10,14 @@ const HIDDEN = { visibility: 'hidden' } as const
  * second try can fix. It always loads lazily and is always decorative.
  */
 export const Thumbnail = ({ src, srcSet, sizes }: { src: string, srcSet?: string | null, sizes?: string }) => {
-  const [failed, setFailed] = useState(false)
+  const [failedSrc, setFailedSrc] = useState<string>()
   const [retried, setRetried] = useState(false)
+  const failed = failedSrc === src
 
   useEffect(() => {
     if (!failed || retried) return
     const retry = () => {
-      setFailed(false)
+      setFailedSrc(undefined)
       setRetried(true)
     }
     window.addEventListener('online', retry)
@@ -33,7 +34,7 @@ export const Thumbnail = ({ src, srcSet, sizes }: { src: string, srcSet?: string
       alt=''
       loading='lazy'
       style={failed ? HIDDEN : undefined}
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
     />
   )
 }
