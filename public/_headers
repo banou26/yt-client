@@ -1,0 +1,7 @@
+# Cloudflare Pages picks these by request path, not by what it answers with: without assets/404.html a missing
+# /assets/ file gets the app's index.html with a 200 (youtube.fkn.app, 2026-11-10), which this rule would keep for a
+# year. With it the answer is a 404, whose cache-control Pages replaces with no-store. Paths no rule names
+# (index.html, /__yt_scramjet__/) keep Pages' own `public, max-age=0, must-revalidate`, and a second rule matching
+# /assets/ would join its value onto this one.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
