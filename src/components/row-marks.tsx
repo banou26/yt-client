@@ -1,5 +1,6 @@
 import { css } from '@emotion/react'
 
+import { formatViews } from './format'
 import { NOTE } from './verified-badge'
 
 const ARROW = 'M10 8.64 15.27 12 10 15.36V8.64M8 5v14l11-7L8 5Z'
@@ -45,6 +46,35 @@ const cornerStyle = css`
 
 /** The label youtube.com draws in a still's top corner, such as New. */
 export const CornerBadge = ({ label }: { label: string }) => <span css={cornerStyle} data-mark='corner'>{label}</span>
+
+// an inline block, so the space a lockup sends collapses inside it and only the margins show, as in youtube.com's flex row
+const delimiterStyle = css`
+  display: inline-block;
+  margin: 0 0.4rem;
+`
+
+/**
+ * A row's view count and date, led by the play arrow its answer names. A lockup sends the delimiter youtube.com draws
+ * between them, with 4px each side; a row without one keeps a bullet.
+ */
+export const RowMeta = ({ video }: {
+  video: { viewCount?: string | null, viewCountIcon?: boolean | null, publishedText?: string | null, metaDelimiter?: string | null }
+}) => {
+  const views = formatViews(video.viewCount)
+  const date = video.publishedText || undefined
+  if (views === undefined && date === undefined) return null
+  const delimiter = video.metaDelimiter ?? undefined
+  return (
+    <div className='meta'>
+      {video.viewCountIcon ? <ViewsArrow /> : undefined}
+      {views}
+      {views !== undefined && date !== undefined
+        ? delimiter === undefined ? ' • ' : <span css={delimiterStyle}>{delimiter}</span>
+        : undefined}
+      {date}
+    </div>
+  )
+}
 
 const membersStyle = css`
   display: flex;

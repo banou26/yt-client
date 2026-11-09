@@ -373,6 +373,7 @@ const RELATED_MORE_QUERY = gql(`
         viewCount
         viewCountIcon
         publishedText
+        metaDelimiter
         isLive
         isMembersOnly
         channel { id name isVerified isVerifiedArtist }

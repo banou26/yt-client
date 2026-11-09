@@ -452,6 +452,7 @@ describe('youtube normalization', () => {
       durationSeconds: 3723,
       viewCount: '1.1M views',
       publishedText: '3 months ago',
+      metaDelimiter: ' ',
       badges: [],
       channel: { id: 'UC123', name: 'Channel', avatar: 'avatar' },
     })
@@ -783,7 +784,7 @@ describe('youtube normalization', () => {
       },
       related: [
         { id: 'rel1', title: 'Related one', durationSeconds: 60, badges: [], channel: { id: 'UC456', name: 'Other' } },
-        { id: 'rel2', title: 'Related two', badges: [] },
+        { id: 'rel2', title: 'Related two', metaDelimiter: ' ', badges: [] },
       ],
       chapters: [],
     })

@@ -40,6 +40,8 @@ export type SourceVideo = {
   // youtube.com draws a play arrow before this row's view count
   viewCountIcon?: boolean
   publishedText?: string
+  // what youtube.com draws between this row's view count and date, sent with a lockup (a space today); a bullet otherwise
+  metaDelimiter?: string
   // ISO 8601, only on a channel's uploads: exact off its feed, about right off its Videos tab's '6d ago'
   publishedAt?: string
   isLive?: boolean

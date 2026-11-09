@@ -65,6 +65,10 @@ type Video {
   # views part's own icon.
   viewCountIcon: Boolean
   publishedText: String
+  # What youtube.com draws between this row's view count and date, as a lockup
+  # sends it: a space today, drawn as an 8px gap. Rows from other answers have
+  # none and keep a bullet.
+  metaDelimiter: String
   # An ISO 8601 time, set only by channelUploads: exact off the uploads feed,
   # about right off the Videos tab's '6d ago' when the feed fails.
   # Lists that merge several channels sort on it.

@@ -80,6 +80,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           viewCount
           viewCountIcon
           publishedText
+          metaDelimiter
           isLive
           isShort
           isUpcoming
@@ -127,6 +128,7 @@ const CHANNEL_VIEW_QUERY = gql(`
             durationSeconds
             viewCount
             publishedText
+            metaDelimiter
             isLive
             isShort
             isUpcoming

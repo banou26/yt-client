@@ -15,9 +15,9 @@ import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
-import { formatDuration, formatMeta, readable, rowByline } from './format'
+import { formatDuration, readable, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
-import { CornerBadge, MembersOnly, MusicNote, ViewsArrow } from './row-marks'
+import { CornerBadge, MembersOnly, MusicNote, RowMeta } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -35,6 +35,7 @@ export type VideoCardData =
       | 'durationSeconds'
       | 'isMembersOnly'
       | 'isMusic'
+      | 'metaDelimiter'
       | 'progressPercent'
       | 'publishedText'
       | 'thumbnail'
@@ -489,7 +490,6 @@ export const VideoCard = (
   const channelHref = video.channel ? `/channel/${video.channel.id}` : undefined
   const byline = rowByline(video, variant === 'channel')
   const duration = formatDuration(video.durationSeconds)
-  const meta = formatMeta(video.viewCount, video.publishedText)
   const progress = resumePercent(video.progressPercent)
   const prefetch = usePrefetchOnIntent(video.id)
   const [previewing, setPreviewing] = useState(false)
@@ -560,7 +560,7 @@ export const VideoCard = (
             : byline === 'channel' && video.channel && channelHref
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
-          {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
+          <RowMeta video={video} />
           {video.isMembersOnly ? <MembersOnly /> : undefined}
         </div>
         <VideoCardMenu videoId={video.id} title={video.title} class='more-menu' />

@@ -92,6 +92,7 @@ type MetadataParts = {
     metadata_parts?: { text?: Text, icon_name?: string, leading_icon_name?: string }[]
     badges?: { style?: string }[]
   }[]
+  delimiter?: string
 }
 
 type ChannelHeader = {
@@ -870,6 +871,8 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
     viewCount: text(stats[0]?.text),
     viewCountIcon: VIEW_COUNT_ICONS.has(stats[0]?.leading_icon_name ?? '') ? true : undefined,
     publishedText: text(stats[1]?.text),
+    // a collaboration's row sends none, and youtube.com draws only the gap there
+    metaDelimiter: metadata?.delimiter ?? ' ',
     isLive: badges.some((badge) => badge.badge_style?.includes('LIVE')) ? true : undefined,
     progressPercent: lockupProgressPercent(image),
     isShort: lockup.content_type === 'SHORT' ? true : undefined,

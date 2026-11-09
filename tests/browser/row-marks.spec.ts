@@ -41,13 +41,22 @@ for (const kind of ['compact', 'grid'] as const) {
     }), 'the note leads the length').toBe(true)
 
     const meta = marked.locator('.meta')
-    await expect(meta).toHaveText('208M • 17y ago')
+    await expect(meta).toHaveText('208M 17y ago')
+    expect(await meta.evaluate(element => {
+      const [views, date] = [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map((node) => {
+        const text = document.createRange()
+        text.selectNodeContents(node)
+        return text.getBoundingClientRect()
+      })
+      return Math.round(date!.left - views!.right)
+    }), 'the space the answer sends shows as an 8px gap').toBe(8)
     const arrow = meta.locator('[data-mark="views"]')
     await expect(arrow).toBeVisible()
     expect(await arrow.boundingBox()).toMatchObject({ width: 12, height: 12 })
     expect(await meta.evaluate(element => element.firstElementChild?.getAttribute('data-mark'))).toBe('views')
 
     await expect(plain.locator('.badge')).toHaveText('35:24')
+    await expect(plain.locator('.meta')).toHaveText('3.9M • 14h ago')
     await expect(plain.locator('[data-mark]')).toHaveCount(0)
   })
 

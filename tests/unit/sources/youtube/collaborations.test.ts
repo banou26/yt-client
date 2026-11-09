@@ -90,6 +90,8 @@ describe('a video two channels made', () => {
     expect(videos?.videos.find((video) => video.id === 'scwlR0QHGOk')).toMatchObject({
       viewCount: '12M',
       publishedText: '3w ago',
+      // its row sends no delimiter, and youtube.com still parts the views and date with the gap
+      metaDelimiter: ' ',
       channel: { id: MKBHD, name: 'Marques Brownlee' },
       byline: [{ text: 'Marques Brownlee', isVerified: true }, { text: 'and Auto Focus', isVerified: true }],
       collaborators: [{ id: MKBHD, handle: '@mkbhd' }, { name: 'Auto Focus', handle: '@AutoFocus' }],

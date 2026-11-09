@@ -77,6 +77,16 @@ describe('the related column\'s marks', () => {
     ])
     expect(relatedRows(without(related, 'leadingIcon')).map((video) => video.viewCountIcon)).toEqual([undefined, undefined])
   })
+
+  // youtube.com's search rows are not lockups and still draw a bullet there (measured 2026-11-10)
+  it('keeps the delimiter the answer sends between a row\'s views and date, and none on a search row', async () => {
+    expect(relatedRows().map((video) => video.metaDelimiter)).toEqual([' ', ' '])
+    const bulleted = JSON.parse(JSON.stringify(related).replaceAll('"delimiter":" "', '"delimiter":" • "')) as unknown
+    expect(relatedRows(bulleted).map((video) => video.metaDelimiter)).toEqual([' • ', ' • '])
+    const [official] = videos((await searchSource().source.search('never gonna give you up')).results)
+    expect(official).toMatchObject({ id: 'dQw4w9WgXcQ', viewCount: '1.8B', publishedText: '17y ago' })
+    expect((official as { metaDelimiter?: string }).metaDelimiter).toBeUndefined()
+  })
 })
 
 describe('a search row\'s marks', () => {

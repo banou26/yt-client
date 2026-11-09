@@ -8,8 +8,8 @@ import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { BylineNames } from './byline'
-import { formatDuration, formatMeta, rowByline } from './format'
-import { CornerBadge, MembersOnly, MusicNote, ViewsArrow } from './row-marks'
+import { formatDuration, rowByline } from './format'
+import { CornerBadge, MembersOnly, MusicNote, RowMeta } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
 import { resumePercent, VideoCardMenu, watchHrefFor } from './video-card'
@@ -166,7 +166,6 @@ const style = css`
 export const VideoCardCompact = ({ video, context }: { video: VideoCardData, context?: WatchContext }) => {
   const watchHref = watchHrefFor(video.id, context)
   const duration = formatDuration(video.durationSeconds)
-  const meta = formatMeta(video.viewCount, video.publishedText)
   const progress = resumePercent(video.progressPercent)
   const prefetch = usePrefetchOnIntent(video.id)
   const [hovered, setHovered] = useState(false)
@@ -219,7 +218,7 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
             </Link>
           )
           : undefined}
-        {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
+        <RowMeta video={video} />
         {video.isMembersOnly ? <MembersOnly /> : undefined}
       </div>
       <VideoCardMenu videoId={video.id} title={video.title} iconSize={16} class='more-menu' />
