@@ -1,12 +1,14 @@
 import type { ThemePreference } from '../settings'
 
 import { css } from '@emotion/react'
-import { Check, ChevronLeft, ChevronRight, EllipsisVertical, LockKeyholeOpen, LogIn, LogOut, Moon, Settings } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
+import { Check, ChevronLeft, ChevronRight, EllipsisVertical, Keyboard, LockKeyholeOpen, LogIn, LogOut, Moon, Settings } from 'lucide-react'
+import { createPortal } from 'preact/compat'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useLocation } from 'wouter'
 
 import { FKN_BOUND_MS, within } from '../groups/sync'
 import { checkGroups, fknLib, readFkn } from '../groups/sync-live'
+import { ShortcutsDialog } from '../player/shortcuts'
 import { getSettings, updateSettings } from '../settings'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -62,7 +64,7 @@ const FknRows = ({ fkn: { lib, signedIn, locked } }: { fkn: FknState }) => {
   )
 }
 
-const HeaderMenuPanel = () => {
+const HeaderMenuPanel = ({ onShortcuts }: { onShortcuts: () => void }) => {
   const [, navigate] = useLocation()
   const [view, setView] = useState<'root' | 'appearance'>('root')
   const [theme, setTheme] = useState(() => getSettings().theme)
@@ -107,6 +109,7 @@ const HeaderMenuPanel = () => {
         closeOnSelect={false}
         onSelect={() => setView('appearance')}
       />
+      <MenuItem icon={Keyboard} label='Keyboard shortcuts' onSelect={onShortcuts} />
       <MenuSeparator />
       <MenuItem icon={Settings} label='Settings' onSelect={() => navigate('/settings')} />
       {fkn
@@ -121,18 +124,25 @@ const HeaderMenuPanel = () => {
   )
 }
 
-/** The header's ⋮ button and its menu: the theme choice, a way to Settings, and signing in to or out of FKN. */
-export const HeaderMenu = () => (
-  <Menu
-    label='More'
-    trigger={
-      <button type='button' className='icon-button' aria-label='More'>
-        <EllipsisVertical size={24} strokeWidth={1.5} />
-      </button>
-    }
-  >
-    <HeaderMenuPanel />
-  </Menu>
-)
+/** The header's ⋮ button and its menu: the theme choice, the keyboard shortcuts, a way to Settings, and signing in to or out of FKN. */
+export const HeaderMenu = () => {
+  const [shortcuts, setShortcuts] = useState(false)
+  const closeShortcuts = useCallback(() => setShortcuts(false), [])
+  return (
+    <>
+      <Menu
+        label='More'
+        trigger={
+          <button type='button' className='icon-button' aria-label='More'>
+            <EllipsisVertical size={24} strokeWidth={1.5} />
+          </button>
+        }
+      >
+        <HeaderMenuPanel onShortcuts={() => setShortcuts(true)} />
+      </Menu>
+      {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
+    </>
+  )
+}
 
 export default HeaderMenu

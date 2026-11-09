@@ -71,6 +71,19 @@ test('an empty Home has no lone All chip, and a Home with filters keeps All firs
   await expect(filtered.getByRole('button', { name: 'Music', exact: true })).toBeVisible()
 })
 
+test('the header menu opens the keyboard shortcuts, Shift+P among them', async ({ page }) => {
+  await page.goto('/settings')
+  const more = page.getByRole('button', { name: 'More', exact: true })
+  await more.click()
+  await page.getByRole('menuitem', { name: 'Keyboard shortcuts' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.locator('.row').filter({ hasText: 'Previous video' })).toContainText('Shift+P')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(more).toBeFocused()
+})
+
 // Lex Fridman's deep learning lectures: every row is one verified channel's
 test('playlist rows carry the channel badge and a ⋮ menu without a hover', async ({ page }) => {
   test.setTimeout(240_000)
