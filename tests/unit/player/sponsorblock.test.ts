@@ -59,6 +59,11 @@ describe('skipTarget', () => {
     expect(skipTarget(segments, 45, new Set())).toBeUndefined()
   })
 
+  it('reads a time Chrome rounded down from a part\'s end as past it', () => {
+    expect(skipTarget([{ start: 5, end: 8.2 }], 8.199999, new Set())).toBeUndefined()
+    expect(skipTarget([{ start: 5, end: 8.2 }], 8.19, new Set())).toBe(8.2)
+  })
+
   it('plays an excused part, and stops a chain at one', () => {
     expect(skipTarget(segments, 31, new Set([later]))).toBeUndefined()
     expect(skipTarget(segments, 5.2, new Set([second]))).toBe(8)

@@ -134,6 +134,20 @@ test('Skip sponsor jumps over the coming part now, and Undo then plays all of it
   expect(within(await timesFrom(page, from), 5.5, 7.5).length, 'the part was skipped after Undo').toBeGreaterThan(0)
 })
 
+// Chrome reads a seek to 8.2 back as 8.199999, inside the part, so the skip's own seek is told apart by more than equality
+test('the skip of a part whose end Chrome rounds down still offers Undo', async ({ page }) => {
+  test.setTimeout(240_000)
+  await openWithSponsor(page, [sponsor(5, 8.2)])
+  await seek(page, 3)
+  const from = await logged(page)
+  await expect(control(page, 'Undo')).toBeVisible({ timeout: 30_000 })
+  await passes(page, 9)
+  // read once, not retried: the Undo shows from 8.2 to 13.2
+  expect(await control(page, 'Undo').count()).toBe(1)
+  expect(await currentTime(page)).toBeLessThan(13)
+  expect(within(await timesFrom(page, from), 6, 8.1), 'the sponsor part played on past its first second').toEqual([])
+})
+
 test('a seek into a sponsor part plays it, and leaves the Undo of an earlier skip behind', async ({ page }) => {
   test.setTimeout(240_000)
   await openWithSponsor(page)

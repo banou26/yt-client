@@ -27,7 +27,7 @@ import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { stepRate } from './rates'
 import { ShortcutsDialog } from './shortcuts'
-import { skipTarget } from './sponsorblock'
+import { CLOCK_SLACK, skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
@@ -217,13 +217,15 @@ const VideoPlayer = (
   // the parts the viewer's last seek landed in, kept across restarts, which seek too
   const excused = useRef(new Set<SkipSegment>())
   const undone = useRef<readonly SkipSegment[]>([])
+  const landing = useRef(Number.NaN)
   const [skipped, setSkipped] = useState<{ from: number, to: number, parts: readonly SkipSegment[] } | undefined>(undefined)
 
   const skip = (video: HTMLVideoElement, to: number) => {
     const from = video.currentTime
-    const landing = Math.min(to, video.duration || to)
-    setSkipped({ from, to: landing, parts: sponsors.current.filter(part => part.start < landing && part.end > from) })
-    video.currentTime = landing
+    const at = Math.min(to, video.duration || to)
+    landing.current = at
+    setSkipped({ from, to: at, parts: sponsors.current.filter(part => part.start < at && part.end > from) })
+    video.currentTime = at
   }
 
   // Undo excuses every part the skip jumped, so a chain of parts plays through rather than skipping from its second part
@@ -245,12 +247,14 @@ const VideoPlayer = (
       started = true
     }
     const onSeeking = () => {
-      if (!started) return
       const time = video.currentTime
-      excused.current = new Set([...sponsors.current.filter(part => part.start <= time && time < part.end), ...undone.current])
+      const own = Math.abs(time - landing.current) < CLOCK_SLACK
+      landing.current = Number.NaN
+      if (!started) return
+      // the skip's own seek keeps its Undo and excuses nothing, and any other seek leaves the Undo behind
+      excused.current = new Set([...(own ? [] : sponsors.current.filter(part => part.start <= time && time < part.end)), ...undone.current])
       undone.current = []
-      // the skip's own seek lands where it says, and any other seek leaves its Undo behind
-      setSkipped(last => (last?.to === time ? last : undefined))
+      if (!own) setSkipped(undefined)
     }
     const onTimeUpdate = () => {
       const to = video.seeking ? undefined : skipTarget(sponsors.current, video.currentTime, excused.current)
@@ -504,7 +508,7 @@ const VideoPlayer = (
   const video = videoRef.current
   const showSpinner = Boolean(player) && (state.buffering || state.seeking)
   const time = state.currentTime
-  const undoable = skipped !== undefined && time >= skipped.to && time < skipped.to + SPONSOR_NOTICE
+  const undoable = skipped !== undefined && time > skipped.to - CLOCK_SLACK && time < skipped.to + SPONSOR_NOTICE
   const upcoming = undoable
     ? undefined
     : segments.find(part => !excused.current.has(part) && part.start > time && part.start - time <= SPONSOR_NOTICE)

@@ -13,6 +13,12 @@ const SKIP_SEGMENTS = 'https://sponsor.ajay.app/api/skipSegments/'
 const NONE: readonly SkipSegment[] = []
 
 /**
+ * How far below the time it was set to a media element's clock can read back: Chrome keeps whole microseconds, so a
+ * seek to 8.123456789 reads 8.123456 during its `seeking` event.
+ */
+export const CLOCK_SLACK = 0.001
+
+/**
  * The first 4 hex characters of the SHA-256 of a video id. SponsorBlock answers a prefix with every video under it,
  * so it is asked for the prefix and never learns the id.
  */
@@ -39,13 +45,14 @@ export const parseSegments = (answer: unknown, videoId: string): SkipSegment[] =
 
 /**
  * Where playback at `time` jumps to: the end of the part it is in, carried on through every part that touches or
- * overlaps it, or undefined when it is in none. An excused part is played. `segments` are sorted by start.
+ * overlaps it, or undefined when it is in none. A time within CLOCK_SLACK of a part's end is past it. An excused part
+ * is played. `segments` are sorted by start.
  */
 export const skipTarget = (segments: readonly SkipSegment[], time: number, excused: ReadonlySet<SkipSegment>) => {
   let target: number | undefined
   for (const segment of segments) {
     const at = target ?? time
-    if (segment.start <= at && at < segment.end && !excused.has(segment)) target = segment.end
+    if (segment.start <= at && at < segment.end - CLOCK_SLACK && !excused.has(segment)) target = segment.end
   }
   return target
 }
