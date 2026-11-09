@@ -22,6 +22,8 @@ const startPlayback = async (page: Page) => {
 const player = (page: Page) => page.locator('[data-player-root]')
 const menu = (page: Page) => page.getByRole('menu', { name: 'Player menu' })
 const rows = (page: Page) => menu(page).locator('[role^="menuitem"]').allTextContents()
+const loopRow = (page: Page) => menu(page).getByRole('menuitemcheckbox', { name: 'Loop' })
+const paused = (video: Locator) => video.evaluate(element => (element as HTMLVideoElement).paused)
 
 const rightClick = async (page: Page, x: number, y: number) => {
   const box = (await player(page).boundingBox())!
@@ -68,15 +70,34 @@ test("right-clicking the player opens youtube.com's menu at the pointer, and Esc
   const pointer = await rightClick(page, 0.25, 0.25)
   await expect(menu(page)).toBeVisible()
   expect(await rows(page)).toEqual(ROWS)
-  await expect(menu(page).getByRole('menuitemcheckbox', { name: 'Loop' })).toHaveAttribute('aria-checked', 'false')
+  await expect(loopRow(page)).toHaveAttribute('aria-checked', 'false')
+  // the row's icon and no check mark
+  await expect(loopRow(page).locator('svg')).toHaveCount(1)
   await expect(page.locator('html')).toHaveAttribute('data-browser-menu', 'false')
   const box = (await menu(page).boundingBox())!
   expect([Math.round(box.x - pointer.x), Math.round(box.y - pointer.y)]).toEqual([1, 1])
-  await expect(menu(page).getByRole('menuitemcheckbox', { name: 'Loop' })).toBeFocused()
+  await expect(loopRow(page)).toBeFocused()
   await page.keyboard.press('ArrowDown')
   await expect(menu(page).getByRole('menuitem', { name: 'Miniplayer' })).toBeFocused()
 
   await page.keyboard.press('Escape')
+  await expect(menu(page)).toHaveCount(0)
+
+  // an Escape that comes as the menu is drawn, before the next paint, closes it too
+  const drawn = await page.evaluate(async () => {
+    const box = document.querySelector('[data-player-root]')!.getBoundingClientRect()
+    document.querySelector('[data-player-root] video')!.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: box.left + 50,
+      clientY: box.top + 50,
+    }))
+    await Promise.resolve()
+    const shown = document.querySelector('[role="menu"][aria-label="Player menu"]') !== null
+    ;(document.activeElement ?? document.body).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+    return shown
+  })
+  expect(drawn).toBe(true)
   await expect(menu(page)).toHaveCount(0)
 
   // on the seek rail too, without seeking
@@ -109,8 +130,11 @@ test('Loop repeats the video rather than moving its queue on, and the queue move
 
   await select(page, 'Loop')
   await rightClick(page, 0.3, 0.3)
-  await expect(menu(page).getByRole('menuitemcheckbox', { name: 'Loop' })).toHaveAttribute('aria-checked', 'true')
+  await expect(loopRow(page)).toHaveAttribute('aria-checked', 'true')
+  // the check mark after the row's icon, as youtube.com draws it
+  await expect(loopRow(page).locator('svg')).toHaveCount(2)
   await page.keyboard.press('Escape')
+  await expect(menu(page)).toHaveCount(0)
 
   await watchLoop(video)
   await expect(video).toHaveAttribute('data-looped', 'true', { timeout: 60_000 })
@@ -164,16 +188,21 @@ test('the menu opens over the player in fullscreen and in the miniplayer, withou
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const video = await startPlayback(page)
 
+  // marked by the event, which reaches the player's own listener first: fullscreenElement changes a frame before it, and a
+  // menu opened in that frame is closed by the player's listener
+  await page.evaluate(() => document.addEventListener('fullscreenchange', () => {
+    document.documentElement.dataset.fullscreen = document.fullscreenElement?.hasAttribute('data-player-root') ? 'player' : 'none'
+  }))
   await video.dblclick()
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement?.hasAttribute('data-player-root') ?? false)).toBe(true)
+  await expect(page.locator('html')).toHaveAttribute('data-fullscreen', 'player')
   await rightClick(page, 0.5, 0.5)
   await expect(menu(page)).toBeVisible()
   expect(await onTop(page)).toBe(true)
   expect(await rows(page)).toEqual(ROWS.filter(row => row !== 'Miniplayer'))
   await page.keyboard.press('Escape')
   await expect(menu(page)).toHaveCount(0)
-  await page.evaluate(() => document.exitFullscreen().catch(() => {}))
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true)
+  await page.evaluate(() => document.exitFullscreen())
+  await expect(page.locator('html')).toHaveAttribute('data-fullscreen', 'none')
 
   await select(page, 'Miniplayer')
   await expect(page.locator('.dock-title')).toBeVisible({ timeout: 30_000 })
@@ -182,4 +211,30 @@ test('the menu opens over the player in fullscreen and in the miniplayer, withou
   await expect(menu(page)).toBeVisible()
   expect(await onTop(page)).toBe(true)
   expect(await rows(page)).toEqual(ROWS.filter(row => row !== 'Miniplayer'))
+})
+
+test('a click on the video closes the menu without pausing, and the player keys work while it is open', async ({ page }) => {
+  test.setTimeout(240_000)
+  // the 3 minute one, which cannot end and pause itself before the checks
+  await page.goto(`/watch?v=${QUEUED_ID}`)
+  const video = await startPlayback(page)
+
+  // as on youtube.com, k pauses and plays with the menu left open
+  await rightClick(page, 0.3, 0.3)
+  await expect(menu(page)).toBeVisible()
+  await page.keyboard.press('k')
+  await expect.poll(() => paused(video)).toBe(true)
+  await page.keyboard.press('k')
+  await expect.poll(() => paused(video)).toBe(false)
+  await expect(menu(page)).toBeVisible()
+
+  const box = (await player(page).boundingBox())!
+  const away = { x: box.x + box.width * 0.1, y: box.y + box.height * 0.5 }
+  await page.mouse.click(away.x, away.y)
+  await expect(menu(page)).toHaveCount(0)
+  expect(await paused(video)).toBe(false)
+
+  // the same click with no menu open pauses
+  await page.mouse.click(away.x, away.y)
+  await expect.poll(() => paused(video)).toBe(true)
 })
