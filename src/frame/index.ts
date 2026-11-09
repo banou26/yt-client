@@ -8,6 +8,7 @@ import { createYoutubeSource } from '../sources/youtube'
 import { json3ToWebVtt, parseCaptionTracks, timedTextUrl } from './captions'
 import { catalogInnertube, getSabrSource, hasSessionCookie, prefetchInitialPlayerResponse } from './innertube'
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
+import { openLiveManifest } from './live-open'
 import { createSabrSession, isSabrSessionRefreshError } from './sabr'
 import { resetIdentity, storeAccountIndex } from './identity'
 import { FRAME_CONNECT, isFrameMethod } from './protocol'
@@ -38,8 +39,6 @@ type PlaybackEntry = {
 const sessions = new Map<string, PlaybackEntry>()
 let sessionId = 0
 
-const LIVE_START_DEPTH = 4
-const LIVE_START_DEPTH_TIMEOUT_MS = 3_000
 const LIVE_REFRESH_WAIT_MS = 2_000
 
 // watch-page caption addresses are marked `exp=xpe` and answer 200 with an empty body; ANDROID_VR's serve real json3
@@ -136,27 +135,9 @@ const api = {
       // Shaka rejects a side-loaded text track against an infinite presentation
       captions: source.isLive ? [] : source.captions,
     }
-    let manifest = player.manifest
-    if (source.isLive) {
-      await player.requestSegment({
-        requestId: `${id}:live-probe`,
-        sessionId: id,
-        generation: 0,
-        track: 'video',
-        kind: 'media',
-        formatKey: player.videoFormat.key,
-        startTimeMs: 0,
-        snapshot: { currentTimeMs: 0, playbackRate: 1, bandwidthEstimate: 10_000_000, viewportWidth: 1_280, viewportHeight: 720 },
-      }, () => {})
-      player.startLivePump()
-      const depthDeadline = Date.now() + LIVE_START_DEPTH_TIMEOUT_MS
-      while (player.liveSegments.length < LIVE_START_DEPTH && Date.now() < depthDeadline) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
-      const live = liveManifestFor(entry)
-      if (!live) throw new Error(`youtube: live stream ${videoId} delivered no addressable segment`)
-      manifest = live
-    }
+    const manifest = source.isLive
+      ? await openLiveManifest(player, { sessionId: id, videoId, manifestFor: () => liveManifestFor(entry) })
+      : player.manifest
     sessions.set(id, entry)
     return {
       id,
