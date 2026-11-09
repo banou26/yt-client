@@ -46,7 +46,7 @@ const PLAYLIST_VIEW_QUERY = gql(`
           viewCount
           publishedText
           isLive
-          channel { id name }
+          channel { id name isVerified isVerifiedArtist }
         }
       }
       cursor
@@ -265,6 +265,11 @@ const style = css`
   .card {
     flex: 1;
     min-width: 0;
+  }
+
+  /* youtube.com's playlist rows keep their ⋮ up without a hover, where the other compact rows show it on hover */
+  .card .more {
+    opacity: 1;
   }
 
   .remove {

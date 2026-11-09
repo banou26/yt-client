@@ -70,3 +70,19 @@ test('an empty Home has no lone All chip, and a Home with filters keeps All firs
   await expect(filtered.getByRole('button', { name: 'All', exact: true })).toBeVisible()
   await expect(filtered.getByRole('button', { name: 'Music', exact: true })).toBeVisible()
 })
+
+// Lex Fridman's deep learning lectures: every row is one verified channel's
+test('playlist rows carry the channel badge and a ⋮ menu without a hover', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf')
+  const row = page.locator('.rows .row').first()
+  await expect(row).toBeVisible({ timeout: 120_000 })
+  await expect(row.locator('svg[data-badge="verified"]')).toBeVisible()
+
+  await page.mouse.move(0, 0)
+  const more = row.getByRole('button', { name: /^More actions for / })
+  await expect.poll(() => more.evaluate(button => getComputedStyle(button).opacity)).toBe('1')
+  await more.click()
+  await expect(page.getByRole('menuitem', { name: 'Save to Watch later' })).toBeVisible()
+})
