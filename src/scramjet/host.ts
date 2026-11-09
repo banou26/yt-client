@@ -8,6 +8,7 @@ import { expose } from 'osra'
 
 import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
 import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_DIRECT_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
+import { readChannel } from './channel'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
 import { CONTROLLER_CONFIG, scramjetWorker } from './scramjet-setup'
@@ -97,7 +98,8 @@ const boot = async () => {
       transport: { receive: egress, emit: egress },
     })
     const extFetch = createExtFetch(extFetchPort)
-    const transport = createFknTransport(remote, extFetch)
+    // this realm is the app's own, so it reads the channel the frame's Scramjet-scoped storage cannot
+    const transport = createFknTransport(remote, extFetch, readChannel())
     await transport.init()
     return { egress, extFetchPort, remote, transport, extFetch, agent, direct }
   })
