@@ -6,6 +6,7 @@ import { Link } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { EXTENSION_URL, useExtensionExposed } from '../components/extension-notice'
+import { SPONSORBLOCK_URL } from '../player/sponsorblock'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 
 const THEMES: { value: ThemePreference, label: string }[] = [
@@ -76,6 +77,12 @@ const style = css`
 
   .link {
     color: var(--accent);
+  }
+
+  .credit {
+    margin-left: 0.4rem;
+    font-size: 1.3rem;
+    color: var(--text-secondary);
   }
 
   .choices {
@@ -184,7 +191,10 @@ export const SettingsPage = () => {
         </div>
         <div className='row'>
           <div className='row-label'>
-            Show dislike counts (<a className='link' href='https://returnyoutubedislike.com' target='_blank' rel='noreferrer'>Return YouTube Dislike</a>)
+            Show dislike counts{' '}
+            <span className='credit'>
+              Using <a className='link' href='https://returnyoutubedislike.com' target='_blank' rel='noreferrer'>Return YouTube Dislike</a>
+            </span>
           </div>
           <input
             type='checkbox'
@@ -192,6 +202,21 @@ export const SettingsPage = () => {
             aria-label='Show dislike counts'
             checked={settings.showDislikes}
             onChange={() => set({ showDislikes: !settings.showDislikes })}
+          />
+        </div>
+        <div className='row'>
+          <div className='row-label'>
+            Skip sponsors{' '}
+            <span className='credit'>
+              Using <a className='link' href={SPONSORBLOCK_URL} target='_blank' rel='noreferrer'>SponsorBlock</a>
+            </span>
+          </div>
+          <input
+            type='checkbox'
+            className='toggle'
+            aria-label='Skip sponsors'
+            checked={settings.skipSponsors}
+            onChange={() => set({ skipSponsors: !settings.skipSponsors })}
           />
         </div>
       </section>

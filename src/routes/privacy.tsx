@@ -1,6 +1,7 @@
 import { css } from '@emotion/react'
 
 import { useDocumentTitle } from '../app'
+import { SPONSORBLOCK_URL } from '../player/sponsorblock'
 import { DIRECT_HOSTS, FKN_DOMAINS } from '../privacy-hosts'
 
 const FKN_PRIVACY_URL = 'https://fkn.app/privacy'
@@ -9,7 +10,7 @@ const EXTENSION_PRIVACY_URL = 'https://fkn.app/extension/privacy'
 const KEPT: { title: string, what: string }[] = [
   {
     title: 'Settings',
-    what: 'Your theme, autoplay, volume and mute, quality, speed, captions and their language, and theater mode, whether to show dislike counts, whether the guide is collapsed, whether to offer the FKN extension, and whether it was there on your last visit. Kept until you change them.',
+    what: 'Your theme, autoplay, volume and mute, quality, speed, captions and their language, and theater mode, whether to show dislike counts and skip sponsors, whether the guide is collapsed, whether to offer the FKN extension, and whether it was there on your last visit. Kept until you change them.',
   },
   {
     title: 'Channel groups',
@@ -139,8 +140,8 @@ export const PrivacyPage = () => {
         <p>
           Without the FKN browser extension, yt-client reaches YouTube's pages, API and video through FKN, the platform it
           runs on, so YouTube sees FKN's address there rather than yours. Thumbnails, pictures and fonts are the
-          exception, and so are dislike counts while they are on: your browser loads them itself, from the servers listed
-          further down.
+          exception, and so are dislike counts and sponsor segments while they are on: your browser loads them itself, from
+          the servers listed further down.
         </p>
         <ul>
           <li>
@@ -164,6 +165,11 @@ export const PrivacyPage = () => {
           history with this browser's own youtube.com sign-in, through the extension and not through FKN.
         </p>
         <p>When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at that point.</p>
+        <p>
+          Skip sponsors works using{' '}
+          <a className='link' href={SPONSORBLOCK_URL} target='_blank' rel='noreferrer'>SponsorBlock</a>
+          . yt-client only reads sponsor segments from it, and sends it no votes and no report of what was skipped.
+        </p>
         <p>
           What FKN keeps, in this browser and on its servers, is in the{' '}
           <a className='link' href={FKN_PRIVACY_URL} target='_blank' rel='noreferrer'>FKN privacy policy</a>

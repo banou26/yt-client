@@ -17,6 +17,8 @@ export const test = base.extend({
   context: async ({ context }, use) => {
     await context.route('https://returnyoutubedislikeapi.com/**', route =>
       route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { likes: 0, dislikes: 0 } }))
+    await context.route('https://sponsor.ajay.app/**', route =>
+      route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: [] }))
     await use(context)
   },
   page: async ({ page }, use) => {

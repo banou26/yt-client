@@ -10,6 +10,7 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
 import { upNextHref } from './end-screen'
+import { useSponsorSegments } from './sponsorblock'
 import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay } from './up-next'
 import VideoPlayer from './video-player'
 import { WATCH_META_QUERY } from './watch-query'
@@ -115,6 +116,7 @@ const PersistentPlayer = () => {
     pause: !videoId,
   })
   const watch = videoId !== undefined && data?.watch?.id === videoId ? data.watch : undefined
+  const segments = useSponsorSegments(watch && !watch.isLive ? watch.id : undefined)
 
   useEffect(() => {
     if (videoId) markPlayed(videoId)
@@ -201,6 +203,7 @@ const PersistentPlayer = () => {
               onTheater={() => setTheater(!session.theater)}
               onMiniplayer={toggleMiniplayer}
               chapters={watch?.chapters}
+              segments={segments}
               upNext={{
                 autoplay,
                 onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),

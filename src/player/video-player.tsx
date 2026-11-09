@@ -3,6 +3,7 @@ import type shaka from 'shaka-player'
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './controls'
+import type { SkipSegment } from './sponsorblock'
 import type { UpNext } from './up-next'
 
 // must stay type-only: a value import puts the on-demand shaka chunk back in the entry
@@ -26,6 +27,7 @@ import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { stepRate } from './rates'
 import { ShortcutsDialog } from './shortcuts'
+import { skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
@@ -98,9 +100,41 @@ const playerStyle = css`
       transform: rotate(360deg);
     }
   }
+
+  /* above the 72 px of seek rail and control groups, so it never covers a control */
+  .sponsor-skip {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 8rem;
+    height: 3.6rem;
+    padding: 0 1.6rem;
+    border: none;
+    border-radius: 1.8rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .sponsor-skip:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  @container player (max-width: 600px) {
+    .sponsor-skip {
+      right: 0.8rem;
+      bottom: 7.6rem;
+      height: 3.2rem;
+      padding: 0 1.2rem;
+      font-size: 1.3rem;
+    }
+  }
 `
 
 const IDLE_MS = 2_500
+// how long before a sponsor part Skip sponsor shows, and after a skip Undo does, in seconds of the video
+const SPONSOR_NOTICE = 5
 const SEEK_STEP = 5
 const JUMP_STEP = 10
 
@@ -133,7 +167,7 @@ export type PlayerUpNext = {
 const FALLBACK_FPS = 30
 
 const VideoPlayer = (
-  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext, chapters }: {
+  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [] }: {
     videoId: string
     startAt?: number
     theater?: boolean
@@ -141,6 +175,7 @@ const VideoPlayer = (
     onMiniplayer?: () => void
     upNext?: PlayerUpNext
     chapters?: readonly PlayerChapter[]
+    segments?: readonly SkipSegment[]
   },
 ) => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -176,6 +211,60 @@ const VideoPlayer = (
   useEffect(() => {
     if (ending === 'advance') onNext?.()
   }, [ending])
+
+  const sponsors = useRef(segments)
+  sponsors.current = segments
+  // the parts the viewer's last seek landed in, kept across restarts, which seek too
+  const excused = useRef(new Set<SkipSegment>())
+  const undone = useRef<readonly SkipSegment[]>([])
+  const [skipped, setSkipped] = useState<{ from: number, to: number, parts: readonly SkipSegment[] } | undefined>(undefined)
+
+  const skip = (video: HTMLVideoElement, to: number) => {
+    const from = video.currentTime
+    const landing = Math.min(to, video.duration || to)
+    setSkipped({ from, to: landing, parts: sponsors.current.filter(part => part.start < landing && part.end > from) })
+    video.currentTime = landing
+  }
+
+  // Undo excuses every part the skip jumped, so a chain of parts plays through rather than skipping from its second part
+  const undo = () => {
+    const video = videoRef.current
+    if (!video || !skipped) return
+    undone.current = skipped.parts
+    setSkipped(undefined)
+    video.currentTime = skipped.from
+    void video.play().catch(() => {})
+  }
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    // the start position, Shaka's jump over a gap at the start and a restart's resume all seek before the first `playing`, and only a viewer's seek plays a part
+    let started = false
+    const onPlaying = () => {
+      started = true
+    }
+    const onSeeking = () => {
+      if (!started) return
+      const time = video.currentTime
+      excused.current = new Set([...sponsors.current.filter(part => part.start <= time && time < part.end), ...undone.current])
+      undone.current = []
+      // the skip's own seek lands where it says, and any other seek leaves its Undo behind
+      setSkipped(last => (last?.to === time ? last : undefined))
+    }
+    const onTimeUpdate = () => {
+      const to = video.seeking ? undefined : skipTarget(sponsors.current, video.currentTime, excused.current)
+      if (to !== undefined) skip(video, to)
+    }
+    video.addEventListener('playing', onPlaying)
+    video.addEventListener('seeking', onSeeking)
+    video.addEventListener('timeupdate', onTimeUpdate)
+    return () => {
+      video.removeEventListener('playing', onPlaying)
+      video.removeEventListener('seeking', onSeeking)
+      video.removeEventListener('timeupdate', onTimeUpdate)
+    }
+  }, [attempt])
 
   useEffect(() => {
     const video = videoRef.current
@@ -414,6 +503,11 @@ const VideoPlayer = (
 
   const video = videoRef.current
   const showSpinner = Boolean(player) && (state.buffering || state.seeking)
+  const time = state.currentTime
+  const undoable = skipped !== undefined && time >= skipped.to && time < skipped.to + SPONSOR_NOTICE
+  const upcoming = undoable
+    ? undefined
+    : segments.find(part => !excused.current.has(part) && part.start > time && part.start - time <= SPONSOR_NOTICE)
 
   return (
     <div
@@ -470,10 +564,24 @@ const VideoPlayer = (
             onAutoplay={upNext?.onAutoplay}
             isLive={isLive}
             chapters={chapters}
+            segments={segments}
             visible={active || state.paused}
           />
         )
         : undefined}
+      {video && !status && undoable
+        ? <button type='button' className='sponsor-skip' onClick={undo}>Undo</button>
+        : video && !status && upcoming
+          ? (
+            <button
+              type='button'
+              className='sponsor-skip'
+              onClick={() => skip(video, skipTarget(segments, upcoming.start, excused.current) ?? upcoming.end)}
+            >
+              Skip sponsor
+            </button>
+          )
+          : undefined}
       {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
     </div>
   )

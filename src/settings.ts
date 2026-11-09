@@ -14,6 +14,7 @@ export type Settings = {
   captionsLanguage?: string
   theater: boolean
   showDislikes: boolean
+  skipSponsors: boolean
   guideCollapsed: boolean
   // off for good once dismissed: an offer that keeps coming back after being declined is an ad
   suggestExtension: boolean
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   captionsEnabled: false,
   theater: false,
   showDislikes: true,
+  skipSponsors: true,
   guideCollapsed: false,
   suggestExtension: true,
 }
@@ -63,6 +65,7 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
     captionsLanguage: typeof captionsLanguage === 'string' ? captionsLanguage : undefined,
     theater: typeof stored.theater === 'boolean' ? stored.theater : DEFAULT_SETTINGS.theater,
     showDislikes: typeof stored.showDislikes === 'boolean' ? stored.showDislikes : DEFAULT_SETTINGS.showDislikes,
+    skipSponsors: typeof stored.skipSponsors === 'boolean' ? stored.skipSponsors : DEFAULT_SETTINGS.skipSponsors,
     guideCollapsed: typeof stored.guideCollapsed === 'boolean' ? stored.guideCollapsed : DEFAULT_SETTINGS.guideCollapsed,
     suggestExtension: typeof stored.suggestExtension === 'boolean' ? stored.suggestExtension : DEFAULT_SETTINGS.suggestExtension,
     extensionSeen: typeof stored.extensionSeen === 'boolean' ? stored.extensionSeen : undefined,

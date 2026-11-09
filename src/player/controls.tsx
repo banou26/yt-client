@@ -5,6 +5,7 @@ import { Captions, CaptionsOff, Check, Maximize, Minimize, Pause, PictureInPictu
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { SkipSegment } from './sponsorblock'
 import type { PlayerState } from './use-player-state'
 
 import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
@@ -93,6 +94,14 @@ const style = css`
 
   .played {
     background: var(--brand-red);
+  }
+
+  /* SponsorBlock's own colour for sponsors */
+  .sponsor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: #00d400;
   }
 
   .knob {
@@ -410,12 +419,13 @@ type ControlsProps = {
   visible: boolean
   isLive?: boolean
   chapters?: readonly PlayerChapter[]
+  segments?: readonly SkipSegment[]
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
-    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [],
+    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], segments = [],
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -557,6 +567,15 @@ export const PlayerControls = (
         <div className='rail' ref={railRef}>
           <div className='buffered' style={{ width: `${buffered * 100}%` }} />
           <div className='played' style={{ width: `${played * 100}%` }} />
+          {duration > 0
+            ? segments.map((part, index) => (
+              <div
+                key={index}
+                className='sponsor'
+                style={{ left: `${(part.start / duration) * 100}%`, width: `${((Math.min(part.end, duration) - part.start) / duration) * 100}%` }}
+              />
+            ))
+            : undefined}
           <div className='knob' style={{ left: `${played * 100}%` }} />
         </div>
         {hover

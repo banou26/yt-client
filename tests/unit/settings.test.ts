@@ -69,3 +69,15 @@ describe('the dislike counts setting', () => {
     expect((await load({ showDislikes: 0 })).getSettings().showDislikes).toBe(true)
   })
 })
+
+describe('the Skip sponsors setting', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('is on until turned off', async () => {
+    expect((await load()).getSettings().skipSponsors).toBe(true)
+    expect((await load({ skipSponsors: 'no' })).getSettings().skipSponsors).toBe(true)
+    expect((await load({ skipSponsors: false })).getSettings().skipSponsors).toBe(false)
+  })
+})

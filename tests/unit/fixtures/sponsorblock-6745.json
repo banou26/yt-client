@@ -1,0 +1,74 @@
+[
+ {
+  "videoID": "ZLQrZseRlew",
+  "segments": [
+   {
+    "category": "sponsor",
+    "actionType": "skip",
+    "segment": [
+     0,
+     15.219791
+    ],
+    "UUID": "80149c194e8ea5694e5dd903887864e8a020a82fc243f4e9215cd3af9f460ba5",
+    "videoDuration": 0,
+    "locked": 0,
+    "votes": 1,
+    "description": ""
+   }
+  ]
+ },
+ {
+  "videoID": "uoWOU4aVgJ4",
+  "segments": [
+   {
+    "category": "sponsor",
+    "actionType": "skip",
+    "segment": [
+     0.999,
+     82.518
+    ],
+    "UUID": "52328e8a27a31bdcd421e4b4d55d629e4061655d1e07be7f20f233f7d88179377",
+    "videoDuration": 566.021,
+    "locked": 0,
+    "votes": 1,
+    "description": ""
+   }
+  ]
+ },
+ {
+  "videoID": "dgNZStXsYwo",
+  "segments": [
+   {
+    "category": "sponsor",
+    "actionType": "skip",
+    "segment": [
+     3.35,
+     13.363
+    ],
+    "UUID": "55b8b7e8ad0c856ecdc992a43e3f97a65ba6ebc72b14f76199f121ee4bbf6c1a3",
+    "videoDuration": 134.801,
+    "locked": 0,
+    "votes": 0,
+    "description": ""
+   }
+  ]
+ },
+ {
+  "videoID": "2UG04RqWD8E",
+  "segments": [
+   {
+    "category": "sponsor",
+    "actionType": "skip",
+    "segment": [
+     26.743,
+     93.672
+    ],
+    "UUID": "fcd38c7f1b5932ef305144a512ef5125e23196564b23ae99d7267c72232419b97",
+    "videoDuration": 1521.961,
+    "locked": 0,
+    "votes": 1,
+    "description": ""
+   }
+  ]
+ }
+]
