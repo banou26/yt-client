@@ -87,6 +87,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           thumbnail
           videoCountText
           updatedText
+          channel { id name }
         }
         cursor
       }
@@ -767,7 +768,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
                           thumbnail={playlist.thumbnail}
                           videoCountText={playlist.videoCountText}
                           updatedText={playlist.updatedText}
-                          channelName={activeTab === 'SHOWS' ? channel?.name : undefined}
+                          channelName={activeTab === 'SHOWS' ? playlist.channel?.name : undefined}
                         />
                       ))}
                     </div>

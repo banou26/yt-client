@@ -48,4 +48,12 @@ describe('a channel\'s shows', () => {
     ])
     expect(page.videos.playlists[0]?.thumbnail).toContain('i.ytimg.com/vi/ifI_fwg55k8/')
   })
+
+  it('credits each show to the channel its own byline names', async () => {
+    const page = await sourceFor(fixture.shows).channel(MKBHD, 'SHOWS')
+    expect(page.videos.playlists.map((show) => show.channel && { id: show.channel.id, name: show.channel.name })).toEqual([
+      { id: MKBHD, name: 'Marques Brownlee' },
+      { id: MKBHD, name: 'Marques Brownlee' },
+    ])
+  })
 })
