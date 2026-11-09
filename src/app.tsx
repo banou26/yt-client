@@ -120,6 +120,10 @@ const ChannelTabRedirect = ({ base, tab }: { base: string, tab?: string }) => {
   return <Redirect to={mapped === 'HOME' ? base : `${base}?${new URLSearchParams({ tab: mapped })}`} replace />
 }
 
+// `path` is youtube.com's channel address without its slash, `c/<name>` or `user/<name>`, which the source resolves as it does an @handle
+const ChannelPathRoute = ({ path, tab }: { path: string, tab?: string }) =>
+  tab === undefined ? <ChannelPage params={{ channelId: path }} /> : <ChannelTabRedirect base={`/${path}`} tab={tab} />
+
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
   useEffect(() => {
@@ -214,6 +218,12 @@ export const App = () => {
               <Route path='/signin' component={SignInPage} />
               <Route path='/search/:query' component={LegacySearchRedirect} />
               <Route path='/watch/:videoId' component={LegacyWatchRedirect} />
+              <Route path='/c/:name/:tab?'>
+                {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`c/${params.name}`} tab={params.tab} />}
+              </Route>
+              <Route path='/user/:name/:tab?'>
+                {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`user/${params.name}`} tab={params.tab} />}
+              </Route>
               {/* claims the whole segment because wouter's parser never matches `/@:handle`, so it MUST stay declared after every real single-segment route: Switch takes the first match, and this can then only see paths nothing else wanted */}
               <Route path='/:segment'>
                 {(params: { segment?: string }) => params.segment?.startsWith('@')

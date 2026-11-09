@@ -509,6 +509,9 @@ const landedTab = (feed: ChannelFeed): SourceChannelTab | undefined => {
   return CHANNEL_TABS.find((entry) => entry.path === path)?.tab ?? 'HOME'
 }
 
+// youtube.com's addresses for a channel other than /channel/<UC id>, which have to be resolved to it first
+const CHANNEL_PATH = /^(?:@|c\/|user\/)/
+
 const HOME_SHELVES = new Set(['Shelf', 'ReelShelf', 'RichShelf', 'HorizontalCardList'])
 
 // Walked rather than read off the memo, which files shelves and Shorts shelves under separate keys and so loses their order.
@@ -708,23 +711,23 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
   const CHANNEL_TTL_MS = 60_000
   const channelFetches = new Map<string, { at: number, result: Promise<ChannelFeed> }>()
 
-  const resolveHandle = async (handle: string) => {
+  const resolveChannelPath = async (path: string) => {
     const endpoint = await (await client)
-      .resolveURL(`https://www.youtube.com/${handle}`)
+      .resolveURL(`https://www.youtube.com/${path}`)
       .catch((error: unknown) => {
         // youtubei.js names only the status of a failed request
         throw error instanceof Error && error.message.endsWith('status code 404') ? new Error(CHANNEL_NOT_FOUND, { cause: error }) : error
       })
     const browseId = (endpoint as { payload?: { browseId?: string } }).payload?.browseId
-    if (!browseId) throw new Error(`youtube: ${handle} does not resolve to a channel`)
+    if (!browseId) throw new Error(`youtube: /${path} does not resolve to a channel`)
     return browseId
   }
 
   const fetchChannel = async (id: string) => {
     const cached = channelFetches.get(id)
     if (cached && Date.now() - cached.at < CHANNEL_TTL_MS) return cached.result
-    const result = id.startsWith('@')
-      ? resolveHandle(id).then((browseId) => (client).then((active) => active.getChannel(browseId)))
+    const result = CHANNEL_PATH.test(id)
+      ? resolveChannelPath(id).then((browseId) => (client).then((active) => active.getChannel(browseId)))
       : (await client).getChannel(id)
     channelFetches.set(id, { at: Date.now(), result })
     void result.catch(() => {

@@ -543,7 +543,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
     if (next.get(param) === value) next.delete(param)
     else next.set(param, value)
     const rest = next.toString()
-    navigate(rest ? `/channel/${id}?${rest}` : `/channel/${id}`)
+    navigate(rest ? `${location}?${rest}` : location)
   }
 
   const activeTab = data?.channel.tab
@@ -568,7 +568,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
     const value = searchRef.current?.value.trim()
     if (!value) return
     setSearching(false)
-    navigate(`/channel/${id}?${new URLSearchParams({ tab: 'SEARCH', query: value })}`)
+    navigate(`${location}?${new URLSearchParams({ tab: 'SEARCH', query: value })}`)
   }
 
   const [aboutOpen, setAboutOpen] = useState(false)

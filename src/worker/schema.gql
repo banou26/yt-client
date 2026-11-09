@@ -631,7 +631,8 @@ type Query {
   video(id: ID!): Video
   # `tab` defaults to the channel's own landing tab. `query` only applies to the
   # SEARCH tab and is ignored elsewhere. `sort` is one of the page's own
-  # `sortOptions` labels.
+  # `sortOptions` labels. `id` may also be a youtube.com channel path without
+  # its leading slash: `@handle`, `c/<name>` or `user/<name>`.
   channel(id: ID!, tab: ChannelTab, sort: String, query: String, cursor: String): ChannelPage!
   # Null when the channel publishes no About panel, which is an ordinary state
   # rather than a failure: `ChannelPage.availableTabs` is what says whether to

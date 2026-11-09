@@ -668,6 +668,17 @@ describe('youtube source', () => {
     expect(client.calls.some((call) => call.startsWith('resolveURL:'))).toBe(false)
   })
 
+  it('resolves youtube.com\'s older /c/ and /user/ channel addresses the same way', async () => {
+    const client = createFakeClient()
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    await source.channel('c/mkbhd')
+    await source.channel('user/marquesbrownlee')
+    expect(client.calls.filter((call) => call.startsWith('resolveURL:'))).toEqual([
+      'resolveURL:https://www.youtube.com/c/mkbhd',
+      'resolveURL:https://www.youtube.com/user/marquesbrownlee',
+    ])
+  })
+
   it('keeps continuations opaque and replayable', async () => {
     const client = createFakeClient()
     let continuationCalls = 0

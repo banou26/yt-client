@@ -423,6 +423,7 @@ export type Source = {
   // Not an InnerTube call: every keystroke that reaches it is a tunneled round trip, so the caller is expected to debounce
   searchSuggestions(query: string, previousQuery?: string): Promise<string[]>
   video(id: string): Promise<SourceVideo | undefined>
+  // `id` is a UC id or a youtube.com channel path without its leading slash: `@handle`, `c/<name>` or `user/<name>`
   channel(id: string, tab?: SourceChannelTab, sort?: string, query?: string, cursor?: string): Promise<SourceChannelPage>
   channelAbout(id: string): Promise<SourceChannelAbout | undefined>
   communityPosts(channelId: string, cursor?: string): Promise<SourcePostPage>
