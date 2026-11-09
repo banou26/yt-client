@@ -78,7 +78,8 @@ const selectsOther = (text: string, pageId: string) => {
  * X-Goog-PageId, the one header youtube.com's own client sends for it, and the signed-in playback registration goes to
  * www.youtube.com with it, as youtubei.js sends that one. Alone the header picks the channel of the InnerTube reads
  * measured (accounts_list and browse, 2026-11-06); that it does the same for writes is inferred from youtube.com
- * sending it on them too. A signed-out call, and every other call, goes out untouched.
+ * sending it on them too. A signed-out call, and every other call, goes out untouched. It acts as the channel only
+ * while the app's storage still holds `pageId`, so a sign-out or a new sign-in in another tab stops it at once.
  *
  * accounts_list keeps the channel honest: an answer that selects another row drops it, and a `loggedOut` answer to it,
  * which is how YouTube answers a page ID another Google login owns (measured 2026-11-06), drops it and asks once more
@@ -91,7 +92,7 @@ export const actAsChannel = (egressFetch: EgressFetch, pageId: string): EgressFe
     forgetChannel(sent)
   }
   return async (url, options, signal) => {
-    const sent = channel
+    const sent = channel !== undefined && readChannel() === channel ? channel : undefined
     const target = sent && carriesAccount(options.headers) ? channelTarget(url) : undefined
     if (!sent || !target) return egressFetch(url, options, signal)
     const asChannel = { ...options, headers: { ...options.headers, 'x-goog-pageid': sent } }

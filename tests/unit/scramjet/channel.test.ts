@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
+import type { EgressFetch } from '../../../src/scramjet/channel'
 import type { TransportRequest } from '../../../src/scramjet/protocol'
 
 import { actAsChannel, CHANNEL_KEY, forgetChannel, readChannel, storeChannel } from '../../../src/scramjet/channel'
@@ -89,6 +90,7 @@ describe('the egress, as a brand channel', () => {
 
   beforeEach(() => {
     store = stubStorage()
+    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
   })
 
   afterEach(() => vi.unstubAllGlobals())
@@ -128,18 +130,18 @@ describe('the egress, as a brand channel', () => {
   })
 
   it('reads a loggedOut answer to a channel as an id of another login: drops the channel and asks once more without it', async () => {
-    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
     const own = accountsListAnswer([{ name: 'Viewer', handle: '@viewer', selected: true }])
-    const { pageIds, egressFetch } = egress(LOGGED_OUT, own)
+    const { sent, pageIds, egressFetch } = egress(LOGGED_OUT, own)
     const fetch = actAsChannel(egressFetch, BRAND_PAGE_ID)
     expect(await new Response((await listAccounts(fetch)).body).json()).toEqual(own)
     expect(store.has(CHANNEL_KEY)).toBe(false)
+    expect(sent[1]).toEqual({ url: ACCOUNTS_LIST, options: post(SIGNED_IN) })
+    expect(new TextDecoder().decode(sent[1]!.options.body as ArrayBuffer)).toBe('{"context":{}}')
     await fetch(BROWSE, post(SIGNED_IN), undefined)
     expect(pageIds()).toEqual([BRAND_PAGE_ID, undefined, undefined])
   })
 
   it('hands on the second loggedOut answer, which says the session ended, with no channel kept', async () => {
-    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
     const { pageIds, egressFetch } = egress(LOGGED_OUT)
     const fetch = actAsChannel(egressFetch, BRAND_PAGE_ID)
     expect(await new Response((await listAccounts(fetch)).body).json()).toEqual(LOGGED_OUT)
@@ -148,7 +150,6 @@ describe('the egress, as a brand channel', () => {
   })
 
   it("drops a channel the answer does not select, which YouTube answers as the account's own", async () => {
-    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
     const answer = accountsListAnswer(twoChannels('own'))
     const { pageIds, egressFetch } = egress(answer)
     const fetch = actAsChannel(egressFetch, BRAND_PAGE_ID)
@@ -159,7 +160,6 @@ describe('the egress, as a brand channel', () => {
   })
 
   it('keeps the channel the answer selects, and keeps it through an error and an answer that lists no row', async () => {
-    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
     const { pageIds, egressFetch } = egress(accountsListAnswer(twoChannels('brand')), { error: { code: 500 } }, accountsListAnswer([]))
     const fetch = actAsChannel(egressFetch, BRAND_PAGE_ID)
     await listAccounts(fetch)
@@ -170,15 +170,30 @@ describe('the egress, as a brand channel', () => {
     expect(pageIds()).toEqual([BRAND_PAGE_ID, BRAND_PAGE_ID, BRAND_PAGE_ID, BRAND_PAGE_ID])
   })
 
-  it('leaves a channel picked since in another tab stored when it drops its own', async () => {
-    store.set(CHANNEL_KEY, OTHER_PAGE_ID)
-    const { egressFetch } = egress(accountsListAnswer(twoChannels('own')))
-    await listAccounts(actAsChannel(egressFetch, BRAND_PAGE_ID))
+  it('leaves a channel picked in another tab while its answer was on the way stored when it drops its own', async () => {
+    const { pageIds, egressFetch } = egress(accountsListAnswer(twoChannels('own')))
+    const pickedElsewhere: EgressFetch = async (url, options) => {
+      store.set(CHANNEL_KEY, OTHER_PAGE_ID)
+      return egressFetch(url, options)
+    }
+    await listAccounts(actAsChannel(pickedElsewhere, BRAND_PAGE_ID))
+    expect(pageIds()).toEqual([BRAND_PAGE_ID])
     expect(store.get(CHANNEL_KEY)).toBe(OTHER_PAGE_ID)
   })
 
+  it('stops sending the channel once storage no longer holds it, as after a sign-out or a sign-in in another tab', async () => {
+    const { sent, pageIds, egressFetch } = egress(accountsListAnswer(twoChannels('brand')))
+    const fetch = actAsChannel(egressFetch, BRAND_PAGE_ID)
+    await fetch(BROWSE, post(SIGNED_IN), undefined)
+    store.delete(CHANNEL_KEY)
+    await fetch(BROWSE, post(SIGNED_IN), undefined)
+    await fetch(PING, { method: 'POST', headers: { cookie: JAR } }, undefined)
+    await listAccounts(fetch)
+    expect(pageIds()).toEqual([BRAND_PAGE_ID, undefined, undefined, undefined])
+    expect(sent[2]!.url).toBe(PING)
+  })
+
   it('reads no signed-out accounts_list answer, and keeps the channel through it', async () => {
-    store.set(CHANNEL_KEY, BRAND_PAGE_ID)
     const { sent, egressFetch } = egress(LOGGED_OUT)
     await actAsChannel(egressFetch, BRAND_PAGE_ID)(ACCOUNTS_LIST, post(SIGNED_OUT), undefined)
     expect(sent).toHaveLength(1)
