@@ -96,10 +96,13 @@ const SearchRedirect = ({ query }: { query: string }) => (
   <Redirect to={`/results?${new URLSearchParams({ search_query: query })}`} replace />
 )
 
-// an embed's `start` is the watch page's `t`
+// an embed's `start` is the watch page's `t`, and `/embed/videoseries?list=<id>` is the embed of a whole playlist
 const WatchRedirect = ({ videoId }: { videoId: string }) => {
   const query = new URLSearchParams(useSearch())
+  const list = query.get('list')
+  if (videoId === 'videoseries' && list) return <Redirect to={`/playlist?${new URLSearchParams({ list })}`} replace />
   const watch = new URLSearchParams({ v: safeDecode(videoId) })
+  if (list) watch.set('list', list)
   const at = query.get('t') ?? query.get('start')
   if (at) watch.set('t', at)
   return <Redirect to={`/watch?${watch}`} replace />

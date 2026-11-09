@@ -13,6 +13,16 @@ test('opens an embed address, /embed/<id>, on the watch page at its start', asyn
   await expect(page).toHaveURL('/watch?v=dQw4w9WgXcQ&t=42')
 })
 
+test('opens a playlist\'s embed on the playlist, and an embed inside a playlist on the watch page in it', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/embed/videoseries?list=PLBsP89CPrMeNIuvr9j3_EQaMwaNJ6rhuQ')
+  await expect(page).toHaveURL('/playlist?list=PLBsP89CPrMeNIuvr9j3_EQaMwaNJ6rhuQ')
+  await expect(page.locator('main h1')).toHaveText('Retro Tech S2', { timeout: 120_000 })
+
+  await page.goto('/embed/MhKiMPiZOdE?list=PLBsP89CPrMeNIuvr9j3_EQaMwaNJ6rhuQ&start=30')
+  await expect(page).toHaveURL('/watch?v=MhKiMPiZOdE&list=PLBsP89CPrMeNIuvr9j3_EQaMwaNJ6rhuQ&t=30')
+})
+
 test('opens /c/<name> on the channel, and its tabs under the same address', async ({ page }) => {
   test.setTimeout(180_000)
   await page.goto('/c/mkbhd')
