@@ -1,8 +1,8 @@
 import type { PlayerChapter } from '../player/chapters'
 
 import { css } from '@emotion/react'
-import { X } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'preact/hooks'
+import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { clock } from '../player/controls'
@@ -299,3 +299,115 @@ export const ChapterCards = (
     </Rail>
   </div>
 )
+
+const stripStyle = css`
+  margin-top: 1.2rem;
+  border-radius: 0.8rem;
+  background: var(--bg-chip);
+  color: var(--text-primary);
+
+  .strip-head {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: 100%;
+    min-height: 3.6rem;
+    padding: 0.4rem 1.2rem 0.4rem 0.8rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .strip-thumb {
+    flex: none;
+    width: 5.2rem;
+    height: 2.8rem;
+    border-radius: 0.4rem;
+    object-fit: cover;
+  }
+
+  .strip-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .strip-count {
+    margin-right: 0.6rem;
+    font-weight: 500;
+  }
+
+  .strip-names {
+    color: var(--text-secondary);
+  }
+
+  .strip-head svg {
+    flex: none;
+  }
+
+  &.open {
+    padding-bottom: 0.8rem;
+  }
+
+  &.open .strip-head {
+    padding: 0.4rem 0.4rem 0.4rem 1.6rem;
+    font-size: 1.4rem;
+    line-height: 2rem;
+    color: var(--text-secondary);
+  }
+
+  .strip-toggle {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--bg-chip-hover);
+    color: var(--text-primary);
+  }
+
+  &.open .cards {
+    padding: 0 1.6rem;
+  }
+`
+
+/** A search row's chapters: their count and names on one line, which opens on their cards. */
+export const ChapterStrip = (
+  { videoId, chapters, title }: { videoId: string, chapters: readonly PlayerChapter[], title?: string | null },
+) => {
+  const [open, setOpen] = useState(false)
+  if (open) {
+    return (
+      <div css={stripStyle} className='open'>
+        <button type='button' className='strip-head' aria-expanded='true' onClick={() => setOpen(false)}>
+          <span className='strip-text'>{title ?? `${chapters.length} chapters in this video`}</span>
+          <span className='strip-toggle'><ChevronUp size={24} strokeWidth={1.5} /></span>
+        </button>
+        <div className='cards'>
+          <ChapterCards videoId={videoId} chapters={chapters} />
+        </div>
+      </div>
+    )
+  }
+  const still = chapters[0]?.thumbnail
+  return (
+    <div css={stripStyle}>
+      <button type='button' className='strip-head' aria-expanded='false' onClick={() => setOpen(true)}>
+        {still ? <img className='strip-thumb' src={still} alt='' loading='lazy' /> : undefined}
+        <span className='strip-text'>
+          <span className='strip-count'>{`${chapters.length} chapters`}</span>
+          <span className='strip-names'>{chapters.map(chapter => chapter.title).join(' | ')}</span>
+        </span>
+        <ChevronDown size={24} strokeWidth={1.5} />
+      </button>
+    </div>
+  )
+}

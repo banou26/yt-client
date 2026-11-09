@@ -9,6 +9,7 @@ import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { ChapterStrip } from '../components/chapters'
 import { formatDuration, formatMeta } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
 import { SearchCard } from '../components/search-card'
@@ -98,6 +99,8 @@ const SEARCH_RESULTS_QUERY = gql(`
     isUpcoming
     badges
     channel { id name avatar isVerified isVerifiedArtist }
+    chapters { title startSeconds thumbnail }
+    chaptersTitle
   }
 `)
 
@@ -692,6 +695,9 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
           )
           : undefined}
         {snippet ? <p className='description'>{snippet}</p> : undefined}
+        {row.chapters?.length
+          ? <ChapterStrip videoId={row.id} chapters={row.chapters} title={row.chaptersTitle} />
+          : undefined}
       </div>
     </article>
   )

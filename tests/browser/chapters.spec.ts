@@ -183,3 +183,23 @@ test('opens the chapter list under the player at 412 px, where the bar has no ro
   expect(list!.y).toBeGreaterThan(frame!.y + frame!.height)
   expect(list!.y + list!.height).toBeLessThan(title!.y)
 })
+
+test('a search row lists its chapters on one line, and opens on cards that start the video at each', async ({ page }) => {
+  await page.goto('/settings')
+  await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/chapters-harness.tsx'
+    const { mountStrip } = await import(harness) as { mountStrip: () => void }
+    mountStrip()
+  })
+  const strip = page.locator('[data-chapters-harness]')
+  const head = strip.getByRole('button', { expanded: false })
+  await expect(head).toHaveText('3 chaptersIntro | Disassembly | Cartridge Replacement')
+  await head.click()
+  await expect(strip.getByRole('button', { expanded: true })).toHaveText('3 auto-generated chapters in this video')
+  await expect(strip.locator('a.card')).toHaveCount(3)
+  expect(await strip.locator('a.card').evaluateAll(cards => cards.map(card => card.getAttribute('href')))).toEqual([
+    '/watch?v=C3zuzzDLLck',
+    '/watch?v=C3zuzzDLLck&t=50s',
+    '/watch?v=C3zuzzDLLck&t=140s',
+  ])
+})
