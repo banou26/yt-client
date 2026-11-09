@@ -861,6 +861,7 @@ type CardAction = {
 }
 
 type OfficialCardNode = {
+  type?: string
   header?: {
     title?: { text?: Text }
     image?: { image?: Thumbnail[] }
@@ -882,6 +883,7 @@ const normalizeMixLockup = (input: unknown): SourceMix | undefined => {
 // "not subscribed", so the state is left absent there: an absent state is what makes the button sign in.
 export const normalizeSearchCard = (input: unknown, mutations?: EntityMutation[]): SourceSearchCard | undefined => {
   const card = input as OfficialCardNode
+  if (card.type !== 'OfficialCardView') return undefined
   const header = card.header
   const actions = header?.actions?.actions_rows?.flatMap((row) => row.actions ?? []) ?? []
   const subscribe = actions.find((action) => action.type === 'SubscribeButtonView')

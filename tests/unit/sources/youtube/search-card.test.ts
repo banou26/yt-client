@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vite-plus/test'
 import { Parser, YT, YTNodes } from 'youtubei.js'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
+import { normalizeSearchCard } from '../../../../src/sources/youtube/normalize'
 import fixture from '../../fixtures/search-rick-astley.json'
 
 /* search-rick-astley.json is the signed-out search for "rick astley" captured on 2026-11-09, cut to the artist card (its
@@ -13,11 +14,11 @@ import fixture from '../../fixtures/search-rick-astley.json'
    stripped of tracking, playback and visitor fields. It runs through the real upstream parser, which is what proves the
    youtubei.js patch in patches/ is applied: without it the card is a class built at runtime and logged as missing. */
 
-const sourceFor = (response: unknown = fixture) => createYoutubeSource({
+const parse = (response: unknown = fixture) => new YT.Search(undefined as never, Parser.parseResponse(response as never), true)
+
+const sourceFor = (response?: unknown) => createYoutubeSource({
   fetch: globalThis.fetch,
-  createClient: async () => ({
-    search: async () => new YT.Search(undefined as never, Parser.parseResponse(response as never), true),
-  }) as never,
+  createClient: async () => ({ search: async () => parse(response) }) as never,
 })
 
 const search = async (response?: unknown) => (await sourceFor(response).search('rick astley')).results
@@ -37,9 +38,16 @@ const signedIn = (subscribed: boolean): unknown => JSON.parse(
 describe('search for an artist', () => {
   it('parses the card with the patched classes rather than ones built at runtime', () => {
     const patched = YTNodes as unknown as Record<string, abstract new (...args: never[]) => unknown>
-    const results = new YT.Search(undefined as never, Parser.parseResponse(fixture as never), true).results
+    const results = parse().results
     expect(results[0]).toBeInstanceOf(patched.OfficialCardView!)
     expect((results[0] as unknown as { contents: unknown[] }).contents[0]).toBeInstanceOf(patched.HorizontalShelfView!)
+  })
+
+  it('reads a card only off an OfficialCardView, not off another node of the same shape', () => {
+    const card = parse().results[0]!
+    expect(normalizeSearchCard(card)).toBeDefined()
+    Object.assign(card, { type: 'UniversalWatchCard' })
+    expect(normalizeSearchCard(card)).toBeUndefined()
   })
 
   it('opens on the artist card: the channel, its mix and its top videos', async () => {
