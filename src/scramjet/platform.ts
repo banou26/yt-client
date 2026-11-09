@@ -79,6 +79,46 @@ export const releaseWhenOver = (response: TransportResponse | null, release: () 
   return { ...response, body }
 }
 
+type ExtFetch = Extract<ExtFetchRequest, { type: 'fetch' }>
+
+/**
+ * Answers the extension fetches asked on `port` with `run`, and aborts one on its `cancel`. Each request's signal is
+ * also aborted once its answer is over (`releaseWhenOver`) or `run` failed, which is what lets osra let it go.
+ */
+export const serveExtFetch = (port: MessagePort, run: (request: ExtFetch, signal: AbortSignal) => Promise<TransportResponse | null>) => {
+  const aborts = new Map<number, AbortController>()
+  port.addEventListener('message', (event) => {
+    const request = event.data as ExtFetchRequest
+    if (request.type === 'cancel') {
+      aborts.get(request.id)?.abort()
+      aborts.delete(request.id)
+      return
+    }
+    const abort = new AbortController()
+    aborts.set(request.id, abort)
+    void run(request, abort.signal).then(
+      (answer) => {
+        aborts.delete(request.id)
+        const response = releaseWhenOver(answer, () => abort.abort())
+        // the response BODY transfers (a ReadableStream cannot be cloned), the REQUEST body never does: the tunnelled fallback reuses the same options object
+        port.postMessage(
+          { id: request.id, response } satisfies ExtFetchResponse,
+          response?.body ? [response.body] : [],
+        )
+      },
+      (error) => {
+        aborts.delete(request.id)
+        abort.abort()
+        port.postMessage({
+          id: request.id,
+          error: error instanceof Error ? error.message : String(error),
+        } satisfies ExtFetchResponse)
+      },
+    )
+  })
+  port.start()
+}
+
 const create = async () => {
   const worker = new Worker(new URL('./egress.worker.ts', import.meta.url), { type: 'module' })
   const relayAbort = new AbortController()
@@ -110,7 +150,7 @@ const create = async () => {
 
   let lastEgressMode: boolean | undefined
   let warnedExtFetchFailure = false
-  const runExtFetch = async (request: Extract<ExtFetchRequest, { type: 'fetch' }>, signal: AbortSignal) => {
+  const runExtFetch = async (request: ExtFetch, signal: AbortSignal) => {
     const exposed = lib.isExtensionExposed()
     if (exposed !== lastEgressMode) {
       lastEgressMode = exposed
@@ -161,39 +201,8 @@ const create = async () => {
   const openExtFetchPort = () => {
     extFetchPort?.close()
     const channel = new MessageChannel()
-    const port = channel.port1
-    extFetchPort = port
-    const aborts = new Map<number, AbortController>()
-    port.addEventListener('message', (event) => {
-      const request = event.data as ExtFetchRequest
-      if (request.type === 'cancel') {
-        aborts.get(request.id)?.abort()
-        aborts.delete(request.id)
-        return
-      }
-      const abort = new AbortController()
-      aborts.set(request.id, abort)
-      void runExtFetch(request, abort.signal).then(
-        (answer) => {
-          aborts.delete(request.id)
-          const response = releaseWhenOver(answer, () => abort.abort())
-          // the response BODY transfers (a ReadableStream cannot be cloned), the REQUEST body never does: the tunnelled fallback reuses the same options object
-          port.postMessage(
-            { id: request.id, response } satisfies ExtFetchResponse,
-            response?.body ? [response.body] : [],
-          )
-        },
-        (error) => {
-          aborts.delete(request.id)
-          abort.abort()
-          port.postMessage({
-            id: request.id,
-            error: error instanceof Error ? error.message : String(error),
-          } satisfies ExtFetchResponse)
-        },
-      )
-    })
-    port.start()
+    extFetchPort = channel.port1
+    serveExtFetch(channel.port1, runExtFetch)
     return channel.port2
   }
 
