@@ -10,12 +10,14 @@ export const resetsEngine = (error: unknown) =>
 /** Whether the frame refused the playback: it already replaced the session once, so only a later try can help. */
 export const isStreamRefusal = (error: unknown) => error instanceof Error && error.message.startsWith(STREAM_REFUSED)
 
+const REFUSAL_WAITS_MS = [5_000, 15_000, 45_000]
+
 /**
  * How many playback restarts in a row a video gets before it shows its error, and how long a refused video waits
  * before each new try. A stretch of real play in between starts both counts again, so a few hiccups over hours of a
  * live stream are not fatal.
  */
-export const createRestartBudget = (limit = 3, settleSeconds = 30, refusalWaitsMs: readonly number[] = [5_000, 15_000, 45_000]) => {
+export const createRestartBudget = (limit = 3, settleSeconds = 30) => {
   let used = 0
   let refusals = 0
   let played = 0
@@ -33,7 +35,7 @@ export const createRestartBudget = (limit = 3, settleSeconds = 30, refusalWaitsM
     refused: (): number | undefined => {
       played = 0
       last = undefined
-      return refusalWaitsMs[refusals++]
+      return REFUSAL_WAITS_MS[refusals++]
     },
     reset: () => {
       used = 0
