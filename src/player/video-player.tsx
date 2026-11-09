@@ -436,8 +436,8 @@ const VideoPlayer = (
   }
 
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, menu })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, menu }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -445,7 +445,7 @@ const VideoPlayer = (
       if (!video || event.defaultPrevented || isTypingTarget(event.target)) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       const actions = latest.current
-      if (actions.shortcuts || actions.menu) return
+      if (actions.shortcuts) return
       const key = event.key
       const handled = () => {
         event.preventDefault()
@@ -575,7 +575,8 @@ const VideoPlayer = (
         loop={loop}
         onClick={() => {
           const current = videoRef.current
-          if (!current) return
+          // a click that closes the menu only closes it, as on youtube.com
+          if (!current || menuAtPress.current) return
           if (current.paused) {
             void current.play().catch(() => {})
             flash('play')
