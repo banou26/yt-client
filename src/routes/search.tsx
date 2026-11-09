@@ -553,6 +553,49 @@ const style = css`
     font-size: 1.2rem;
   }
 
+  /* A row's own shape with nothing in it, drawn while the first page is on its way. */
+  .result-placeholder {
+    animation: search-placeholder-pulse 1.6s ease-in-out infinite;
+  }
+
+  .result-placeholder .bar {
+    display: block;
+    height: 1.6rem;
+    border-radius: 0.4rem;
+    background: var(--bg-chip);
+  }
+
+  .result-placeholder .bar-title {
+    width: 90%;
+    height: 2rem;
+    margin-top: 0.3rem;
+  }
+
+  .result-placeholder .bar-meta {
+    width: 40%;
+    margin-top: 0.8rem;
+  }
+
+  .result-placeholder .bar-channel {
+    width: 12rem;
+  }
+
+  .result-placeholder .bar-description {
+    width: 70%;
+    margin-top: 1.2rem;
+  }
+
+  @keyframes search-placeholder-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.55;
+    }
+  }
+
   @media (max-width: 900px) {
     .result,
     .result.channel-row {
@@ -575,6 +618,23 @@ const rowKey = (row: SearchRow) => {
 }
 
 type ShelfResult = Extract<SearchRow, { __typename: 'SearchShelf' }>
+
+const PLACEHOLDER_ROWS = 6
+
+const ResultPlaceholder = () => (
+  <div className='result result-placeholder' aria-hidden='true'>
+    <div className='thumb' />
+    <div>
+      <div className='bar bar-title' />
+      <div className='bar bar-meta' />
+      <div className='channel'>
+        <span className='avatar' />
+        <span className='bar bar-channel' />
+      </div>
+      <div className='bar bar-description' />
+    </div>
+  </div>
+)
 
 const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
   const prefetch = usePrefetchOnIntent(row.id)
@@ -796,7 +856,6 @@ const SearchPage = () => {
         )
         : undefined}
       {error ? <p className='status'>{error.message}</p> : undefined}
-      {fetching && items.length === 0 ? <p className='status'>Searching…</p> : undefined}
       <div className='results'>
         {items.map(row => {
           if (row.__typename === 'SearchCard') return <SearchCard key={rowKey(row)} card={row} />
@@ -858,6 +917,9 @@ const SearchPage = () => {
 
           return <VideoRow key={rowKey(row)} row={row} />
         })}
+        {fetching && items.length === 0
+          ? Array.from({ length: PLACEHOLDER_ROWS }, (_, index) => <ResultPlaceholder key={index} />)
+          : undefined}
       </div>
       {query.length > 0 && !fetching && !error && items.length === 0
         ? <p className='status'>No results found.</p>
