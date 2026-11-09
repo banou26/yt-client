@@ -139,15 +139,16 @@ export const PrivacyPage = () => {
         <h2 className='section-title'>Where requests go</h2>
         <p>
           Without the FKN browser extension, yt-client reaches YouTube's pages, API and video through FKN, the platform it
-          runs on, so YouTube sees FKN's address there rather than yours. Thumbnails and pictures are the exception,
-          and so are dislike counts and sponsor segments while they are on: your browser loads them itself, from
-          the servers listed further down.
+          runs on, so YouTube sees FKN's address there rather than yours. Your browser makes some requests itself instead,
+          to the servers listed further down: YouTube's API while yt-client is not signed in to YouTube, without your
+          youtube.com cookies; thumbnails and pictures; and dislike counts and sponsor segments while they are on.
         </p>
         <ul>
           <li>
-            YouTube's pages and API go through the FKN relay, which makes each request for you. When you are signed in,
-            your YouTube cookies go with each request. The relay keeps answers in a cache so it can serve the same request
-            again, for about an hour, less for an error. That includes answers to signed-in requests, which can hold your
+            YouTube's pages go through the FKN relay, which makes each request for you, and so does its API while you are
+            signed in, or when your browser cannot reach it. When you are signed in, your YouTube cookies go with each
+            request. The relay keeps answers in a cache so it can serve the same request again, for about an hour, less
+            for an error. That includes answers to signed-in requests, which can hold your
             details on YouTube. Each answer is sealed: it is encrypted with a key made from the whole request, cookies
             included, and filed under a digest of that request, a short fingerprint of it, not under who sent it. Only an
             identical request can find and open it.
@@ -160,9 +161,10 @@ export const PrivacyPage = () => {
           <li>Signing in goes over WebVPN the same way, with or without the extension.</li>
         </ul>
         <p>
-          With the FKN browser extension installed, requests to YouTube go from your browser through the extension when it
-          can make them, so YouTube sees your IP address. Importing your watch history needs the extension: it reads your
-          history with this browser's own youtube.com sign-in, through the extension and not through FKN.
+          With the FKN browser extension installed, the other requests to YouTube go from your browser too, through the
+          extension when it can make them, so YouTube sees your IP address. Importing your watch history needs the
+          extension: it reads your history with this browser's own youtube.com sign-in, through the extension and not
+          through FKN.
         </p>
         <p>When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at that point.</p>
         <p>
@@ -199,8 +201,8 @@ export const PrivacyPage = () => {
         <ul>
           <li>It has no account and no server of its own, and runs no analytics.</li>
           <li>
-            Nothing it keeps leaves this browser except in the requests to YouTube that need it, through FKN or the
-            extension as above, and your encrypted channel groups on your FKN account.
+            Nothing it keeps leaves this browser except in the requests to YouTube that need it, as above, and your
+            encrypted channel groups on your FKN account.
           </li>
           <li>
             Apart from the relay's sealed answers and your encrypted channel groups above, FKN keeps no copy of anything

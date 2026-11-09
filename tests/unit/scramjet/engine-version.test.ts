@@ -126,8 +126,8 @@ describe('an engine from another build', () => {
     window.fromFrame(window.frames[0]!, { type: HOST_HELLO, build: BUILD_ID })
     expect(await settled(engine)).toEqual({ pending: true })
     const [bootstrap] = bootstraps(window.frames[0]!)
-    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID })
-    expect(bootstrap?.transfer).toHaveLength(3)
+    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID, direct: true })
+    expect(bootstrap?.transfer).toHaveLength(4)
 
     const api = new MessageChannel()
     const control = new MessageChannel()

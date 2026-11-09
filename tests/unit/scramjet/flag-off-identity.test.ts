@@ -112,15 +112,16 @@ describe('the app realm and yt-client:step:y1', () => {
     agentHost.openAgentBridge.mockReturnValue(bridge.port2)
     const bootstrap = await boot()
     expect(agentHost.startAgentHost).toHaveBeenCalledTimes(1)
-    expect(bootstrap.transfer).toHaveLength(3)
+    // the direct lane, on by default, is the last port
+    expect(bootstrap.transfer).toHaveLength(4)
     expect(bootstrap.transfer[2]).toBe(bridge.port2)
     bridge.port1.close()
   })
 
-  it('hands the engine its two ports and attaches nothing, with the flag set to 0', async () => {
+  it('hands the engine no bridge and attaches nothing, with the flag set to 0', async () => {
     stubStorage({ 'yt-client:step:y1': '0' })
     const bootstrap = await boot()
-    expect(bootstrap.transfer).toHaveLength(2)
+    expect(bootstrap.transfer).toHaveLength(3)
     expect(agentHost.startAgentHost).not.toHaveBeenCalled()
     expect(agentHost.openAgentBridge).not.toHaveBeenCalled()
   })

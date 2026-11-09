@@ -23,20 +23,9 @@ const sources = import.meta.glob(
   { query: '?raw', import: 'default', eager: true },
 ) as Record<string, string>
 
-// A host these files name but the browser never loads itself: the engine frame and the sign-in window run under
-// Scramjet, whose every request goes out through FKN or the extension, and the rest only name it
+// A host these files name but the browser never loads itself: the sign-in window runs under Scramjet, whose every
+// request goes out through FKN or the extension, and the rest only name it
 const NOT_FETCHED_FROM_THE_PAGE: Record<string, string[]> = {
-  'www.youtube.com': [
-    'src/components/share-dialog.tsx',
-    'src/engine/agent-protocol.ts',
-    'src/frame/botguard.ts',
-    'src/frame/sabr.ts',
-    'src/frame/watch-page.ts',
-    'src/scramjet/fkn-transport.ts',
-    'src/scramjet/signin-window.ts',
-    'src/sources/youtube/channel-feed.ts',
-    'src/sources/youtube/index.ts',
-  ],
   'accounts.google.com': ['src/scramjet/signin-window.ts'],
   'returnyoutubedislike.com': ['src/routes/settings.tsx'],
   'yt-client.local': ['src/graphql.ts'],

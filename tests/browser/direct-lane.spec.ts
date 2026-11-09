@@ -14,7 +14,7 @@ const laneOrigin = (baseURL: string | undefined) => {
   return url.origin
 }
 
-const turnOn = (page: Page) => page.addInitScript(() => localStorage.setItem('yt-client:step:direct', '1'))
+const turnOff = (page: Page) => page.addInitScript(() => localStorage.setItem('yt-client:step:direct', '0'))
 
 type Seen = { url: string, method: string, mainFrame: boolean, headers: Record<string, string> }
 
@@ -84,10 +84,9 @@ const seedSession = async (page: Page, origin: string) => {
   await page.unroute(blank)
 }
 
-test('with the direct step on and signed out, home and a search send InnerTube from the page', async ({ page, baseURL }) => {
+test('signed out, home and a search send InnerTube from the page by default', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
   const origin = laneOrigin(baseURL)
-  await turnOn(page)
   const innertube = watchInnertube(page)
 
   await page.goto(`${origin}/`)
@@ -104,9 +103,8 @@ test('with the direct step on and signed out, home and a search send InnerTube f
   expect(innertube.proxied).toEqual([])
 })
 
-test('with the direct step on, a watch page plays and seeks', async ({ page, baseURL }) => {
+test('with the direct lane, a watch page plays and seeks', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
-  await turnOn(page)
   const innertube = watchInnertube(page)
   await page.goto(`${laneOrigin(baseURL)}/watch/dQw4w9WgXcQ`)
   const video = page.locator('video')
@@ -122,9 +120,10 @@ test('with the direct step on, a watch page plays and seeks', async ({ page, bas
   expect(innertube.proxied).toEqual([])
 })
 
-test('with the direct step off, InnerTube goes through the Scramjet frame as before (control)', async ({ page, baseURL }) => {
+test('with the direct step turned off, InnerTube goes through the Scramjet frame as before (control)', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
   const origin = laneOrigin(baseURL)
+  await turnOff(page)
   const innertube = watchInnertube(page)
   await page.goto(`${origin}/`)
   await homeSettled(page)
@@ -136,9 +135,8 @@ test('with the direct step off, InnerTube goes through the Scramjet frame as bef
   expect(innertube.proxied.some((url) => url.includes('/youtubei/v1/search'))).toBe(true)
 })
 
-test('with the direct step on and direct requests failing, a search still shows through the Scramjet frame', async ({ page, baseURL }) => {
+test('with direct requests failing, a search still shows through the Scramjet frame', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
-  await turnOn(page)
   const innertube = watchInnertube(page)
   await page.route('https://www.youtube.com/youtubei/**', (route) => route.abort('failed'))
   await page.goto(`${laneOrigin(baseURL)}/results?search_query=blender`)
@@ -148,7 +146,7 @@ test('with the direct step on and direct requests failing, a search still shows 
 })
 
 // Firefox refuses youtubei.js's preflighted shape from this origin, so this is the case the simple shape exists for
-test('in Firefox, with the direct step on, a search sends InnerTube from the page', async ({ baseURL }) => {
+test('in Firefox, a search sends InnerTube from the page', async ({ baseURL }) => {
   test.setTimeout(240_000)
   // the runner hands every browser type the config's launch options, so Chrome's executable and arguments are cleared
   const browser = await firefox.launch({
@@ -160,7 +158,6 @@ test('in Firefox, with the direct step on, a search sends InnerTube from the pag
   try {
     const page = await browser.newPage()
     await dismissFknNotice(page)
-    await turnOn(page)
     const innertube = watchInnertube(page)
     await page.goto(`${laneOrigin(baseURL)}/results?search_query=blender`)
     await searchShown(page)
@@ -174,10 +171,9 @@ test('in Firefox, with the direct step on, a search sends InnerTube from the pag
   }
 })
 
-test('with the direct step on and a YouTube session, InnerTube keeps the Scramjet frame and nothing leaves from the page', async ({ page, baseURL }) => {
+test('with a YouTube session, InnerTube keeps the Scramjet frame and nothing leaves from the page', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
   const origin = laneOrigin(baseURL)
-  await turnOn(page)
   await seedSession(page, origin)
   const innertube = watchInnertube(page)
   const signed: Promise<string | undefined>[] = []
@@ -194,7 +190,7 @@ test('with the direct step on and a YouTube session, InnerTube keeps the Scramje
 })
 
 test.describe('with the FKN extension installed', () => {
-  test('and the direct step on, a search sends InnerTube from the page and the rest through the extension', async ({ baseURL }) => {
+  test('a search sends InnerTube from the page and the rest through the extension', async ({ baseURL }) => {
     test.setTimeout(240_000)
     const build = extensionBuild(process.env)
     test.skip(build.skip !== undefined, `YT_EXTENSION_BUILD=skip: ${build.skip}`)
@@ -213,7 +209,6 @@ test.describe('with the FKN extension installed', () => {
 
       const page = await context.newPage()
       await dismissFknNotice(page)
-      await turnOn(page)
       const innertube = watchInnertube(page)
       const egress: string[] = []
       page.on('console', (message) => {

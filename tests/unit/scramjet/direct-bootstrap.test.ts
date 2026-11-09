@@ -68,8 +68,8 @@ describe('the engine bootstrap and the direct lane', () => {
     vi.unstubAllGlobals()
   })
 
-  it('hands the host no direct lane and marks it off while the step is off', async () => {
-    const window = installWindow({})
+  it('hands the host no direct lane and marks it off when the step is turned off', async () => {
+    const window = installWindow({ 'yt-client:step:direct': '0' })
     const { startEngine, resetEngine } = await import('../../../src/scramjet/client')
     void startEngine().catch(() => {})
     window.hello()
@@ -82,8 +82,8 @@ describe('the engine bootstrap and the direct lane', () => {
     resetEngine()
   })
 
-  it('hands the host the direct lane as its last port when the step is on', async () => {
-    const window = installWindow({ 'yt-client:step:direct': '1' })
+  it('hands the host the direct lane as its last port by default', async () => {
+    const window = installWindow({})
     const { startEngine, resetEngine } = await import('../../../src/scramjet/client')
     void startEngine().catch(() => {})
     window.hello()
