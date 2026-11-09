@@ -9,8 +9,9 @@ import notFound from '../../fixtures/feed-404.html?raw'
 import feed from '../../fixtures/uulf-computerphile.xml?raw'
 
 /* uulf-computerphile.xml is Computerphile's UULF feed (long uploads only) as YouTube served it on 2026-11-01.
-   feed-404.html is the feed server's answer to a feed it does not have, recorded on 2026-11-09; while the server is
-   down it gives this answer to every feed. channel-videos-blender.json is described in channel-videos.test.ts. */
+   feed-404.html is the feed server's answer to a feed it does not have, recorded on 2026-11-09; by public reports it
+   gives this answer to every feed while it is down. channel-videos-blender.json is described in
+   channel-videos.test.ts. */
 
 const CHANNEL = 'UC9-y-6csu5WGm29I7JiwpnA'
 

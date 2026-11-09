@@ -712,8 +712,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     return result
   }
 
-  // YouTube's feed server answers 404 to every feed for hours at a time (reported since 2025-12; groups.spec met it on
-  // 2026-11-06 about 01:10 UTC), so the Videos tab stands in, dated only as finely as its '6d ago'
+  // YouTube's feed server answers 404 to every feed for hours at a time (public reports since 2025-12), so the Videos
+  // tab stands in, dated only as finely as its '6d ago'
   const tabUploads = async (channelId: string): Promise<SourceVideo[]> => {
     const result = await fetchChannel(channelId)
     if (result.has_videos !== true) return []
