@@ -329,32 +329,34 @@ const sectionsStyle = css`
 `
 
 const GuideSections = () => {
-  const { signedIn } = useSession()
+  const { ready, signedIn } = useSession()
+  // until the session answers, keep the signed-in layout, so a signed-in guide never rearranges itself on load
+  const signedOut = ready && !signedIn
   return (
     <div css={sectionsStyle}>
       <div className='section'>
         {MAIN_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
-        {signedIn ? undefined : SIGNED_OUT_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
+        {signedOut ? SIGNED_OUT_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />) : undefined}
       </div>
-      {signedIn
-        ? undefined
-        : (
+      {signedOut
+        ? (
           <div className='section'>
             <button type='button' className='sign-in' onClick={signIn}>
               <CircleUserRound size={24} strokeWidth={1.5} />
               Sign in
             </button>
           </div>
-        )}
+        )
+        : undefined}
       <GroupsSection />
-      {signedIn
-        ? (
+      {signedOut
+        ? undefined
+        : (
           <div className='section'>
             <YouSectionLink />
             {YOU_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}
           </div>
-        )
-        : undefined}
+        )}
       <div className='section'>
         <div className='section-title'>Explore</div>
         {EXPLORE_ENTRIES.map(entry => <GuideLink key={entry.label} entry={entry} />)}

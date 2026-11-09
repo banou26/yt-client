@@ -36,12 +36,13 @@ test('signed out, the guide keeps You and History beside a Sign in button, and i
   await expect(guide.getByRole('link', { name: 'Privacy', exact: true })).toHaveAttribute('href', '/privacy')
 })
 
-test('signed in, the guide keeps its You section and asks no one to sign in', async ({ page }) => {
+test('signed in, the guide keeps its You section and asks no one to sign in, even before the session answers', async ({ page }) => {
   test.setTimeout(180_000)
   await page.setViewportSize({ width: 1600, height: 900 })
   await engineReady(page)
   await mountHarness(page, '/tests/browser/fixtures/guide-harness.tsx', 'mountGuide', true)
   await mountHarness(page, '/tests/browser/fixtures/guide-harness.tsx', 'mountGuide', false)
+  await mountHarness(page, '/tests/browser/fixtures/guide-harness.tsx', 'mountPendingGuide', false)
 
   const signedIn = page.locator('[data-guide-harness="signed-in"]')
   await expect(signedIn.getByRole('link', { name: 'Liked videos', exact: true })).toBeVisible()
@@ -53,6 +54,10 @@ test('signed in, the guide keeps its You section and asks no one to sign in', as
   const signedOut = page.locator('[data-guide-harness="signed-out"]')
   await expect(signedOut.getByRole('button', { name: 'Sign in' })).toBeVisible()
   await expect(signedOut.getByRole('link', { name: 'Watch later', exact: true })).toHaveCount(0)
+
+  const pending = page.locator('[data-guide-harness="pending"]')
+  await expect(pending.getByRole('link', { name: 'Liked videos', exact: true })).toBeVisible()
+  await expect(pending.getByRole('button', { name: 'Sign in' })).toHaveCount(0)
 })
 
 test('an empty Home has no lone All chip, and a Home with filters keeps All first', async ({ page }) => {
