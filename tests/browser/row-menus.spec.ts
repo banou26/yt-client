@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
@@ -94,4 +94,29 @@ test('a menu in a channel Home row opens whole and keeps its keyboard', async ({
   await menu.getByRole('menuitem', { name: 'Share' }).click()
   await expect(menu).toBeHidden()
   await expect(page.getByText(/^(Link copied to clipboard|Could not copy the link)$/)).toBeVisible()
+})
+
+const firstHomeRowButton = async (page: Page) => {
+  await page.goto('/@RickAstleyYT')
+  const row = page.locator('main section[aria-label]').filter({ has: page.locator('.shelf-rail article') }).first()
+  const tile = row.locator('article').first()
+  await expect(tile).toBeVisible({ timeout: 120_000 })
+  return { track: row.locator('.track'), more: tile.getByRole('button', { name: /^More actions for / }) }
+}
+
+test('at phone width a row menu stays inside the window', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 390, height: 844 })
+  const { track, more } = await firstHomeRowButton(page)
+  await more.scrollIntoViewIfNeeded()
+  const before = await scrollOf(track)
+
+  await more.click()
+  const menu = page.getByRole('menu', { name: /^More actions for / })
+  await expectWhole(menu)
+  expect(await scrollOf(track), 'the row scrolled').toEqual(before)
+  // too wide to line up with either edge of the button, so it is pushed inside the window, 8px from its sides
+  const panel = await menu.boundingBox()
+  expect(panel!.x).toBeGreaterThanOrEqual(8)
+  expect(panel!.x + panel!.width).toBeLessThanOrEqual(390 - 8)
 })

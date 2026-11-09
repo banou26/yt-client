@@ -83,7 +83,7 @@ const place = (panel: HTMLElement, anchor: HTMLElement, align: 'start' | 'end', 
   const left = align === 'start'
     ? (startLeft + panel.offsetWidth <= width ? startLeft : endLeft)
     : (endLeft >= 0 ? endLeft : startLeft)
-  panel.style.left = `${Math.max(0, Math.min(left, width - panel.offsetWidth))}px`
+  panel.style.left = `${Math.max(GAP, Math.min(left, width - panel.offsetWidth - GAP))}px`
 }
 
 /**
@@ -91,9 +91,9 @@ const place = (panel: HTMLElement, anchor: HTMLElement, align: 'start' | 'end', 
  *
  * With `anchor` it is drawn on document.body at a fixed position, so no scrolling row can clip it or scroll to it: it
  * opens on `side` of the anchor unless only the other side has the room, lines its `align` edge up with the anchor's
- * unless that leaves the viewport, and follows the anchor as anything scrolls or resizes. Being on the body, it takes
- * the page's palette rather than the one around the anchor, as youtube.com's menus do. `onKeyDown` is there because a
- * key pressed in it no longer reaches the anchor's ancestors.
+ * unless that leaves the viewport, keeps 8px from the viewport's sides, and follows the anchor as anything scrolls or
+ * resizes. Being on the body, it takes the page's palette rather than the one around the anchor, as youtube.com's menus
+ * do. `onKeyDown` is there because a key pressed in it no longer reaches the anchor's ancestors.
  */
 export const Popup = (
   { align = 'end', side = 'below', anchor, panelRef, onKeyDown, label, children, class: className }: {
