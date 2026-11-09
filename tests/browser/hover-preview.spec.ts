@@ -195,3 +195,24 @@ plain('a preview shows captions by default, and its CC button turns them off', a
   await expect.poll(showing).toEqual([])
   expect(new URL(page.url()).pathname).toBe('/results')
 })
+
+plain('a click on a preview moved past its start opens the video where the preview is', async ({ page }) => {
+  plain.setTimeout(240_000)
+  const card = await hoverCourse(page)
+  const preview = card.locator('[data-painted]')
+  const bar = (await card.locator('.scrubber').boundingBox())!
+  await page.mouse.click(bar.x + bar.width / 2, bar.y + bar.height - 3)
+  const duration = await card.locator('video').evaluate((element: HTMLVideoElement) => element.duration)
+  await expect.poll(() => card.locator('video').evaluate((element: HTMLVideoElement) => element.currentTime))
+    .toBeGreaterThan(duration * 0.45)
+  const at = await card.locator('video').evaluate((element: HTMLVideoElement) => element.currentTime)
+
+  await preview.click({ position: { x: 40, y: 40 } })
+  await expect(page).toHaveURL(new RegExp(`/watch\\?v=${COURSE}&t=\\d+s$`))
+  const asked = Number(/[?&]t=(\d+)s/.exec(page.url())![1])
+  expect(Math.abs(asked - at)).toBeLessThanOrEqual(5)
+  const watch = page.locator('[data-player-root] video')
+  await expect.poll(() => watch.evaluate((element: HTMLVideoElement) => element.currentTime), { timeout: 120_000 })
+    .toBeGreaterThan(asked - 1)
+  expect(await watch.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeLessThan(asked + 60)
+})

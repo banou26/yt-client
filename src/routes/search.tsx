@@ -608,7 +608,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
             />
           )
           : undefined}
-        {previewing ? <HoverPreview videoId={row.id} /> : undefined}
+        {previewing ? <HoverPreview videoId={row.id} href={watchHref} /> : undefined}
         {row.isLive
           ? <span className='badge live'>LIVE</span>
           : duration ? <span className='badge'>{duration}</span> : undefined}

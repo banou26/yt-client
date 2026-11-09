@@ -492,7 +492,7 @@ export const VideoCard = (
             />
           )
           : undefined}
-        {previewing ? <HoverPreview videoId={video.id} /> : undefined}
+        {previewing ? <HoverPreview videoId={video.id} href={watchHref} /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
           : duration ? <span className='badge'>{duration}</span> : undefined}

@@ -1,6 +1,7 @@
 import { css } from '@emotion/react'
 import { Captions, CaptionsOff, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
+import { useLocation } from 'wouter'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
 
@@ -31,6 +32,9 @@ const guard = (event: Event) => {
   event.preventDefault()
   event.stopPropagation()
 }
+
+// a preview that has played or been moved this far opens the video where it is, not at 0:00
+const CARRY_SECONDS = 10
 
 // a card wants the largest sheet that FITS, not the sharpest one `bestStoryboard` picks
 const previewStoryboard = (boards: Storyboard[], stripWidth: number) => {
@@ -264,8 +268,12 @@ const style = css`
  * Mounted only while the pointer is dwelling on the card. Failure is silent by
  * design: this is a hover affordance over a thumbnail that is already correct,
  * so an error card in its place would be worse than no preview.
+ *
+ * `href` is the card's own watch link. A plain click on the playing preview
+ * opens it at the preview's position once that is past CARRY_SECONDS.
  */
-export const HoverPreview = ({ videoId }: { videoId: string }) => {
+export const HoverPreview = ({ videoId, href }: { videoId: string, href: string }) => {
+  const [, navigate] = useLocation()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [time, setTime] = useState(0)
   const [buffered, setBuffered] = useState(0)
@@ -365,6 +373,15 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     setTime(video.currentTime)
   }
 
+  const openAtTime = (event: MouseEvent) => {
+    const at = Math.floor(videoRef.current?.currentTime ?? 0)
+    if (at < CARRY_SECONDS || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    const url = new URL(href, location.origin)
+    url.searchParams.set('t', `${at}s`)
+    navigate(url.pathname + url.search)
+  }
+
   const toggleCaption = () => {
     const next = caption ? undefined : (previewCaption(captionTracks) ?? preferredTrack(captionTracks, undefined))?.id
     setCaption(next)
@@ -396,7 +413,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     : 0
 
   return (
-    <div css={style} data-painted={painted ? '' : undefined}>
+    <div css={style} data-painted={painted ? '' : undefined} onClick={openAtTime}>
       {/* No preload='none': an element told not to preload never runs its resource selection, so the MediaSource sits at networkState 0 forever */}
       <video ref={videoRef} muted playsInline tabIndex={-1} aria-hidden='true' />
       {scrubFrame
