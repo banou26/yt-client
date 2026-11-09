@@ -1167,9 +1167,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       })
       const channel = normalizeChannel(result, id)
       const availableTabs = availableChannelTabs(result)
-      const landed = landedTab(result)
-      const selected = tab && availableTabs.includes(tab) ? tab : landed ?? defaultChannelTab(availableTabs)
-      let feed = selected === landed ? result : await openChannelTab(result, selected, query)
+      const selected = tab && availableTabs.includes(tab) ? tab : landedTab(result) ?? defaultChannelTab(availableTabs)
+      let feed = await openChannelTab(result, selected, query)
       const chips = sortChips(feed)
       const sortOptions = feed.sort_filters?.length ? feed.sort_filters : chips.map((chip) => chip.text)
       const appliedSort = sort && sortOptions.includes(sort) ? sort : undefined
