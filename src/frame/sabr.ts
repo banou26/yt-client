@@ -239,7 +239,7 @@ const readCuepoints = (payload: Uint8Array) => {
         else inner.skip(innerType)
       }
     }
-    if (id) cuepoints.push({ id, startMs: Math.floor((startTicks / timescale - playheadSec) * 1_000), durationMs: durationSec * 1_000 })
+    if (id) cuepoints.push({ id, startMs: Math.floor((startTicks / timescale - playheadSec) * 1_000), durationMs: Math.round(durationSec * 1_000) })
   }
   return cuepoints
 }

@@ -74,6 +74,7 @@ let nextStatus: number | undefined
 const refused = new Set<number>()
 // ad cuepoints by sequence: answered "backoff, no media" with a CUEPOINT_LIST until a request names the cuepoint
 const cuepoints = new Map<number, string>()
+let cuepointSeconds = 60
 // the next answer is the segment before the one its address falls in, as measured once after a refusal
 let answerBehind = false
 // every address on a segment's start is answered with the segment that ends there, as some sessions do for good
@@ -105,13 +106,13 @@ const namedCuepoints = (body: Uint8Array) => {
   }
   return named
 }
-// as the server announces a 60 s ad cuepoint, on the video track's 90 kHz clock
+// as the server announces an ad cuepoint (60 s unless a case says otherwise), on the video track's 90 kHz clock
 const cuepointList = (id: string, sequence: number) => new BinaryWriter()
   .tag(1, WireType.LengthDelimited).fork()
   .tag(1, WireType.LengthDelimited).fork()
   .tag(1, WireType.Varint).int32(1)
   .tag(2, WireType.Varint).int32(1)
-  .tag(3, WireType.Bit64).double(60)
+  .tag(3, WireType.Bit64).double(cuepointSeconds)
   .tag(4, WireType.Bit64).double(0)
   .tag(6, WireType.LengthDelimited).string(id)
   .join()
@@ -173,6 +174,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     nextStatus = undefined
     refused.clear()
     cuepoints.clear()
+    cuepointSeconds = 60
     answerBehind = false
     startsBehind = false
     asked.length = 0
@@ -375,6 +377,16 @@ describe('a live SABR session on a stream with a DVR window', () => {
     // and stops naming it once the timeline passes the cuepoint's end, as youtube.com does
     await vi.advanceTimersByTimeAsync(70_000)
     expect(asked.at(-1)!.cuepoints).toEqual([])
+    session.close()
+  })
+
+  it('names a cuepoint whose length is not a whole number of seconds', async () => {
+    cuepointSeconds = 59.9995
+    cuepoints.set(HEAD + 1, 'cue-1')
+    const session = await open()
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(listed(session)).toContain(HEAD + 1)
+    expect(asked).toContainEqual(expect.objectContaining({ cuepoints: [expect.objectContaining({ id: 'cue-1', durationMs: 60_000 })] }))
     session.close()
   })
 
