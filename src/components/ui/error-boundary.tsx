@@ -1,7 +1,9 @@
 import type { ComponentChildren } from 'preact'
 
 import { css } from '@emotion/react'
-import { useErrorBoundary } from 'preact/hooks'
+import { useErrorBoundary, useLayoutEffect } from 'preact/hooks'
+
+import { RouteLoadError } from '../lazy-route'
 
 const style = css`
   max-width: 56rem;
@@ -11,18 +13,10 @@ const style = css`
   background: var(--bg-subtle);
   text-align: center;
 
-  h2 {
-    margin: 0 0 0.8rem;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
   p {
     margin: 0 0 1.6rem;
     font-size: 1.4rem;
-    color: var(--text-secondary);
-    overflow-wrap: anywhere;
+    color: var(--text-primary);
   }
 
   button {
@@ -39,14 +33,22 @@ const style = css`
 `
 
 export const ErrorBoundary = ({ children }: { children: ComponentChildren }) => {
-  const [error, reset] = useErrorBoundary()
+  const [error, reset] = useErrorBoundary(caught => console.error('yt-client: the page failed', caught))
+  const loadFailed = error instanceof RouteLoadError
+
+  // youtube.com retries its offline page by itself once the browser is back online; a layout effect, because a plain
+  // one waits for a paint and misses a connection that comes back as the line shows
+  useLayoutEffect(() => {
+    if (!loadFailed) return
+    addEventListener('online', reset)
+    return () => removeEventListener('online', reset)
+  }, [loadFailed, reset])
 
   if (!error) return <>{children}</>
 
   return (
     <div css={style} role='alert'>
-      <h2>Something went wrong</h2>
-      <p>{error instanceof Error ? error.message : String(error)}</p>
+      <p>{loadFailed ? 'You\'re offline. Check your connection.' : 'Something went wrong.'}</p>
       <button type='button' onClick={reset}>Try again</button>
     </div>
   )

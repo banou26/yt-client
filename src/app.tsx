@@ -1,34 +1,35 @@
 import type { ChannelTab } from './generated/graphql'
 
 import { css } from '@emotion/react'
-import { lazy, Suspense } from 'preact/compat'
+import { Suspense } from 'preact/compat'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Redirect, Route, Switch, useLocation, useSearch } from 'wouter'
 
 import { safeDecode } from './components/format'
 import Guide from './components/guide'
 import Header from './components/header'
+import { lazyRoute } from './components/lazy-route'
 import ErrorBoundary from './components/ui/error-boundary'
 import PersistentPlayer from './player/persistent-player'
 import HomePage from './routes/home'
 import { getSettings, updateSettings } from './settings'
 
 // HomePage is deliberately static while every other route is lazy: routing the landing page through Suspense would put a chunk fetch in front of the very first paint, the one navigation with no previous page to keep showing
-const ChannelPage = lazy(() => import('./routes/channel'))
-const FeedGroupsPage = lazy(() => import('./routes/feed-groups'))
-const FeedHistoryPage = lazy(() => import('./routes/feed-history'))
-const FeedPlaylistsPage = lazy(() => import('./routes/feed-playlists'))
-const FeedSubscriptionsPage = lazy(() => import('./routes/feed-subscriptions'))
-const FeedYouPage = lazy(() => import('./routes/feed-you'))
-const GroupPage = lazy(() => import('./routes/group'))
-const PlaylistPage = lazy(() => import('./routes/playlist'))
-const PrivacyPage = lazy(() => import('./routes/privacy'))
-const SearchPage = lazy(() => import('./routes/search'))
-const SettingsPage = lazy(() => import('./routes/settings'))
-const AccountPage = lazy(() => import('./routes/account'))
-const ShortsPage = lazy(() => import('./routes/shorts'))
-const SignInPage = lazy(() => import('./routes/signin'))
-const WatchPage = lazy(() => import('./routes/watch'))
+const ChannelPage = lazyRoute(() => import('./routes/channel'))
+const FeedGroupsPage = lazyRoute(() => import('./routes/feed-groups'))
+const FeedHistoryPage = lazyRoute(() => import('./routes/feed-history'))
+const FeedPlaylistsPage = lazyRoute(() => import('./routes/feed-playlists'))
+const FeedSubscriptionsPage = lazyRoute(() => import('./routes/feed-subscriptions'))
+const FeedYouPage = lazyRoute(() => import('./routes/feed-you'))
+const GroupPage = lazyRoute(() => import('./routes/group'))
+const PlaylistPage = lazyRoute(() => import('./routes/playlist'))
+const PrivacyPage = lazyRoute(() => import('./routes/privacy'))
+const SearchPage = lazyRoute(() => import('./routes/search'))
+const SettingsPage = lazyRoute(() => import('./routes/settings'))
+const AccountPage = lazyRoute(() => import('./routes/account'))
+const ShortsPage = lazyRoute(() => import('./routes/shorts'))
+const SignInPage = lazyRoute(() => import('./routes/signin'))
+const WatchPage = lazyRoute(() => import('./routes/watch'))
 
 const style = css`
   min-height: 100vh;
