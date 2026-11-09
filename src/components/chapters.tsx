@@ -1,0 +1,301 @@
+import type { PlayerChapter } from '../player/chapters'
+
+import { css } from '@emotion/react'
+import { X } from 'lucide-react'
+import { useLayoutEffect, useRef } from 'preact/hooks'
+import { Link } from 'wouter'
+
+import { clock } from '../player/controls'
+import { seekTo } from '../player/seek'
+import { Rail } from './rail'
+import { watchHrefFor } from './video-card'
+
+// youtube.com's time pill, shared by the list and the cards
+const timePill = css`
+  display: inline-block;
+  border-radius: 0.2rem;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  font-variant-numeric: tabular-nums;
+`
+
+const panelStyle = css`
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  max-height: 48rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  overflow: hidden;
+
+  .panel-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 5.6rem;
+    padding: 0.4rem 0.4rem 0.4rem 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-heading {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.8rem;
+  }
+
+  .panel-close {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .panel-close:hover {
+    background: var(--bg-hover);
+  }
+
+  .chapter-rows {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    padding: 0.8rem 0;
+    overflow-y: auto;
+  }
+
+  .chapter-row {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    width: 100%;
+    padding: 0.8rem 1.6rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .chapter-row:hover,
+  .chapter-row[aria-current='true'] {
+    background: var(--bg-hover);
+  }
+
+  .chapter-thumb {
+    flex: none;
+    width: 10rem;
+    height: 5.6rem;
+    border-radius: 0.8rem;
+    background: #000;
+    object-fit: cover;
+  }
+
+  .chapter-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .chapter-name {
+    margin-bottom: 0.8rem;
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 2rem;
+  }
+
+  .chapter-time {
+    ${timePill}
+    padding: 0.2rem 0.6rem;
+    font-weight: 500;
+  }
+
+  /* in full screen the list is drawn over the right of the player, as youtube.com's */
+  &.overlay {
+    position: absolute;
+    top: 1.6rem;
+    right: 1.6rem;
+    bottom: 1.6rem;
+    width: 32rem;
+    max-height: none;
+    margin: 0;
+  }
+`
+
+/** The chapter list youtube.com opens from the player's chapter title. A row seeks to its chapter. */
+export const ChaptersPanel = (
+  { videoId, chapters, current, onClose, overlay = false }: {
+    videoId: string
+    chapters: readonly PlayerChapter[]
+    current: number
+    onClose: () => void
+    overlay?: boolean
+  },
+) => {
+  const itemsRef = useRef<HTMLDivElement>(null)
+  // opens on the chapter playing, at the top of the list
+  useLayoutEffect(() => {
+    const items = itemsRef.current
+    const row = items?.children[current] as HTMLElement | undefined
+    if (items && row) items.scrollTop = row.offsetTop - Number.parseFloat(getComputedStyle(items).paddingTop)
+  }, [])
+  return (
+    <section css={panelStyle} className={overlay ? 'chapters-panel overlay' : 'chapters-panel'} aria-label='Chapters'>
+      <div className='panel-head'>
+        <h2 className='panel-heading'>Chapters</h2>
+        <button type='button' className='panel-close' aria-label='Close' onClick={onClose}>
+          <X size={24} strokeWidth={1.5} />
+        </button>
+      </div>
+      <div className='chapter-rows' ref={itemsRef}>
+        {chapters.map((chapter, index) => (
+          <button
+            type='button'
+            key={`${index}:${chapter.startSeconds}`}
+            className='chapter-row'
+            aria-current={index === current ? 'true' : undefined}
+            onClick={() => seekTo(videoId, chapter.startSeconds)}
+          >
+            {chapter.thumbnail ? <img className='chapter-thumb' src={chapter.thumbnail} alt='' loading='lazy' /> : <span className='chapter-thumb' />}
+            <span className='chapter-details'>
+              <span className='chapter-name'>{chapter.title}</span>
+              <span className='chapter-time'>{clock(chapter.startSeconds)}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// a 15.6 rem card holding a 15 rem still, 1.2 rem apart, which the line through the time pills crosses
+const cardsStyle = css`
+  --rail-gap: 1.2rem;
+  --rail-arrow-top: 5.8rem;
+
+  .card {
+    position: relative;
+    display: block;
+    width: 15.6rem;
+    padding: 0.4rem 0.3rem 0.2rem;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .card-thumb {
+    display: block;
+    width: 15rem;
+    height: 8.5rem;
+    overflow: hidden;
+    border-radius: 0.8rem;
+    background: #000;
+  }
+
+  .card[aria-current='true'] .card-thumb {
+    border: 2px solid var(--accent);
+  }
+
+  .card-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-details {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.8rem 0.4rem 0;
+  }
+
+  /* from this card's pill to the next one's, under both */
+  .card:not(:last-child) .card-details::before {
+    content: '';
+    position: absolute;
+    top: 1.6rem;
+    left: 0.4rem;
+    right: -2.2rem;
+    height: 0.2rem;
+    background: var(--accent-tint);
+  }
+
+  .card-time {
+    ${timePill}
+    position: relative;
+    margin-bottom: 0.8rem;
+    padding: 0 0.4rem;
+  }
+
+  .card-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 2rem;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+`
+
+const startHref = (videoId: string, seconds: number) =>
+  seconds > 0 ? `${watchHrefFor(videoId)}&t=${Math.floor(seconds)}s` : watchHrefFor(videoId)
+
+/**
+ * youtube.com's row of chapter cards. With `onSeek` a card seeks the video playing, as in its description; without,
+ * it opens the video at the chapter, as on a search row.
+ */
+export const ChapterCards = (
+  { videoId, chapters, current = -1, onSeek }: {
+    videoId: string
+    chapters: readonly PlayerChapter[]
+    current?: number
+    onSeek?: (seconds: number) => void
+  },
+) => (
+  <div css={cardsStyle}>
+    <Rail label='chapters' count={chapters.length}>
+      {chapters.map((chapter, index) => {
+        const body = (
+          <>
+            <span className='card-thumb'>{chapter.thumbnail ? <img src={chapter.thumbnail} alt='' loading='lazy' /> : undefined}</span>
+            <span className='card-details'>
+              <span className='card-time'>{clock(chapter.startSeconds)}</span>
+              <span className='card-title'>{chapter.title}</span>
+            </span>
+          </>
+        )
+        const key = `${index}:${chapter.startSeconds}`
+        return onSeek
+          ? (
+            <button
+              type='button'
+              key={key}
+              className='card'
+              aria-current={index === current ? 'true' : undefined}
+              onClick={() => onSeek(chapter.startSeconds)}
+            >
+              {body}
+            </button>
+          )
+          : <Link key={key} className='card' href={startHref(videoId, chapter.startSeconds)}>{body}</Link>
+      })}
+    </Rail>
+  </div>
+)

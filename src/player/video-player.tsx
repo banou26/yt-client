@@ -3,7 +3,7 @@ import type shaka from 'shaka-player'
 import type { CaptionTrack, PlaybackRefusal, Storyboard } from '../frame/protocol'
 import type { Point } from '../components/ui/popup'
 import type { BezelCue } from './bezel'
-import type { PlayerChapter } from './controls'
+import type { PlayerChapter } from './chapters'
 import type { SkipSegment } from './sponsorblock'
 import type { UpNext } from './up-next'
 
@@ -22,8 +22,10 @@ import { warmShaka } from './prefetch'
 import { createRestartBudget, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { getSettings, updateSettings } from '../settings'
+import { ChaptersPanel } from '../components/chapters'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
+import { chapterIndexAt, chapterStep, publishChapter, setChaptersOpen, useChapterView } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { RefusalScreen } from './refusal-screen'
@@ -60,6 +62,23 @@ const playerStyle = css`
   &:fullscreen video {
     width: 100%;
     height: 100%;
+  }
+
+  /* the chapter list is the watch page's outside full screen, and takes the right of the player inside it */
+  .chapters-panel {
+    display: none;
+  }
+
+  &:fullscreen.chapters-open {
+    --panel-room: 35.2rem;
+  }
+
+  &:fullscreen .chapters-panel {
+    display: flex;
+  }
+
+  &:fullscreen.chapters-open video {
+    width: calc(100% - var(--panel-room));
   }
 
   video {
@@ -107,7 +126,7 @@ const playerStyle = css`
   /* above the 72 px of seek rail and control groups, so it never covers a control */
   .sponsor-skip {
     position: absolute;
-    right: 1.2rem;
+    right: calc(1.2rem + var(--panel-room, 0rem));
     bottom: 8rem;
     height: 3.6rem;
     padding: 0 1.6rem;
@@ -217,6 +236,10 @@ const VideoPlayer = (
   }, [])
 
   const state = usePlayerState(videoRef.current, player)
+  const chapterList = chapters ?? []
+  const chapterIndex = chapterIndexAt(chapterList, state.currentTime)
+  const chapterView = useChapterView(videoId)
+  useEffect(() => publishChapter(videoId, chapterIndex), [videoId, chapterIndex])
   const ending = state.ended && upNext
     ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
     : undefined
@@ -436,14 +459,13 @@ const VideoPlayer = (
   }
 
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, chapterList })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, chapterList }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const video = videoRef.current
       if (!video || event.defaultPrevented || isTypingTarget(event.target)) return
-      if (event.ctrlKey || event.metaKey || event.altKey) return
       const actions = latest.current
       if (actions.shortcuts) return
       const key = event.key
@@ -451,6 +473,14 @@ const VideoPlayer = (
         event.preventDefault()
         wake()
       }
+      if (event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && (key === 'ArrowLeft' || key === 'ArrowRight')) {
+        const to = chapterStep(actions.chapterList, video.currentTime, key === 'ArrowRight' ? 1 : -1)
+        if (to === undefined) return
+        handled()
+        video.currentTime = to
+        return
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey) return
       const seekBy = (delta: number) => {
         video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta))
         flash(delta < 0 ? 'back' : 'forward', String(Math.abs(delta)))
@@ -559,7 +589,7 @@ const VideoPlayer = (
     <div
       css={playerStyle}
       data-player-root
-      className={!active && !state.paused && !menu ? 'idle' : undefined}
+      className={[!active && !state.paused && !menu && 'idle', chapterView.open && chapterList.length > 0 && 'chapters-open'].filter(Boolean).join(' ') || undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
@@ -617,6 +647,7 @@ const VideoPlayer = (
             onAutoplay={upNext?.onAutoplay}
             isLive={isLive}
             chapters={chapters}
+            onChapters={() => setChaptersOpen(videoId, true)}
             segments={segments}
             visible={active || state.paused}
           />
@@ -635,6 +666,17 @@ const VideoPlayer = (
             </button>
           )
           : undefined}
+      {chapterView.open && chapterList.length > 0
+        ? (
+          <ChaptersPanel
+            overlay
+            videoId={videoId}
+            chapters={chapterList}
+            current={chapterIndex}
+            onClose={() => setChaptersOpen(videoId, false)}
+          />
+        )
+        : undefined}
       {video && menu
         ? (
           <PlayerMenu

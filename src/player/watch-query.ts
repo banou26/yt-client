@@ -30,7 +30,7 @@ export const WATCH_META_QUERY = gql(`
       channel { id name avatar handle subscriberCountText isSubscribed notificationLevel isVerified isVerifiedArtist }
       relatedCursor
       autoplayId
-      chapters { title startSeconds }
+      chapters { title startSeconds thumbnail }
       related {
         id
         title

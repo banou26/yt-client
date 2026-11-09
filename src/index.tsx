@@ -51,6 +51,8 @@ const globalStyles = css`
     --accent-hover: rgba(62, 166, 255, 0.15);
     --accent-focus: #1c62b9;
     --accent-inverse: #065fd4;
+    /* youtube.com's chapter time pills, opaque so the line joining them stops at each */
+    --accent-tint: #263850;
     --danger: #f28b82;
     --membership: #2ba640;
 
@@ -124,6 +126,7 @@ const globalStyles = css`
     --accent-hover: rgba(6, 95, 212, 0.1);
     --accent-focus: #065fd4;
     --accent-inverse: #3ea6ff;
+    --accent-tint: #def1ff;
     --danger: #c5221f;
     --membership: #107516;
   }

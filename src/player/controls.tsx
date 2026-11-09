@@ -1,10 +1,11 @@
 import type shaka from 'shaka-player'
 
 import { css } from '@emotion/react'
-import { Captions, CaptionsOff, Check, Maximize, Minimize, Pause, PictureInPicture2, Play, RotateCcw, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
+import { Captions, CaptionsOff, Check, ChevronRight, Maximize, Minimize, Pause, PictureInPicture2, Play, RotateCcw, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { PlayerChapter } from './chapters'
 import type { SkipSegment } from './sponsorblock'
 import type { PlayerState } from './use-player-state'
 
@@ -12,6 +13,7 @@ import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { MenuItem, Popup, useDismiss } from '../components/ui/popup'
 import { updateSettings } from '../settings'
+import { barFill, barOffset, barParts, barWidth, chapterIndexAt, timeAtOffset } from './chapters'
 import { RATES } from './rates'
 
 export const clock = (seconds: number) => {
@@ -31,7 +33,7 @@ export const clock = (seconds: number) => {
 const style = css`
   position: absolute;
   left: 0;
-  right: 0;
+  right: var(--panel-room, 0rem);
   bottom: 0;
   padding: 0 1.2rem;
   color: #ffffff;
@@ -69,14 +71,27 @@ const style = css`
     position: relative;
     width: 100%;
     height: 0.4rem;
-    border-radius: 0.3rem;
+  }
+
+  /* youtube.com's chapters: square ends 4 px apart, 4 px tall, 6 px while the pointer is on the bar and 10 px for the
+     chapter under it, growing about their middle */
+  .part {
+    position: absolute;
+    top: 50%;
+    height: 100%;
+    overflow: hidden;
     background: rgba(40, 40, 40, 0.6);
+    transform: translateY(-50%);
     transition: height 0.1s ease;
   }
 
-  .scrubber:hover .rail,
-  .scrubber.scrubbing .rail {
+  .scrubber:hover .part,
+  .scrubber.scrubbing .part {
     height: 0.6rem;
+  }
+
+  .scrubber .part.hovered {
+    height: 1rem;
   }
 
   .buffered,
@@ -85,7 +100,6 @@ const style = css`
     top: 0;
     bottom: 0;
     left: 0;
-    border-radius: 0.3rem 0 0 0.3rem;
   }
 
   .buffered {
@@ -138,7 +152,9 @@ const style = css`
   }
 
   .preview-time {
-    display: inline-block;
+    display: inline-flex;
+    gap: 0.8rem;
+    max-width: 30rem;
     margin-top: 0.4rem;
     padding: 0 0.8rem;
     border-radius: 1.2rem;
@@ -146,6 +162,13 @@ const style = css`
     font-size: 1.3rem;
     line-height: 2.4rem;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .preview-chapter {
+    overflow: hidden;
+    font-weight: 500;
+    text-overflow: ellipsis;
   }
 
   .bar {
@@ -185,7 +208,8 @@ const style = css`
 
   /* the hover wash: a 32 px band inside the shared group, and the whole shape of a control that is its own group */
   .control::after,
-  .volume::after {
+  .volume::after,
+  .chapter::after {
     content: '';
     position: absolute;
     inset: 0.4rem 0;
@@ -197,7 +221,8 @@ const style = css`
   }
 
   .control:hover::after,
-  .volume:hover::after {
+  .volume:hover::after,
+  .chapter:hover::after {
     opacity: 1;
   }
 
@@ -272,12 +297,33 @@ const style = css`
     font-weight: 500;
   }
 
+  /* the title and youtube.com's 20 px chevron after it, which opens the chapter list */
   .chapter {
     flex-shrink: 100;
-    max-width: 22rem;
+    display: flex;
+    align-items: center;
+    max-width: 24rem;
+    border: none;
+    color: inherit;
+    font: inherit;
     font-size: 1.3rem;
     font-weight: 500;
+    cursor: pointer;
+  }
+
+  .chapter::after {
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .chapter-title {
+    min-width: 0;
+    overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .chapter svg {
+    flex: none;
   }
 
   .live-badge {
@@ -394,11 +440,6 @@ const style = css`
   }
 `
 
-export type PlayerChapter = {
-  title: string
-  startSeconds: number
-}
-
 type ControlsProps = {
   video: HTMLVideoElement
   player: shaka.Player | undefined
@@ -419,13 +460,14 @@ type ControlsProps = {
   visible: boolean
   isLive?: boolean
   chapters?: readonly PlayerChapter[]
+  onChapters?: () => void
   segments?: readonly SkipSegment[]
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
-    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], segments = [],
+    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], onChapters, segments = [],
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -461,15 +503,17 @@ export const PlayerControls = (
 
   const duration = state.duration
   const position = preview ?? state.currentTime
-  const chapter = chapters.findLast(item => item.startSeconds <= position)
-  const played = duration > 0 ? Math.min(1, position / duration) : 0
-  const buffered = duration > 0 ? Math.min(1, state.buffered / duration) : 0
+  const chapter = chapters[chapterIndexAt(chapters, position)]
+  const parts = barParts(chapters, duration)
+  const offset = (time: number) => barOffset(parts, duration, time)
+  const hoverChapter = hover ? chapters[chapterIndexAt(chapters, hover.time)] : undefined
+  const hoverPart = hover && parts.length > 1 ? parts.findLastIndex(part => part.start <= hover.time) : -1
 
   const timeAt = (clientX: number) => {
     const rail = railRef.current
     if (!rail || duration <= 0) return 0
-    const box = rail.getBoundingClientRect()
-    return Math.max(0, Math.min(1, (clientX - box.left) / box.width)) * duration
+    const boxes = [...rail.querySelectorAll('.part')].map(part => part.getBoundingClientRect())
+    return timeAtOffset(parts, boxes, clientX)
   }
 
   const onPointerDown = (event: PointerEvent) => {
@@ -566,18 +610,26 @@ export const PlayerControls = (
         onPointerLeave={() => setHover(undefined)}
       >
         <div className='rail' ref={railRef}>
-          <div className='buffered' style={{ width: `${buffered * 100}%` }} />
-          <div className='played' style={{ width: `${played * 100}%` }} />
+          {parts.map((part, index) => (
+            <div
+              key={index}
+              className={index === hoverPart ? 'part hovered' : 'part'}
+              style={{ left: offset(part.start), width: barWidth(parts, duration, part) }}
+            >
+              <div className='buffered' style={{ width: barFill(part, state.buffered) }} />
+              <div className='played' style={{ width: barFill(part, position) }} />
+            </div>
+          ))}
           {duration > 0
             ? segments.map((part, index) => (
               <div
                 key={index}
                 className='sponsor'
-                style={{ left: `${(part.start / duration) * 100}%`, width: `${((Math.min(part.end, duration) - part.start) / duration) * 100}%` }}
+                style={{ left: offset(part.start), width: `calc(${offset(Math.min(part.end, duration))} - ${offset(part.start)})` }}
               />
             ))
             : undefined}
-          <div className='knob' style={{ left: `${played * 100}%` }} />
+          <div className='knob' style={{ left: offset(position) }} />
         </div>
         {hover
           ? (
@@ -595,7 +647,10 @@ export const PlayerControls = (
                   />
                 )
                 : undefined}
-              <div className='preview-time'>{clock(hover.time)}</div>
+              <div className='preview-time'>
+                <span>{clock(hover.time)}</span>
+                {hoverChapter ? <span className='preview-chapter'>{hoverChapter.title}</span> : undefined}
+              </div>
             </div>
           )
           : undefined}
@@ -627,7 +682,14 @@ export const PlayerControls = (
         {isLive
           ? <span className='group live-badge'>LIVE</span>
           : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
-        {chapter && !isLive ? <span className='group chapter'>{chapter.title}</span> : undefined}
+        {chapter && !isLive
+          ? (
+            <button type='button' className='group chapter' aria-label={chapter.title} onClick={onChapters}>
+              <span className='chapter-title'>{chapter.title}</span>
+              <ChevronRight size={20} strokeWidth={2} />
+            </button>
+          )
+          : undefined}
         <span className='spacer' />
         <div className='group right'>
           {onAutoplay && !isLive

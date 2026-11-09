@@ -14,6 +14,8 @@ const SECTIONS: { title: string, rows: [string, string][] }[] = [
       ['Decrease playback rate', '<'],
       ['Increase playback rate', '>'],
       ['Seek to a point in the video', '0 to 9'],
+      ['Seek to previous chapter', 'Ctrl+←'],
+      ['Seek to next chapter', 'Ctrl+→'],
       ['Seek backward 5 seconds', '←'],
       ['Seek forward 5 seconds', '→'],
       ['Increase volume 5%', '↑'],

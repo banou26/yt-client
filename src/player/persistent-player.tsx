@@ -87,6 +87,11 @@ const style = css`
   .dock-close:hover {
     background: var(--bg-chip-hover);
   }
+
+  /* youtube.com's miniplayer names no chapter under the frame its seek bar shows */
+  .preview-chapter {
+    display: none;
+  }
 `
 
 /**

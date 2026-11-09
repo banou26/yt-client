@@ -1,9 +1,12 @@
+import type { PlayerChapter } from '../player/chapters'
 import type { RichTextRun } from './rich-text'
 
 import { css } from '@emotion/react'
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
+import { seekTo } from '../player/seek'
+import { ChapterCards } from './chapters'
 import { descriptionMeta } from './format'
 import { RichText } from './rich-text'
 
@@ -81,6 +84,41 @@ const style = css`
     cursor: pointer;
   }
 
+  .chapters {
+    padding-top: 1.6rem;
+  }
+
+  .chapters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .chapters-heading {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.8rem;
+  }
+
+  .view-all {
+    flex: none;
+    height: 4rem;
+    padding: 0 1.5rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 2rem;
+    background: transparent;
+    color: var(--text-primary);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .view-all:hover {
+    background: var(--bg-hover);
+  }
+
   .less {
     display: block;
     margin-top: 1.6rem;
@@ -117,7 +155,7 @@ const placeMore = (snippet: HTMLElement) => {
 export const DescriptionBox = (
   {
     viewCountText, publishedDateText, shortViewCountText, relativeDateText, hashtags = [],
-    description, runs, videoId,
+    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters,
   }: {
     viewCountText?: string | null
     publishedDateText?: string | null
@@ -127,6 +165,9 @@ export const DescriptionBox = (
     description?: string | null
     runs?: readonly RichTextRun[]
     videoId?: string
+    chapters?: readonly PlayerChapter[]
+    currentChapter?: number
+    onViewChapters?: () => void
   },
 ) => {
   const [expanded, setExpanded] = useState(false)
@@ -167,6 +208,38 @@ export const DescriptionBox = (
               : <div className='text'>{description}</div>}
             {expanded ? undefined : <button type='button' className='more'>...more</button>}
           </div>
+        )
+        : undefined}
+      {expanded && videoId && chapters.length > 0
+        ? (
+          <section className='chapters' aria-label='Chapters'>
+            <div className='chapters-head'>
+              <h2 className='chapters-heading'>Chapters</h2>
+              {onViewChapters
+                ? (
+                  <button
+                    type='button'
+                    className='view-all'
+                    onClick={() => {
+                      onViewChapters()
+                      scrollTo({ top: 0 })
+                    }}
+                  >
+                    View all
+                  </button>
+                )
+                : undefined}
+            </div>
+            <ChapterCards
+              videoId={videoId}
+              chapters={chapters}
+              current={currentChapter}
+              onSeek={(seconds: number) => {
+                seekTo(videoId, seconds)
+                scrollTo({ top: 0 })
+              }}
+            />
+          </section>
         )
         : undefined}
       {description && expanded

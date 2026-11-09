@@ -10,6 +10,7 @@ import { useMutation, useQuery } from 'urql'
 import { Link, useSearch } from 'wouter'
 
 import { useDocumentTitle, useMediaQuery } from '../app'
+import { ChaptersPanel } from '../components/chapters'
 import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
 import DescriptionBox from '../components/description-box'
@@ -24,6 +25,7 @@ import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
+import { setChaptersOpen, useChapterView } from '../player/chapters'
 import { prefetchPlayback } from '../player/prefetch'
 import { claimPlayer, closePlayer, getPlayerSession, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
 import { WATCH_META_QUERY } from '../player/watch-query'
@@ -85,6 +87,11 @@ const style = css`
   .primary {
     grid-column: 1;
     min-width: 0;
+  }
+
+  .chapters-slot {
+    grid-column: 1;
+    margin-top: 1.2rem;
   }
 
   .secondary {
@@ -504,6 +511,20 @@ const WatchPage = () => {
     ? <ChatReplay key={`replay:${videoId}`} videoId={videoId} onClose={() => setReplayFor(undefined)} />
     : undefined
 
+  const chapters = watch?.chapters ?? []
+  const chapterView = useChapterView(videoId)
+  const chaptersPanel = chapterView.open && chapters.length > 0
+    ? (
+      <ChaptersPanel
+        key={videoId}
+        videoId={videoId}
+        chapters={chapters}
+        current={chapterView.index}
+        onClose={() => setChaptersOpen(videoId, false)}
+      />
+    )
+    : undefined
+
   if (unavailable) {
     return (
       <main css={unavailableStyle}>
@@ -519,6 +540,7 @@ const WatchPage = () => {
         {/* The player is NOT mounted here: it lives above the router, so leaving the page docks it rather than destroying its SABR session */}
         <div className='player-slot' ref={claimPlayer} />
       </div>
+      {oneColumn && chaptersPanel ? <div className='chapters-slot'>{chaptersPanel}</div> : undefined}
       <div className='primary'>
         {oneColumn ? replay : undefined}
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
@@ -621,6 +643,9 @@ const WatchPage = () => {
                 description={watch.description}
                 runs={watch.descriptionRuns}
                 videoId={videoId}
+                chapters={chapters}
+                currentChapter={chapterView.index}
+                onViewChapters={() => setChaptersOpen(videoId, true)}
               />
             )
             : undefined}
@@ -630,10 +655,11 @@ const WatchPage = () => {
           ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
           : undefined}
       </div>
-      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0)
+      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && chaptersPanel)
         ? (
           <aside className='secondary'>
             {oneColumn ? undefined : replay}
+            {oneColumn ? undefined : chaptersPanel}
             {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
             {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
             {related

@@ -9,7 +9,7 @@ const style = css`
 
   .track {
     display: flex;
-    gap: 0.8rem;
+    gap: var(--rail-gap, 0.8rem);
     overflow-x: auto;
     scroll-behavior: smooth;
     /* The scrollbar is hidden because the arrows are the affordance; without
