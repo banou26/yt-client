@@ -101,6 +101,10 @@ test('search has the chip row, a filters dialog, wide rows and a preview on hove
 
 test('an artist search opens on the artist card, and every row has a menu', async ({ page }) => {
   test.setTimeout(240_000)
+  const guesses: string[] = []
+  page.on('console', (message) => {
+    if (message.text().startsWith('Heuristic Fragment Matching')) guesses.push(message.text())
+  })
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/results?search_query=rick+astley')
   const card = page.getByRole('region', { name: 'Rick Astley', exact: true })
@@ -118,6 +122,7 @@ test('an artist search opens on the artist card, and every row has a menu', asyn
   await expect(more).toBeVisible()
   await more.click()
   await expect(page.getByRole('menuitem', { name: 'Save to Watch later' })).toBeVisible()
+  expect(guesses, 'the cache matched a search fragment by guessing its type').toEqual([])
 })
 
 // upstream reorders its shelves from one answer to the next, so a change there fails this test and leaves the card's green

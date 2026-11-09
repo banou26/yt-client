@@ -21,6 +21,10 @@ const invalidatePlaylistList = (cache: Cache) =>
   invalidateQueryField(cache, 'playlists', () => true)
 
 const cache = cacheExchange({
+  // with no schema and no possibleTypes, graphcache guesses which member of a union a fragment reads from its cached fields
+  possibleTypes: {
+    SearchResult: ['Video', 'Channel', 'Playlist', 'SearchCard', 'SearchShelf'],
+  },
   keys: {
     Video: (data) => (data.id as string | undefined) ?? null,
     Channel: (data) => (data.id as string | undefined) ?? null,
