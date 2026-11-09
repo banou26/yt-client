@@ -309,6 +309,22 @@ const style = css`
       margin: 0 0 0 4rem;
     }
   }
+
+  /* The narrow row needs 395px signed out (measured 2026-11-10), and youtube.com
+     keeps Sign in whole at 360px, the most common phone width. */
+  @media (max-width: 399px) {
+    .start {
+      gap: 0.8rem;
+    }
+
+    .region {
+      display: none;
+    }
+
+    .end {
+      gap: 0;
+    }
+  }
 `
 
 export const Header = ({ onMenu }: { onMenu?: () => void }) => {
