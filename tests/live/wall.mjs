@@ -3,7 +3,7 @@
 
      env -u WAYLAND_DISPLAY -u NIXOS_OZONE_WL xvfb-run -a -s "-screen 0 1280x720x24" \
        node tests/live/wall.mjs --arm=none|extension [--control=detector|webdriver] [--video=ID] [--base=URL] [--label=NAME]
-         [--profile=DIR]
+         [--profile=DIR] [--step=NAME[:0]]
 
    --arm=extension loads the store build: the crx Chrome's update service serves for the listing, unpacked.
    --control=detector plays dQw4w9WgXcQ, which is not enforced, and must pass: it shows the detector can read a pass.
@@ -12,6 +12,9 @@
      on DIR itself, and without DIR's service workers (wall-read.ts says why). DIR is listed (size and mtime of every entry) before the copy and after the removal, and a run
      that finds it changed is refused. The copy is listed the same way and must show Chrome's writes, which proves
      the listing can see a change. A profile run that never shows the account menu is refused as signed out.
+   --step=NAME sets localStorage['yt-client:step:NAME'] to '1' on the app's origin before the app's code runs, which
+     turns that migration step on for the run (src/engine/step-flag.ts). --step=NAME:0 writes '0', which turns off a
+     step that is on by default.
 
    Headful under Xvfb, never a real window, muted, a fresh profile per run unless --profile names one. Prints one
    RESULT line and exits 0 on a pass, 1 on a wall, 2 with no verdict. Nothing identifiable is read or printed: the
@@ -21,7 +24,7 @@ import { execFileSync } from 'node:child_process'
 import { cp, lstat, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { bestAccount, held, keptInCopy, manifestChanges, sleep, tokenStored, unpassed, withTimeout } from './wall-read.ts'
+import { bestAccount, directReported, held, keptInCopy, manifestChanges, parseStep, setStep, sleep, tokenStored, unpassed, withTimeout } from './wall-read.ts'
 
 const flags = Object.fromEntries(process.argv.slice(2).map(arg => {
   const [key, ...value] = arg.replace(/^--/, '').split('=')
@@ -39,6 +42,7 @@ const VIDEO = flags.video ?? (CONTROL === 'detector' ? 'dQw4w9WgXcQ' : 'FAlMdord
 const BASE = flags.base ?? 'https://youtube.fkn.app'
 const LABEL = flags.label ?? `${ARM}-${Date.now().toString(36)}`
 const PROFILE = flags.profile ? resolve(flags.profile) : null
+const STEP = flags.step === undefined ? null : parseStep(flags.step)
 const CHROME = '/etc/profiles/per-user/banou/bin/google-chrome-stable'
 const STORE_ID = 'ffeddppgmgpnjagcklkfefpdnaoefckf'
 const TARGET = 90
@@ -143,7 +147,7 @@ const run = async () => {
   const masterBefore = PROFILE ? await manifestOf(PROFILE) : null
   const work = await mkdtemp(join(tmpdir(), 'yt-wall-'))
   const r = {
-    label: LABEL, arm: ARM, control: CONTROL, video: VIDEO, ext: null, webdriver: null, egress: [], extFetchFailed: false,
+    label: LABEL, arm: ARM, step: STEP?.label ?? null, direct: null, control: CONTROL, video: VIDEO, ext: null, webdriver: null, egress: [], extFetchFailed: false,
     account: null, profile: PROFILE ? { entries: Object.keys(masterBefore).length, master: null, copy: null } : null,
     engineAt: null, playAt: null, before: null, after: null, maxBuffered: 0, t: null, atSeek: null, recovery: null,
     refresh: { seek: null, end: null }, status: null, poTokens: { seek: null, end: null }, verdict: null, reason: null, seekMs: null, total: null,
@@ -190,6 +194,7 @@ const run = async () => {
       if (text.includes('extension fetch failed')) r.extFetchFailed = true
     })
     await page.addInitScript(observeRecovery)
+    if (STEP) await page.addInitScript(setStep, { origin: new URL(BASE).origin, key: STEP.key, value: STEP.value })
     await page.goto(`${BASE}/watch?v=${VIDEO}`, { waitUntil: 'domcontentloaded', timeout: 90_000 })
 
     const loadDeadline = Date.now() + 150_000
@@ -274,6 +279,7 @@ const run = async () => {
   } finally {
     if (page) {
       r.poTokens.end = await tokenStored(page)
+      r.direct = await directReported(page)
       // the header asks for the session on its own schedule, so a profile run gives it time to show the menu
       const deadline = Date.now() + (PROFILE ? 15_000 : 0)
       for (;;) {
@@ -327,7 +333,7 @@ const profile = r.profile
   : 'profile=fresh'
 const egress = [...new Set(r.egress.map(line => line === EGRESS.extension ? 'extension' : line === EGRESS.none ? 'relay' : line))].join('|') || '-'
 console.log(
-  `RESULT ${r.label} arm=${r.arm} ext=${r.ext ?? '-'} control=${r.control ?? '-'}${control} video=${r.video} ${profile} account=${r.account ?? '-'} `
+  `RESULT ${r.label} arm=${r.arm} step=${r.step ?? 'none'} direct=${r.direct ?? '-'} ext=${r.ext ?? '-'} control=${r.control ?? '-'}${control} video=${r.video} ${profile} account=${r.account ?? '-'} `
     + `webdriver=${r.webdriver ? `${r.webdriver.top}/${r.webdriver.frames.join(',')}` : '-'} egress=${egress} extFetchFailed=${r.extFetchFailed} `
     + `engine@${r.engineAt}s play@${r.playAt}s atSeek=${r.atSeek} recovery=${r.recovery} before=${JSON.stringify(r.before)} `
     + `after=${JSON.stringify(r.after)} max=${r.maxBuffered} t=${r.t} po-tokens=${atSeekAndEnd(r.poTokens, value => value ? 'yes' : 'no')} `

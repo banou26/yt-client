@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { type Account, bestAccount, held, keptInCopy, manifestChanges, tokenStored, unpassed } from '../../live/wall-read'
+import { stepEnabled } from '../../../src/engine/step-flag'
+import { type Account, bestAccount, directReported, held, keptInCopy, manifestChanges, parseStep, setStep, tokenStored, unpassed } from '../../live/wall-read'
 
 const seek = { target: 90 }
 
@@ -89,5 +90,84 @@ describe('the account reading', () => {
   it('reads none from a session that only ever showed the sign-in button (control)', () => {
     expect((['none', 'none'] as Account[]).reduce<Account | null>(bestAccount, null)).toBe('none')
     expect(bestAccount(null, null)).toBe(null)
+  })
+})
+
+describe('a step run', () => {
+  afterEach(() => void vi.unstubAllGlobals())
+
+  // the app's storage as the init script leaves it, read back the way step-flag.ts reads it
+  const runWith = (arg: string) => {
+    const stored: Record<string, string> = {}
+    vi.stubGlobal('location', { origin: 'https://youtube.fkn.app' })
+    vi.stubGlobal('localStorage', {
+      setItem: (key: string, value: string) => { stored[key] = value },
+      getItem: (key: string) => stored[key] ?? null,
+    })
+    setStep({ origin: 'https://youtube.fkn.app', ...parseStep(arg) })
+  }
+
+  it('turns a step on with its bare name, the key and value the app reads', () => {
+    runWith('direct')
+    expect(stepEnabled('direct')).toBe(true)
+    expect(parseStep('direct').label).toBe('direct')
+  })
+
+  it('turns a step that is on by default off with :0, so a control arm runs without it', () => {
+    runWith('y1:0')
+    expect(stepEnabled('y1')).toBe(false)
+    runWith('direct:0')
+    expect(stepEnabled('direct')).toBe(false)
+    expect(parseStep('direct:0').label).toBe('direct:0')
+    runWith('y1:1')
+    expect(stepEnabled('y1')).toBe(true)
+  })
+
+  it('refuses a name that is not a step, and a value the app does not read', () => {
+    for (const arg of ['', 'Direct', 'direct:', 'direct:2', 'direct:true', 'direct:0:1']) {
+      expect(() => parseStep(arg), arg).toThrow('--step=')
+    }
+  })
+
+  it("sets the step on the app's own origin only, leaving every other frame's storage alone", () => {
+    const stored: Record<string, Record<string, string>> = {}
+    const frame = (origin: string) => {
+      vi.stubGlobal('location', { origin })
+      vi.stubGlobal('localStorage', { setItem: (key: string, value: string) => { (stored[origin] ??= {})[key] = value } })
+      setStep({ origin: 'https://youtube.fkn.app', key: 'yt-client:step:direct', value: '1' })
+    }
+    frame('https://youtube.fkn.app')
+    frame('https://fkn.app')
+    frame('https://s-www-youtube-com.sdbx.app')
+    expect(stored).toEqual({ 'https://youtube.fkn.app': { 'yt-client:step:direct': '1' } })
+  })
+})
+
+describe('the direct lane reading', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  const page = (dataset: Record<string, string>) => {
+    vi.stubGlobal('document', { documentElement: { dataset } })
+    return { evaluate: async (read: () => string | null) => read() }
+  }
+
+  it("reads the lane's own words, and none when the page published nothing (control)", async () => {
+    expect(await directReported(page({ ytDirect: 'on' }))).toBe('on')
+    expect(await directReported(page({ ytDirect: 'off' }))).toBe('off')
+    expect(await directReported(page({ ytDirect: 'skipped' }))).toBe('skipped')
+    expect(await directReported(page({}))).toBe(null)
+  })
+
+  it('prints no value the app did not mean, and reads a page that never answers as unknown within 2 s', async () => {
+    expect(await directReported(page({ ytDirect: 'something else' }))).toBe('other')
+    expect(await directReported({ evaluate: async () => { throw new Error('target closed') } })).toBe(null)
+    vi.useFakeTimers()
+    let read: string | null | undefined
+    void directReported({ evaluate: () => new Promise<string | null>(() => {}) }).then(value => { read = value })
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(read).toBe(null)
   })
 })

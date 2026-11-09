@@ -13,6 +13,28 @@ export const withTimeout = <T>(promise: Promise<T>, ms: number) =>
 export const tokenStored = (page: { evaluate: (read: () => boolean) => Promise<boolean> }) =>
   withTimeout(page.evaluate(() => localStorage.getItem('www.youtube.com@yt-client:po-tokens') !== null), 2_000).catch(() => null)
 
+// --step=<name>[:0|1]: the localStorage key src/engine/step-flag.ts reads for that migration step and the value the
+// run writes there, '1' unless it names '0', which turns off a step that is on by default; label is what RESULT prints
+export const parseStep = (arg: string) => {
+  const [name = '', value = '1', ...rest] = arg.split(':')
+  if (!/^[a-z0-9]+$/.test(name) || rest.length > 0) throw new Error(`--step=${arg} names no step: a step is lowercase letters and digits`)
+  if (value !== '0' && value !== '1') throw new Error(`--step=${arg} sets no value a step reads: 0 or 1`)
+  return { key: `yt-client:step:${name}`, value, label: value === '1' ? name : `${name}:${value}` }
+}
+
+// an init script, so it runs in every frame: only the app's own document sets the step, before any of its code reads it
+export const setStep = ({ origin, key, value }: { origin: string, key: string, value: string }) => {
+  if (location.origin === origin) localStorage.setItem(key, value)
+}
+
+// the direct lane's state as the app published it on <html>: one of its three words, 'other' for any other value,
+// null when the page published none or could not be read
+export const directReported = (page: { evaluate: (read: () => string | null) => Promise<string | null> }) =>
+  withTimeout(page.evaluate(() => {
+    const value = document.documentElement.dataset.ytDirect
+    return value === undefined ? null : ['on', 'off', 'skipped'].includes(value) ? value : 'other'
+  }), 2_000).catch(() => null)
+
 // A session that ended after the seek took its buffer with it, so it decides nothing: what it left behind reads
 // the same after a wall as after any other failure.
 export const unpassed = ({ target, maxBuffered, ended }: {
