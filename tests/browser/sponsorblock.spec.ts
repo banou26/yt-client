@@ -130,6 +130,10 @@ test('Skip sponsor jumps over the coming part now, and Undo then plays all of it
   await control(page, 'Undo').click()
   const from = await logged(page)
   await expect.poll(() => currentTime(page)).toBeLessThan(5)
+  await passes(page, 2.5)
+  // read once, not retried: the part is under 5 s away, where Skip sponsor would show for a part not chosen
+  expect(await control(page, 'Skip sponsor').count()).toBe(0)
+  expect(await currentTime(page)).toBeLessThan(5)
   await passes(page, 8.5)
   expect(within(await timesFrom(page, from), 5.5, 7.5).length, 'the part was skipped after Undo').toBeGreaterThan(0)
 })
@@ -197,6 +201,8 @@ test('with Skip sponsors off, SponsorBlock is never asked and the part plays', a
   const requests = await answerSponsors(page)
   await logTimes(page)
   await page.goto(`/watch?v=${VIDEO_ID}`)
+  // the lookup waits on the watch query the title comes from, so no request before it proves nothing
+  await expect(page.locator('main h1')).toHaveText('Me at the zoo', { timeout: 60_000 })
   await startPlayback(page)
   await seek(page, 4)
   await passes(page, 9)
@@ -205,14 +211,17 @@ test('with Skip sponsors off, SponsorBlock is never asked and the part plays', a
   await expect(marks(page)).toHaveCount(0)
 })
 
-// the shared fixture's answer, which keeps every other spec off SponsorBlock's live data: the live answer for 6745 is a 200
-test('a spec that routes nothing gets the empty answer', async ({ page }) => {
+// the shared fixture's answers, which keep every other spec off the live data: SponsorBlock's live answer for 6745 is a 200
+test('a spec that routes nothing gets the empty answers', async ({ page }) => {
   test.setTimeout(240_000)
   const answered = page.waitForResponse(response => response.url().startsWith('https://sponsor.ajay.app/'))
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const answer = await answered
   expect(answer.status()).toBe(404)
   expect(await answer.json()).toEqual([])
+  // Return YouTube Dislike's live answer for this video carries its counts, with its id and date
+  const dislikes = await page.evaluate(id => fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${id}`).then(response => response.json()), VIDEO_ID)
+  expect(dislikes).toEqual({ likes: 0, dislikes: 0 })
 })
 
 test('Settings turns Skip sponsors off and on, and credits SponsorBlock', async ({ page }) => {
