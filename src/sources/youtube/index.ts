@@ -1,8 +1,9 @@
 import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
 import type { EntityMutation } from './normalize'
 
-import { Innertube } from 'youtubei.js/web'
+import { Innertube, Utils } from 'youtubei.js/web'
 
+import { CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
 import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
@@ -1160,7 +1161,10 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
           videos: await videoContinuations.resolve(kind, cursor),
         }
       }
-      const result = await fetchChannel(id)
+      // youtubei.js throws upstream's alert as a ChannelError
+      const result = await fetchChannel(id).catch((error: unknown) => {
+        throw error instanceof Utils.ChannelError ? new Error(`${CHANNEL_UNAVAILABLE}${error.message}`, { cause: error }) : error
+      })
       const channel = normalizeChannel(result, id)
       const availableTabs = availableChannelTabs(result)
       const landed = landedTab(result)

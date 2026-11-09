@@ -95,11 +95,29 @@ test('keeps the channel\'s name in its header once its own videos fill the Home 
   await expect(shelf.locator('.channel-name')).toHaveCount(0)
 })
 
-test('says in one line that a channel did not load, never the raw error', async ({ page }) => {
+test('shows youtube.com\'s own line for a channel that does not exist', async ({ page }) => {
   test.setTimeout(180_000)
   await page.goto('/channel/UCzzzzzzzzzzzzzzzzzzzzzz')
+  await expect(page.locator('main .status')).toHaveText('This channel does not exist.', { timeout: 120_000 })
+})
+
+// the app asks the engine over a MessagePort, `{ id, method, args }` answered by `{ id, result | error }`
+const failChannelCalls = () => {
+  if (window.top !== window) return
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    const call = message as { id?: number, method?: string } | null
+    if (call?.method !== 'channel') return post.call(this, message, ...rest)
+    setTimeout(() => this.dispatchEvent(new MessageEvent('message', { data: { id: call.id, error: 'Tab "featured" not found' } })))
+  } as typeof MessagePort.prototype.postMessage
+}
+
+test('says in one line that a channel did not load, never the raw error', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.addInitScript(failChannelCalls)
+  await page.goto(`/channel/${CHANNEL_ID}`)
   await expect(page.locator('main .status')).toHaveText('Couldn\'t load this channel. Try again later.', { timeout: 120_000 })
-  await expect(page.locator('main')).not.toContainText('GraphQL')
+  await expect(page.locator('main')).not.toContainText('featured')
 })
 
 test('fits a channel\'s Home shelves in a phone\'s width', async ({ page }) => {

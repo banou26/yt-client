@@ -239,6 +239,12 @@ export type SourceChannelPage = {
   home?: SourceChannelHome
 }
 
+/**
+ * Leads the message `channel` rejects with when upstream answers with its own line in place of the channel, such as
+ * "This channel does not exist.", which follows it word for word. Only an error's message crosses the realms.
+ */
+export const CHANNEL_UNAVAILABLE = 'youtube: channel unavailable: '
+
 export type SourceWatchPlaylist = {
   id: string
   title?: string

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vite-plus/test'
 import { Parser, YT, YTNodes } from 'youtubei.js'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
-import { SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
+import { CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
 
 type FakeFeed = {
   videos: { video_id: string, title: { text: string } }[]
@@ -528,6 +528,28 @@ describe('youtube channel tabs', () => {
     expect(videos.videos.cursor).toBeTruthy()
     await expect(source.channel('c', 'PLAYLISTS', undefined, undefined, videos.videos.cursor))
       .rejects.toThrow('belongs to')
+  })
+
+  // youtube.com's signed-out answer for a channel id nobody holds, read 2026-11-10, less its tracking fields
+  it('rejects with upstream\'s own line for a channel that does not exist, marked apart from any other failure', async () => {
+    const answer = {
+      header: { c4TabbedHeaderRenderer: { channelId: 'UCzzzzzzzzzzzzzzzzzzzzzz', avatar: { thumbnails: [{ url: 'https://yt3.googleusercontent.com/a/default-user=s100-c-k-c0x00ffffff-no-rj', width: 100, height: 100 }] } } },
+      alerts: [{ alertRenderer: { type: 'ERROR', text: { simpleText: 'This channel does not exist.' } } }],
+    }
+    const missing = createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => ({
+        getChannel: async () => new YT.Channel(undefined as never, Parser.parseResponse(answer as never), true),
+      }) as never,
+    })
+    await expect(missing.channel('UCzzzzzzzzzzzzzzzzzzzzzz')).rejects.toThrow(new Error(`${CHANNEL_UNAVAILABLE}This channel does not exist.`))
+    const broken = createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => ({
+        getChannel: async () => { throw new Error('Tab "featured" not found') },
+      }) as never,
+    })
+    await expect(broken.channel('UCzzzzzzzzzzzzzzzzzzzzzz')).rejects.toThrow(new Error('Tab "featured" not found'))
   })
 })
 

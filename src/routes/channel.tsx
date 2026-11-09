@@ -17,6 +17,7 @@ import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
+import { CHANNEL_UNAVAILABLE } from '../sources/types'
 import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
 import { ChannelHome } from './channel-home'
 
@@ -504,6 +505,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
     variables: { id, tab, sort, query: channelQuery, cursor: pages[pages.length - 1]?.cursor }
   })
   const channel = data?.channel.channel
+  const unavailable = error?.graphQLErrors.find(entry => entry.message.startsWith(CHANNEL_UNAVAILABLE))
   const page = data?.channel.videos
   const { items, cursor } = useInfiniteFeed({
     pages: page ? [...pages, page] : pages,
@@ -643,7 +645,13 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
       {channel && (aboutOpen || aboutRequested)
         ? <ChannelAboutDialog name={channel.name} about={about} description={channel.description} onClose={closeAbout} />
         : undefined}
-      {error ? <p className='status'>Couldn't load this channel. Try again later.</p> : undefined}
+      {error
+        ? (
+          <p className='status'>
+            {unavailable ? unavailable.message.slice(CHANNEL_UNAVAILABLE.length) : 'Couldn\'t load this channel. Try again later.'}
+          </p>
+        )
+        : undefined}
       <nav className='tabs' aria-label='Channel sections'>
         {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab
