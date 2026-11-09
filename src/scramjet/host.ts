@@ -8,9 +8,10 @@ import { expose } from 'osra'
 
 import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
 import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_DIRECT_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
-import { readChannel } from './channel'
+import { readChannel, storeChannel } from './channel'
 import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
+import { jarHoldsSession } from './jar'
 import { CONTROLLER_CONFIG, scramjetWorker } from './scramjet-setup'
 import type { ExtEgressFetch } from './fkn-transport'
 
@@ -86,10 +87,19 @@ const createExtFetch = (port: MessagePort): ExtEgressFetch => {
   })
 }
 
+// this realm is the app's own, so it reads the channel the frame's Scramjet-scoped storage cannot; a session that ended
+// with no loggedOut answer to read (an expired or cleared SAPISID) keeps none
+const channelForSession = async () => {
+  if (await jarHoldsSession()) return readChannel()
+  storeChannel()
+  return undefined
+}
+
 const boot = async () => {
   stage('service-worker')
   const workerReady = scramjetWorker()
   const frameCodePromise = fetch('/__yt_scramjet__/youtube-frame.js').then((response) => response.text())
+  const channelReady = channelForSession()
   stage('bootstrap')
   const transportReady = bootstrap.then(async ({ egress, extFetch: extFetchPort, agent, direct }) => {
     egress.start()
@@ -98,8 +108,7 @@ const boot = async () => {
       transport: { receive: egress, emit: egress },
     })
     const extFetch = createExtFetch(extFetchPort)
-    // this realm is the app's own, so it reads the channel the frame's Scramjet-scoped storage cannot
-    const transport = createFknTransport(remote, extFetch, readChannel())
+    const transport = createFknTransport(remote, extFetch, await channelReady)
     await transport.init()
     return { egress, extFetchPort, remote, transport, extFetch, agent, direct }
   })

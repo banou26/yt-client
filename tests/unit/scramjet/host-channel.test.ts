@@ -47,8 +47,34 @@ const PING = 'https://s.youtube.com/api/stats/playback?ns=yt&docid=dQw4w9WgXcQ&v
 
 const open: MessagePort[] = []
 
-const bootHost = async (stored: Record<string, string>) => {
-  vi.stubGlobal('localStorage', { getItem: (key: string) => stored[key] ?? null, setItem: () => {}, removeItem: () => {} })
+type JarCookie = { name: string, domain: string, expires?: number }
+const SESSION: JarCookie[] = [{ name: 'SAPISID', domain: '.youtube.com' }, { name: 'PREF', domain: '.youtube.com' }]
+
+// scramjet-controller's IndexedDB as it persists the jar, served to the one read the host makes of it
+const persistedJar = (cookies: JarCookie[]) => {
+  const databases: Record<string, Record<string, Record<string, unknown>>> = {
+    __scramjet_controller: { state: { cookies: { cookies: JSON.stringify(Object.fromEntries(cookies.map((cookie) => [`${cookie.domain}@/@${cookie.name}`, cookie]))) } } },
+  }
+  const answer = <T>(result: T) => {
+    const request = { result, onsuccess: undefined as (() => void) | undefined, onerror: undefined as (() => void) | undefined, onupgradeneeded: undefined }
+    setTimeout(() => request.onsuccess?.())
+    return request
+  }
+  return {
+    open: (name: string) => answer({
+      close: () => {},
+      transaction: (store: string) => ({ objectStore: () => ({ get: (key: string) => answer(databases[name]?.[store]?.[key]) }) }),
+    }),
+  }
+}
+
+const bootHost = async (stored: Record<string, string>, jar = SESSION) => {
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => stored[key] ?? null,
+    setItem: (key: string, value: string) => { stored[key] = value },
+    removeItem: (key: string) => { delete stored[key] },
+  })
+  vi.stubGlobal('indexedDB', persistedJar(jar))
   const listeners = new Set<(event: MessageEvent) => void>()
   const parent = { postMessage: () => {} }
   vi.stubGlobal('window', {
@@ -161,6 +187,7 @@ describe("the engine host's transport", () => {
   })
 
   it('sends signed-out calls to the egress exactly as Scramjet hands them, with a channel still stored', async () => {
+    // the jar held a session when the engine booted, and Google cleared it since
     const transport = await bootHost({ [CHANNEL_KEY]: BRAND_PAGE_ID })
     const handed: Handed[] = []
     const fetch = throughScramjet(transport, SIGNED_OUT_JAR, handed)
@@ -170,5 +197,15 @@ describe("the engine host's transport", () => {
     expect(relay.sent).toHaveLength(3)
     expect(relay.sent).toEqual(asHanded(handed))
     expect(relay.sent[0]!.options.headers).not.toHaveProperty('authorization')
+  })
+
+  it('boots with no channel, and removes the stored one, when the jar no longer holds a session', async () => {
+    const stored = { [CHANNEL_KEY]: BRAND_PAGE_ID }
+    const transport = await bootHost(stored, [{ name: 'SAPISID', domain: '.youtube.com', expires: Date.now() - 1_000 }])
+    expect(stored).toEqual({})
+    const handed: Handed[] = []
+    await readSession(throughScramjet(transport, JAR, handed), JAR)
+    expect(relay.sent).toHaveLength(1)
+    expect(relay.sent).toEqual(asHanded(handed))
   })
 })
