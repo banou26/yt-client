@@ -1,4 +1,4 @@
-import type { BrowserContext } from '@playwright/test'
+import type { BrowserContext, Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
@@ -18,6 +18,16 @@ const watchReads = (context: BrowserContext) => {
   return reads
 }
 
+// the frame's note of a stream it had to replace, which a refused far seek always leaves
+const frameRecovery = async (page: Page) => {
+  for (const frame of page.frames()) {
+    if (frame === page.mainFrame()) continue
+    const value = await frame.locator('html').getAttribute('data-segment-recovery', { timeout: 1_000 }).catch(() => null)
+    if (value) return value
+  }
+  return null
+}
+
 test('a refused video is tried again a few times, then says so once, with Retry', async ({ page, context }) => {
   test.setTimeout(300_000)
   const reads = watchReads(context)
@@ -27,6 +37,8 @@ test('a refused video is tried again a few times, then says so once, with Retry'
   const video = page.locator('video')
   await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime), { timeout: 120_000 }).toBeGreaterThan(1)
   await video.evaluate((element) => { (element as HTMLVideoElement).currentTime = 150 })
+  const recovery = await expect.poll(() => frameRecovery(page), { timeout: 90_000 }).not.toBeNull().then(() => true, () => false)
+  test.skip(!recovery, 'YouTube served the far seek, so there was no refused stream to back off from')
 
   const status = page.locator('.playback-status')
   await expect(status).toContainText('This video can\'t be played right now', { timeout: 200_000 })
