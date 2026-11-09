@@ -10,13 +10,23 @@ const waitForWorker = async (registration: ServiceWorkerRegistration) => {
   return registration.active
 }
 
-/** The Scramjet service worker every Controller of this origin shares; registering again is a no-op. */
-export const scramjetWorker = () =>
-  navigator.serviceWorker.register('/__yt_scramjet__/sw.js', {
+const SCRIPT = '/__yt_scramjet__/sw.js'
+
+/**
+ * The Scramjet service worker every Controller of this origin shares. A page it already controls, which is every load
+ * after the first, takes it without calling register(): Chrome queues that call behind the update check it scheduled
+ * after earlier loads in this scope, and starts that check as lowest-priority work, which a browser that started
+ * recently holds until its first page goes idle (1.5 to 3.4 s on return visits, Chrome 156, measured 2026-11-10).
+ */
+export const scramjetWorker = async () => {
+  const controller = navigator.serviceWorker.controller
+  if (controller?.scriptURL === location.origin + SCRIPT) return controller
+  return waitForWorker(await navigator.serviceWorker.register(SCRIPT, {
     scope: '/__yt_scramjet__/',
     type: 'classic',
     updateViaCache: 'none',
-  }).then(waitForWorker)
+  }))
+}
 
 /** The Controller config of the engine and of the sign-in window. Their cookie jars meet in IndexedDB `__scramjet_controller`. */
 export const CONTROLLER_CONFIG = {
