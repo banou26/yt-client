@@ -177,16 +177,22 @@ const style = css`
   }
 
   .channel-name {
-    display: block;
+    display: flex;
+    align-items: center;
     width: fit-content;
     max-width: 100%;
     font-size: 1.6rem;
     font-weight: 500;
     line-height: 2.2rem;
     color: var(--text-primary);
-    white-space: nowrap;
+  }
+
+  /* the badge stays after the ellipsis, as on youtube.com */
+  .channel-name .name {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .sub-count {
@@ -432,7 +438,7 @@ const WatchPage = () => {
               </Link>
               <div className='owner-text'>
                 <Link href={`/channel/${channel.id}`} className='channel-name'>
-                  {channel.name}
+                  <span className='name'>{channel.name}</span>
                   <VerifiedBadge channel={channel} />
                 </Link>
                 {channel.subscriberCountText

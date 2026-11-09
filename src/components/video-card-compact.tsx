@@ -86,8 +86,10 @@ const style = css`
   }
 
   .channel-name {
-    display: block;
+    display: flex;
+    align-items: center;
     width: fit-content;
+    max-width: 100%;
     margin-top: 0.4rem;
     font-size: 1.2rem;
     font-weight: 400;
@@ -97,6 +99,14 @@ const style = css`
 
   .channel-name:hover {
     color: var(--text-primary);
+  }
+
+  /* the badge stays after the ellipsis, as on youtube.com */
+  .channel-name .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .meta {
@@ -174,7 +184,7 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
         {video.channel
           ? (
             <Link href={`/channel/${video.channel.id}`} className='channel-name'>
-              {video.channel.name}
+              <span className='name'>{video.channel.name}</span>
               <VerifiedBadge channel={video.channel} size={12} />
             </Link>
           )
