@@ -104,6 +104,24 @@ const firstHomeRowButton = async (page: Page) => {
   return { track: row.locator('.track'), more: tile.getByRole('button', { name: /^More actions for / }) }
 }
 
+test('a row menu near the bottom of the window opens above its button', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  const { more } = await firstHomeRowButton(page)
+  // the page grows a few pixels just after its first row shows, so the button goes 60px above the bottom until it stays
+  await expect.poll(() => more.evaluate(async (element) => {
+    scrollBy(0, element.getBoundingClientRect().bottom - (900 - 60))
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return element.getBoundingClientRect().bottom
+  })).toBeCloseTo(900 - 60, 0)
+
+  await more.click()
+  const menu = page.getByRole('menu', { name: /^More actions for / })
+  await expectWhole(menu)
+  const [panel, trigger] = await Promise.all([menu.boundingBox(), more.boundingBox()])
+  expect(Math.abs(panel!.y + panel!.height - (trigger!.y - 8))).toBeLessThanOrEqual(1)
+})
+
 test('at phone width a row menu stays inside the window', async ({ page }) => {
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 390, height: 844 })
