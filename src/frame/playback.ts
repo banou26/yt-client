@@ -17,7 +17,7 @@ export type PlaybackEntry = {
   generation: number
   closed: boolean
   refreshing?: Promise<void>
-  // the session the last refresh left current, until it delivers a segment
+  // the session the last refresh left current, until it delivers media: an init it answers says nothing of its stream
   recovered?: SabrSession
   refused?: Error
   captions: CaptionSource[]
@@ -79,11 +79,13 @@ const refreshSession = async (entry: PlaybackEntry) => {
 }
 
 /**
- * One segment of the entry's video. A session YouTube will not serve is replaced at once by a new one on a new watch
- * page read. If that one is not served either before it delivers a segment, the playback is refused: this request and
- * every later one fail with `STREAM_REFUSED` and read nothing more, and the player decides when to open the video
- * again. A refresh that itself fails counts the same, so a playback reads at most one more watch page per stretch of
- * delivered segments.
+ * One segment of the entry's video. A session that fails with a refresh error (status 2 or 3 through its retries, an
+ * HTTP error, a reload request) is replaced at once by a new one on a new watch page read. If that one fails the same
+ * way before it delivers a media segment, the stream is refused: this request and every later one fail with
+ * `STREAM_REFUSED` and read nothing more, and the player decides when to open the video again. Every refresh error
+ * counts, not only status 2, since a session answered 403 or 5xx every time would otherwise read the watch page every
+ * few seconds as well. A refresh that itself fails counts the same, so a playback reads at most one more watch page
+ * per stretch of delivered media.
  */
 export const requestPlaybackSegment = (
   entry: PlaybackEntry,
@@ -107,7 +109,7 @@ export const requestPlaybackSegment = (
     try {
       const segment = await player.requestSegment(request, progress, controller.signal)
       assertActive()
-      entry.recovered = undefined
+      if (request.kind === 'media') entry.recovered = undefined
       return segment
     } catch (error) {
       assertActive()

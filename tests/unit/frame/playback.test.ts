@@ -7,10 +7,17 @@ import { egressFetch } from '../../../src/frame/egress'
 import { getSabrSource } from '../../../src/frame/innertube'
 import { closePlaybackEntry, openPlaybackEntry, requestPlaybackSegment } from '../../../src/frame/playback'
 import { STREAM_REFUSED } from '../../../src/frame/protocol'
+import { createSabrSession } from '../../../src/frame/sabr'
 import { createRestartBudget, isStreamRefusal } from '../../../src/player/restart'
 
 vi.mock('../../../src/frame/egress', () => ({ egressFetch: vi.fn() }))
 vi.mock('../../../src/frame/innertube', () => ({ GVS_ORIGIN_KEY: 'gvs-origin', getSabrSource: vi.fn() }))
+vi.mock('../../../src/frame/sabr', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../src/frame/sabr')>()
+  return { ...actual, createSabrSession: vi.fn(actual.createSabrSession) }
+})
+
+const { createSabrSession: realSession } = await vi.importActual<typeof import('../../../src/frame/sabr')>('../../../src/frame/sabr')
 
 const video = { itag: 399, lastModified: '1', width: 1_920, height: 1_080, mimeType: 'video/mp4; codecs="av01.0.08M.08"', bitrate: 1, approxDurationMs: 213_000 }
 const audio = { itag: 251, lastModified: '1', mimeType: 'audio/webm; codecs="opus"', bitrate: 1, approxDurationMs: 213_000 }
@@ -52,6 +59,21 @@ const refuseEverySession = () => vi.mocked(egressFetch).mockImplementation(async
 
 const failureOf = (request: Promise<unknown>) => request.then(() => 'delivered', (error: Error) => error.message)
 
+const init = (requestId: string): SegmentRequest => ({ ...segment(requestId), kind: 'init', range: { start: 0, end: 700 } })
+
+// the requests `served` picks (by the session's number, the first being 1) get a few bytes, the rest the SABR answers
+const serve = (served: (request: SegmentRequest, session: number) => boolean) => {
+  let sessions = 0
+  vi.mocked(createSabrSession).mockImplementation((...args) => {
+    const session = realSession(...args)
+    const number = ++sessions
+    const requestSegment: typeof session.requestSegment = (request, progress, signal) => served(request, number)
+      ? Promise.resolve({ generation: request.generation, track: request.track, kind: request.kind, formatKey: '399:', mimeType: video.mimeType, elapsedMs: 1, end: false, data: new ArrayBuffer(8) })
+      : session.requestSegment(request, progress, signal)
+    return Object.create(session, { requestSegment: { value: requestSegment } }) as typeof session
+  })
+}
+
 const sleep = (ms: number) => new Promise<void>((resolve) => { setTimeout(resolve, ms) })
 
 /* The player's side of the loop, as video-player.tsx and Shaka drive the frame: Shaka asks again a second after a
@@ -92,6 +114,7 @@ describe('a playback YouTube keeps refusing', () => {
   })
 
   afterEach(() => {
+    vi.mocked(createSabrSession).mockImplementation(realSession)
     vi.useRealTimers()
     vi.unstubAllGlobals()
   })
@@ -140,6 +163,45 @@ describe('a playback YouTube keeps refusing', () => {
     await vi.advanceTimersByTimeAsync(10_000)
     expect((await both).every((message) => message.startsWith(STREAM_REFUSED))).toBe(true)
     expect(reads).toHaveLength(2)
+    closePlaybackEntry(entry)
+  })
+
+  it('counts only media as served: an init the new session answers does not buy it a second refresh', async () => {
+    serve((request) => request.kind === 'init')
+    const { entry } = await openPlaybackEntry('video-1')
+    let release: () => void = () => {}
+    vi.mocked(getSabrSource).mockImplementationOnce(async () => {
+      reads.push(Date.now())
+      await new Promise<void>((resolve) => { release = resolve })
+      return source
+    })
+    const first = failureOf(requestPlaybackSegment(entry, segment('a'), () => {}))
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(reads).toHaveLength(2)
+    // a seek while the new session opens drops the old request, and the new position asks for its init first
+    const initAnswer = failureOf(requestPlaybackSegment(entry, { ...init('b'), generation: 1 }, () => {}))
+    const media = failureOf(requestPlaybackSegment(entry, { ...segment('c'), generation: 1 }, () => {}))
+    release()
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await first).toBe('youtube: segment request cancelled')
+    expect(await initAnswer).toBe('delivered')
+    expect(await media).toMatch(STREAM_REFUSED)
+    expect(reads).toHaveLength(2)
+    closePlaybackEntry(entry)
+  })
+
+  it('replaces a session again on a later refusal once it delivered media', async () => {
+    let delivered = 0
+    serve((request, session) => request.kind === 'media' && session === 2 && ++delivered === 1)
+    const { entry } = await openPlaybackEntry('video-1')
+    const recovered = failureOf(requestPlaybackSegment(entry, segment('a'), () => {}))
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(await recovered).toBe('delivered')
+    expect(reads).toHaveLength(2)
+    const refused = failureOf(requestPlaybackSegment(entry, segment('b'), () => {}))
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(await refused).toMatch(STREAM_REFUSED)
+    expect(reads).toHaveLength(3)
     closePlaybackEntry(entry)
   })
 
