@@ -48,6 +48,37 @@ const REPLAYABLE_METHODS = ['GET', 'HEAD']
 export const mayHonourManualRedirect = (method: string | undefined) =>
   REPLAYABLE_METHODS.includes((method ?? 'GET').toUpperCase())
 
+/**
+ * `response` with a body that calls `release` once it is read to its end, fails or is cancelled; with no body,
+ * `release` runs at once. osra (0.6.5) keeps a signal it forwarded to the extension, with a port and three listeners
+ * on this side and more in the extension's content script, until that signal aborts, so `release` aborts the
+ * request's signal once its answer is over (measured 2026-11-10: about 75 listeners kept per watch page read of a
+ * refused playback).
+ */
+export const releaseWhenOver = (response: TransportResponse | null, release: () => void): TransportResponse | null => {
+  if (!response?.body) {
+    release()
+    return response
+  }
+  const reader = response.body.getReader()
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      const chunk = await reader.read().catch((error: unknown) => {
+        release()
+        throw error
+      })
+      if (!chunk.done) return controller.enqueue(chunk.value)
+      controller.close()
+      release()
+    },
+    async cancel(reason) {
+      release()
+      await reader.cancel(reason)
+    },
+  })
+  return { ...response, body }
+}
+
 const create = async () => {
   const worker = new Worker(new URL('./egress.worker.ts', import.meta.url), { type: 'module' })
   const relayAbort = new AbortController()
@@ -143,8 +174,9 @@ const create = async () => {
       const abort = new AbortController()
       aborts.set(request.id, abort)
       void runExtFetch(request, abort.signal).then(
-        (response) => {
+        (answer) => {
           aborts.delete(request.id)
+          const response = releaseWhenOver(answer, () => abort.abort())
           // the response BODY transfers (a ReadableStream cannot be cloned), the REQUEST body never does: the tunnelled fallback reuses the same options object
           port.postMessage(
             { id: request.id, response } satisfies ExtFetchResponse,
@@ -153,6 +185,7 @@ const create = async () => {
         },
         (error) => {
           aborts.delete(request.id)
+          abort.abort()
           port.postMessage({
             id: request.id,
             error: error instanceof Error ? error.message : String(error),
