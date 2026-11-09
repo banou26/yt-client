@@ -19,11 +19,15 @@ export type HistoryEntry =
 /** `session` names the browser's YouTube session the copy was read through: a digest of its SAPISID, never the cookie. */
 export type ImportedHistory = { importedAt: number, session: string, entries: HistoryEntry[] }
 
-/** The extension calls the import makes, all on the browser's own session; `platform.ts` binds them to `@fkn/lib`. */
+/**
+ * The extension calls the import makes, all on the browser's own session; `platform.ts` binds them to `@fkn/lib`.
+ * `fetch` takes no signal: osra (0.6.5) keeps a forwarded signal's port and listeners until it aborts, so each call
+ * would leave a set behind, and without one it keeps nothing.
+ */
 export type BrowserSession = {
   requestNetwork: (hosts: string[], reason: string) => Promise<{ allow: boolean }[]>
   cookie: (details: { url: string, name: string }) => Promise<{ name: string, value: string } | null>
-  fetch: (url: string, init: RequestInit) => Promise<Response>
+  fetch: (url: string, init: Omit<RequestInit, 'signal'>) => Promise<Response>
 }
 
 const YOUTUBE_HOST = 'www.youtube.com'
