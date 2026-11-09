@@ -183,6 +183,13 @@ const style = css`
       border-radius: 50%;
     }
   }
+
+  /* The header's narrow row (guide, logo, search icon, this offer, More, Sign
+     in) is 440px wide signed out, measured 2026-11-09, so below that the offer
+     makes way for the Sign in button. */
+  @media (max-width: 439px) {
+    display: none;
+  }
 `
 
 /**

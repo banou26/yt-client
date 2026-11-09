@@ -1,7 +1,7 @@
 import type { TargetedEvent, TargetedKeyboardEvent, TargetedSubmitEvent } from 'preact'
 
 import { css } from '@emotion/react'
-import { CircleUserRound, Menu, Search, X } from 'lucide-react'
+import { ArrowLeft, CircleUserRound, Menu, Search, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -109,6 +109,11 @@ const style = css`
 
   .icon-button:hover {
     background: var(--bg-hover);
+  }
+
+  .back,
+  .open-search {
+    display: none;
   }
 
   .search {
@@ -271,6 +276,39 @@ const style = css`
       margin: 0 1.6rem;
     }
   }
+
+  /* youtube.com's narrow masthead, from the same width (measured 2026-11-09):
+     the box gives way to a search icon that opens it across the whole row,
+     behind a back button. */
+  @media (max-width: 656px) {
+    display: flex;
+    padding: 0 0.8rem;
+
+    .search {
+      display: none;
+    }
+
+    .open-search {
+      display: flex;
+      margin-left: auto;
+    }
+
+    &.search-open .start,
+    &.search-open .end,
+    &.search-open .open-search {
+      display: none;
+    }
+
+    &.search-open .back {
+      display: flex;
+    }
+
+    &.search-open .search {
+      display: flex;
+      flex: 1;
+      margin: 0 0 0 4rem;
+    }
+  }
 `
 
 export const Header = ({ onMenu }: { onMenu?: () => void }) => {
@@ -281,6 +319,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
   const [debounced, setDebounced] = useState('')
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [engineReady, setEngineReady] = useState(() => document.documentElement.dataset.engine === 'ready')
   const [{ data: sessionData }] = useQuery({ query: HEADER_SESSION_QUERY, pause: !engineReady })
   const session = sessionData?.session
@@ -309,6 +348,11 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
+
+  // m.youtube.com puts the caret in the box as it opens, where youtube.com's narrow window waits for a second tap
+  useEffect(() => {
+    if (searchOpen) inputRef.current?.focus()
+  }, [searchOpen])
 
   // src/scramjet/client.ts has no cancellation path for a non-segment call, so the debounce is load-bearing rather than a nicety
   useEffect(() => {
@@ -371,13 +415,16 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
   }
 
   return (
-    <header css={style}>
+    <header css={style} className={searchOpen ? 'search-open' : undefined}>
       <div className='start'>
         <button type='button' className='icon-button' aria-label='Guide' onClick={onMenu}>
           <Menu size={24} strokeWidth={1.5} />
         </button>
         <Logo />
       </div>
+      <button type='button' className='icon-button back' aria-label='Back' onClick={() => setSearchOpen(false)}>
+        <ArrowLeft size={24} strokeWidth={1.5} />
+      </button>
       <form className='search' role='search' onSubmit={onSubmit}>
         <div className='search-box'>
           <Search className='search-icon' size={20} strokeWidth={1.5} aria-hidden='true' />
@@ -439,6 +486,9 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
           <Search size={24} strokeWidth={1.5} />
         </button>
       </form>
+      <button type='button' className='icon-button open-search' aria-label='Search' onClick={() => setSearchOpen(true)}>
+        <Search size={24} strokeWidth={1.5} />
+      </button>
       <div className='end'>
         {/* renders nothing at all with the extension installed, or once declined */}
         <ExtensionNotice />
