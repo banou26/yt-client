@@ -370,6 +370,16 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
     if (searchOpen) inputRef.current?.focus()
   }, [searchOpen])
 
+  // youtube.com closes the open bar once the window is wide enough for the box
+  useEffect(() => {
+    const narrow = window.matchMedia('(max-width: 656px)')
+    const onChange = () => {
+      if (!narrow.matches) setSearchOpen(false)
+    }
+    narrow.addEventListener('change', onChange)
+    return () => narrow.removeEventListener('change', onChange)
+  }, [])
+
   // src/scramjet/client.ts has no cancellation path for a non-segment call, so the debounce is load-bearing rather than a nicety
   useEffect(() => {
     if (typed === undefined) return
