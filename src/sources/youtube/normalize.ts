@@ -369,12 +369,13 @@ const lockupRows = (lockup: LockupVideo) =>
 type LockupPart = ReturnType<typeof lockupRows>[number][number]
 
 // The byline leads the first row: alone above the views and date (watch next, shelves) or ahead of them on the one row
-// (search, history). A channel's own videos on its Home shelves have only the views and date, and their avatar still
-// taps through to the channel, so on a shelf the one row is never a byline: read as one, it named the channel '784K'.
-const lockupLines = (lockup: LockupVideo, shelf: boolean): { byline?: LockupPart, stats: LockupPart[] } => {
+// (search, history). A channel's own videos, on its Home shelves and its tabs, have no byline: their one row ends in the
+// views and date, after the names of a collaboration, and their avatar still taps through to the channel, so read as a
+// byline that row named the channel '784K'.
+const lockupLines = (lockup: LockupVideo, own: boolean): { byline?: LockupPart, stats: LockupPart[] } => {
   const rows = lockupRows(lockup)
   if (rows.length > 1) return { byline: rows[0]?.[0], stats: rows[1] ?? [] }
-  if (shelf) return { stats: rows[0] ?? [] }
+  if (own) return { stats: rows[0]?.slice(-2) ?? [] }
   const [byline, ...stats] = rows[0] ?? []
   return { byline, stats }
 }
@@ -709,7 +710,7 @@ export const normalizeVideoDetails = (input: unknown): SourceVideo | undefined =
 // an explicit allow-list rather than "not VIDEO" so a playlist lockup falls through to normalizePlaylistLockup instead of being swallowed here: the collection kinds have their own normalizers and must never be forced through this one
 const VIDEO_LOCKUPS = new Set(['UNSPECIFIED', 'VIDEO', 'SHORT', 'CLIP', 'MOVIE'])
 
-export const normalizeLockupVideo = (input: unknown, { shelf = false }: { shelf?: boolean } = {}): SourceVideo | undefined => {
+export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: boolean } = {}): SourceVideo | undefined => {
   const lockup = input as LockupVideo
   if (!VIDEO_LOCKUPS.has(lockup.content_type ?? 'UNSPECIFIED')) return undefined
   const id = lockup.content_id
@@ -717,7 +718,7 @@ export const normalizeLockupVideo = (input: unknown, { shelf = false }: { shelf?
   if (!id || !title) return undefined
   const image = lockup.content_image?.primary_thumbnail ?? lockup.content_image
   const badges = image?.overlays?.flatMap((overlay) => overlay.badges ?? []) ?? []
-  const { byline, stats } = lockupLines(lockup, shelf)
+  const { byline, stats } = lockupLines(lockup, own)
   return {
     id,
     title,
@@ -823,7 +824,7 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
   for (const item of node?.content?.items ?? node?.content?.contents ?? node?.items ?? []) {
     const type = (item as { type?: string }).type
     if (type === 'LockupView') {
-      const video = normalizeLockupVideo(item, { shelf: true })
+      const video = normalizeLockupVideo(item, { own: true })
       const playlist = video ? undefined : normalizePlaylistLockup(item)
       if (video) shelf.videos.push(video)
       if (playlist) shelf.playlists.push(playlist)

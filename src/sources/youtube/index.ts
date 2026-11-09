@@ -294,7 +294,7 @@ const shortsItems = (feed: Feed) => {
  * would show every short twice. A channel's Shorts TAB is the opposite case,
  * where the shorts are the grid.
  */
-const pageItems = (feed: Feed, { includeShorts = true }: { includeShorts?: boolean } = {}) => {
+const pageItems = (feed: Feed, { includeShorts = true, own = false }: { includeShorts?: boolean, own?: boolean } = {}) => {
   // normalizeFeedVideo reads the legacy Video/GridVideo nodes of the `videos` getter but not a LockupView, and a modern feed MIXES the two: merging rather than either/or is essential.
   const seen = new Set<string>()
   const items: SourceVideo[] = []
@@ -305,7 +305,7 @@ const pageItems = (feed: Feed, { includeShorts = true }: { includeShorts?: boole
     }
   }
   for (const node of feed.videos) add(normalizeFeedVideo(node))
-  for (const node of feed.memo?.get('LockupView') ?? []) add(normalizeLockupVideo(node))
+  for (const node of feed.memo?.get('LockupView') ?? []) add(normalizeLockupVideo(node, { own }))
   if (includeShorts) for (const short of shortsItems(feed)) add(short)
   return items
 }
@@ -734,10 +734,10 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     return result
   }
 
-  const page = (kind: string, feed: Feed): SourceVideoPage => {
-    const result: SourceVideoPage = { items: pageItems(feed), playlists: pagePlaylists(feed) }
+  const page = (kind: string, feed: Feed, { own = false } = {}): SourceVideoPage => {
+    const result: SourceVideoPage = { items: pageItems(feed, { own }), playlists: pagePlaylists(feed) }
     if (feed.has_continuation) {
-      result.cursor = videoContinuations.register(kind, async () => page(kind, await feed.getContinuation()))
+      result.cursor = videoContinuations.register(kind, async () => page(kind, await feed.getContinuation(), { own }))
     }
     return result
   }
@@ -1137,7 +1137,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const rest = { availableTabs, tab: selected, sortOptions, appliedSort }
       channels.set(id, { channel, page: rest })
       if (selected === 'HOME') return { ...rest, channel, videos: { items: [], playlists: [] }, home: channelHome(feed) }
-      return { ...rest, channel, videos: page(kind, feed) }
+      return { ...rest, channel, videos: page(kind, feed, { own: true }) }
     },
     channelAbout: async (id) => {
       const result = await fetchChannel(id)

@@ -1,0 +1,648 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/featured",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EghmZWF0dXJlZPIGBAoCMgA%3D",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Home"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/videos",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EgZ2aWRlb3PyBgQKAjoA",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Videos",
+            "selected": true,
+            "content": {
+              "richGridRenderer": {
+                "contents": [
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/mHrHLqQj7Ts/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvcY&rs=AOn4CLAm5F1QBT5-U3AF5_3wiwaDGg7J1w",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/mHrHLqQj7Ts/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvcY&rs=AOn4CLBTQ7r-ZrMq8skTC96ta8JDP1VSLw",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "4:40",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animatedText": "Now playing",
+                                          "rendererContext": {
+                                            "accessibilityContext": {
+                                              "label": "4 minutes, 40 seconds"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Making of: The Blender Open Movies Exhibition"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "17K"
+                                          },
+                                          "accessibilityLabel": "17 thousand views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "6d ago"
+                                          },
+                                          "accessibilityLabel": "6 days ago"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "mHrHLqQj7Ts",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "accessibilityContext": {
+                              "label": "Making of: The Blender Open Movies Exhibition 4 minutes, 40 seconds"
+                            },
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=mHrHLqQj7Ts",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "mHrHLqQj7Ts",
+                                    "params": "0gYaEhgaBgoCZW4QASIGCgJlbhABKgYKAmVuEAE%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/dVrELpmfcEQ/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvcY&rs=AOn4CLCshw3xiOi7YwiYdZT1HfHs49vHFg",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/dVrELpmfcEQ/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvcY&rs=AOn4CLBWCAlP6h27juCnD-jgvlwr5rIX6A",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "2:04:42",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animatedText": "Now playing",
+                                          "rendererContext": {
+                                            "accessibilityContext": {
+                                              "label": "2 hours, 4 minutes, 42 seconds"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Blender Education Community Meeting — BCON26"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "12K"
+                                          },
+                                          "accessibilityLabel": "12 thousand views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "2w ago"
+                                          },
+                                          "accessibilityLabel": "2 weeks ago"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "dVrELpmfcEQ",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "accessibilityContext": {
+                              "label": "Blender Education Community Meeting — BCON26 2 hours, 4 minutes"
+                            },
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=dVrELpmfcEQ",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "dVrELpmfcEQ"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/sO_lhW8av3U/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvcY&rs=AOn4CLBJBsOwRkMpHaM5h76MKlmhXXkV7A",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/sO_lhW8av3U/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvcY&rs=AOn4CLASJQpXObT8jbhMu8oKQZqmsPDqYw",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "2:29",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animatedText": "Now playing",
+                                          "rendererContext": {
+                                            "accessibilityContext": {
+                                              "label": "2 minutes, 29 seconds"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Blender Conference 2026 Recap"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "23K"
+                                          },
+                                          "accessibilityLabel": "23 thousand views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "3w ago"
+                                          },
+                                          "accessibilityLabel": "3 weeks ago"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "sO_lhW8av3U",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "accessibilityContext": {
+                              "label": "Blender Conference 2026 Recap 2 minutes, 29 seconds"
+                            },
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=sO_lhW8av3U",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "sO_lhW8av3U",
+                                    "params": "0gYaEhgaBgoCZW4QASIGCgJlbhABKgYKAmVuEAE%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/cM3NJuY_xLc/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvcY&rs=AOn4CLDNjfeKfyQpblZpCdO0SL16Q-M5bw",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/cM3NJuY_xLc/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvcY&rs=AOn4CLAJLzd53zK1V8qBVuHVcfEUbvINRA",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "48:21",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animatedText": "Now playing",
+                                          "rendererContext": {
+                                            "accessibilityContext": {
+                                              "label": "48 minutes, 21 seconds"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Fall of Reach - Guide to Epic Sci-Fi for Small Studios — BCON26"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Blender"
+                                          },
+                                          "icon": {
+                                            "name": "CHECK_CIRCLE_FILLED",
+                                            "height": 14,
+                                            "width": 14,
+                                            "accessibilityLabel": "Verified",
+                                            "marginEndToken": {
+                                              "spacing": 2
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "and Invicta"
+                                          },
+                                          "icon": {
+                                            "name": "CHECK_CIRCLE_FILLED",
+                                            "height": 14,
+                                            "width": 14,
+                                            "accessibilityLabel": "Verified",
+                                            "marginEndToken": {
+                                              "spacing": 4
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "10K"
+                                          },
+                                          "accessibilityLabel": "10 thousand views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "1mo ago"
+                                          },
+                                          "accessibilityLabel": "1 month ago"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "cM3NJuY_xLc",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "accessibilityContext": {
+                              "label": "Fall of Reach - Guide to Epic Sci-Fi for Small Studios — BCON26 48 minutes"
+                            },
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=cM3NJuY_xLc&pp=0gcJCUEMAYcqIYzv",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "cM3NJuY_xLc",
+                                    "params": "0gYaEhgaBgoCZW4QASIGCgJlbhABKgYKAmVuEAE%3D",
+                                    "playerParams": "0gcJCUEMAYcqIYzv"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "targetId": "6d0c4018-0000-2611-8bef-582429c4cfa4",
+                "style": "RICH_GRID_STYLE_SLIM"
+              }
+            }
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/shorts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EgZzaG9ydHPyBgUKA5oBAA%3D%3D",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Shorts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/streams",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EgdzdHJlYW1z8gYECgJ6AA%3D%3D",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Live"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/podcasts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "Eghwb2RjYXN0c_IGBQoDugEA",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Podcasts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/playlists",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EglwbGF5bGlzdHPyBgoKCEIGCgIQaCIA",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Playlists"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/posts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EgVwb3N0c_IGBAoCSgA%3D",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Posts"
+          }
+        },
+        {
+          "expandableTabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@BlenderOfficial/search",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UCSMOQeBJ2RAnuFungnQOxLg",
+                "params": "EgZzZWFyY2jyBgQKAloA",
+                "canonicalBaseUrl": "/@BlenderOfficial"
+              }
+            },
+            "title": "Search",
+            "selected": false
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "channelMetadataRenderer": {
+      "title": "Blender",
+      "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCSMOQeBJ2RAnuFungnQOxLg",
+      "externalId": "UCSMOQeBJ2RAnuFungnQOxLg",
+      "avatar": {
+        "thumbnails": [
+          {
+            "url": "https://yt3.googleusercontent.com/ytc/AIdro_nqhez5E1j4YzrCvzTAAB6z_KDFFZznqWv0x-vfY2gsXdY=s900-c-k-c0x00ffffff-no-rj",
+            "width": 900,
+            "height": 900
+          }
+        ]
+      },
+      "channelUrl": "https://www.youtube.com/channel/UCSMOQeBJ2RAnuFungnQOxLg",
+      "isFamilySafe": true,
+      "vanityChannelUrl": "http://www.youtube.com/@BlenderOfficial"
+    }
+  }
+}
