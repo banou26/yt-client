@@ -129,6 +129,26 @@ test('a playlist moves on to its next entry', async ({ page }) => {
   }, { timeout: 30_000 }).toEqual([expected, list, '2'])
 })
 
+test('Shift+P plays the playlist entry before this one', async ({ page }) => {
+  test.setTimeout(300_000)
+  const list = `RD${VIDEO_ID}`
+  await page.goto(`/watch?v=${VIDEO_ID}&list=${list}&index=1`)
+  const queue = page.locator('section[aria-label="Playlist queue"]')
+  const second = queue.locator('li').nth(1).locator('a')
+  await expect(second).toBeVisible({ timeout: 120_000 })
+  const secondId = videoIdOf((await second.getAttribute('href'))!)
+  await second.click()
+  await expect(queue.locator('li[data-current="true"] a')).toHaveAttribute('href', new RegExp(`v=${secondId}&`), { timeout: 60_000 })
+  const previousId = videoIdOf((await queue.locator('li').nth(0).locator('a').getAttribute('href'))!)
+
+  await page.locator('main h1').click()
+  await page.keyboard.press('Shift+P')
+  await expect.poll(() => {
+    const url = new URL(page.url())
+    return [url.searchParams.get('v'), url.searchParams.get('list'), url.searchParams.get('index')]
+  }, { timeout: 30_000 }).toEqual([previousId, list, '1'])
+})
+
 test('the player bar draws Next with its bar', async ({ page }) => {
   test.setTimeout(240_000)
   await page.goto(`/watch?v=${VIDEO_ID}`)

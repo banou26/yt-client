@@ -19,6 +19,7 @@ const SECTIONS: { title: string, rows: [string, string][] }[] = [
       ['Increase volume 5%', '↑'],
       ['Decrease volume 5%', '↓'],
       ['Toggle mute', 'm'],
+      ['Previous video', 'Shift+P'],
       ['Next video', 'Shift+N'],
     ],
   },

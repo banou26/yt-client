@@ -11,7 +11,7 @@ import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
 import { upNextHref } from './end-screen'
 import { useSponsorSegments } from './sponsorblock'
-import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay } from './up-next'
+import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay, previousQueueIndex } from './up-next'
 import VideoPlayer from './video-player'
 import { WATCH_META_QUERY } from './watch-query'
 
@@ -147,11 +147,9 @@ const PersistentPlayer = () => {
     openPlayer({ videoId: target.id, title: target.title ?? undefined, list: target.list, index: target.index })
   }
 
-  const queueTarget = () => {
-    if (!playlist) return undefined
-    const index = nextQueueIndex(current, count)
-    const item = index === undefined ? undefined : playlist.items[index]
-    return item ? { id: item.id, title: item.title, thumbnail: item.thumbnail, list: playlist.id, index } : undefined
+  const queueEntry = (index: number | undefined) => {
+    const item = index === undefined ? undefined : playlist?.items[index]
+    return item && playlist ? { id: item.id, title: item.title, thumbnail: item.thumbnail, list: playlist.id, index } : undefined
   }
 
   // where i leaves the watch page for, as youtube.com returns to the page the video was opened from
@@ -167,7 +165,15 @@ const PersistentPlayer = () => {
 
   const next = count > 1 || pick
     ? () => {
-      const target = queueTarget() ?? pick
+      const target = queueEntry(nextQueueIndex(current, count)) ?? pick
+      if (target) open(target)
+    }
+    : undefined
+
+  // youtube.com's Shift+P steps back through a playlist only, and does nothing on its first entry or outside one
+  const previous = playlist
+    ? () => {
+      const target = queueEntry(previousQueueIndex(current, count))
       if (target) open(target)
     }
     : undefined
@@ -211,6 +217,7 @@ const PersistentPlayer = () => {
                 pick,
                 suggestions,
                 onNext: next,
+                onPrevious: previous,
                 onOpen: open,
               }}
             />

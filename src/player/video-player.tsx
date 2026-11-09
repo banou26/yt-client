@@ -151,8 +151,9 @@ const requestPlayerFullscreen = (video: HTMLVideoElement | null) => {
  *
  * `queued` says whether a playlist entry follows, so the end of the video calls
  * `onNext` at once; otherwise `pick` is the autoplay countdown's target and
- * `suggestions` fill the end screen. `onOpen` plays a picked video, which on
- * the watch page navigates and in the miniplayer plays in place.
+ * `suggestions` fill the end screen. `onPrevious` is Shift+P, set only in a
+ * playlist. `onOpen` plays a picked video, which on the watch page navigates
+ * and in the miniplayer plays in place.
  */
 export type PlayerUpNext = {
   autoplay: boolean
@@ -161,6 +162,7 @@ export type PlayerUpNext = {
   pick?: UpNext
   suggestions: readonly UpNext[]
   onNext?: () => void
+  onPrevious?: () => void
   onOpen: (target: UpNext) => void
 }
 
@@ -207,6 +209,7 @@ const VideoPlayer = (
     ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
     : undefined
   const onNext = upNext?.onNext
+  const onPrevious = upNext?.onPrevious
 
   useEffect(() => {
     if (ending === 'advance') onNext?.()
@@ -399,8 +402,8 @@ const VideoPlayer = (
   useEffect(() => () => clearTimeout(idleTimer.current), [])
 
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onMiniplayer, toggleCaption, player, shortcuts })
-  latest.current = { onTheater, onNext, onMiniplayer, toggleCaption, player, shortcuts }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -491,6 +494,11 @@ const VideoPlayer = (
           if (!event.shiftKey || !actions.onNext) return
           handled()
           actions.onNext()
+          return
+        case 'P':
+          if (!event.shiftKey || !actions.onPrevious) return
+          handled()
+          actions.onPrevious()
           return
         case 'Home': handled(); video.currentTime = 0; return
         case 'End': handled(); video.currentTime = video.duration || 0; return
