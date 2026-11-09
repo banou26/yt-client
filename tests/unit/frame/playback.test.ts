@@ -219,7 +219,7 @@ describe('a playback YouTube keeps refusing', () => {
     closePlaybackEntry(entry)
     release()
     await vi.advanceTimersByTimeAsync(10 * 60_000)
-    expect(await request).toBe('youtube: playback session closed during refresh')
+    expect(await request).toBe('youtube: segment request cancelled')
     expect(reads).toHaveLength(2)
   })
 })

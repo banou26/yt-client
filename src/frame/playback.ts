@@ -131,7 +131,10 @@ export const requestPlaybackSegment = (
         await (entry.refreshing ??= refreshSession(entry).finally(() => {
           entry.refreshing = undefined
           entry.recovered = entry.player
-        }))
+        })).catch((failure: unknown) => {
+          assertActive()
+          throw failure
+        })
       }
       return attempt()
     }
