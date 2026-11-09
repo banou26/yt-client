@@ -357,12 +357,13 @@ const RELATED_MORE_QUERY = gql(`
 
 type RelatedPage = RelatedVideosQuery['relatedVideos']
 
-// youtube.com's page for a video that no longer exists, measured at 1280 px on 2026-11-10
+/* youtube.com's page for a video that no longer exists, measured at 1280 px on 2026-11-10: its heading sits 32.5rem
+   under the masthead at any height, below a 16.1rem picture this page leaves out, since www.youtube.com serves it */
 const unavailableStyle = css`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 14rem 2.4rem 2.4rem;
+  padding: 32.5rem 2.4rem 2.4rem;
   text-align: center;
 
   h1 {

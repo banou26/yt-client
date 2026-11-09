@@ -41,10 +41,17 @@ const style = css`
     border: none;
     border-radius: 2rem;
     background: #ffffff;
-    color: #0f0f0f;
+    color: #000000;
     font-size: 1.4rem;
     font-weight: 500;
     cursor: pointer;
+  }
+
+  .refusal-sign-in.large {
+    height: 4.8rem;
+    padding: 0 2rem;
+    border-radius: 2.4rem;
+    font-size: 1.8rem;
   }
 
   .refusal-sign-in:hover {
@@ -152,7 +159,9 @@ export const RefusalScreen = ({ refusal }: { refusal: PlaybackRefusal }) => {
     <div css={style} className='notice' data-refusal>
       <p className='refusal-title'>{refusal.title}</p>
       {description}
-      {refusal.signIn ? <button type='button' className='refusal-sign-in' onClick={signIn}>Sign in</button> : undefined}
+      {refusal.signIn
+        ? <button type='button' className={refusal.largeSignIn ? 'refusal-sign-in large' : 'refusal-sign-in'} onClick={signIn}>Sign in</button>
+        : undefined}
     </div>
   )
 }

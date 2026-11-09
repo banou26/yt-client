@@ -293,6 +293,7 @@ const VideoPlayer = (
       const terminal = (error instanceof Error && error.message === LIVE_UNSUPPORTED) || refused?.final === true
       if (terminal || !restarts.spend()) {
         void controller?.destroy()
+        if (refused?.final !== true) console.error(error)
         if (refused) {
           setStatus('')
           setRefusal(refused)
@@ -300,7 +301,6 @@ const VideoPlayer = (
         }
         const message = error instanceof Error ? error.message : String(error)
         setStatus(`Playback failed: ${message}`)
-        console.error(error)
         return
       }
       const engineFailure = resetsEngine(error)

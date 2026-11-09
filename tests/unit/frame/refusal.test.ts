@@ -40,7 +40,7 @@ const AGE_GATE = {
           interstitialViewModel: {
             title: { content: 'Sign in to confirm your age' },
             description: { content: 'This video may be inappropriate for some users.' },
-            primaryButton: signInButton,
+            primaryButton: { buttonViewModel: { ...signInButton.buttonViewModel, buttonSize: 'BUTTON_VIEW_MODEL_SIZE_LARGE' } },
           },
         },
       },
@@ -91,21 +91,24 @@ describe('a refused video', () => {
     })
   })
 
-  it('reads the age gate and a private video as final notices with Sign in', () => {
+  it('reads the age gate and a private video as final notices with Sign in, large only on the age gate', () => {
     expect(readRefusal(AGE_GATE)).toEqual({
       title: 'Sign in to confirm your age',
       description: 'This video may be inappropriate for some users.',
       thumbnail: undefined,
       avatar: undefined,
       signIn: true,
+      largeSignIn: true,
       final: true,
     })
-    expect(readRefusal(PRIVATE)).toMatchObject({
+    const privateVideo = readRefusal(PRIVATE)
+    expect(privateVideo).toMatchObject({
       title: 'Private video',
       description: 'If the owner of this video has granted you access, please sign in.',
       signIn: true,
       final: true,
     })
+    expect(privateVideo.largeSignIn).toBeUndefined()
   })
 
   it('reads a deleted video as a final notice with no Sign in', () => {

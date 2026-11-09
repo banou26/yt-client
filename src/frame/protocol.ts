@@ -15,7 +15,7 @@ export const LIVE_UNSUPPORTED = 'youtube: live streams are not playable in this 
 /**
  * What youtube.com shows in place of the player when upstream refuses a video, in its own words: the title and the
  * line under it, the channel's avatar over the video's thumbnail for a members-only video, and whether it offers
- * Sign in. `final` marks a refusal that asking again cannot change, such as a deleted, members-only, age-restricted
+ * Sign in, and at its large size as on the age gate. `final` marks a refusal that asking again cannot change, such as a deleted, members-only, age-restricted
  * or private video, which the players show at once rather than retrying.
  */
 export type PlaybackRefusal = {
@@ -24,6 +24,7 @@ export type PlaybackRefusal = {
   thumbnail?: string
   avatar?: string
   signIn?: boolean
+  largeSignIn?: boolean
   final: boolean
 }
 

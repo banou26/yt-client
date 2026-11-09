@@ -15,7 +15,7 @@ type PlayabilityStatus = {
         interstitialViewModel?: {
           title?: RawText
           description?: RawText
-          primaryButton?: { buttonViewModel?: { onTap?: { innertubeCommand?: SignInButton } } }
+          primaryButton?: { buttonViewModel?: { buttonSize?: string, onTap?: { innertubeCommand?: SignInButton } } }
         }
       }
     }
@@ -52,7 +52,8 @@ export const readRefusal = (raw: Record<string, unknown>): PlaybackRefusal => {
   const status = playability.status
   const final = status === 'ERROR' || status === 'UNPLAYABLE'
     || (status === 'LOGIN_REQUIRED' && (playability.desktopLegacyAgeGateReason !== undefined || /private/i.test(reason ?? '')))
-  const signIn = interstitial?.primaryButton?.buttonViewModel?.onTap?.innertubeCommand?.signInEndpoint !== undefined
+  const button = interstitial?.primaryButton?.buttonViewModel
+  const signIn = button?.onTap?.innertubeCommand?.signInEndpoint !== undefined
     || message?.proceedButton?.buttonRenderer?.navigationEndpoint?.signInEndpoint !== undefined
   const details = raw.videoDetails as { thumbnail?: { thumbnails?: { url?: string, width?: number }[] } } | undefined
   return {
@@ -61,6 +62,7 @@ export const readRefusal = (raw: Record<string, unknown>): PlaybackRefusal => {
     thumbnail: offer ? widest(details?.thumbnail?.thumbnails) : undefined,
     avatar: textOf(offer?.itemThumbnail),
     signIn: signIn || undefined,
+    largeSignIn: (signIn && button?.buttonSize === 'BUTTON_VIEW_MODEL_SIZE_LARGE') || undefined,
     final,
   }
 }
