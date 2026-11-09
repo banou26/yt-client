@@ -4,7 +4,7 @@ import shaka from 'shaka-player'
 
 import { codecsOf } from '../frame/protocol'
 import { markStartup } from '../perf'
-import { createStallWatch } from './restart'
+import { createStallWatch, isStreamRefusal } from './restart'
 
 type Bridge = {
   api: FrameApi
@@ -270,9 +270,12 @@ export const startShakaPlayback = async ({
     if (!networking) throw new Error('shaka: networking engine is missing')
     playerError = (event: Event) => {
       const detail = (event as Event & { detail?: shaka.util.Error }).detail
-      if (!destroyed && detail?.severity === shaka.util.Error.Severity.CRITICAL) {
-        onError(describeShakaError(detail))
-      }
+      if (destroyed || !detail) return
+      const error = describeShakaError(detail)
+      // a refused session answers every later request at once, so Shaka, which takes it for a variant's failure, would
+      // spin through its variants (measured 2026-11-10: about 1600 requests a second): this player ends here
+      if (isStreamRefusal(error)) void destroy()
+      if (detail.severity === shaka.util.Error.Severity.CRITICAL || isStreamRefusal(error)) onError(error)
     }
     buffering = (event: Event) => {
       if (destroyed) return

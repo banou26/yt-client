@@ -2,6 +2,7 @@ import type { CaptionSource } from './captions'
 import type { SegmentEnvelope, SegmentRequest } from './protocol'
 
 import { getSabrSource } from './innertube'
+import { STREAM_REFUSED } from './protocol'
 import { createSabrSession, isSabrSessionRefreshError } from './sabr'
 
 type SabrSession = ReturnType<typeof createSabrSession>
@@ -16,6 +17,9 @@ export type PlaybackEntry = {
   generation: number
   closed: boolean
   refreshing?: Promise<void>
+  // the session the last refresh left current, until it delivers a segment
+  recovered?: SabrSession
+  refused?: Error
   captions: CaptionSource[]
   cueSources?: Promise<CaptionSource[]>
 
@@ -74,7 +78,13 @@ const refreshSession = async (entry: PlaybackEntry) => {
   next.startLivePump()
 }
 
-/** One segment of the entry's video. A session YouTube will not serve is replaced by a new one on a new watch page read. */
+/**
+ * One segment of the entry's video. A session YouTube will not serve is replaced at once by a new one on a new watch
+ * page read. If that one is not served either before it delivers a segment, the playback is refused: this request and
+ * every later one fail with `STREAM_REFUSED` and read nothing more, and the player decides when to open the video
+ * again. A refresh that itself fails counts the same, so a playback reads at most one more watch page per stretch of
+ * delivered segments.
+ */
 export const requestPlaybackSegment = (
   entry: PlaybackEntry,
   request: SegmentRequest,
@@ -92,24 +102,30 @@ export const requestPlaybackSegment = (
   }
   const attempt = async (): Promise<SegmentEnvelope> => {
     assertActive()
+    if (entry.refused) throw entry.refused
     const player = entry.player
     try {
       const segment = await player.requestSegment(request, progress, controller.signal)
       assertActive()
+      entry.recovered = undefined
       return segment
     } catch (error) {
       assertActive()
       if (!isSabrSessionRefreshError(error)) throw error
+      if (player === entry.recovered) {
+        entry.refused ??= new Error(`${STREAM_REFUSED} (${error.message.replace(/^youtube: /, '')})`)
+        throw entry.refused
+      }
       document.documentElement.dataset.segmentRecovery = error.message
       progress('session-refresh')
       // refresh only if the player that failed is still current, or a stale failure disposes a fresh session
       if (entry.player === player) {
         await (entry.refreshing ??= refreshSession(entry).finally(() => {
           entry.refreshing = undefined
+          entry.recovered = entry.player
         }))
       }
-      assertActive()
-      return entry.player.requestSegment(request, progress, controller.signal)
+      return attempt()
     }
   }
   const base = request.kind === 'init' ? entry.serial : entry.chain

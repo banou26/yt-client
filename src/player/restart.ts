@@ -1,3 +1,5 @@
+import { STREAM_REFUSED } from '../frame/protocol'
+
 /**
  * Whether a playback failure also replaces the engine. A live session's own errors do not: the frame's live session
  * recovers them, and an engine reset also drops the live chat polling beside the player.
@@ -5,12 +7,17 @@
 export const resetsEngine = (error: unknown) =>
   error instanceof Error && error.message.startsWith('youtube:') && !error.message.startsWith('youtube: live ')
 
+/** Whether the frame refused the playback: it already replaced the session once, so only a later try can help. */
+export const isStreamRefusal = (error: unknown) => error instanceof Error && error.message.startsWith(STREAM_REFUSED)
+
 /**
- * How many playback restarts in a row a video gets before it shows its error. A stretch of real play in between
- * starts the count again, so a few hiccups over hours of a live stream are not fatal.
+ * How many playback restarts in a row a video gets before it shows its error, and how long a refused video waits
+ * before each new try. A stretch of real play in between starts both counts again, so a few hiccups over hours of a
+ * live stream are not fatal.
  */
-export const createRestartBudget = (limit = 3, settleSeconds = 30) => {
+export const createRestartBudget = (limit = 3, settleSeconds = 30, refusalWaitsMs: readonly number[] = [5_000, 15_000, 45_000]) => {
   let used = 0
+  let refusals = 0
   let played = 0
   let last: number | undefined
   return {
@@ -22,13 +29,25 @@ export const createRestartBudget = (limit = 3, settleSeconds = 30) => {
       last = undefined
       return used <= limit
     },
+    // undefined once every wait is spent
+    refused: (): number | undefined => {
+      played = 0
+      last = undefined
+      return refusalWaitsMs[refusals++]
+    },
+    reset: () => {
+      used = 0
+      refusals = 0
+    },
     // a step of 1.5 s or more is a seek or a jump over missing media, not play
     progress: (time: number) => {
       const step = last === undefined ? 0 : time - last
       last = time
       if (step <= 0 || step >= 1.5) return
       played += step
-      if (played >= settleSeconds) used = 0
+      if (played < settleSeconds) return
+      used = 0
+      refusals = 0
     },
   }
 }

@@ -11,6 +11,11 @@ export type { Storyboard, StoryboardFrame } from './storyboard'
 
 // the terminal marker the players match on, declared here because the app realm has to recognize it too
 export const LIVE_UNSUPPORTED = 'youtube: live streams are not playable in this client yet'
+/**
+ * Leads the message every segment request of a playback fails with once its stream was refused twice in a row: the
+ * session that replaced a refused one was refused too. Not a `PlaybackRefusal`: the watch page said the video plays.
+ */
+export const STREAM_REFUSED = 'youtube: stream refused'
 
 /**
  * What youtube.com shows in place of the player when upstream refuses a video, in its own words: the title and the

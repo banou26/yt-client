@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { createRestartBudget, createStallWatch, resetsEngine } from '../../../src/player/restart'
+import { STREAM_REFUSED } from '../../../src/frame/protocol'
+import { createRestartBudget, createStallWatch, isStreamRefusal, resetsEngine } from '../../../src/player/restart'
 
 describe('resetsEngine', () => {
   it('keeps the engine, and the live chat in it, for a live session\'s own errors', () => {
@@ -39,6 +40,30 @@ describe('createRestartBudget', () => {
     for (let time = 0; time <= 60; time += 5) restarts.progress(time)
     for (let tick = 0; tick < 100; tick += 1) restarts.progress(60)
     expect(restarts.spend()).toBe(false)
+  })
+})
+
+describe('a refused playback', () => {
+  it('is told apart from the errors a restart can fix', () => {
+    expect(isStreamRefusal(new Error(`${STREAM_REFUSED} (SABR stream status 2 after 3 attempts)`))).toBe(true)
+    expect(isStreamRefusal(new Error('youtube: SABR stream status 2 after 3 attempts'))).toBe(false)
+    expect(isStreamRefusal(`${STREAM_REFUSED} (segment returned 403)`)).toBe(false)
+  })
+
+  it('waits 5, 15 and 45 s before its next tries, then has no wait left, apart from the restart count', () => {
+    const restarts = createRestartBudget()
+    expect([restarts.refused(), restarts.refused(), restarts.refused(), restarts.refused()]).toEqual([5_000, 15_000, 45_000, undefined])
+    expect(restarts.spend()).toBe(true)
+  })
+
+  it('starts the waits again after 30 s of real play, or when the viewer asks to retry', () => {
+    const restarts = createRestartBudget()
+    for (let tries = 0; tries < 4; tries += 1) restarts.refused()
+    for (let time = 0; time <= 30; time += 0.25) restarts.progress(time)
+    expect(restarts.refused()).toBe(5_000)
+    for (let tries = 0; tries < 3; tries += 1) restarts.refused()
+    restarts.reset()
+    expect(restarts.refused()).toBe(5_000)
   })
 })
 

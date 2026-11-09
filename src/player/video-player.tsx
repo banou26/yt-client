@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
 import { resetEngine, startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
-import { createRestartBudget, resetsEngine } from './restart'
+import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { setChaptersOpen, setPlayingChapter } from './session'
 import { getSettings, updateSettings } from '../settings'
@@ -89,11 +89,25 @@ const playerStyle = css`
     position: absolute;
     inset: 0;
     display: grid;
-    place-items: center;
+    place-content: center;
+    justify-items: center;
+    gap: 1.2rem;
     pointer-events: none;
     color: var(--text-on-media);
     font: 600 14px/1.4 system-ui, sans-serif;
     text-shadow: 0 1px 4px #000;
+  }
+
+  .playback-retry {
+    pointer-events: auto;
+    height: 3.6rem;
+    padding: 0 1.6rem;
+    border: none;
+    border-radius: 1.8rem;
+    background: #ffffff;
+    color: #0f0f0f;
+    font: 500 14px/1 system-ui, sans-serif;
+    cursor: pointer;
   }
 
   .spinner {
@@ -208,6 +222,7 @@ const VideoPlayer = (
   const restarts = useMemo(() => createRestartBudget(), [videoId])
   const [status, setStatus] = useState('Loading player')
   const [refusal, setRefusal] = useState<PlaybackRefusal | undefined>(undefined)
+  const [streamRefused, setStreamRefused] = useState(false)
   const [player, setPlayer] = useState<shaka.Player | undefined>(undefined)
   const [heights, setHeights] = useState<number[]>([])
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
@@ -320,6 +335,20 @@ const VideoPlayer = (
     const restart = (error: unknown) => {
       if (abort.signal.aborted || retryTimer !== undefined) return
       resumeAt.current = video.currentTime || resumeAt.current
+      if (isStreamRefusal(error)) {
+        // this try ends now, loaded or not, and nothing it still reports starts another
+        abort.abort()
+        const wait = restarts.refused()
+        if (wait === undefined) {
+          setStatus('This video can\'t be played right now')
+          setStreamRefused(true)
+          console.error(error)
+          return
+        }
+        setStatus('Loading player')
+        retryTimer = setTimeout(() => setAttempt((value) => value + 1), wait)
+        return
+      }
       const refused = playbackRefusal(error)
       const terminal = (error instanceof Error && error.message === LIVE_UNSUPPORTED) || refused?.final === true
       if (terminal || !restarts.spend()) {
@@ -345,6 +374,7 @@ const VideoPlayer = (
     const played = () => restarts.progress(video.currentTime)
     video.addEventListener('timeupdate', played)
     setStatus('Loading player')
+    setStreamRefused(false)
     void (async () => {
       const [api, { startShakaPlayback }] = await Promise.all([startEngine(), warmShaka()])
       controller = await startShakaPlayback({
@@ -623,7 +653,27 @@ const VideoPlayer = (
       />
       {showSpinner ? <div className='spinner' /> : undefined}
       {bezel ? <Bezel key={bezel.id} cue={bezel} /> : undefined}
-      {status ? <div className='playback-status'>{status}</div> : undefined}
+      {status
+        ? (
+          <div className='playback-status'>
+            {status}
+            {streamRefused
+              ? (
+                <button
+                  type='button'
+                  className='playback-retry'
+                  onClick={() => {
+                    restarts.reset()
+                    setAttempt((value) => value + 1)
+                  }}
+                >
+                  Retry
+                </button>
+              )
+              : undefined}
+          </div>
+        )
+        : undefined}
       {refusal ? <RefusalScreen refusal={refusal} /> : undefined}
       {upNext && ending === 'countdown' && upNext.pick
         ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />
