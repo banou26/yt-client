@@ -91,13 +91,18 @@ const routeKeyOf = (pathname: string, search: string) => {
   return rest ? `${path}?${rest}` : path
 }
 
-const LegacySearchRedirect = ({ params }: { params: { query: string } }) => (
-  <Redirect to={`/results?${new URLSearchParams({ search_query: safeDecode(params.query) })}`} replace />
+const SearchRedirect = ({ query }: { query: string }) => (
+  <Redirect to={`/results?${new URLSearchParams({ search_query: query })}`} replace />
 )
 
-const LegacyWatchRedirect = ({ params }: { params: { videoId: string } }) => (
-  <Redirect to={`/watch?${new URLSearchParams({ v: params.videoId })}`} replace />
-)
+// an embed's `start` is the watch page's `t`
+const WatchRedirect = ({ videoId }: { videoId: string }) => {
+  const query = new URLSearchParams(useSearch())
+  const watch = new URLSearchParams({ v: safeDecode(videoId) })
+  const at = query.get('t') ?? query.get('start')
+  if (at) watch.set('t', at)
+  return <Redirect to={`/watch?${watch}`} replace />
+}
 
 // keyed by upstream's OWN path words, which do not all match the enum: `live` is `/streams`, home is `/featured`
 const CHANNEL_TAB_PATHS: Record<string, ChannelTab> = {
@@ -217,14 +222,25 @@ export const App = () => {
               <Route path='/privacy' component={PrivacyPage} />
               <Route path='/account' component={AccountPage} />
               <Route path='/signin' component={SignInPage} />
-              <Route path='/search/:query' component={LegacySearchRedirect} />
-              <Route path='/watch/:videoId' component={LegacyWatchRedirect} />
+              <Route path='/search/:query'>
+                {(params: { query: string }) => <SearchRedirect query={safeDecode(params.query)} />}
+              </Route>
+              {/* youtube.com's hashtag page lists what a search for the tag finds, which is where a description's hashtags lead */}
+              <Route path='/hashtag/:tag'>
+                {(params: { tag: string }) => <SearchRedirect query={`#${safeDecode(params.tag)}`} />}
+              </Route>
+              <Route path='/watch/:videoId'>{(params: { videoId: string }) => <WatchRedirect videoId={params.videoId} />}</Route>
+              {/* the link youtube.com's Share button gives for a live stream */}
+              <Route path='/live/:videoId'>{(params: { videoId: string }) => <WatchRedirect videoId={params.videoId} />}</Route>
+              <Route path='/embed/:videoId'>{(params: { videoId: string }) => <WatchRedirect videoId={params.videoId} />}</Route>
               <Route path='/c/:name/:tab?'>
                 {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`c/${params.name}`} tab={params.tab} />}
               </Route>
               <Route path='/user/:name/:tab?'>
                 {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`user/${params.name}`} tab={params.tab} />}
               </Route>
+              {/* youtube.com's Gaming topic channel, as the guide's Explore links it */}
+              <Route path='/gaming'><Redirect to='/channel/UCOpNcN46UbXVtpKMrmU4Abg' replace /></Route>
               {/* claims the whole segment because wouter's parser never matches `/@:handle`, so it MUST stay declared after every real single-segment route: Switch takes the first match, and this can then only see paths nothing else wanted */}
               <Route path='/:segment'>
                 {(params: { segment?: string }) => params.segment?.startsWith('@')
