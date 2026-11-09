@@ -30,15 +30,18 @@ const style = css`
   }
 
   .meta {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.8rem;
     font-weight: 500;
+    overflow-wrap: anywhere;
   }
 
   .counts {
-    white-space: pre;
+    white-space: pre-wrap;
   }
 
   .hashtag {
-    margin-left: 0.8rem;
     color: var(--text-secondary);
   }
 
