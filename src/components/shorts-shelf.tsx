@@ -5,6 +5,7 @@ import { Link } from 'wouter'
 
 import { formatViews } from './format'
 import { Rail } from './rail'
+import { Thumbnail } from './thumbnail'
 
 const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
 
@@ -87,17 +88,7 @@ export const ShortsShelf = ({ shorts, title = 'Shorts' }: { shorts: readonly Vid
         {shorts.map(short => (
           <article className='card' key={short.id}>
             <Link href={shortsHrefFor(short.id)} className='thumb' tabIndex={-1} aria-hidden='true'>
-              {short.thumbnail
-                ? (
-                  <img
-                    src={short.thumbnail}
-                    srcSet={short.thumbnailSrcset ?? undefined}
-                    sizes='21rem'
-                    alt=''
-                    loading='lazy'
-                  />
-                )
-                : undefined}
+              {short.thumbnail ? <Thumbnail src={short.thumbnail} srcSet={short.thumbnailSrcset} sizes='21rem' /> : undefined}
             </Link>
             <h3 className='title'>
               <Link href={shortsHrefFor(short.id)}>{short.title}</Link>

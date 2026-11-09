@@ -8,6 +8,7 @@ import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { formatDuration, formatMeta } from './format'
+import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
 import { resumePercent, VideoCardMenu, watchHrefFor } from './video-card'
 
@@ -176,17 +177,7 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
       onPointerDown={prefetch.onPointerDown}
     >
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
-        {video.thumbnail
-          ? (
-            <img
-              src={video.thumbnail}
-              srcSet={video.thumbnailSrcset ?? undefined}
-              sizes='16.8rem'
-              alt=''
-              loading='lazy'
-            />
-          )
-          : undefined}
+        {video.thumbnail ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='16.8rem' /> : undefined}
         {moving ? <img className='moving' src={moving} alt='' /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>

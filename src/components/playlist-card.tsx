@@ -5,6 +5,7 @@ import { ListVideo } from 'lucide-react'
 import { Link } from 'wouter'
 
 import { playlistHrefFor, restrictedPrivacyIcon } from './playlist'
+import { Thumbnail } from './thumbnail'
 
 export const playlistCardStyle = css`
   display: flex;
@@ -100,7 +101,7 @@ export const PlaylistCard = (
     <Link href={playlistHrefFor(id)} css={playlistCardStyle} className='card'>
       <div className='cover'>
         {thumbnail
-          ? <img src={thumbnail} alt='' loading='lazy' />
+          ? <Thumbnail src={thumbnail} />
           : (
             <span className='cover-fallback'>
               {FallbackIcon

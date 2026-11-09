@@ -15,6 +15,7 @@ import { SearchCard } from '../components/search-card'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
 import { ShortsShelf } from '../components/shorts-shelf'
 import SubscribeButton from '../components/subscribe-button'
+import { Thumbnail } from '../components/thumbnail'
 import Dialog from '../components/ui/dialog'
 import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
@@ -597,17 +598,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
       onPointerDown={prefetch.onPointerDown}
     >
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
-        {row.thumbnail
-          ? (
-            <img
-              src={row.thumbnail}
-              srcSet={row.thumbnailSrcset ?? undefined}
-              sizes='50rem'
-              alt=''
-              loading='lazy'
-            />
-          )
-          : undefined}
+        {row.thumbnail ? <Thumbnail src={row.thumbnail} srcSet={row.thumbnailSrcset} sizes='50rem' /> : undefined}
         {previewing ? <HoverPreview videoId={row.id} href={watchHref} /> : undefined}
         {row.isLive
           ? <span className='badge live'>LIVE</span>
@@ -633,7 +624,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
             <Link href={`/channel/${row.channel.id}`} className='channel'>
               <span className={row.channel.avatar ? 'avatar' : 'avatar fallback'}>
                 {row.channel.avatar
-                  ? <img src={row.channel.avatar} alt='' loading='lazy' />
+                  ? <Thumbnail src={row.channel.avatar} />
                   : row.channel.name.slice(0, 1).toUpperCase()}
               </span>
               <span>{row.channel.name}<VerifiedBadge channel={row.channel} size={12} /></span>
@@ -815,7 +806,7 @@ const SearchPage = () => {
               <article className='result channel-row' key={rowKey(row)}>
                 <Link href={`/channel/${row.id}`} className='channel-avatar' tabIndex={-1} aria-hidden='true'>
                   {row.avatar
-                    ? <img src={row.avatar} alt='' loading='lazy' />
+                    ? <Thumbnail src={row.avatar} />
                     : row.name.slice(0, 1).toUpperCase()}
                 </Link>
                 <div>
@@ -843,7 +834,7 @@ const SearchPage = () => {
             return (
               <article className='result' key={rowKey(row)}>
                 <Link href={href} className='playlist-thumb' tabIndex={-1} aria-hidden='true'>
-                  {row.thumbnail ? <img src={row.thumbnail} alt='' loading='lazy' /> : undefined}
+                  {row.thumbnail ? <Thumbnail src={row.thumbnail} /> : undefined}
                   <span className='playlist-overlay'>
                     <ListVideo size={24} strokeWidth={1.5} />
                     {row.videoCountText ?? ''}

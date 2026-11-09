@@ -8,6 +8,7 @@ import { Link, useLocation } from 'wouter'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { hasNextInQueue, nextQueueIndex, previousQueueIndex, queueMode } from '../player/up-next'
 import { formatDuration } from './format'
+import { Thumbnail } from './thumbnail'
 import { watchHrefFor } from './video-card'
 
 // deliberately structural rather than typed off WatchMetaQuery, so a playlist route reading Query.playlist can reuse it
@@ -264,7 +265,7 @@ const QueueRow = (
           {current ? <Play size={12} strokeWidth={1.5} fill='currentColor' /> : position + 1}
         </span>
         <span className='thumb'>
-          {video.thumbnail ? <img src={video.thumbnail} alt='' loading='lazy' /> : undefined}
+          {video.thumbnail ? <Thumbnail src={video.thumbnail} /> : undefined}
           {duration ? <span className='badge'>{duration}</span> : undefined}
         </span>
         <span className='row-title'>{video.title}</span>

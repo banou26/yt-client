@@ -15,6 +15,7 @@ import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { formatDuration, formatMeta, readable } from './format'
 import { WATCH_LATER_ID } from './playlist'
+import { Thumbnail } from './thumbnail'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
 import { useInfiniteFeed } from './use-infinite-feed'
@@ -483,15 +484,7 @@ export const VideoCard = (
     >
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
         {video.thumbnail
-          ? (
-            <img
-              src={video.thumbnail}
-              srcSet={video.thumbnailSrcset ?? undefined}
-              sizes='(max-width: 500px) 100vw, 38rem'
-              alt=''
-              loading='lazy'
-            />
-          )
+          ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='(max-width: 500px) 100vw, 38rem' />
           : undefined}
         {previewing ? <HoverPreview videoId={video.id} href={watchHref} /> : undefined}
         {video.isLive
@@ -514,7 +507,7 @@ export const VideoCard = (
               aria-label={video.channel.name}
             >
               {video.channel.avatar
-                ? <img src={video.channel.avatar} alt='' loading='lazy' />
+                ? <Thumbnail src={video.channel.avatar} />
                 : video.channel.name.slice(0, 1).toUpperCase()}
             </Link>
           )

@@ -6,6 +6,7 @@ import { Link } from 'wouter'
 
 import { Rail } from './rail'
 import SubscribeButton from './subscribe-button'
+import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
 import { VideoCard, watchHrefFor } from './video-card'
 
@@ -201,7 +202,7 @@ export const SearchCard = ({ card }: { card: SearchCardData }) => {
       <div className='card-head'>
         <div className='card-identity'>
           <Link href={channelHref} className='card-avatar' tabIndex={-1} aria-hidden='true'>
-            {channel.avatar ? <img src={channel.avatar} alt='' /> : channel.name.slice(0, 1).toUpperCase()}
+            {channel.avatar ? <Thumbnail src={channel.avatar} /> : channel.name.slice(0, 1).toUpperCase()}
           </Link>
           <div>
             <h2 className='card-name'>
@@ -233,7 +234,7 @@ export const SearchCard = ({ card }: { card: SearchCardData }) => {
             ? (
               <Link href={mixHref} className='card-tile'>
                 <span className='card-mix-thumb'>
-                  {mix.thumbnail ? <img src={mix.thumbnail} alt='' loading='lazy' /> : undefined}
+                  {mix.thumbnail ? <Thumbnail src={mix.thumbnail} /> : undefined}
                   <span className='card-mix-badge'>
                     <Radio size={14} strokeWidth={2} />
                     Mix
