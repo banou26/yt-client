@@ -273,6 +273,10 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
   let audioFormat: PlaybackFormat = initialAudioFormat
   // Every live stream measured used 5s segments
   const targetDurationMs = initialVideoFormat.targetDurationMs ?? initialAudioFormat.targetDurationMs ?? 5_000
+  /* a live segment is asked for at its middle, never its start: the server can answer a start with the segment that
+     ENDS there (measured 2026-11-09 on rFZHOHl-L8A, in 10 of 12 sessions), so a pump holding that segment's video was
+     sent its audio again and fell behind the head at one segment per three answers */
+  const insideLiveSegment = (startMs: number) => startMs + targetDurationMs / 2
 
   const byKey = new Map(source.formats.map((format) => [FormatKeyUtils.fromFormat(format), format]))
   const playbackByKey = new Map(source.playbackFormats.map((format) => [format.key, format]))
@@ -693,7 +697,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
         const response = await execute(
           `sabr://video?key=${encodeURIComponent(videoFormat.key)}`,
           {},
-          fromMs,
+          insideLiveSegment(fromMs),
           false,
           seekGeneration,
           () => {},
@@ -950,7 +954,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
             const response = await execute(
               `sabr://${request.track}?key=${encodeURIComponent(format.key)}`,
               {},
-              addressMs,
+              insideLiveSegment(addressMs),
               false,
               request.generation,
               progress,

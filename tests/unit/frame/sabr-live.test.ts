@@ -14,6 +14,8 @@ const HEAD = 1_357_505
 const WINDOW = 8_636
 const startMsOf = (sequence: number) => sequence * 5_000 - 18_400
 const sequenceAt = (playerTimeMs: number) => Math.floor((playerTimeMs + 18_400) / 5_000)
+// where the session asks for a segment
+const middleOf = (sequence: number) => startMsOf(sequence) + 2_500
 
 const umpVarInt = (value: number) => {
   if (value < 128) return [value]
@@ -70,6 +72,8 @@ let nextStatus: number | undefined
 const refused = new Set<number>()
 // the next answer is the segment before the one its address falls in, as measured once after a refusal
 let answerBehind = false
+// every address on a segment's start is answered with the segment that ends there, as some sessions do for good
+let startsBehind = false
 type Asked = { playerTimeMs: number, video?: number, at: number, answeredAt?: number }
 const asked: Asked[] = []
 const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, options) => {
@@ -78,7 +82,7 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
   const playerTimeMs = Number(request.clientAbrState?.playerTimeMs ?? 0)
   const entry: Asked = { playerTimeMs, video: request.preferredVideoFormatIds[0]?.itag, at: Date.now() }
   asked.push(entry)
-  const sequence = Math.max(head() - WINDOW, sequenceAt(playerTimeMs)) - (answerBehind ? 1 : 0)
+  const sequence = Math.max(head() - WINDOW, sequenceAt(playerTimeMs - (startsBehind ? 1 : 0))) - (answerBehind ? 1 : 0)
   answerBehind = false
   if (sequence > head() && pastHead === 'status 3') status = 3
   const once = nextStatus
@@ -119,6 +123,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     nextStatus = undefined
     refused.clear()
     answerBehind = false
+    startsBehind = false
     asked.length = 0
     recoverMint.mockClear()
     vi.stubGlobal('MediaSource', { isTypeSupported: () => true })
@@ -172,7 +177,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     // the timeline a manifest refresh would read while the first answer is still on its way
     expect(session.liveSegments).toEqual([])
     await vi.advanceTimersByTimeAsync(1_000)
-    expect(asked.map((request) => request.playerTimeMs)).toEqual([startMsOf(HEAD - 1), startMsOf(HEAD), startMsOf(HEAD + 1)])
+    expect(asked.map((request) => request.playerTimeMs)).toEqual([middleOf(HEAD - 1), middleOf(HEAD), middleOf(HEAD + 1)])
     expect(listed(session)).toEqual([HEAD - 1, HEAD])
     session.close()
   })
@@ -188,7 +193,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
       .then((segment) => sequenceOf(segment.data!), (error: Error) => error.message)
     await vi.advanceTimersByTimeAsync(500)
     expect(await answer).toEqual({ itag: 244, sequence: wanted })
-    expect(asked).toContainEqual(expect.objectContaining({ playerTimeMs: startMsOf(wanted), video: 244 }))
+    expect(asked).toContainEqual(expect.objectContaining({ playerTimeMs: middleOf(wanted), video: 244 }))
     session.close()
   })
 
@@ -198,6 +203,30 @@ describe('a live SABR session on a stream with a DVR window', () => {
       .then((segment) => sequenceOf(segment.data!), (error: Error) => error.message)
     await vi.advanceTimersByTimeAsync(500)
     expect(await answer).toEqual({ itag: 134, sequence: HEAD - 2 })
+    session.close()
+  })
+
+  it('keeps up with the head when every segment start is answered with the segment before it', async () => {
+    startsBehind = true
+    const session = await open()
+    await vi.advanceTimersByTimeAsync(30_000)
+    // the head moved on six segments in those 30 s
+    expect(Math.max(...listed(session))).toBeGreaterThanOrEqual(HEAD + 5)
+    session.close()
+  })
+
+  it('answers a segment by its address when every segment start is answered with the segment before it', async () => {
+    const session = await open()
+    // after the pump reached the head, so only the by-address request can bring this segment in 244
+    startsBehind = true
+    const init = session.requestSegment({ ...probe, requestId: 'init', kind: 'init', formatKey: '244:' })
+    await vi.advanceTimersByTimeAsync(1_000)
+    await init
+    const wanted = HEAD - 2
+    const answer = session.requestSegment(media('244:', wanted))
+      .then((segment) => sequenceOf(segment.data!), (error: Error) => error.message)
+    await vi.advanceTimersByTimeAsync(25_000)
+    expect(await answer).toEqual({ itag: 244, sequence: wanted })
     session.close()
   })
 
@@ -242,7 +271,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
   it('files a by-address answer and a held head answer in flight together under their own sequences', async () => {
     const session = await open()
     const held = asked.at(-1)!
-    expect(held.playerTimeMs).toBe(startMsOf(HEAD + 1))
+    expect(held.playerTimeMs).toBe(middleOf(HEAD + 1))
     const byAddress = session.requestSegment(media('244:', HEAD - 1))
     await vi.advanceTimersByTimeAsync(500)
     const answered = await byAddress
