@@ -13,7 +13,7 @@ const fknDismiss = (page: Page) =>
 export const dismissFknNotice = (page: Page) =>
   page.addLocatorHandler(fknDismiss(page), dismiss => dismiss.dispatchEvent('click'))
 
-// for a spec that holds the pointer on one card: even a dispatched Dismiss can end the hover, so the notice is hidden
+// for a spec that holds the pointer on one card: the notice is hidden rather than dismissed, so nothing covers the card
 export const hideFknNotice = async (page: Page) => {
   await page.removeLocatorHandler(fknDismiss(page))
   await page.addInitScript(() => {
