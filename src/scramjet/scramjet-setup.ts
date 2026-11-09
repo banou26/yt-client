@@ -17,6 +17,7 @@ const SCRIPT = '/__yt_scramjet__/sw.js'
  * after the first, takes it without calling register(): Chrome queues that call behind the update check it scheduled
  * after earlier loads in this scope, and starts that check as lowest-priority work, which a browser that started
  * recently holds until its first page goes idle (1.5 to 3.4 s on return visits, Chrome 156, measured 2026-11-10).
+ * Since a controlled page never registers, a change to the register options below needs a new script URL to reach it.
  */
 export const scramjetWorker = async () => {
   const controller = navigator.serviceWorker.controller
