@@ -53,6 +53,10 @@ const globalStyles = css`
     --accent-inverse: #065fd4;
     /* youtube.com's chapter time pills, opaque so the line joining them stops at each */
     --accent-tint: #263850;
+    /* the time of the transcript line playing, from the palette of youtube.com's answer for g6Die8gVFn0 (2026-11-10),
+       which varies a little from video to video */
+    --transcript-tint: rgba(69, 118, 201, 0.169);
+    --transcript-tint-text: #acbedd;
     --danger: #f28b82;
     --membership: #2ba640;
 
@@ -127,6 +131,8 @@ const globalStyles = css`
     --accent-focus: #065fd4;
     --accent-inverse: #3ea6ff;
     --accent-tint: #def1ff;
+    --transcript-tint: rgba(69, 118, 201, 0.129);
+    --transcript-tint-text: #3a4d6e;
     --danger: #c5221f;
     --membership: #107516;
   }

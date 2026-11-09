@@ -11,7 +11,6 @@ import { Link, useSearch } from 'wouter'
 
 import { useDocumentTitle, useMediaQuery } from '../app'
 import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byline'
-import { ChaptersPanel } from '../components/chapters'
 import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
 import DescriptionBox from '../components/description-box'
@@ -20,6 +19,7 @@ import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
 import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
+import { watchPanel } from '../components/transcript'
 import SubscribeButton, { subscribeStyle } from '../components/subscribe-button'
 import { FeedSentinel } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
@@ -28,7 +28,7 @@ import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
 import {
-  claimPlayer, closePlayer, getPlayerSession, openPlayer, setChaptersOpen, setTheater as setPlayerTheater, usePlayerSession,
+  claimPlayer, closePlayer, getPlayerSession, openPlayer, setPanel, setTheater as setPlayerTheater, usePlayerSession,
 } from '../player/session'
 import { WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
@@ -527,17 +527,16 @@ const WatchPage = () => {
   const playingHere = playerSession.videoId === videoId
   const chapter = playingHere ? playerSession.chapter : -1
   const stageRef = useRef<HTMLDivElement>(null)
-  const chaptersPanel = playingHere && playerSession.chaptersOpen && chapters.length > 0
-    ? (
-      <ChaptersPanel
-        key={videoId}
-        videoId={videoId}
-        chapters={chapters}
-        current={chapter}
-        onClose={() => setChaptersOpen(false)}
-        fit={oneColumn || theater ? undefined : stageRef}
-      />
-    )
+  const transcript = watch?.transcriptPanel ?? undefined
+  const videoPanel = playingHere
+    ? watchPanel({
+      videoId,
+      open: playerSession.panel,
+      chapters,
+      chapter,
+      transcript,
+      fit: oneColumn || theater ? undefined : stageRef,
+    })
     : undefined
 
   if (unavailable) {
@@ -555,7 +554,7 @@ const WatchPage = () => {
         {/* The player is NOT mounted here: it lives above the router, so leaving the page docks it rather than destroying its SABR session */}
         <div className='player-slot' ref={claimPlayer} />
       </div>
-      {oneColumn && chaptersPanel ? <div className='chapters-slot'>{chaptersPanel}</div> : undefined}
+      {oneColumn && videoPanel ? <div className='chapters-slot'>{videoPanel}</div> : undefined}
       <div className='primary'>
         {oneColumn ? replay : undefined}
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
@@ -683,7 +682,8 @@ const WatchPage = () => {
                 videoId={videoId}
                 chapters={chapters}
                 currentChapter={chapter}
-                onViewChapters={() => setChaptersOpen(true)}
+                onViewChapters={() => setPanel('chapters')}
+                onShowTranscript={transcript ? () => setPanel('transcript') : undefined}
               />
             )
             : undefined}
@@ -693,11 +693,11 @@ const WatchPage = () => {
           ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
           : undefined}
       </div>
-      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && chaptersPanel)
+      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && videoPanel)
         ? (
           <aside className='secondary'>
             {oneColumn ? undefined : replay}
-            {oneColumn ? undefined : chaptersPanel}
+            {oneColumn ? undefined : videoPanel}
             {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
             {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
             {related

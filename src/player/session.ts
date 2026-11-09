@@ -14,10 +14,13 @@ export type PlayerSession = {
   claimed: boolean
   // the index of the chapter playing, which the player publishes for the watch page's list and cards
   chapter: number
-  chaptersOpen: boolean
+  // the list open beside the player, or over it in full screen
+  panel?: VideoPanel
 }
 
-let session: PlayerSession = { theater: false, claimed: false, chapter: -1, chaptersOpen: false }
+export type VideoPanel = 'chapters' | 'transcript'
+
+let session: PlayerSession = { theater: false, claimed: false, chapter: -1 }
 const listeners = new Set<() => void>()
 
 const emit = () => {
@@ -56,7 +59,7 @@ export const openPlayer = (
     }
     return
   }
-  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater, chapter: -1, chaptersOpen: false })
+  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater, chapter: -1, panel: undefined })
 }
 
 // the ONLY thing that closes the frame's SABR session: route unmount deliberately does not
@@ -69,7 +72,7 @@ export const openPlayer = (
 export const closePlayer = () => {
   update({
     videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined, theater: false,
-    chapter: -1, chaptersOpen: false,
+    chapter: -1, panel: undefined,
   })
 }
 
@@ -79,8 +82,8 @@ export const setPlayingChapter = (chapter: number) => {
   if (chapter !== session.chapter) update({ chapter })
 }
 
-export const setChaptersOpen = (chaptersOpen: boolean) => {
-  if (chaptersOpen !== session.chaptersOpen) update({ chaptersOpen })
+export const setPanel = (panel: VideoPanel | undefined) => {
+  if (panel !== session.panel) update({ panel })
 }
 
 export const usePlayerSession = () => {

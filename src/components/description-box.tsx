@@ -119,6 +119,20 @@ const style = css`
     background: var(--bg-hover);
   }
 
+  .transcript {
+    padding-top: 1.6rem;
+  }
+
+  .show-transcript {
+    display: block;
+    margin-top: 1.6rem;
+    color: var(--accent);
+  }
+
+  .show-transcript:hover {
+    background: var(--accent-hover);
+  }
+
   .less {
     display: block;
     margin-top: 1.6rem;
@@ -155,7 +169,7 @@ const placeMore = (snippet: HTMLElement) => {
 export const DescriptionBox = (
   {
     viewCountText, publishedDateText, shortViewCountText, relativeDateText, hashtags = [],
-    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters,
+    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters, onShowTranscript,
   }: {
     viewCountText?: string | null
     publishedDateText?: string | null
@@ -168,6 +182,8 @@ export const DescriptionBox = (
     chapters?: readonly PlayerChapter[]
     currentChapter?: number
     onViewChapters?: () => void
+    // set for a video with a transcript, which youtube.com's expanded description offers under the chapters
+    onShowTranscript?: () => void
   },
 ) => {
   const [expanded, setExpanded] = useState(false)
@@ -239,6 +255,23 @@ export const DescriptionBox = (
                 scrollTo({ top: 0 })
               }}
             />
+          </section>
+        )
+        : undefined}
+      {expanded && onShowTranscript
+        ? (
+          <section className='transcript' aria-label='Transcript'>
+            <h2 className='chapters-heading'>Transcript</h2>
+            <button
+              type='button'
+              className='view-all show-transcript'
+              onClick={() => {
+                onShowTranscript()
+                scrollTo({ top: 0 })
+              }}
+            >
+              Show transcript
+            </button>
           </section>
         )
         : undefined}

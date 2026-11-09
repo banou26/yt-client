@@ -1,15 +1,16 @@
-import type { RefObject } from 'preact'
+import type { ComponentChildren, RefObject } from 'preact'
 
 import type { PlayerChapter } from '../player/chapters'
 
 import { css } from '@emotion/react'
-import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { clock } from '../player/controls'
 import { seekTo } from '../player/seek'
 import { Rail } from './rail'
+import { SidePanel } from './side-panel'
 import { watchHrefFor } from './video-card'
 
 // youtube.com's time pill, shared by the list and the cards
@@ -23,57 +24,12 @@ const timePill = css`
   font-variant-numeric: tabular-nums;
 `
 
-const panelStyle = css`
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  max-height: 48rem;
-  margin-bottom: 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 1.2rem;
-  background: var(--bg-base);
-  color: var(--text-primary);
-  overflow: hidden;
-
-  .panel-head {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 5.6rem;
-    padding: 0.4rem 0.4rem 0.4rem 1.6rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .panel-heading {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 2.8rem;
-  }
-
-  .panel-close {
-    display: grid;
-    place-items: center;
-    width: 4rem;
-    height: 4rem;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-  }
-
-  .panel-close:hover {
-    background: var(--bg-hover);
-  }
-
-  .chapter-rows {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    padding: 0.8rem 0;
-    overflow-y: auto;
-  }
+const rowsStyle = css`
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 0.8rem 0;
+  overflow-y: auto;
 
   .chapter-row {
     display: flex;
@@ -122,53 +78,24 @@ const panelStyle = css`
     padding: 0.2rem 0.6rem;
     font-weight: 500;
   }
-
-  /* in full screen the list is drawn over the right of the player, as youtube.com's */
-  &.overlay {
-    position: absolute;
-    top: 1.6rem;
-    right: 1.6rem;
-    bottom: 1.6rem;
-    width: 32rem;
-    max-height: none;
-    margin: 0;
-  }
 `
 
 /**
- * The chapter list youtube.com opens from the player's chapter title. A row seeks to its chapter. With `fit`, the list
- * is as tall as that element, as youtube.com's is beside the player.
+ * The chapter list youtube.com opens from the player's chapter title, in a `SidePanel`. A row seeks to its chapter.
  */
 export const ChaptersPanel = (
-  { videoId, chapters, current, onClose, overlay = false, fit }: {
+  { videoId, chapters, current, heading = 'Chapters', chips, onClose, overlay = false, fit }: {
     videoId: string
     chapters: readonly PlayerChapter[]
     current: number
+    heading?: string
+    chips?: ComponentChildren
     onClose: () => void
     overlay?: boolean
     fit?: RefObject<HTMLElement | null>
   },
 ) => {
-  const panelRef = useRef<HTMLElement>(null)
   const itemsRef = useRef<HTMLDivElement>(null)
-  // set on the element rather than rendered, so that the scroll below already sees the final box
-  useLayoutEffect(() => {
-    const panel = panelRef.current
-    const target = fit?.current
-    if (!panel || !target) return
-    const match = () => {
-      panel.style.height = `${target.offsetHeight}px`
-      panel.style.maxHeight = 'none'
-    }
-    match()
-    const observer = new ResizeObserver(match)
-    observer.observe(target)
-    return () => {
-      observer.disconnect()
-      panel.style.height = ''
-      panel.style.maxHeight = ''
-    }
-  }, [fit])
   // opens on the chapter playing, at the top of the list
   useLayoutEffect(() => {
     const items = itemsRef.current
@@ -176,14 +103,8 @@ export const ChaptersPanel = (
     if (items && row) items.scrollTop = row.offsetTop - Number.parseFloat(getComputedStyle(items).paddingTop)
   }, [])
   return (
-    <section css={panelStyle} ref={panelRef} className={overlay ? 'chapters-panel overlay' : 'chapters-panel'} aria-label='Chapters'>
-      <div className='panel-head'>
-        <h2 className='panel-heading'>Chapters</h2>
-        <button type='button' className='panel-close' aria-label='Close' onClick={onClose}>
-          <X size={24} strokeWidth={1.5} />
-        </button>
-      </div>
-      <div className='chapter-rows' ref={itemsRef}>
+    <SidePanel label='Chapters' heading={heading} chips={chips} onClose={onClose} overlay={overlay} fit={fit} className='chapters-panel'>
+      <div css={rowsStyle} className='chapter-rows' ref={itemsRef}>
         {chapters.map((chapter, index) => (
           <button
             type='button'
@@ -200,7 +121,7 @@ export const ChaptersPanel = (
           </button>
         ))}
       </div>
-    </section>
+    </SidePanel>
   )
 }
 

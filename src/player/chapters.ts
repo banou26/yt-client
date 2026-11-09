@@ -4,8 +4,11 @@ export type PlayerChapter = {
   thumbnail?: string | null
 }
 
-/** The index of the chapter `time` falls in, or -1 without chapters or before the first. */
-export const chapterIndexAt = (chapters: readonly PlayerChapter[], time: number) =>
+/**
+ * The index of the chapter `time` falls in, or -1 without chapters or before the first. Also youtube.com's rule for
+ * the transcript line it highlights: the last one started, even past its own end or in a list of search results.
+ */
+export const chapterIndexAt = (chapters: readonly { startSeconds: number }[], time: number) =>
   chapters.findLastIndex(chapter => chapter.startSeconds <= time)
 
 /**
