@@ -1,29 +1,10 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test as base } from './test'
+import { expect, plainTest as test } from './test'
 
 // a 24/7 stream with its chat on, and the VOD a finished NASA broadcast left behind (both read 2026-11-06)
 const LIVE = 'rFZHOHl-L8A'
 const ENDED = 'rSvCuSQhC3w'
-
-/* Every live answer to an automated browser is status 2, then 3, so no build plays past about 30 s: with
-   navigator.webdriver true (YTB-28), and headless with its HeadlessChrome user agent (measured 2026-11-06, status 1
-   once the agent names plain Chrome). */
-const test = base.extend<object, object>({
-  userAgent: async ({ browser }, use) => {
-    await use(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Safari/537.36`)
-  },
-  browser: [async ({ playwright, browserName, headless, launchOptions }, use) => {
-    const browser = await playwright[browserName].launch({
-      ...launchOptions,
-      headless,
-      args: [...(launchOptions.args ?? []), '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'],
-      ignoreDefaultArgs: ['--enable-automation'],
-    })
-    await use(browser)
-    await browser.close()
-  }, { scope: 'worker' }],
-})
 
 type FrameApiLog = {
   openPlayback: number

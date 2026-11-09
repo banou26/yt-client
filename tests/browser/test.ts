@@ -40,3 +40,27 @@ export const test = base.extend({
     await use(page)
   },
 })
+
+/**
+ * `test` in a Chrome that does not announce automation, for specs that seek far or play live.
+ *
+ * Upstream treats an automated browser differently: with navigator.webdriver true every far seek walls, on
+ * youtube.com's own previews as much as on ours (measured 2026-11-10), and every live answer is status 2, then 3, so
+ * nothing plays past about 30 s (YTB-28). Headless Chrome's HeadlessChrome user agent does the same to live (measured
+ * 2026-11-06, status 1 once the agent names plain Chrome).
+ */
+export const plainTest = test.extend<object, object>({
+  userAgent: async ({ browser }, use) => {
+    await use(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Safari/537.36`)
+  },
+  browser: [async ({ playwright, browserName, headless, launchOptions }, use) => {
+    const browser = await playwright[browserName].launch({
+      ...launchOptions,
+      headless,
+      args: [...(launchOptions.args ?? []), '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'],
+      ignoreDefaultArgs: ['--enable-automation'],
+    })
+    await use(browser)
+    await browser.close()
+  }, { scope: 'worker' }],
+})

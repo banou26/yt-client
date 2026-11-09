@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { dismissFknNotice, expect, hideFknNotice, test } from './test'
+import { dismissFknNotice, expect, hideFknNotice, plainTest, test } from './test'
 
 /* The inline preview must never paint over a thumbnail it cannot yet replace: its root is an opaque black box mounted the moment the pointer lands.
    Sampled continuously because the defect is a flash, which a before-and-after assertion passes straight through. */
@@ -53,26 +53,11 @@ test('keeps the thumbnail until the preview has a frame, then fades it in', asyn
   expect(samples.some(sample => sample.painted && sample.opacity > 0.95)).toBe(true)
 })
 
-/* With navigator.webdriver true every far seek walls, on youtube.com's own previews as much as on these (measured
-   2026-11-10), so the specs that seek run as a plain Chrome, the same launch as live.spec.ts. */
-const plain = test.extend<object, object>({
-  userAgent: async ({ browser }, use) => {
-    await use(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Safari/537.36`)
-  },
+const plain = plainTest.extend({
   page: async ({ page }, use) => {
     await hideFknNotice(page)
     await use(page)
   },
-  browser: [async ({ playwright, browserName, headless, launchOptions }, use) => {
-    const browser = await playwright[browserName].launch({
-      ...launchOptions,
-      headless,
-      args: [...(launchOptions.args ?? []), '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'],
-      ignoreDefaultArgs: ['--enable-automation'],
-    })
-    await use(browser)
-    await browser.close()
-  }, { scope: 'worker' }],
 })
 
 // Blender Guru's 4 h donut course, with English captions: long enough that every 5% of the bar is minutes. Signed-out
