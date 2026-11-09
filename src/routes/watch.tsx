@@ -5,7 +5,7 @@ import type { VideoCardData } from '../components/video-card'
 
 import { css } from '@emotion/react'
 import { EllipsisVertical, Link2, Share2, ThumbsDown, ThumbsUp } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 import { Link, useSearch } from 'wouter'
 
@@ -515,6 +515,7 @@ const WatchPage = () => {
   const chapters = watch?.chapters ?? []
   const playingHere = playerSession.videoId === videoId
   const chapter = playingHere ? playerSession.chapter : -1
+  const stageRef = useRef<HTMLDivElement>(null)
   const chaptersPanel = playingHere && playerSession.chaptersOpen && chapters.length > 0
     ? (
       <ChaptersPanel
@@ -523,6 +524,7 @@ const WatchPage = () => {
         chapters={chapters}
         current={chapter}
         onClose={() => setChaptersOpen(false)}
+        fit={oneColumn || theater ? undefined : stageRef}
       />
     )
     : undefined
@@ -538,7 +540,7 @@ const WatchPage = () => {
 
   return (
     <main css={style} className={theater ? 'theater' : undefined}>
-      <div className='stage'>
+      <div className='stage' ref={stageRef}>
         {/* The player is NOT mounted here: it lives above the router, so leaving the page docks it rather than destroying its SABR session */}
         <div className='player-slot' ref={claimPlayer} />
       </div>

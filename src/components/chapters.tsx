@@ -1,3 +1,5 @@
+import type { RefObject } from 'preact'
+
 import type { PlayerChapter } from '../player/chapters'
 
 import { css } from '@emotion/react'
@@ -133,17 +135,40 @@ const panelStyle = css`
   }
 `
 
-/** The chapter list youtube.com opens from the player's chapter title. A row seeks to its chapter. */
+/**
+ * The chapter list youtube.com opens from the player's chapter title. A row seeks to its chapter. With `fit`, the list
+ * is as tall as that element, as youtube.com's is beside the player.
+ */
 export const ChaptersPanel = (
-  { videoId, chapters, current, onClose, overlay = false }: {
+  { videoId, chapters, current, onClose, overlay = false, fit }: {
     videoId: string
     chapters: readonly PlayerChapter[]
     current: number
     onClose: () => void
     overlay?: boolean
+    fit?: RefObject<HTMLElement | null>
   },
 ) => {
+  const panelRef = useRef<HTMLElement>(null)
   const itemsRef = useRef<HTMLDivElement>(null)
+  // set on the element rather than rendered, so that the scroll below already sees the final box
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const target = fit?.current
+    if (!panel || !target) return
+    const match = () => {
+      panel.style.height = `${target.offsetHeight}px`
+      panel.style.maxHeight = 'none'
+    }
+    match()
+    const observer = new ResizeObserver(match)
+    observer.observe(target)
+    return () => {
+      observer.disconnect()
+      panel.style.height = ''
+      panel.style.maxHeight = ''
+    }
+  }, [fit])
   // opens on the chapter playing, at the top of the list
   useLayoutEffect(() => {
     const items = itemsRef.current
@@ -151,7 +176,7 @@ export const ChaptersPanel = (
     if (items && row) items.scrollTop = row.offsetTop - Number.parseFloat(getComputedStyle(items).paddingTop)
   }, [])
   return (
-    <section css={panelStyle} className={overlay ? 'chapters-panel overlay' : 'chapters-panel'} aria-label='Chapters'>
+    <section css={panelStyle} ref={panelRef} className={overlay ? 'chapters-panel overlay' : 'chapters-panel'} aria-label='Chapters'>
       <div className='panel-head'>
         <h2 className='panel-heading'>Chapters</h2>
         <button type='button' className='panel-close' aria-label='Close' onClick={onClose}>

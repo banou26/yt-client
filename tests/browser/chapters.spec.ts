@@ -98,6 +98,17 @@ plainTest('opens the chapter list from the chapter title, on the chapter playing
   await expect(rows.nth(0)).toHaveText(`${CHAPTERS[0]!.title}${CHAPTERS[0]!.time}`)
   await expect(panel.locator('[aria-current="true"]')).toHaveText(`${CHAPTERS[2]!.title}${CHAPTERS[2]!.time}`)
 
+  // as tall as the player beside it, as on youtube.com, and scrolled to the chapter playing as far as the list goes
+  const [frame, list] = await Promise.all([player(page).boundingBox(), panel.boundingBox()])
+  expect(list!.y).toBeCloseTo(frame!.y, 0)
+  expect(list!.height).toBeCloseTo(frame!.height, 0)
+  const scroll = await panel.locator('.chapter-rows').evaluate((items) => {
+    const row = items.querySelector<HTMLElement>('[aria-current="true"]')!
+    return { scrollTop: items.scrollTop, playing: row.offsetTop - Number.parseFloat(getComputedStyle(items).paddingTop), end: items.scrollHeight - items.clientHeight }
+  })
+  expect(scroll.end).toBeGreaterThan(0)
+  expect(scroll.scrollTop).toBeCloseTo(Math.min(scroll.playing, scroll.end), 0)
+
   await rows.nth(3).click()
   await expect.poll(() => currentTime(page)).toBeGreaterThanOrEqual(CHAPTERS[3]!.start - 0.1)
   expect(await currentTime(page)).toBeLessThan(CHAPTERS[3]!.start + 5)
