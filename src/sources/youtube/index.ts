@@ -2,8 +2,8 @@ import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, Sourc
 
 import { Innertube } from 'youtubei.js/web'
 
-import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed } from './channel-feed'
-import { normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
+import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -711,6 +711,19 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     })
     return result
   }
+
+  // YouTube's feed server answers 404 to every feed for hours at a time (reported since 2025-12; groups.spec met it on
+  // 2026-11-06 about 01:10 UTC), so the Videos tab stands in, dated only as finely as its '6d ago'
+  const tabUploads = async (channelId: string): Promise<SourceVideo[]> => {
+    const result = await fetchChannel(channelId)
+    if (result.has_videos !== true) return []
+    const now = Date.now()
+    return pageItems(await openChannelTab(result, 'VIDEOS', undefined), { own: true }).map((video) => {
+      const views = approximateCount(video.viewCount)
+      return { ...video, viewCount: views === undefined ? undefined : String(views), publishedAt: timeFromAgo(video.publishedText, now) }
+    })
+  }
+
   const channels = new Map<string, {
     channel: SourceChannel
     page: Omit<SourceChannelPage, 'channel' | 'videos'>
@@ -1089,11 +1102,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     channelUploads: async (channelId) => {
       if (!isChannelId(channelId)) throw new Error(`youtube: ${channelId} is not a channel id`)
       const response = await paceFeed(() => fetch(channelFeedUrl(channelId, Date.now())))
-      if (!response.ok) {
-        void response.body?.cancel().catch(() => {})
-        throw new Error(`youtube: the uploads of ${channelId} answered ${response.status}`)
-      }
-      return parseChannelFeed(await response.text())
+      if (response.ok) return parseChannelFeed(await response.text())
+      void response.body?.cancel().catch(() => {})
+      return paceFeed(() => tabUploads(channelId))
     },
     search: async (query, filters, cursor) => {
       const kind = `search:${query}:${filterKey(filters)}`

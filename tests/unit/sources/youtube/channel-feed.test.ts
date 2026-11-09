@@ -1,10 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed } from '../../../../src/sources/youtube/channel-feed'
+import { Parser, YT } from 'youtubei.js'
+
+import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from '../../../../src/sources/youtube/channel-feed'
 import { createYoutubeSource } from '../../../../src/sources/youtube'
+import videosTab from '../../fixtures/channel-videos-blender.json'
+import notFound from '../../fixtures/feed-404.html?raw'
 import feed from '../../fixtures/uulf-computerphile.xml?raw'
 
-/* uulf-computerphile.xml is Computerphile's UULF feed (long uploads only) as YouTube served it on 2026-11-01 */
+/* uulf-computerphile.xml is Computerphile's UULF feed (long uploads only) as YouTube served it on 2026-11-01.
+   feed-404.html is the feed server's answer to a feed it does not have, recorded on 2026-11-09; while the server is
+   down it gives this answer to every feed. channel-videos-blender.json is described in channel-videos.test.ts. */
 
 const CHANNEL = 'UC9-y-6csu5WGm29I7JiwpnA'
 
@@ -56,6 +62,22 @@ describe('channel uploads feed', () => {
     expect(url.searchParams.get('playlist_id')).toBe('UULF9-y-6csu5WGm29I7JiwpnA')
     expect(channelFeedUrl(CHANNEL, at + 9 * 60_000)).toBe(channelFeedUrl(CHANNEL, at))
     expect(channelFeedUrl(CHANNEL, at + 10 * 60_000)).not.toBe(channelFeedUrl(CHANNEL, at))
+  })
+
+  it('dates a video from its relative time, in the short and the long wording', () => {
+    const now = Date.UTC(2026, 10, 9, 12, 0, 0)
+    const ago = (text: string) => timeFromAgo(text, now)
+    expect(ago('6d ago')).toBe('2026-11-03T12:00:00.000Z')
+    expect(ago('19h ago')).toBe('2026-11-08T17:00:00.000Z')
+    expect(ago('5m ago')).toBe('2026-11-09T11:55:00.000Z')
+    expect(ago('1mo ago')).toBe('2026-10-10T12:00:00.000Z')
+    expect(ago('2w ago')).toBe('2026-10-26T12:00:00.000Z')
+    expect(ago('1y ago')).toBe('2025-11-09T12:00:00.000Z')
+    expect(ago('3 days ago')).toBe('2026-11-06T12:00:00.000Z')
+    expect(ago('Streamed 2 months ago')).toBe('2026-09-10T12:00:00.000Z')
+    expect(ago('30 seconds ago')).toBe('2026-11-09T11:59:30.000Z')
+    expect(ago('Premieres in 2 days')).toBeUndefined()
+    expect(timeFromAgo(undefined, now)).toBeUndefined()
   })
 
   it('tells a channel id from a handle or a playlist id', () => {
@@ -124,9 +146,35 @@ describe('channelUploads', () => {
     expect(new URL(urls[0]!).searchParams.get('playlist_id')).toBe('UULF9-y-6csu5WGm29I7JiwpnA')
   })
 
-  it('fails on a feed that answers 404 rather than reading it as empty', async () => {
-    const source = sourceWith(async () => new Response('Not Found', { status: 404 }))
-    await expect(source.channelUploads(CHANNEL)).rejects.toThrow('answered 404')
+  const BLENDER = 'UCSMOQeBJ2RAnuFungnQOxLg'
+
+  const notFoundSource = (getChannel: () => Promise<unknown>) => createYoutubeSource({
+    fetch: (async () => new Response(notFound, { status: 404, headers: { 'content-type': 'text/html; charset=UTF-8' } })) as typeof globalThis.fetch,
+    createClient: async () => ({ getChannel }) as never,
+  })
+
+  it('reads the Videos tab when the feed server answers its 404 page, dated off its relative times', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(Date.UTC(2026, 10, 9, 12, 0, 0))
+    const source = notFoundSource(async () => new YT.Channel(undefined as never, Parser.parseResponse(videosTab as never), true))
+    const videos = await source.channelUploads(BLENDER)
+    expect(videos.map(({ id, viewCount, publishedAt }) => ({ id, viewCount, publishedAt }))).toEqual([
+      { id: 'mHrHLqQj7Ts', viewCount: '17000', publishedAt: '2026-11-03T12:00:00.000Z' },
+      { id: 'dVrELpmfcEQ', viewCount: '12000', publishedAt: '2026-10-26T12:00:00.000Z' },
+      { id: 'sO_lhW8av3U', viewCount: '23000', publishedAt: '2026-10-19T12:00:00.000Z' },
+      { id: 'cM3NJuY_xLc', viewCount: '10000', publishedAt: '2026-10-10T12:00:00.000Z' },
+    ])
+    expect(videos[0]?.title).toBe('Making of: The Blender Open Movies Exhibition')
+  })
+
+  it('reads no videos for a channel without a Videos tab', async () => {
+    const source = notFoundSource(async () => ({ has_videos: false }))
+    await expect(source.channelUploads(BLENDER)).resolves.toEqual([])
+  })
+
+  it('fails when the Videos tab cannot be read either', async () => {
+    const source = notFoundSource(async () => { throw new Error('browse failed') })
+    await expect(source.channelUploads(BLENDER)).rejects.toThrow('browse failed')
   })
 
   it('refuses an id that is not a channel id before any request', async () => {

@@ -31,7 +31,7 @@ export type SourceVideo = {
   durationSeconds?: number
   viewCount?: string
   publishedText?: string
-  // ISO 8601, only where upstream gives an exact time (a channel's uploads feed)
+  // ISO 8601, only on a channel's uploads: exact off its feed, about right off its Videos tab's '6d ago'
   publishedAt?: string
   isLive?: boolean
   progressPercent?: number
@@ -363,7 +363,7 @@ export type Source = {
   history(cursor?: string): Promise<SourceSectionedVideoPage>
   // `all` follows the list past its first page, at a cost of one request per page
   subscribedChannels(all?: boolean): Promise<SourceChannel[]>
-  // A channel's newest long uploads, read off its public feed; a channel id that is not of the `UC` form is refused
+  // A channel's newest long uploads, read off its public feed, or its Videos tab when the feed fails; a channel id that is not of the `UC` form is refused
   channelUploads(channelId: string): Promise<SourceVideo[]>
   search(query: string, filters?: SourceSearchFilters, cursor?: string): Promise<SourceSearchPage>
   // Not an InnerTube call: every keystroke that reaches it is a tunneled round trip, so the caller is expected to debounce

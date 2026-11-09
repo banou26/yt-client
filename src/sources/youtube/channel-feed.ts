@@ -66,6 +66,29 @@ export const parseChannelFeed = (xml: string): SourceVideo[] =>
     .map(([, entry]) => parseEntry(entry ?? ''))
     .filter((video) => video !== undefined)
 
+const DAY_MS = 86_400_000
+
+// 'mo' ahead of 'm', so '1mo ago' is a month and '5m ago' five minutes; a month and a year are formatAgo's
+const AGO_UNITS: [RegExp, number][] = [
+  [/^mo/, 30 * DAY_MS],
+  [/^m/, 60_000],
+  [/^s/, 1_000],
+  [/^h/, 3_600_000],
+  [/^d/, DAY_MS],
+  [/^w/, 7 * DAY_MS],
+  [/^y/, 365 * DAY_MS],
+]
+
+/**
+ * About when a video went up, as an ISO time, from upstream's relative wording ('6d ago', 'Streamed 1 month ago'), or
+ * undefined when the text is not a time in the past.
+ */
+export const timeFromAgo = (text: string | undefined, now: number) => {
+  const match = text?.match(/(\d+)\s*([a-z]+)\s+ago\b/i)
+  const unit = match && AGO_UNITS.find(([pattern]) => pattern.test(match[2]!.toLowerCase()))
+  return match && unit ? new Date(now - Number(match[1]) * unit[1]).toISOString() : undefined
+}
+
 /** Runs tasks with their starts spaced at least `intervalMs` apart, in the order they were handed in. */
 export const createPacer = (intervalMs: number) => {
   let nextStart = 0

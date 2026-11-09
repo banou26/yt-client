@@ -280,7 +280,8 @@ const duration = (video: FeedVideo) => {
   return durationSeconds(text(video.length_text))
 }
 
-const approximateCount = (value: string | undefined) => {
+/** A count as upstream abbreviates it ('6.7K', '1,234 views'), as a whole number; undefined when the text does not start with one. */
+export const approximateCount = (value: string | undefined) => {
   const match = value?.replaceAll(',', '').match(/^([\d.]+)\s*([KMB])?/i)
   if (!match) return undefined
   const base = Number(match[1])

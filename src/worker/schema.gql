@@ -50,7 +50,8 @@ type Video {
   durationSeconds: Int
   viewCount: String
   publishedText: String
-  # An exact ISO 8601 time, set only where upstream gives one (channelUploads).
+  # An ISO 8601 time, set only by channelUploads: exact off the uploads feed,
+  # about right off the Videos tab's '6d ago' when the feed fails.
   # Lists that merge several channels sort on it.
   publishedAt: String
   isLive: Boolean
