@@ -41,6 +41,9 @@ export type SourceVideo = {
   isShort?: boolean
   badges: string[]
   channel?: SourceChannel
+  /** Only a search row carries them, with upstream's heading for the list ('3 chapters in this video'). */
+  chapters?: SourceChapter[]
+  chaptersTitle?: string
 }
 
 export type SourceVideoPage = {
@@ -293,6 +296,7 @@ export type SourceWatchMeta = {
 export type SourceChapter = {
   title: string
   startSeconds: number
+  thumbnail?: string
 }
 
 export type SourceTextRun = {

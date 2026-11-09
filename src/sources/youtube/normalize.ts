@@ -52,6 +52,10 @@ type FeedVideo = {
   is_upcoming?: boolean
   badges?: { label?: string, text?: string, style?: string }[]
   thumbnail_overlays?: unknown[]
+  expandable_metadata?: {
+    header?: { expanded_title?: Text }
+    expanded_content?: { cards?: { type?: string, title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
+  }
 }
 
 type VideoDetails = {
@@ -654,6 +658,20 @@ const lockupProgressPercent = (image: {
 } | undefined) =>
   (image?.overlays ?? []).map((overlay) => clampPercent(overlay.progress_bar?.start_percent)).find((value) => value !== undefined)
 
+// a search row's strip under the description, which holds an AI summary instead on some videos
+const searchChapters = (metadata: FeedVideo['expandable_metadata']) => {
+  const chapters = (metadata?.expanded_content?.cards ?? []).flatMap((card) => {
+    const title = presentText(card.title)
+    const start = durationSeconds(text(card.time_description))
+    return card.type === 'MacroMarkersListItem' && title && start !== undefined
+      ? [{ title, startSeconds: start, thumbnail: thumbnail(card.thumbnail) }]
+      : []
+  })
+  return chapters.length > 0
+    ? { chapters, chaptersTitle: presentText(metadata?.header?.expanded_title) }
+    : undefined
+}
+
 export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
   const video = input as FeedVideo
   const id = video.video_id ?? video.id
@@ -676,6 +694,7 @@ export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
     isMembersOnly: hasBadgeStyle(video.badges, 'MEMBERS_ONLY') ? true : undefined,
     badges: badgeTexts(video.badges),
     channel: authorChannel(video.author),
+    ...searchChapters(video.expandable_metadata),
   }
 }
 
@@ -1125,7 +1144,7 @@ export const normalizeWatchPlaylist = (input: unknown): SourceWatchPlaylist | un
   }
 }
 
-type ChapterMarker = { value?: { chapters?: { title?: Text, time_range_start_millis?: number }[] } }
+type ChapterMarker = { value?: { chapters?: { title?: Text, time_range_start_millis?: number, thumbnail?: Thumbnail[] }[] } }
 
 // on the player bar of /next's overlay, which youtubei.js parses outside contents_memo and hands back wrapped
 const normalizeChapters = (input: unknown): SourceChapter[] => {
@@ -1138,7 +1157,9 @@ const normalizeChapters = (input: unknown): SourceChapter[] => {
   return chapters.flatMap((chapter) => {
     const title = presentText(chapter.title)
     const start = chapter.time_range_start_millis
-    return title && typeof start === 'number' && Number.isFinite(start) ? [{ title, startSeconds: start / 1_000 }] : []
+    return title && typeof start === 'number' && Number.isFinite(start)
+      ? [{ title, startSeconds: start / 1_000, thumbnail: thumbnail(chapter.thumbnail) }]
+      : []
   })
 }
 

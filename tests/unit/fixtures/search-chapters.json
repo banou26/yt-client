@@ -1,0 +1,976 @@
+{
+  "estimatedResults": "4035",
+  "contents": {
+    "twoColumnSearchResultsRenderer": {
+      "primaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "itemSectionRenderer": {
+                "contents": [
+                  {
+                    "videoRenderer": {
+                      "videoId": "C3zuzzDLLck",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hq720.jpg?sqp=-oaymwEgCOgCEMoBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLD38C9Bw5cujrxLXFsdVlVc0Nh0VQ",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hq720.jpg?sqp=-oaymwEgCNAFEJQDSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLDu6pY9MpnWyRgr2OBYrsWNHYXV3w",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "DIY: Moen Faucet Cartridge Replacement and Disassembly"
+                          }
+                        ],
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "DIY: Moen Faucet Cartridge Replacement and Disassembly 5 minutes, 1 second"
+                          }
+                        }
+                      },
+                      "longBylineText": {
+                        "runs": [
+                          {
+                            "text": "4DIYers",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCXFTtJnIaE68Oh0TPvasczQ",
+                                "canonicalBaseUrl": "/@4DIYers"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "publishedTimeText": {
+                        "simpleText": "10y ago"
+                      },
+                      "lengthText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "5 minutes, 1 second"
+                          }
+                        },
+                        "simpleText": "5:01"
+                      },
+                      "viewCountText": {
+                        "simpleText": "218,514 views"
+                      },
+                      "navigationEndpoint": {
+                        "watchEndpoint": {
+                          "videoId": "C3zuzzDLLck",
+                          "params": "qgM6aG93IHRvIHJlcGxhY2UgbW9lbiAxMjI1IGNhcnRyaWRnZSBraXRjaGVuIGZhdWNldCBkcmlwcGluZ7oDCgjL3qnjteGrg3a6AwoIooTZptu_xPQLugMLCJKKhOGpnI-HngG6AwsI-oC6jfvllJCnAboDCgiumdz92tr3vgW6AwoI5qyO37jcgd5dugMKCNuKx6v4icigJLoDCgiclv7EqJOQ6S26AwsInIjtpuKWx6D5AboDCgi109ni5eOG3SW6AwsIpKqGtp7l7J31AboDCwiz0f7nw--q7oMBugMLCMmqr_PMpqivwgG6AwsInvLm-Zy_jI-yAboDCgj849DVo66v9Du6AwsIh9mKxqXIlPaGAboDCgi9uLW0prCq2mm6AwsI8_Wd1_-coK_jAboDCgi91rCJuLjBm0Q%3D"
+                        }
+                      },
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "4DIYers",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCXFTtJnIaE68Oh0TPvasczQ",
+                                "canonicalBaseUrl": "/@4DIYers"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortBylineText": {
+                        "runs": [
+                          {
+                            "text": "4DIYers",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCXFTtJnIaE68Oh0TPvasczQ",
+                                "canonicalBaseUrl": "/@4DIYers"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortViewCountText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "218 thousand views"
+                          }
+                        },
+                        "simpleText": "218K"
+                      },
+                      "expandableMetadata": {
+                        "expandableMetadataRenderer": {
+                          "header": {
+                            "collapsedTitle": {
+                              "runs": [
+                                {
+                                  "text": "Intro | Disassembly | Cartridge Replacement"
+                                }
+                              ]
+                            },
+                            "collapsedThumbnail": {
+                              "thumbnails": [
+                                {
+                                  "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hqdefault_866.jpg?sqp=-oaymwEgCNACELwBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLCXBKk3fZMPSxBZuoWJFcnCQpmyGQ",
+                                  "width": 336,
+                                  "height": 188
+                                }
+                              ]
+                            },
+                            "collapsedLabel": {
+                              "runs": [
+                                {
+                                  "text": "3"
+                                },
+                                {
+                                  "text": " chapters"
+                                }
+                              ]
+                            },
+                            "expandedTitle": {
+                              "runs": [
+                                {
+                                  "text": "3"
+                                },
+                                {
+                                  "text": " auto-generated chapters in this video"
+                                }
+                              ]
+                            },
+                            "showLeadingCollapsedLabel": true
+                          },
+                          "expandedContent": {
+                            "horizontalCardListRenderer": {
+                              "cards": [
+                                {
+                                  "macroMarkersListItemRenderer": {
+                                    "title": {
+                                      "runs": [
+                                        {
+                                          "text": "Intro"
+                                        }
+                                      ]
+                                    },
+                                    "timeDescription": {
+                                      "runs": [
+                                        {
+                                          "text": "0:00"
+                                        }
+                                      ]
+                                    },
+                                    "thumbnail": {
+                                      "thumbnails": [
+                                        {
+                                          "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hqdefault_866.jpg?sqp=-oaymwEgCNACELwBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLCXBKk3fZMPSxBZuoWJFcnCQpmyGQ",
+                                          "width": 336,
+                                          "height": 188
+                                        }
+                                      ]
+                                    },
+                                    "onTap": {
+                                      "watchEndpoint": {
+                                        "videoId": "C3zuzzDLLck"
+                                      }
+                                    },
+                                    "layout": "MACRO_MARKERS_LIST_ITEM_RENDERER_LAYOUT_VERTICAL",
+                                    "isHighlighted": false
+                                  }
+                                },
+                                {
+                                  "macroMarkersListItemRenderer": {
+                                    "title": {
+                                      "runs": [
+                                        {
+                                          "text": "Disassembly"
+                                        }
+                                      ]
+                                    },
+                                    "timeDescription": {
+                                      "runs": [
+                                        {
+                                          "text": "0:50"
+                                        }
+                                      ]
+                                    },
+                                    "thumbnail": {
+                                      "thumbnails": [
+                                        {
+                                          "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hqdefault_74866.jpg?sqp=-oaymwEgCNACELwBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLAUJRjs0SU_vuJungkaKbrvvyqf9g",
+                                          "width": 336,
+                                          "height": 188
+                                        }
+                                      ]
+                                    },
+                                    "onTap": {
+                                      "watchEndpoint": {
+                                        "videoId": "C3zuzzDLLck",
+                                        "startTimeSeconds": 50
+                                      }
+                                    },
+                                    "layout": "MACRO_MARKERS_LIST_ITEM_RENDERER_LAYOUT_VERTICAL",
+                                    "isHighlighted": false
+                                  }
+                                },
+                                {
+                                  "macroMarkersListItemRenderer": {
+                                    "title": {
+                                      "runs": [
+                                        {
+                                          "text": "Cartridge Replacement"
+                                        }
+                                      ]
+                                    },
+                                    "timeDescription": {
+                                      "runs": [
+                                        {
+                                          "text": "2:20"
+                                        }
+                                      ]
+                                    },
+                                    "thumbnail": {
+                                      "thumbnails": [
+                                        {
+                                          "url": "https://i.ytimg.com/vi/C3zuzzDLLck/hqdefault_160800.jpg?sqp=-oaymwEgCNACELwBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLDuYzG0SEJlNL_vL-Pfq-6OqDs5Eg",
+                                          "width": 336,
+                                          "height": 188
+                                        }
+                                      ]
+                                    },
+                                    "onTap": {
+                                      "watchEndpoint": {
+                                        "videoId": "C3zuzzDLLck",
+                                        "startTimeSeconds": 140
+                                      }
+                                    },
+                                    "layout": "MACRO_MARKERS_LIST_ITEM_RENDERER_LAYOUT_VERTICAL",
+                                    "isHighlighted": false
+                                  }
+                                }
+                              ],
+                              "style": {
+                                "type": "HORIZONTAL_CARD_LIST_STYLE_TYPE_ENGAGEMENT_PANEL_SECTION"
+                              },
+                              "previousButton": {
+                                "buttonRenderer": {
+                                  "style": "STYLE_DEFAULT",
+                                  "size": "SIZE_DEFAULT",
+                                  "isDisabled": false,
+                                  "icon": {
+                                    "iconType": "CHEVRON_LEFT"
+                                  }
+                                }
+                              },
+                              "nextButton": {
+                                "buttonRenderer": {
+                                  "style": "STYLE_DEFAULT",
+                                  "size": "SIZE_DEFAULT",
+                                  "isDisabled": false,
+                                  "icon": {
+                                    "iconType": "CHEVRON_RIGHT"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "expandButton": {
+                            "buttonRenderer": {
+                              "style": "STYLE_DEFAULT",
+                              "size": "SIZE_DEFAULT",
+                              "isDisabled": false,
+                              "icon": {
+                                "iconType": "EXPAND_MORE"
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "More"
+                                }
+                              }
+                            }
+                          },
+                          "collapseButton": {
+                            "buttonRenderer": {
+                              "style": "STYLE_DEFAULT",
+                              "size": "SIZE_DEFAULT",
+                              "isDisabled": false,
+                              "icon": {
+                                "iconType": "EXPAND_LESS"
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Less"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "videoRenderer": {
+                      "videoId": "dgavC1xqb0s",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/dgavC1xqb0s/hq720.jpg?sqp=-oaymwEgCOgCEMoBSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLB7ajRyYU6krH2gZn-FT-kUmUWOEg",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/dgavC1xqb0s/hq720.jpg?sqp=-oaymwEgCNAFEJQDSFXyq4qpAxIIARUAAIhCGAFwAcABBrgC8xg=&rs=AOn4CLBFKCcSzwQLQXHea3hNYa4gGYx6Rw",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "How to fix a leaking Faucet Fast and Easy (Moen 1225 Cartridge)"
+                          }
+                        ],
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "How to fix a leaking Faucet Fast and Easy (Moen 1225 Cartridge) 3 minutes, 22 seconds"
+                          }
+                        }
+                      },
+                      "longBylineText": {
+                        "runs": [
+                          {
+                            "text": "The 3D Handyman",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCIMtael9xbB5hP2eSk2oGEg",
+                                "canonicalBaseUrl": "/@The3DHandyman"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "publishedTimeText": {
+                        "simpleText": "4y ago"
+                      },
+                      "lengthText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "3 minutes, 22 seconds"
+                          }
+                        },
+                        "simpleText": "3:22"
+                      },
+                      "viewCountText": {
+                        "simpleText": "36,733 views"
+                      },
+                      "navigationEndpoint": {
+                        "watchEndpoint": {
+                          "videoId": "dgavC1xqb0s",
+                          "params": "qgM6aG93IHRvIHJlcGxhY2UgbW9lbiAxMjI1IGNhcnRyaWRnZSBraXRjaGVuIGZhdWNldCBkcmlwcGluZ7oDCgiihNmm27_E9Au6AwsIkoqE4amcj4eeAboDCwj6gLqN--WUkKcBugMKCMnbrIbz2bu-C7oDCgiumdz92tr3vgW6AwoI5qyO37jcgd5dugMKCNuKx6v4icigJLoDCgiclv7EqJOQ6S26AwsInIjtpuKWx6D5AboDCgi109ni5eOG3SW6AwsIpKqGtp7l7J31AboDCwiz0f7nw--q7oMBugMLCMmqr_PMpqivwgG6AwsInvLm-Zy_jI-yAboDCgj849DVo66v9Du6AwsIh9mKxqXIlPaGAboDCgi9uLW0prCq2mm6AwsI8_Wd1_-coK_jAboDCgi91rCJuLjBm0Q%3D"
+                        }
+                      },
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "The 3D Handyman",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCIMtael9xbB5hP2eSk2oGEg",
+                                "canonicalBaseUrl": "/@The3DHandyman"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortBylineText": {
+                        "runs": [
+                          {
+                            "text": "The 3D Handyman",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCIMtael9xbB5hP2eSk2oGEg",
+                                "canonicalBaseUrl": "/@The3DHandyman"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortViewCountText": {
+                        "accessibility": {
+                          "accessibilityData": {
+                            "label": "36 thousand views"
+                          }
+                        },
+                        "simpleText": "36K"
+                      },
+                      "expandableMetadata": {
+                        "expandableMetadataRenderer": {
+                          "header": {
+                            "collapsedTitle": {
+                              "simpleText": "The 3D Handyman demonstrates the process for replacing a worn-out Moen 1225 cartridge to fix a leaking, stiff kitchen faucet. Learn how to safely remove the old cartridge, apply waterproof grease, and correctly install the replacement for smooth operation."
+                            },
+                            "collapsedLabel": {
+                              "simpleText": "Summary"
+                            },
+                            "expandedTitle": {
+                              "simpleText": "AI-generated video summary"
+                            },
+                            "expandedSubtitle": {
+                              "simpleText": "AI can make mistakes, so double-check it."
+                            },
+                            "collapsedLabelIcon": {
+                              "iconType": "SPARK"
+                            },
+                            "expandedTitleIcon": {
+                              "iconType": "SPARK"
+                            },
+                            "expandedSubtitleTapCommand": {
+                              "urlEndpoint": {
+                                "url": "https://support.google.com/youtube/answer/14089423",
+                                "target": "TARGET_NEW_WINDOW"
+                              }
+                            },
+                            "expandedSubtitleTrailingIcon": {
+                              "iconType": "INFO"
+                            },
+                            "showLeadingCollapsedLabel": true
+                          },
+                          "expandedContent": {
+                            "videoSummaryContentViewModel": {
+                              "paragraphs": [
+                                {
+                                  "videoSummaryParagraphViewModel": {
+                                    "text": {
+                                      "content": "The 3D Handyman demonstrates the process for replacing a worn-out Moen 1225 cartridge to fix a leaking, stiff kitchen faucet. Learn how to safely remove the old cartridge, apply waterproof grease, and correctly install the replacement for smooth operation."
+                                    }
+                                  }
+                                }
+                              ],
+                              "likeButtonViewModel": {
+                                "likeButtonViewModel": {
+                                  "toggleButtonViewModel": {
+                                    "toggleButtonViewModel": {
+                                      "defaultButtonViewModel": {
+                                        "buttonViewModel": {
+                                          "iconName": "LIKE",
+                                          "accessibilityText": "Like this summary",
+                                          "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                          "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                          "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                          "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                        }
+                                      },
+                                      "toggledButtonViewModel": {
+                                        "buttonViewModel": {
+                                          "iconName": "LIKE_SELECTED",
+                                          "accessibilityText": "Unlike this summary",
+                                          "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                          "type": "BUTTON_VIEW_MODEL_TYPE_TONAL",
+                                          "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                          "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "likeStatusEntityKey": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB",
+                                  "likeStatusEntity": {
+                                    "key": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB",
+                                    "likeStatus": "INDIFFERENT"
+                                  }
+                                }
+                              },
+                              "dislikeButtonViewModel": {
+                                "dislikeButtonViewModel": {
+                                  "toggleButtonViewModel": {
+                                    "toggleButtonViewModel": {
+                                      "defaultButtonViewModel": {
+                                        "buttonViewModel": {
+                                          "iconName": "DISLIKE",
+                                          "onTap": {
+                                            "innertubeCommand": {
+                                              "openPopupAction": {
+                                                "popup": {
+                                                  "genAiFeedbackFormViewModel": {
+                                                    "title": {
+                                                      "content": "Tell us more"
+                                                    },
+                                                    "feedbackChips": [
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Hard to read",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Hard to read",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Inaccurate",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Inaccurate",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Inappropriate",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Inappropriate",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Not enough detail",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Not enough detail",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Other",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Other",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      {
+                                                        "toggleButtonViewModel": {
+                                                          "defaultButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Spoiler",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          },
+                                                          "toggledButtonViewModel": {
+                                                            "buttonViewModel": {
+                                                              "title": "Spoiler",
+                                                              "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                              "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                              "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                              "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ],
+                                                    "disclaimer": {
+                                                      "content": "YouTube may use this feature feedback, account, and system data to improve our services, subject to our Privacy Policy and Terms of Service. You can also report legal issues like privacy, copyright, and other laws.",
+                                                      "commandRuns": [
+                                                        {
+                                                          "startIndex": 67,
+                                                          "length": 20,
+                                                          "onTap": {
+                                                            "innertubeCommand": {
+                                                              "urlEndpoint": {
+                                                                "url": "https://support.google.com/youtube/answer/14110396#submitfeedback",
+                                                                "target": "TARGET_NEW_WINDOW"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 104,
+                                                          "length": 14,
+                                                          "onTap": {
+                                                            "innertubeCommand": {
+                                                              "urlEndpoint": {
+                                                                "url": "https://policies.google.com/privacy",
+                                                                "target": "TARGET_NEW_WINDOW"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 123,
+                                                          "length": 16,
+                                                          "onTap": {
+                                                            "innertubeCommand": {
+                                                              "urlEndpoint": {
+                                                                "url": "https://www.youtube.com/static?template=terms",
+                                                                "target": "TARGET_NEW_WINDOW"
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 154,
+                                                          "length": 19,
+                                                          "onTap": {
+                                                            "innertubeCommand": {
+                                                              "urlEndpoint": {
+                                                                "url": "https://support.google.com/youtube/contact/AI_Legal_Complaint",
+                                                                "target": "TARGET_NEW_WINDOW"
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      ],
+                                                      "styleRuns": [
+                                                        {
+                                                          "startIndex": 0,
+                                                          "length": 67,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4294967295
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4279440147
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 67,
+                                                          "length": 20,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4278607828
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4282296063
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 87,
+                                                          "length": 17,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4294967295
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4279440147
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 104,
+                                                          "length": 14,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4278607828
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4282296063
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 118,
+                                                          "length": 5,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4279440147
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4294967295
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 123,
+                                                          "length": 16,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4278607828
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4282296063
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 139,
+                                                          "length": 15,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4279440147
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4294967295
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 154,
+                                                          "length": 19,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4278607828
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4282296063
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        },
+                                                        {
+                                                          "startIndex": 173,
+                                                          "length": 41,
+                                                          "styleRunExtensions": {
+                                                            "styleRunColorMapExtension": {
+                                                              "colorMap": [
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_LIGHT",
+                                                                  "value": 4279440147
+                                                                },
+                                                                {
+                                                                  "key": "USER_INTERFACE_THEME_DARK",
+                                                                  "value": 4294967295
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "submitButton": {
+                                                      "buttonViewModel": {
+                                                        "title": "Submit",
+                                                        "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                                                        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                        "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                      }
+                                                    },
+                                                    "moreFeedbackButton": {
+                                                      "buttonViewModel": {
+                                                        "title": "Send more feedback",
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "userFeedbackEndpoint": {
+                                                              "additionalDatas": [
+                                                                {
+                                                                  "userFeedbackEndpointProductSpecificValueData": {
+                                                                    "key": "video_id",
+                                                                    "value": "dgavC1xqb0s"
+                                                                  }
+                                                                },
+                                                                {
+                                                                  "userFeedbackEndpointProductSpecificValueData": {
+                                                                    "key": "video_summary_source",
+                                                                    "value": "search_page"
+                                                                  }
+                                                                },
+                                                                {
+                                                                  "userFeedbackEndpointProductSpecificValueData": {
+                                                                    "key": "is_owner",
+                                                                    "value": "false"
+                                                                  }
+                                                                }
+                                                              ],
+                                                              "bucketIdentifier": "video_summary"
+                                                            }
+                                                          }
+                                                        },
+                                                        "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                                        "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                                        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                                        "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                                      }
+                                                    },
+                                                    "uniqueId": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB"
+                                                  }
+                                                },
+                                                "popupType": "DIALOG",
+                                                "uniqueId": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB"
+                                              }
+                                            }
+                                          },
+                                          "accessibilityText": "Dislike this summary",
+                                          "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                          "type": "BUTTON_VIEW_MODEL_TYPE_OUTLINE",
+                                          "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                          "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                        }
+                                      },
+                                      "toggledButtonViewModel": {
+                                        "buttonViewModel": {
+                                          "iconName": "DISLIKE_SELECTED",
+                                          "accessibilityText": "Dislike this summary",
+                                          "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                                          "type": "BUTTON_VIEW_MODEL_TYPE_TONAL",
+                                          "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                                          "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "dislikeEntityKey": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB",
+                                  "likeStatusEntity": {
+                                    "key": "EhhkZ2F2QzF4cWIwc19haV9zdW1tYXJpZXMgPigB",
+                                    "likeStatus": "INDIFFERENT"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "expandButton": {
+                            "buttonRenderer": {
+                              "style": "STYLE_DEFAULT",
+                              "size": "SIZE_DEFAULT",
+                              "isDisabled": false,
+                              "icon": {
+                                "iconType": "EXPAND_MORE"
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "More"
+                                }
+                              }
+                            }
+                          },
+                          "collapseButton": {
+                            "buttonRenderer": {
+                              "style": "STYLE_DEFAULT",
+                              "size": "SIZE_DEFAULT",
+                              "isDisabled": false,
+                              "icon": {
+                                "iconType": "EXPAND_LESS"
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Less"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

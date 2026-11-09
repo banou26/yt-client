@@ -72,6 +72,10 @@ type Video {
   # because the vocabulary changes and an unknown badge should still render.
   badges: [String!]!
   channel: Channel
+  # Set only on search rows, which list a video's chapters under its
+  # description, with upstream's heading for them ('3 chapters in this video').
+  chapters: [Chapter!]
+  chaptersTitle: String
 }
 
 type VideoPage {
@@ -430,6 +434,7 @@ type WatchMeta {
 type Chapter {
   title: String!
   startSeconds: Float!
+  thumbnail: String
 }
 
 # One segment of a rich text body. Upstream hands text back as runs, each of
