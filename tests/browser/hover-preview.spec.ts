@@ -137,7 +137,7 @@ plain('a click on the bar seeks there, and a drag scrubs storyboard frames and s
   expect(new URL(page.url()).pathname).toBe('/results')
 })
 
-plain('a playing preview counts down the time left, mutes on request and stops when the pointer leaves', async ({ page }) => {
+plain('a playing preview counts down the time left, shows its knob only over the bar, mutes on request and stops when the pointer leaves', async ({ page }) => {
   plain.setTimeout(240_000)
   const card = await hoverCourse(page)
   const video = card.locator('video')
@@ -148,11 +148,16 @@ plain('a playing preview counts down the time left, mutes on request and stops w
   expect(Math.abs(first - (duration - current))).toBeLessThanOrEqual(2)
   await expect.poll(async () => seconds(await left.innerText()), { timeout: 15_000 }).toBeLessThan(first)
 
+  const knob = card.locator('.knob')
+  const knobOpacity = () => knob.evaluate((element: HTMLElement) => getComputedStyle(element).opacity)
+  expect(await knobOpacity(), 'the knob shows at rest').toBe('0')
   const bar = (await card.locator('.scrubber').boundingBox())!
   await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height - 3)
   await expect(left).toHaveCount(0)
+  await expect.poll(knobOpacity).toBe('1')
   await page.mouse.move(bar.x + bar.width / 2, bar.y - 40)
   await expect(left).toHaveCount(1)
+  await expect.poll(knobOpacity).toBe('0')
 
   await card.getByRole('button', { name: 'Unmute preview', includeHidden: true }).click()
   expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(false)
@@ -179,6 +184,15 @@ plain('a preview shows captions by default, and its CC button turns them off', a
   await expect(cc).toHaveAttribute('aria-pressed', 'false')
   await expect.poll(showing).toEqual([])
   expect(new URL(page.url()).pathname).toBe('/results')
+})
+
+plain('a click on a preview in its first 10 s opens the video from its start', async ({ page }) => {
+  plain.setTimeout(240_000)
+  const card = await hoverCourse(page)
+  const played = await card.locator('video').evaluate((element: HTMLVideoElement) => element.currentTime)
+  expect(played, 'the preview was already near 10 s, so the click proves nothing').toBeLessThan(7)
+  await card.locator('[data-painted]').click({ position: { x: 40, y: 40 } })
+  await expect(page).toHaveURL(new RegExp(`/watch\\?v=${COURSE}$`))
 })
 
 plain('a click on a preview moved past its start opens the video where the preview is', async ({ page }) => {
