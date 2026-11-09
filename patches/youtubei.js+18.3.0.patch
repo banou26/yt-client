@@ -74,6 +74,21 @@ index 3346601..87c442b 100644
  }
  //# sourceMappingURL=Tab.js.map
 \ No newline at end of file
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
+index 996db9d..0219751 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
+@@ -93,8 +93,9 @@ export default class Text {
+         }));
+         if (style_runs?.length)
+             this.processStyleRuns(runs, style_runs, data);
++        // YouTube counts some command runs in UTF-8 bytes (search's playlist rows, 2026-11-10), so one over a whole text reaches past its end
+         if (command_runs?.length)
+-            this.processCommandRuns(runs, command_runs, data);
++            this.processCommandRuns(runs, command_runs.map((run) => ({ ...run, length: Math.min(run.length, content.length - run.startIndex) })), data);
+         const normalized_attachment_runs = attachment_runs?.map((run) => ({
+             ...run,
+             startIndex: run.startIndex ?? 0,
 diff --git a/node_modules/youtubei.js/dist/src/parser/nodes.js b/node_modules/youtubei.js/dist/src/parser/nodes.js
 index 1b6b23b..6bd294a 100644
 --- a/node_modules/youtubei.js/dist/src/parser/nodes.js
