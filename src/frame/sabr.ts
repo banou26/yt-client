@@ -11,6 +11,7 @@ import type { CacheManager, RequestMetadataManager } from 'googlevideo/utils'
 import type { PlaybackFormat, PlaybackSnapshot, SegmentEnvelope, SegmentRequest } from './protocol'
 import type { SabrSource } from './innertube'
 
+import { BinaryReader, BinaryWriter, WireType } from '@bufbuild/protobuf/wire'
 import { SabrStreamingAdapter, SabrUmpProcessor } from 'googlevideo/sabr-streaming-adapter'
 import { LiveMetadata, MediaHeader, UMPPartId, VideoPlaybackAbrRequest } from 'googlevideo/protos'
 import { FormatKeyUtils } from 'googlevideo/utils'
@@ -204,6 +205,60 @@ export const inspectUmpChunks = (chunks: Uint8Array[]) => {
   }
 }
 
+// UMP part 69, which googlevideo 4.0.4 does not name
+const CUEPOINT_LIST = 69
+
+type Cuepoint = { id: string, startMs: number, durationMs: number }
+
+// read as googlevideo 5's SabrStream reads a CuepointList: each CuepointInfo (1) holds a cuepoint (1) and a timeRange (4)
+const readCuepoints = (payload: Uint8Array) => {
+  const cuepoints: Cuepoint[] = []
+  const list = new BinaryReader(payload)
+  while (list.pos < list.len) {
+    const [field, wireType] = list.tag()
+    if (field !== 1) {
+      list.skip(wireType)
+      continue
+    }
+    const info = new BinaryReader(list.bytes())
+    let id = '', durationSec = 0, playheadSec = 0, startTicks = 0, timescale = 1_000
+    while (info.pos < info.len) {
+      const [infoField, infoType] = info.tag()
+      if (infoField !== 1 && infoField !== 4) {
+        info.skip(infoType)
+        continue
+      }
+      const inner = new BinaryReader(info.bytes())
+      while (inner.pos < inner.len) {
+        const [innerField, innerType] = inner.tag()
+        if (infoField === 1 && innerField === 3) durationSec = inner.double()
+        else if (infoField === 1 && innerField === 4) playheadSec = inner.double()
+        else if (infoField === 1 && innerField === 6) id = inner.string()
+        else if (infoField === 4 && innerField === 1) startTicks = Number(inner.int64())
+        else if (infoField === 4 && innerField === 3) timescale = inner.int32()
+        else inner.skip(innerType)
+      }
+    }
+    if (id) cuepoints.push({ id, startMs: Math.floor((startTicks / timescale - playheadSec) * 1_000), durationMs: durationSec * 1_000 })
+  }
+  return cuepoints
+}
+
+/* VideoPlaybackAbrRequest's ssapPlaybackInfos (24), which googlevideo 4.0.4 does not encode: cuepointId 7, state 8 (11,
+   RATECONTROL_CLIENT, what youtube.com sends with no ad played), startTimeMs 10, durationMs 11 */
+const encodeSsapPlaybackInfos = (cuepoints: Iterable<Cuepoint>) => {
+  const writer = new BinaryWriter()
+  for (const { id, startMs, durationMs } of cuepoints) {
+    writer.tag(24, WireType.LengthDelimited).fork()
+      .tag(7, WireType.LengthDelimited).string(id)
+      .tag(8, WireType.Varint).int32(11)
+      .tag(10, WireType.Varint).int64(startMs)
+      .tag(11, WireType.Varint).int64(durationMs)
+      .join()
+  }
+  return writer.finish()
+}
+
 const describeNoMedia = (response: ExecutedResponse) => {
   const sabrError = response.metadata.error?.sabrError
   if (sabrError) return `SABR error ${sabrError.type ?? 'unknown'}:${sabrError.code ?? 'unknown'}`
@@ -344,6 +399,23 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
     && (startMs >= liveStartMs || Math.abs(startMs - askedMs) <= LIVE_START_SEGMENTS * targetDurationMs)
   const liveEndMs = () => [...liveTimeline.values()]
     .reduce((end, segment) => Math.max(end, segment.startMs + segment.durationMs), liveStartMs ?? 0)
+  /* an ad cuepoint is announced (CUEPOINT_LIST) on a "backoff, no media" answer at its segment, which stays refused until
+     a request names the cuepoint. youtube.com names it in every request until its buffer passes the cuepoint's end.
+     Measured 2026-11-10 on rFZHOHl-L8A, a 60 s cuepoint every 36 segments: asked again naming it, 11 of 11 were served,
+     6 of them after the server's 5 s backoff; another video format, youtube.com's top-level fields or its ClientAbrState
+     fields were refused 2 of 2 each, and without the name 6 of 6 were refused for good. */
+  const cuepoints = new Map<string, Cuepoint>()
+  const noteCuepoints = (payload: Uint8Array) => {
+    for (const cuepoint of readCuepoints(payload)) {
+      if (!cuepoints.has(cuepoint.id)) cuepoints.set(cuepoint.id, cuepoint)
+    }
+  }
+  const announcedCuepoints = () => {
+    for (const [id, { startMs, durationMs }] of cuepoints) {
+      if (startMs + durationMs <= liveEndMs()) cuepoints.delete(id)
+    }
+    return cuepoints.values()
+  }
   const recordLiveSegment = (segment: CachedMedia, targetMs: number) => {
     const { sequenceNumber, startMs, track } = segment
     if (sequenceNumber === undefined) return
@@ -541,7 +613,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       }
       // the adapter claims the segment the pump just delivered as buffered, and a live init asked there is answered with no video at all (measured 2026-11-06: three empty answers, then a session refresh)
       if (init && source.isLive) decoded.bufferedRanges = []
-      requestBody = VideoPlaybackAbrRequest.encode(decoded).finish()
+      requestBody = Uint8Array.of(...VideoPlaybackAbrRequest.encode(decoded).finish(), ...encodeSsapPlaybackInfos(announcedCuepoints()))
       filtered.body = requestBody
     }
     const metadata = state.metadata?.getRequestMetadata(filtered.url)
@@ -582,6 +654,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       for (const frame of framer.push(chunk)) {
         partTypes.push(frame.type)
         if (frame.type === UMPPartId.LIVE_METADATA) noteLiveHead(frame.payload)
+        if (frame.type === CUEPOINT_LIST && source.isLive) noteCuepoints(frame.payload)
         const collected = collector.push(frame)
         if (collected) storeCollectedSegment(collected, startTimeMs)
         const mediaPart = frame.type === UMPPartId.MEDIA_HEADER
@@ -712,9 +785,10 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
           await recoverFor(response.metadata.streamInfo?.streamProtectionStatus?.status)
           refused = refused?.atMs === fromMs ? { atMs: fromMs, count: refused.count + 1 } : { atMs: fromMs, count: 1 }
           /* measured 2026-11-06: a position answered "backoff, no media" again once the head is past it stays refused
-             for good, to a new SABR session too (7 and 11 reopened sessions in a row), while the next one is served. So
-             the pump steps past it, and the manifest lists only the run after the hole ($Number$ is positional, see
-             contiguousTail), which Shaka moves forward into. */
+             for good, to a new SABR session too (7 and 11 reopened sessions in a row), while the next one is served. Every
+             such refusal measured on 2026-11-10 announced an ad cuepoint, which naming it clears (see cuepoints). One that
+             stays refused all the same is stepped past, and the manifest lists only the run after the hole ($Number$ is
+             positional, see contiguousTail), which Shaka moves forward into. */
           if (refused.count >= LIVE_REFUSALS && liveHeadMs !== undefined && liveHeadMs > fromMs) {
             liveStartMs = Math.max(liveStartMs ?? 0, fromMs + targetDurationMs)
             refused = undefined

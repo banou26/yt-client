@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
+import { BinaryReader, BinaryWriter, WireType } from '@bufbuild/protobuf/wire'
 import { LiveMetadata, MediaHeader, NextRequestPolicy, StreamProtectionStatus, UMPPartId, VideoPlaybackAbrRequest } from 'googlevideo/protos'
 import type { SabrSource } from '../../../src/frame/innertube'
 import type { SegmentRequest } from '../../../src/frame/protocol'
@@ -71,17 +72,63 @@ let status: number | undefined
 let nextStatus: number | undefined
 // positions answered "backoff, no media" whatever the head
 const refused = new Set<number>()
+// ad cuepoints by sequence: answered "backoff, no media" with a CUEPOINT_LIST until a request names the cuepoint
+const cuepoints = new Map<number, string>()
 // the next answer is the segment before the one its address falls in, as measured once after a refusal
 let answerBehind = false
 // every address on a segment's start is answered with the segment that ends there, as some sessions do for good
 let startsBehind = false
-type Asked = { playerTimeMs: number, video?: number, at: number, answeredAt?: number }
+type Named = { id: string, state: number, startMs: number, durationMs: number }
+type Asked = { playerTimeMs: number, video?: number, at: number, answeredAt?: number, cuepoints: Named[] }
 const asked: Asked[] = []
+// a request's ssapPlaybackInfos (24), which googlevideo 4.0.4 does not decode
+const namedCuepoints = (body: Uint8Array) => {
+  const named: Named[] = []
+  const request = new BinaryReader(body)
+  while (request.pos < request.len) {
+    const [field, wireType] = request.tag()
+    if (field !== 24) {
+      request.skip(wireType)
+      continue
+    }
+    const info = new BinaryReader(request.bytes())
+    const cuepoint = { id: '', state: 0, startMs: 0, durationMs: 0 }
+    while (info.pos < info.len) {
+      const [infoField, infoType] = info.tag()
+      if (infoField === 7) cuepoint.id = info.string()
+      else if (infoField === 8) cuepoint.state = info.int32()
+      else if (infoField === 10) cuepoint.startMs = Number(info.int64())
+      else if (infoField === 11) cuepoint.durationMs = Number(info.int64())
+      else info.skip(infoType)
+    }
+    named.push(cuepoint)
+  }
+  return named
+}
+// as the server announces a 60 s ad cuepoint, on the video track's 90 kHz clock
+const cuepointList = (id: string, sequence: number) => new BinaryWriter()
+  .tag(1, WireType.LengthDelimited).fork()
+  .tag(1, WireType.LengthDelimited).fork()
+  .tag(1, WireType.Varint).int32(1)
+  .tag(2, WireType.Varint).int32(1)
+  .tag(3, WireType.Bit64).double(60)
+  .tag(4, WireType.Bit64).double(0)
+  .tag(6, WireType.LengthDelimited).string(id)
+  .join()
+  .tag(2, WireType.Varint).int32(2)
+  .tag(3, WireType.Varint).int32(sequence)
+  .tag(4, WireType.LengthDelimited).fork()
+  .tag(1, WireType.Varint).int64(startMsOf(sequence) * 90)
+  .tag(3, WireType.Varint).int32(90_000)
+  .join()
+  .join()
+  .finish()
 const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, options) => {
   await sleep(100)
-  const request = VideoPlaybackAbrRequest.decode(new Uint8Array(options.body as ArrayBuffer))
+  const body = new Uint8Array(options.body as ArrayBuffer)
+  const request = VideoPlaybackAbrRequest.decode(body)
   const playerTimeMs = Number(request.clientAbrState?.playerTimeMs ?? 0)
-  const entry: Asked = { playerTimeMs, video: request.preferredVideoFormatIds[0]?.itag, at: Date.now() }
+  const entry: Asked = { playerTimeMs, video: request.preferredVideoFormatIds[0]?.itag, at: Date.now(), cuepoints: namedCuepoints(body) }
   asked.push(entry)
   const sequence = Math.max(head() - WINDOW, sequenceAt(playerTimeMs - (startsBehind ? 1 : 0))) - (answerBehind ? 1 : 0)
   answerBehind = false
@@ -91,9 +138,11 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
   if (once !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status: once }).finish())))
   if (status !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status }).finish())))
   while (sequence > head()) await sleep(250)
-  const body = [...part(UMPPartId.LIVE_METADATA, LiveMetadata.encode({ headSequenceNumber: String(head()), headTimeMs: String(startMsOf(head())) }).finish())]
-  if (refused.has(sequence)) {
-    body.push(...part(UMPPartId.NEXT_REQUEST_POLICY, NextRequestPolicy.encode({ backoffTimeMs: 5_000 }).finish()))
+  const answer = [...part(UMPPartId.LIVE_METADATA, LiveMetadata.encode({ headSequenceNumber: String(head()), headTimeMs: String(startMsOf(head())) }).finish())]
+  const cuepoint = cuepoints.get(sequence)
+  if (refused.has(sequence) || (cuepoint && !entry.cuepoints.some((named) => named.id === cuepoint))) {
+    answer.push(...part(UMPPartId.NEXT_REQUEST_POLICY, NextRequestPolicy.encode({ backoffTimeMs: 5_000 }).finish()))
+    if (cuepoint) answer.push(...part(69, cuepointList(cuepoint, sequence)))
   } else {
     // a format the request claims to hold at this sequence is not sent again
     const held = (itag: number) => request.bufferedRanges.some((range) => range.formatId?.itag === itag
@@ -101,13 +150,13 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
     const tracks = (request.clientAbrState?.enabledTrackTypesBitfield === 1 ? [140] : [entry.video ?? 134, 140]).filter((itag) => !held(itag))
     tracks.forEach((itag, headerId) => {
       const data = mediaBytes(itag, sequence)
-      body.push(...part(UMPPartId.MEDIA_HEADER, MediaHeader.encode({ headerId, itag, formatId: { itag, lastModified: '1' }, sequenceNumber: sequence, startMs: String(startMsOf(sequence)), durationMs: '5000', contentLength: String(data.length) }).finish()))
-      body.push(...part(UMPPartId.MEDIA, [headerId, ...data]))
-      body.push(...part(UMPPartId.MEDIA_END, [headerId]))
+      answer.push(...part(UMPPartId.MEDIA_HEADER, MediaHeader.encode({ headerId, itag, formatId: { itag, lastModified: '1' }, sequenceNumber: sequence, startMs: String(startMsOf(sequence)), durationMs: '5000', contentLength: String(data.length) }).finish()))
+      answer.push(...part(UMPPartId.MEDIA, [headerId, ...data]))
+      answer.push(...part(UMPPartId.MEDIA_END, [headerId]))
     })
   }
   entry.answeredAt = Date.now()
-  return new Response(new Uint8Array(body))
+  return new Response(new Uint8Array(answer))
 })
 
 const sequenceOf = (data: ArrayBuffer) => {
@@ -123,6 +172,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     status = undefined
     nextStatus = undefined
     refused.clear()
+    cuepoints.clear()
     answerBehind = false
     startsBehind = false
     asked.length = 0
@@ -310,6 +360,21 @@ describe('a live SABR session on a stream with a DVR window', () => {
     status = 2
     await vi.advanceTimersByTimeAsync(20_000)
     expect(recoverMint).toHaveBeenCalledTimes(1)
+    session.close()
+  })
+
+  it('names the ad cuepoint the server announced, and is sent the segment at it', async () => {
+    cuepoints.set(HEAD + 1, 'cue-1')
+    const session = await open()
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(listed(session)).toContain(HEAD + 1)
+    expect(asked).toContainEqual(expect.objectContaining({
+      playerTimeMs: middleOf(HEAD + 1),
+      cuepoints: [{ id: 'cue-1', state: 11, startMs: startMsOf(HEAD + 1), durationMs: 60_000 }],
+    }))
+    // and stops naming it once the timeline passes the cuepoint's end, as youtube.com does
+    await vi.advanceTimersByTimeAsync(70_000)
+    expect(asked.at(-1)!.cuepoints).toEqual([])
     session.close()
   })
 
