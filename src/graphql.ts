@@ -57,6 +57,8 @@ const cache = cacheExchange({
     // a wrapper DESPITE carrying a real playlist id: keyed on it, every video in one playlist would share one `currentIndex`
     WatchPlaylist: () => null,
     Chapter: () => null,
+    LiveChatPage: () => null,
+    LiveChatRun: () => null,
     Session: () => null,
   },
   updates: {
