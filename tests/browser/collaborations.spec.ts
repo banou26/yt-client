@@ -30,3 +30,28 @@ test('names both channels of a collaboration in search: its avatars open the cho
   await expect(dialog).toHaveCount(0)
   await expect(page.locator('h1')).toContainText('Marques Brownlee', { timeout: 120_000 })
 })
+
+test('names both channels on a collaboration\'s watch page, whose Subscribe opens one for each', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto(VIDEO)
+  const owner = page.locator('.owner-row')
+  const names = owner.getByRole('button', { name: /^Cleo Abram Verified and Marques Brownlee Verified$/ })
+  await expect(names).toBeVisible({ timeout: 120_000 })
+  await expect(owner.getByRole('button', { name: 'Collaboration channels' }).locator('img')).toHaveCount(2)
+  for (const action of ['Like', 'Dislike', 'Share', 'More actions']) {
+    await expect(owner.getByRole('button', { name: action, exact: true })).toBeVisible()
+  }
+
+  await owner.getByRole('button', { name: 'Subscribe', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Collaborators' })
+  await expect(dialog.getByRole('link')).toHaveCount(2)
+  await expect(dialog.getByRole('link').nth(0)).toHaveAttribute('href', CLEO)
+  await expect(dialog.getByRole('link').nth(1)).toHaveAttribute('href', MKBHD)
+  await expect(dialog.getByRole('button', { name: 'Subscribe', exact: true })).toHaveCount(2)
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toHaveCount(0)
+
+  await names.click()
+  await expect(dialog.getByRole('link')).toHaveCount(2)
+})
+

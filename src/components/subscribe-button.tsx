@@ -30,7 +30,8 @@ const SET_NOTIFICATION_LEVEL = gql(`
   }
 `)
 
-const style = css`
+/** Draws a `.subscribe` button inside it as this one, for a Subscribe that opens something else (a collaboration's). */
+export const subscribeStyle = css`
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -125,7 +126,7 @@ export const SubscribeButton = (
   }
 
   return (
-    <div css={style} ref={rootRef}>
+    <div css={subscribeStyle} ref={rootRef}>
       <button
         type='button'
         className={isSubscribed ? 'subscribe subscribed' : 'subscribe'}

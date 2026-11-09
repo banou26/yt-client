@@ -28,6 +28,8 @@ export const WATCH_META_QUERY = gql(`
       descriptionRuns { text url videoId startSeconds browseId }
       likeStatus
       channel { id name avatar handle subscriberCountText isSubscribed notificationLevel isVerified isVerifiedArtist }
+      byline { text isVerified isVerifiedArtist }
+      collaborators { id name avatar handle subscriberCountText isSubscribed notificationLevel isVerified isVerifiedArtist }
       relatedCursor
       autoplayId
       chapters { title startSeconds thumbnail }

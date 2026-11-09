@@ -9,12 +9,13 @@ import { createPortal } from 'preact/compat'
 import { useCallback, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
+import SubscribeButton from './subscribe-button'
 import { Dialog } from './ui/dialog'
 import { VerifiedBadge } from './verified-badge'
 
 export type Collaborator =
   Pick<Channel, 'id' | 'name'>
-  & Partial<Pick<Channel, 'avatar' | 'handle' | 'subscriberCountText' | 'isVerified' | 'isVerifiedArtist'>>
+  & Partial<Pick<Channel, 'avatar' | 'handle' | 'subscriberCountText' | 'isVerified' | 'isVerifiedArtist' | 'isSubscribed' | 'notificationLevel'>>
 
 export type CollaborationData = {
   byline?: Pick<BylinePart, 'text' | 'isVerified' | 'isVerifiedArtist'>[] | null
@@ -53,7 +54,15 @@ const dialogStyle = css`
   padding: 0;
   list-style: none;
 
+  li {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
   a {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 1.6rem;
@@ -61,6 +70,10 @@ const dialogStyle = css`
     padding: 0.8rem 1.2rem;
     border-radius: 0.8rem;
     color: var(--text-primary);
+  }
+
+  li > div {
+    flex: none;
   }
 
   a:hover {
@@ -126,7 +139,9 @@ export const AvatarStack = ({ channels }: { channels: Collaborator[] }) => (
   </span>
 )
 
-const CollaboratorsDialog = ({ channels, onClose }: { channels: Collaborator[], onClose: () => void }) => (
+const CollaboratorsDialog = (
+  { channels, subscribe, onClose }: { channels: Collaborator[], subscribe: boolean, onClose: () => void },
+) => (
   <Dialog title='Collaborators' onClose={onClose}>
     <ul css={dialogStyle}>
       {channels.map(channel => (
@@ -137,20 +152,27 @@ const CollaboratorsDialog = ({ channels, onClose }: { channels: Collaborator[], 
               <span className='name'>{channel.name}<VerifiedBadge channel={channel} /></span>
               <span className='detail'>{[channel.handle, channel.subscriberCountText].filter(Boolean).join(' • ')}</span>
             </span>
-            <ChevronRight size={24} strokeWidth={1.5} aria-hidden='true' />
+            {subscribe ? undefined : <ChevronRight size={24} strokeWidth={1.5} aria-hidden='true' />}
           </Link>
+          {subscribe
+            ? <SubscribeButton channelId={channel.id} subscribed={channel.isSubscribed} notificationLevel={channel.notificationLevel} />
+            : undefined}
         </li>
       ))}
     </ul>
   </Dialog>
 )
 
-/** A collaboration's avatars, which open the choice of its channels as youtube.com's do. */
+/**
+ * Opens the choice of a collaboration's channels, as youtube.com's avatars do on a row and its names and Subscribe do
+ * on a watch page, whose choice has a Subscribe for each channel (`subscribe`).
+ */
 export const CollaboratorsButton = (
-  { channels, className, label, children }: {
+  { channels, className, label, subscribe = false, children }: {
     channels: Collaborator[]
     className: string
     label?: string
+    subscribe?: boolean
     children: ComponentChildren
   },
 ) => {
@@ -162,7 +184,7 @@ export const CollaboratorsButton = (
         {children}
       </button>
       {/* portalled: a card's own `.avatar` and `.name` rules would reach into it */}
-      {open ? createPortal(<CollaboratorsDialog channels={channels} onClose={close} />, document.body) : undefined}
+      {open ? createPortal(<CollaboratorsDialog channels={channels} subscribe={subscribe} onClose={close} />, document.body) : undefined}
     </>
   )
 }

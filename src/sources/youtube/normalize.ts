@@ -41,9 +41,11 @@ type ChoiceItem = {
   subtitle?: Text
   leading_accessory?: { image?: Thumbnail[] }
   renderer_context?: { command_context?: { on_tap?: { payload?: { browseId?: string } } } }
+  // only on a watch page's owner
+  trailing_buttons?: { is_signed_out?: boolean, subscribe_button_content?: { subscribe_state_subscribed?: boolean } }[]
 }
 
-// the Collaborators dialog a collaboration's avatars open
+// the Collaborators dialog a collaboration's avatars open, and on a watch page its names and Subscribe too
 type CollaboratorsEndpoint = { command?: { inline_content?: { custom_content?: { items?: ChoiceItem[] } } } }
 
 type FeedVideo = {
@@ -391,10 +393,12 @@ const DIRECTION_MARKS = /[\u200e\u200f\u2066-\u2069]/g
 
 const collaboratorChannels = (endpoint: CollaboratorsEndpoint | undefined): SourceChannel[] =>
   (endpoint?.command?.inline_content?.custom_content?.items ?? []).flatMap((item) => {
-    const id = item.renderer_context?.command_context?.on_tap?.payload?.browseId
+    // a watch page's row links its name instead of the whole row
+    const id = item.renderer_context?.command_context?.on_tap?.payload?.browseId ?? item.title?.endpoint?.payload?.browseId
     const name = presentText(item.title)
     if (!id || !name) return []
     const details = (text(item.subtitle) ?? '').replace(DIRECTION_MARKS, '').split(' • ')
+    const subscribe = item.trailing_buttons?.[0]
     return [{
       id,
       name,
@@ -402,6 +406,8 @@ const collaboratorChannels = (endpoint: CollaboratorsEndpoint | undefined): Sour
       handle: details.find((detail) => detail.startsWith('@')),
       subscriberCountText: details.find((detail) => detail.length > 0 && !detail.startsWith('@')),
       ...iconBadges(runIcons(item.title)),
+      // signed out the state still reads false, which SubscribeButton would take for a signed-in answer
+      isSubscribed: subscribe && subscribe.is_signed_out !== true ? subscribe.subscribe_button_content?.subscribe_state_subscribed : undefined,
     }]
   })
 
@@ -1314,6 +1320,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   } | undefined
   const owner = secondary?.owner
   const author = owner?.author
+  const collaboration = authorByline(author)
   const likeCount = likeView?.short_like_count
     ?? likeLegacy?.like_button?.short_like_count
     ?? [likeView?.like_count ?? likeLegacy?.like_button?.like_count]
@@ -1358,7 +1365,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     description: presentText(secondary?.description),
     descriptionRuns: normalizeRuns(secondary?.description),
     likeStatus: status,
-    channel: author?.id && author.name
+    channel: collaboration.byline ? collaboration.channel : author?.id && author.name
       ? {
           id: author.id,
           name: author.name,
@@ -1372,6 +1379,8 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
           ),
         }
       : undefined,
+    byline: collaboration.byline,
+    collaborators: collaboration.collaborators,
     related,
     autoplayId: watchNext?.autoplay?.sets?.[0]?.autoplay_video?.payload?.videoId || undefined,
     playlist: normalizeWatchPlaylist(watchNext?.playlist),

@@ -456,7 +456,12 @@ type WatchMeta {
   # above stays for the collapsed clamp.
   descriptionRuns: [TextRun!]!
   likeStatus: LikeStatus
+  # A collaboration's first channel.
   channel: Channel
+  # Set only on a video two or more channels made, as on Video. Its owner row
+  # prints these names, and its Subscribe opens the choice of collaborators.
+  byline: [BylinePart!]
+  collaborators: [Channel!]
   related: [Video!]!
   # Present when the sidebar has more to load. Pass it to `relatedVideos`, the
   # same shape `Comment.repliesCursor` uses: `related` stays a plain list so the

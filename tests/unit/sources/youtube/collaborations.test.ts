@@ -6,16 +6,20 @@ import { Parser, YT } from 'youtubei.js'
 
 import { rowByline } from '../../../../src/components/format'
 import { createYoutubeSource } from '../../../../src/sources/youtube'
+import { normalizeWatchMeta } from '../../../../src/sources/youtube/normalize'
 import home from '../../fixtures/channel-home-mkbhd.json'
 import threeChannels from '../../fixtures/search-colin-and-samir.json'
 import search from '../../fixtures/search-collaboration.json'
+import watch from '../../fixtures/watch-collaboration.json'
 
 /* Signed-out answers captured on 2026-11-10 and stripped of tracking, menus and playback fields:
    - search-collaboration.json, the search for "quantum computing explained" cut to a 3Blue1Brown row and Cleo Abram's
      video with Marques Brownlee, whose byline opens a Collaborators dialog instead of a channel;
    - search-colin-and-samir.json, the search for "colin and samir" cut to a video of three channels;
    - channel-home-mkbhd.json, Marques Brownlee's Home cut to its Videos row (two of his own videos and one with Auto
-     Focus), its First Impressions row (one of those two and the one with Auto Focus) and its Collaborations row. */
+     Focus), its First Impressions row (one of those two and the one with Auto Focus) and its Collaborations row;
+   - watch-collaboration.json, the /next of Cleo Abram's video with Marques Brownlee cut to its title and its owner,
+     whose avatars, names and Subscribe all open the Collaborators dialog, with a Subscribe on each channel. */
 
 const MKBHD = 'UCBJycsmduvYEL83R_U4JriQ'
 const CLEO = 'UC415bOPUcGSamy543abLmRA'
@@ -106,5 +110,21 @@ describe('a video two channels made', () => {
       ['Marques Brownlee', 'Marques Brownlee and Auto Focus'],
       ['Marques Brownlee and Auto Focus', 'Mrwhosetheboss and Marques Brownlee'],
     ])
+  })
+
+  it('names a watch page\'s channels, and reads each one\'s subscribe state only from a signed-in answer', () => {
+    const meta = normalizeWatchMeta(Parser.parseResponse(watch as never), 'e3fz3dqhN44')
+    expect(meta).toMatchObject({
+      title: 'Quantum Computers, explained with MKBHD',
+      channel: { id: CLEO, name: 'Cleo Abram' },
+      byline: [{ text: 'Cleo Abram', isVerified: true }, { text: 'and Marques Brownlee', isVerified: true }],
+      collaborators: [
+        { id: CLEO, name: 'Cleo Abram', handle: '@CleoAbram', subscriberCountText: '8.95M subscribers', isVerified: true, isSubscribed: undefined },
+        { id: MKBHD, name: 'Marques Brownlee', handle: '@mkbhd', subscriberCountText: '21.4M subscribers', isVerified: true, isSubscribed: undefined },
+      ],
+    })
+
+    const signedIn = JSON.parse(JSON.stringify(watch).replaceAll('"isSignedOut":true', '"isSignedOut":false').replace('"subscribed":false', '"subscribed":true'))
+    expect(normalizeWatchMeta(Parser.parseResponse(signedIn), 'e3fz3dqhN44')?.collaborators?.map((channel) => channel.isSubscribed)).toEqual([true, false])
   })
 })

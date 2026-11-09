@@ -10,6 +10,7 @@ import { useMutation, useQuery } from 'urql'
 import { Link, useSearch } from 'wouter'
 
 import { useDocumentTitle, useMediaQuery } from '../app'
+import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byline'
 import { ChaptersPanel } from '../components/chapters'
 import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
@@ -19,7 +20,7 @@ import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
 import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
-import SubscribeButton from '../components/subscribe-button'
+import SubscribeButton, { subscribeStyle } from '../components/subscribe-button'
 import { FeedSentinel } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
@@ -188,6 +189,11 @@ const style = css`
     flex-wrap: wrap;
     gap: 1.2rem;
     margin-top: 1.2rem;
+  }
+
+  .avatars {
+    --avatar-size: 2.8rem;
+    flex: none;
   }
 
   .avatar {
@@ -562,32 +568,55 @@ const WatchPage = () => {
           )
           : undefined}
         {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
-        {channel
+        {watch
           ? (
             <div className='owner-row'>
-              <Link
-                href={`/channel/${channel.id}`}
-                className={channel.avatar ? 'avatar' : 'avatar fallback'}
-                aria-label={channel.name}
-              >
-                {channel.avatar
-                  ? <img src={channel.avatar} alt='' loading='lazy' />
-                  : channel.name.slice(0, 1).toUpperCase()}
-              </Link>
-              <div className='owner-text'>
-                <Link href={`/channel/${channel.id}`} className='channel-name'>
-                  <span className='name'>{channel.name}</span>
-                  <VerifiedBadge channel={channel} />
-                </Link>
-                {channel.subscriberCountText
-                  ? <div className='sub-count'>{channel.subscriberCountText}</div>
-                  : undefined}
-              </div>
-              <SubscribeButton
-                channelId={channel.id}
-                subscribed={channel.isSubscribed}
-                notificationLevel={channel.notificationLevel}
-              />
+              {/* youtube.com opens the choice of a collaboration's channels from its avatars, its names and its Subscribe */}
+              {watch.byline?.length && watch.collaborators?.length
+                ? (
+                  <>
+                    <CollaboratorsButton channels={watch.collaborators} subscribe className='avatars' label='Collaboration channels'>
+                      <AvatarStack channels={watch.collaborators} />
+                    </CollaboratorsButton>
+                    <div className='owner-text'>
+                      <CollaboratorsButton channels={watch.collaborators} subscribe className='channel-name'>
+                        <span className='name'><BylineNames parts={watch.byline} /></span>
+                      </CollaboratorsButton>
+                    </div>
+                    <div css={subscribeStyle}>
+                      <CollaboratorsButton channels={watch.collaborators} subscribe className='subscribe'>Subscribe</CollaboratorsButton>
+                    </div>
+                  </>
+                )
+                : channel
+                ? (
+                  <>
+                    <Link
+                      href={`/channel/${channel.id}`}
+                      className={channel.avatar ? 'avatar' : 'avatar fallback'}
+                      aria-label={channel.name}
+                    >
+                      {channel.avatar
+                        ? <img src={channel.avatar} alt='' loading='lazy' />
+                        : channel.name.slice(0, 1).toUpperCase()}
+                    </Link>
+                    <div className='owner-text'>
+                      <Link href={`/channel/${channel.id}`} className='channel-name'>
+                        <span className='name'>{channel.name}</span>
+                        <VerifiedBadge channel={channel} />
+                      </Link>
+                      {channel.subscriberCountText
+                        ? <div className='sub-count'>{channel.subscriberCountText}</div>
+                        : undefined}
+                    </div>
+                    <SubscribeButton
+                      channelId={channel.id}
+                      subscribed={channel.isSubscribed}
+                      notificationLevel={channel.notificationLevel}
+                    />
+                  </>
+                )
+                : undefined}
               <div className='actions'>
                 <div className='like-pill'>
                   <button

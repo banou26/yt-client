@@ -315,7 +315,11 @@ export type SourceWatchMeta = {
   description?: string
   descriptionRuns: SourceTextRun[]
   likeStatus?: SourceLikeStatus
+  // a collaboration's first channel
   channel?: SourceChannel
+  /** Set only on a video two or more channels made, as on SourceVideo; its channels carry their subscribe state. */
+  byline?: SourceBylinePart[]
+  collaborators?: SourceChannel[]
   related: SourceVideo[]
   relatedCursor?: string
   /** The video youtube.com's own autoplay moves on to, often not the first related one. */
