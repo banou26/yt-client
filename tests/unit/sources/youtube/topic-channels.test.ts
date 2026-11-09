@@ -38,7 +38,7 @@ describe('topic channels', () => {
     const page = await sourceFor(fixture.music).channel('UC-9-kyTW8ZkZNDHQJ6FgpwQ')
     expect(page.tab).toBe('HOME')
     expect(page.availableTabs).toEqual(['HOME', 'COMMUNITY'])
-    // the header's name, over the metadata's "The Music Channel"
+    // the header's name, over the microformat's "The Music Channel"
     expect(page.channel).toMatchObject({ name: 'Music', subscriberCountText: '128M subscribers' })
     const [songs, rising] = page.home?.shelves ?? []
     expect(songs).toMatchObject({

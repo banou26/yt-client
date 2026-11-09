@@ -483,6 +483,21 @@
           ]
         }
       }
+    },
+    "microformat": {
+      "microformatDataRenderer": {
+        "urlCanonical": "https://www.youtube.com/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ",
+        "title": "The Music Channel",
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "https://yt3.googleusercontent.com/M1Hbe-1uiAYWJI8-1ZzV3uf7MwoWcEmKAPbIivbKs3buggZcVLov91trUzy8y-96unrkOcv3oA=s200-c-k-c0x00ffffff-no-rj?days_since_epoch=20766",
+              "width": 200,
+              "height": 200
+            }
+          ]
+        }
+      }
     }
   },
   "live": {
