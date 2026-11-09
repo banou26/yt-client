@@ -31,6 +31,7 @@ import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
+import { useFrame } from './player-frame'
 import { RefusalScreen } from './refusal-screen'
 import { stepRate } from './rates'
 import { PlayerMenu } from './player-menu'
@@ -39,33 +40,12 @@ import { CLOCK_SLACK, skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
+// the player's box is its frame's, which stays as the video changes; this fills it, less the comments beside it in full screen
 const playerStyle = css`
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: 14px;
-  background: #000;
-  position: relative;
+  position: absolute;
+  inset: 0;
   /* the controls and the end screen lay out for the player's own width, which is the miniplayer's 400 px wherever the page is */
   container: player / inline-size;
-
-  /* Fullscreen has to beat BOTH the 16/9 aspect-ratio box and the max-height
-     that theater mode puts on this element, or the video is letterboxed inside
-     a correctly-fullscreened container. Sizing off the viewport rather than
-     100%/100% also survives whatever the ancestor grid was doing. */
-  &:fullscreen {
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    max-height: none;
-    aspect-ratio: auto;
-    border-radius: 0;
-  }
-
-  &:fullscreen video {
-    width: 100%;
-    height: 100%;
-  }
 
   /* in full screen the open list takes the right of the player, which the watch page draws outside it */
   &.panel-open {
@@ -259,6 +239,8 @@ const VideoPlayer = (
   const panelOver = fullscreen
     ? watchPanel({ videoId, open: panel, chapters: chapterList, chapter: chapterIndex, transcript, overlay: true })
     : undefined
+  const frame = useFrame()
+  const grid = frame?.grid ?? false
   const ending = state.ended && upNext
     ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
     : undefined
@@ -628,8 +610,8 @@ const VideoPlayer = (
   return (
     <div
       css={playerStyle}
-      data-player-root
-      className={[!active && !state.paused && !menu && 'idle', panelOver && 'panel-open'].filter(Boolean).join(' ') || undefined}
+      data-player-surface
+      className={[!active && !state.paused && !menu && !grid && 'idle', panelOver && 'panel-open'].filter(Boolean).join(' ') || undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
@@ -709,7 +691,7 @@ const VideoPlayer = (
             chapters={chapters}
             onChapters={() => setPanel('chapters')}
             segments={segments}
-            visible={active || state.paused}
+            visible={(active || state.paused) && !grid}
           />
         )
         : undefined}
@@ -727,6 +709,7 @@ const VideoPlayer = (
           )
           : undefined}
       {panelOver}
+      {frame?.fullscreen && frame.view ? <frame.view.FullscreenView shown={active || state.paused} /> : undefined}
       {video && menu
         ? (
           <PlayerMenu

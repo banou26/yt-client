@@ -1,0 +1,131 @@
+import type { Locator, Page } from '@playwright/test'
+
+import { expect, plainTest as test } from './test'
+
+/* youtube.com's full screen view, measured signed out on 2026-11-10: the title over the top, like, comments, share and
+   save above the controls, and a grid of the first 12 related videos that the wheel, the arrow or v opens. A video
+   picked in the grid plays without leaving full screen. */
+
+const VIDEO_ID = 'dQw4w9WgXcQ'
+
+const startPlayback = async (page: Page) => {
+  const video = page.locator('[data-player-root] video')
+  await expect.poll(
+    () => video.evaluate(element => (element as HTMLVideoElement).currentTime),
+    { timeout: 120_000, message: 'playback did not start' },
+  ).toBeGreaterThan(1)
+}
+
+const playerIsFullscreen = (page: Page) =>
+  page.evaluate(() => document.fullscreenElement?.hasAttribute('data-player-root') ?? false)
+
+const relatedIds = async (page: Page) => {
+  const ids = await page.locator('main aside article a[href^="/watch"]').evaluateAll(links =>
+    links.map(link => new URL(link.getAttribute('href')!, location.href).searchParams.get('v')))
+  return [...new Set(ids)].filter(id => id !== null && id !== 'dQw4w9WgXcQ')
+}
+
+// a real key press, from the page rather than from a control, since requestFullscreen needs the user's gesture
+const enterFullscreen = async (page: Page) => {
+  await page.locator('main h1').click()
+  await page.keyboard.press('f')
+  await expect.poll(() => playerIsFullscreen(page)).toBe(true)
+}
+
+// the view's controls fade with the player's after 2.5 s still, so the pointer wakes them before each press
+const press = async (page: Page, control: Locator) => {
+  await expect(async () => {
+    await page.mouse.move(200, 300)
+    await page.mouse.move(240, 320)
+    await control.click({ timeout: 2_000 })
+  }).toPass({ timeout: 30_000 })
+}
+
+test('shows the title, opens a grid of the related videos, and plays one in full screen', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  await startPlayback(page)
+  await expect(page.locator('main aside article').first()).toBeVisible({ timeout: 60_000 })
+  const title = (await page.locator('main h1').textContent())!.trim()
+  const related = await relatedIds(page)
+  expect(related.length).toBeGreaterThan(0)
+
+  await enterFullscreen(page)
+  const player = page.locator('[data-player-root]')
+  await expect(player.getByRole('heading', { name: title, exact: true })).toBeVisible()
+
+  const grid = player.getByRole('list', { name: 'More videos' })
+  await expect(grid).toHaveCount(0)
+  // what @fkn/lib does while its notice or bar takes in the pointer: it scrolls the page under the player by the wheel
+  await page.evaluate(() => addEventListener('wheel', (event: WheelEvent) => document.scrollingElement!.scrollBy(0, event.deltaY), { capture: true }))
+  await page.mouse.move(640, 300)
+  await page.mouse.wheel(0, 120)
+  await expect(grid).toBeVisible()
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+  const shown = await grid.getByRole('link').evaluateAll(links =>
+    links.map(link => new URL(link.getAttribute('href')!, location.href).searchParams.get('v')))
+  expect(shown).toEqual(related.slice(0, 12))
+
+  // closed by its arrow and by a wheel back up, and opened again by the arrow in the controls and by v
+  await player.getByRole('button', { name: 'Hide videos' }).click()
+  await expect(grid).toHaveCount(0)
+  await press(page, player.getByRole('button', { name: 'More videos' }))
+  await expect(grid).toBeVisible()
+  await page.mouse.wheel(0, -120)
+  await expect(grid).toHaveCount(0)
+  await page.keyboard.press('v')
+  await expect(grid).toBeVisible()
+
+  const first = grid.getByRole('link').first()
+  const picked = new URL((await first.getAttribute('href'))!, 'http://localhost').searchParams.get('v')!
+  const pickedTitle = (await first.locator('.fs-title').textContent())!.trim()
+  await first.click()
+  await expect(grid).toHaveCount(0)
+  await expect(player.getByRole('heading', { name: pickedTitle, exact: true })).toBeVisible()
+  await expect.poll(
+    () => player.locator('video').evaluate(element => (element as HTMLVideoElement).currentTime),
+    { timeout: 120_000, message: 'the picked video did not play' },
+  ).toBeGreaterThan(1)
+  expect(await playerIsFullscreen(page)).toBe(true)
+
+  // the page under the player follows the video once full screen ends
+  await page.keyboard.press('f')
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true)
+  await expect.poll(() => new URL(page.url()).searchParams.get('v')).toBe(picked)
+})
+
+test('its actions open what the watch page opens, signed out', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  await startPlayback(page)
+  await enterFullscreen(page)
+  const player = page.locator('[data-player-root]')
+
+  await press(page, player.getByRole('button', { name: 'Share' }))
+  const share = player.getByRole('dialog', { name: 'Share' })
+  await expect(share).toBeVisible()
+  await expect(share.getByRole('textbox', { name: 'Share link' })).toHaveValue(new RegExp(`/watch\\?v=${VIDEO_ID}$`))
+  // its toast shows in full screen too, whether the clipboard took the link or not
+  await share.getByRole('button', { name: 'Copy' }).click()
+  await expect(player.getByRole('status')).toHaveText(/copied|copy/)
+  await share.getByRole('button', { name: 'Close' }).click()
+  await expect(share).toHaveCount(0)
+
+  // comments open beside the video, which narrows to make room
+  await press(page, player.getByRole('button', { name: 'Comments' }))
+  const comments = player.getByRole('complementary', { name: 'Comments' })
+  await expect(comments).toBeVisible()
+  const room = () => player.evaluate(root => root.getBoundingClientRect().width - root.querySelector('video')!.getBoundingClientRect().width)
+  const panel = (await comments.boundingBox())!
+  expect(await room()).toBeGreaterThanOrEqual(panel.width)
+  await comments.getByRole('button', { name: 'Close comments' }).click()
+  await expect(comments).toHaveCount(0)
+  await expect.poll(room).toBe(0)
+
+  // like opens the sign-in window, as the watch page's does: a signed-out read says INDIFFERENT, as a signed-in one does
+  const opened = page.context().waitForEvent('page', { timeout: 30_000 })
+  await press(page, player.getByRole('button', { name: 'Like', exact: true }))
+  const popup = await opened
+  await expect(popup).toHaveURL(/\/__yt_scramjet__\/signin(?:\.html)?$/)
+  await popup.close()
+})

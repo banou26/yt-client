@@ -207,7 +207,7 @@ const style = css`
   }
 `
 
-const openOnClick = (target: UpNext, onOpen: (target: UpNext) => void) => (event: MouseEvent) => {
+export const openOnClick = (target: UpNext, onOpen: (target: UpNext) => void) => (event: MouseEvent) => {
   // the href stays for a new tab; a plain click is the player's to handle, since the miniplayer plays in place
   if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
   event.preventDefault()

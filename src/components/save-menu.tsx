@@ -1,5 +1,8 @@
+import type { VNode } from 'preact'
+
 import { css } from '@emotion/react'
 import { ListPlus, Plus } from 'lucide-react'
+import { cloneElement } from 'preact'
 import { useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 
@@ -177,10 +180,12 @@ const formStyle = css`
  * goes inert rather than pretending it can undo.
  */
 export const SaveMenu = (
-  { videoId, align = 'end', class: className }: {
+  { videoId, align = 'end', class: className, trigger }: {
     videoId: string
     align?: 'start' | 'end'
     class?: string
+    /** The button that opens it, in place of the watch page's Save pill. Signed out, it opens the sign-in window. */
+    trigger?: VNode
   },
 ) => {
   const { ready, signedIn } = useSession()
@@ -265,6 +270,7 @@ export const SaveMenu = (
   )
 
   if (ready && !signedIn) {
+    if (trigger) return cloneElement(trigger, { onClick: signIn })
     return (
       <button
         type='button'
@@ -284,7 +290,7 @@ export const SaveMenu = (
         align={align}
         class={className}
         onOpenChange={(open: boolean) => { if (open) setOpened(true) }}
-        trigger={<button type='button' css={triggerStyle}>{triggerBody()}</button>}
+        trigger={trigger ?? <button type='button' css={triggerStyle}>{triggerBody()}</button>}
       >
         <div css={panelStyle} role='presentation'>
           <MenuSection title='Save video to…'>

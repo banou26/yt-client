@@ -1,4 +1,5 @@
 import { css } from '@emotion/react'
+import { createPortal } from 'preact/compat'
 import { useEffect, useState } from 'preact/hooks'
 
 export type Toast = {
@@ -104,17 +105,22 @@ const style = css`
 
 export const Toasts = () => {
   const [items, setItems] = useState(toasts)
+  // drawn on the full screen element while there is one, since nothing outside it shows
+  const [fullscreen, setFullscreen] = useState(() => document.fullscreenElement)
   useEffect(() => {
     listeners.add(setItems)
     setItems(toasts)
+    const onFullscreen = () => setFullscreen(document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onFullscreen)
     return () => {
       listeners.delete(setItems)
+      document.removeEventListener('fullscreenchange', onFullscreen)
     }
   }, [])
 
   if (items.length === 0) return null
 
-  return (
+  const list = (
     <div css={style} role='status' aria-live='polite'>
       {items.map(toast => (
         <div key={toast.id} className='toast'>
@@ -137,6 +143,7 @@ export const Toasts = () => {
       ))}
     </div>
   )
+  return fullscreen ? createPortal(list, fullscreen) : list
 }
 
 export default Toasts

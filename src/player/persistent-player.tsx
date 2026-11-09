@@ -10,6 +10,7 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
 import { upNextHref } from './end-screen'
+import { PlayerFrame } from './player-frame'
 import { useSponsorSegments } from './sponsorblock'
 import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay, previousQueueIndex } from './up-next'
 import VideoPlayer from './video-player'
@@ -133,7 +134,7 @@ const PersistentPlayer = () => {
   // read when the video ends, since loop and shuffle change without re-rendering this
   const queued = () => playlist !== undefined && hasNextInQueue(current, count)
 
-  const suggestions = useMemo<UpNext[]>(
+  const suggestions = useMemo(
     () => (watch?.related ?? []).filter(video => video.id !== videoId),
     [watch, videoId],
   )
@@ -143,14 +144,35 @@ const PersistentPlayer = () => {
     [suggestions, videoId, preferred],
   )
 
-  // the watch page navigates; the miniplayer plays in place and leaves the page alone
+  // the page a full screen player left behind, since a navigation would move the player out of full screen
+  const behind = useRef<string | undefined>(undefined)
+
+  // the watch page navigates; the miniplayer, and the watch page in full screen, play in place and leave the page alone
   const open = (target: UpNext) => {
     if (getPlayerSession().claimed) {
-      navigate(upNextHref(target))
-      return
+      if (!document.fullscreenElement) {
+        navigate(upNextHref(target))
+        return
+      }
+      behind.current ??= `${window.location.pathname}${window.location.search}`
     }
     openPlayer({ videoId: target.id, title: target.title ?? undefined, list: target.list, index: target.index })
   }
+
+  // once full screen ends, the watch page catches up with the video played in it, unless the page moved on meanwhile
+  useEffect(() => {
+    const follow = () => {
+      if (document.fullscreenElement) return
+      const left = behind.current
+      behind.current = undefined
+      const current = getPlayerSession()
+      if (left !== `${window.location.pathname}${window.location.search}` || !current.videoId || !current.claimed) return
+      if (new URLSearchParams(window.location.search).get('v') === current.videoId) return
+      navigate(upNextHref({ id: current.videoId, list: current.list, index: current.index }))
+    }
+    document.addEventListener('fullscreenchange', follow)
+    return () => document.removeEventListener('fullscreenchange', follow)
+  }, [navigate])
 
   const queueEntry = (index: number | undefined) => {
     const item = index === undefined ? undefined : playlist?.items[index]
@@ -206,31 +228,44 @@ const PersistentPlayer = () => {
       {createPortal(
         session.videoId
           ? (
-            <VideoPlayer
-              key={`player:${session.videoId}`}
-              videoId={session.videoId}
-              list={session.list}
-              title={session.title}
-              startAt={session.startAt}
-              docked={docked}
-              theater={session.theater}
-              onTheater={() => setTheater(!session.theater)}
-              onMiniplayer={toggleMiniplayer}
-              chapters={watch?.chapters}
-              panel={session.panel}
-              transcript={watch?.transcriptPanel ?? undefined}
-              segments={segments}
-              upNext={{
-                autoplay,
-                onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),
-                queued,
-                pick,
-                suggestions,
-                onNext: next,
-                onPrevious: previous,
+            <PlayerFrame
+              details={{
+                videoId: session.videoId,
+                list: session.list,
+                title: watch?.title ?? session.title,
+                likeStatus: watch?.likeStatus,
+                commentsHidden: watch?.commentsHidden === true,
+                commentCountText: watch?.commentCountText,
+                videos: suggestions,
                 onOpen: open,
               }}
-            />
+            >
+              <VideoPlayer
+                key={`player:${session.videoId}`}
+                videoId={session.videoId}
+                list={session.list}
+                title={session.title}
+                startAt={session.startAt}
+                docked={docked}
+                theater={session.theater}
+                onTheater={() => setTheater(!session.theater)}
+                onMiniplayer={toggleMiniplayer}
+                chapters={watch?.chapters}
+                panel={session.panel}
+                transcript={watch?.transcriptPanel ?? undefined}
+                segments={segments}
+                upNext={{
+                  autoplay,
+                  onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),
+                  queued,
+                  pick,
+                  suggestions,
+                  onNext: next,
+                  onPrevious: previous,
+                  onOpen: open,
+                }}
+              />
+            </PlayerFrame>
           )
           : null,
         playerHost(),
