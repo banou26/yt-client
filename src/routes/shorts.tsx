@@ -254,12 +254,6 @@ const style = css`
     font-size: 2rem;
   }
 
-  /* The rail ends at the bottom of the video, so its menu opens upwards. */
-  .rail .rail-menu {
-    top: auto;
-    bottom: calc(100% + 0.8rem);
-  }
-
   /* Fixed to the viewport's right edge, where youtube.com keeps them, rather
      than to a slide: the pager scrolls under them. */
   .pager {
@@ -421,7 +415,8 @@ const Slide = (
         <Menu
           label='More actions'
           align='start'
-          panelClass='rail-menu'
+          // the rail ends at the bottom of the video, so its menu opens upwards
+          side='above'
           trigger={
             <button type='button' className='rail-button' aria-label='More actions'>
               <span className='glyph'><MoreVertical size={24} strokeWidth={1.5} /></span>

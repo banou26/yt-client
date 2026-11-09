@@ -250,6 +250,8 @@ export const VideoCardMenu = (
     <Menu
       class={className}
       label={`More actions for ${title}`}
+      // youtube.com opens a card's menu rightwards from the button, and leftwards only where that leaves the viewport
+      align='start'
       trigger={
         <button type='button' className='more' aria-label={`More actions for ${title}`}>
           <EllipsisVertical size={iconSize} strokeWidth={1.5} />

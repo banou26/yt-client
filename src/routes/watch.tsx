@@ -480,7 +480,7 @@ const WatchPage = () => {
                   <Share2 size={20} strokeWidth={1.5} />
                   Share
                 </button>
-                {/* Save sits beside Share rather than inside the More menu: menu.tsx finds its rows with one DOM query rooted at the wrapper */}
+                {/* Save sits beside Share rather than inside the More menu: a menu's panel is drawn on the body, so a press in a nested one would close the menu holding it */}
                 <SaveMenu videoId={videoId} />
                 <Menu
                   label='More actions'

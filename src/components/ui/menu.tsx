@@ -67,11 +67,12 @@ const rootStyle = css`
 `
 
 export const Menu = (
-  { trigger, children, label, align = 'end', class: className, panelClass, onOpenChange }: {
+  { trigger, children, label, align = 'end', side, class: className, panelClass, onOpenChange }: {
     trigger: MenuTrigger
     children: ComponentChildren
     label: string
     align?: 'start' | 'end'
+    side?: 'below' | 'above'
     class?: string
     panelClass?: string
     onOpenChange?: (open: boolean) => void
@@ -79,6 +80,7 @@ export const Menu = (
 ) => {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const entry = useRef<'first' | 'last'>('first')
   const typeahead = useRef({ buffer: '', at: 0 })
@@ -91,14 +93,14 @@ export const Menu = (
   }, [])
 
   const onClose = useCallback(() => change(false), [change])
-  useDismiss({ open, onClose, rootRef, triggerRef })
+  useDismiss({ open, onClose, rootRef, panelRef, triggerRef })
 
   const close = useCallback(() => {
     change(false)
     triggerRef.current?.focus()
   }, [change])
 
-  const items = () => [...(rootRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])]
+  const items = () => [...(panelRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])]
 
   const focusAt = (index: number) => {
     const list = items()
@@ -185,7 +187,9 @@ export const Menu = (
       {open
         ? (
           <MenuContext.Provider value={controls}>
-            <Popup label={label} align={align} class={panelClass}>{children}</Popup>
+            <Popup label={label} align={align} side={side} class={panelClass} anchor={triggerRef} panelRef={panelRef} onKeyDown={onKeyDown}>
+              {children}
+            </Popup>
           </MenuContext.Provider>
         )
         : undefined}
