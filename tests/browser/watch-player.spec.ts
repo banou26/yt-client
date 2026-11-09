@@ -129,24 +129,29 @@ test('a playlist moves on to its next entry', async ({ page }) => {
   }, { timeout: 30_000 }).toEqual([expected, list, '2'])
 })
 
+// a regular playlist: a Mix (RD...) is rebuilt on every request and can put the opened video first, which leaves no entry
+// before it (measured 2026-11-10)
+const FIXED_LIST = 'PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf'
+
 test('Shift+P plays the playlist entry before this one', async ({ page }) => {
   test.setTimeout(300_000)
-  const list = `RD${VIDEO_ID}`
-  await page.goto(`/watch?v=${VIDEO_ID}&list=${list}&index=1`)
+  await page.goto(`/playlist?list=${FIXED_LIST}`)
+  const entries = page.locator(`main a[href*="list=${FIXED_LIST}"][href*="index="]`)
+  await expect(entries.nth(1)).toBeAttached({ timeout: 120_000 })
+  const hrefs = await entries.evaluateAll(links => links.map(link => new URL((link as HTMLAnchorElement).href)))
+    .then(urls => urls.map(url => ({ v: url.searchParams.get('v'), index: url.searchParams.get('index') })))
+  const first = hrefs.find(entry => entry.index === '1')!
+  const second = hrefs.find(entry => entry.index === '2')!
+  await page.goto(`/watch?v=${second.v}&list=${FIXED_LIST}&index=2`)
   const queue = page.locator('section[aria-label="Playlist queue"]')
-  const second = queue.locator('li').nth(1).locator('a')
-  await expect(second).toBeVisible({ timeout: 120_000 })
-  const secondId = videoIdOf((await second.getAttribute('href'))!)
-  await second.click()
-  await expect(queue.locator('li[data-current="true"] a')).toHaveAttribute('href', new RegExp(`v=${secondId}&`), { timeout: 60_000 })
-  const previousId = videoIdOf((await queue.locator('li').nth(0).locator('a').getAttribute('href'))!)
+  await expect(queue.locator('li[data-current="true"] a')).toHaveAttribute('href', new RegExp(`v=${second.v}&`), { timeout: 120_000 })
 
   await page.locator('main h1').click()
   await page.keyboard.press('Shift+P')
   await expect.poll(() => {
     const url = new URL(page.url())
     return [url.searchParams.get('v'), url.searchParams.get('list'), url.searchParams.get('index')]
-  }, { timeout: 30_000 }).toEqual([previousId, list, '1'])
+  }, { timeout: 30_000 }).toEqual([first.v, FIXED_LIST, '1'])
 })
 
 test('the player bar draws Next with its bar', async ({ page }) => {
