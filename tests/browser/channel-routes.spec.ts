@@ -95,6 +95,13 @@ test('keeps the channel\'s name in its header once its own videos fill the Home 
   await expect(shelf.locator('.channel-name')).toHaveCount(0)
 })
 
+test('says in one line that a channel did not load, never the raw error', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/channel/UCzzzzzzzzzzzzzzzzzzzzzz')
+  await expect(page.locator('main .status')).toHaveText('Couldn\'t load this channel. Try again later.', { timeout: 120_000 })
+  await expect(page.locator('main')).not.toContainText('GraphQL')
+})
+
 test('fits a channel\'s Home shelves in a phone\'s width', async ({ page }) => {
   test.setTimeout(180_000)
   await page.setViewportSize({ width: 390, height: 844 })

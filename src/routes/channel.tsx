@@ -673,7 +673,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
       {channel && (aboutOpen || aboutRequested)
         ? <ChannelAboutDialog name={channel.name} about={about} description={channel.description} onClose={closeAbout} />
         : undefined}
-      {error ? <p className='status'>{error.message}</p> : undefined}
+      {error ? <p className='status'>Couldn't load this channel. Try again later.</p> : undefined}
       <nav className='tabs' aria-label='Channel sections'>
         {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab
