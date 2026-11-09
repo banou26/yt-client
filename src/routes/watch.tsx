@@ -17,6 +17,7 @@ import DescriptionBox from '../components/description-box'
 import { formatCompact, parseStartSeconds, readable } from '../components/format'
 import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
+import { MembersOnly } from '../components/row-marks'
 import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
 import SubscribeButton, { subscribeStyle } from '../components/subscribe-button'
@@ -167,20 +168,6 @@ const style = css`
     font-weight: 700;
     line-height: 2.8rem;
     color: var(--text-primary);
-  }
-
-  .members-only {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    font-size: 1.2rem;
-    font-weight: 500;
-    line-height: 1.8rem;
-    color: var(--membership);
-  }
-
-  .members-only svg {
-    fill: currentColor;
   }
 
   .owner-row {
@@ -387,6 +374,7 @@ const RELATED_MORE_QUERY = gql(`
         viewCountIcon
         publishedText
         isLive
+        isMembersOnly
         channel { id name isVerified isVerifiedArtist }
         byline { text isVerified isVerifiedArtist }
         collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
@@ -432,9 +420,6 @@ const unavailableStyle = css`
     background: var(--accent-hover);
   }
 `
-
-// Material's "stars", the mark youtube.com puts before Members only
-const MEMBERS_STAR = 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z'
 
 const RELATED_SKELETON_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
@@ -558,14 +543,7 @@ const WatchPage = () => {
       <div className='primary'>
         {oneColumn ? replay : undefined}
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
-        {watch?.isMembersOnly
-          ? (
-            <p className='members-only'>
-              <svg width={12} height={12} viewBox='0 0 24 24' aria-hidden='true'><path d={MEMBERS_STAR} /></svg>
-              Members only
-            </p>
-          )
-          : undefined}
+        {watch?.isMembersOnly ? <MembersOnly /> : undefined}
         {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
         {watch
           ? (

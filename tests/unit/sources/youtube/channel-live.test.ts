@@ -95,6 +95,14 @@ describe('a channel\'s Live tab', () => {
     expect(titles(page.videos.items)).toEqual(['May the 4th Be With You!', 'Members Only April Fitness Challenge!'])
   })
 
+  it('marks a members-only stream by the badge youtube.com draws on the line under its date', async () => {
+    const { source } = liveSource()
+    const members = await source.channel(MKBHD, 'LIVE', 'Latest', undefined, undefined, 'Members only')
+    expect(members.videos.items.map((video) => video.isMembersOnly)).toEqual([true, true])
+    const latest = await source.channel(MKBHD, 'LIVE')
+    expect(latest.videos.items.map((video) => video.isMembersOnly)).toEqual([undefined, undefined])
+  })
+
   it('sorts first, then applies the filter chip of the sorted answer, as youtube.com does', async () => {
     const { source, sent } = liveSource()
     const page = await source.channel(MKBHD, 'LIVE', 'Popular', undefined, undefined, 'Members only')

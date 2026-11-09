@@ -3,6 +3,7 @@ import { css } from '@emotion/react'
 import { NOTE } from './verified-badge'
 
 const ARROW = 'M10 8.64 15.27 12 10 15.36V8.64M8 5v14l11-7L8 5Z'
+const STAR = 'M6 .5a5.5 5.5 0 100 11 5.5 5.5 0 000-11Zm.27 2.045.906 1.837 2.027.295a.3.3 0 01.166.511l-1.467 1.43.346 2.019a.3.3 0 01-.435.316L6 8l-1.813.953a.3.3 0 01-.435-.316l.346-2.019-1.467-1.43a.3.3 0 01.166-.511l2.027-.295.907-1.837a.3.3 0 01.539 0Z'
 
 const iconStyle = css`
   flex: none;
@@ -44,3 +45,23 @@ const cornerStyle = css`
 
 /** The label youtube.com draws in a still's top corner, such as New. */
 export const CornerBadge = ({ label }: { label: string }) => <span css={cornerStyle} data-mark='corner'>{label}</span>
+
+const membersStyle = css`
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--membership);
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.8rem;
+`
+
+/** The green Members only mark youtube.com draws on its own line under a members-only row's date, and on its watch page. */
+export const MembersOnly = () => (
+  <div css={membersStyle} className='members-only'>
+    <svg css={iconStyle} width={12} height={12} viewBox='0 0 12 12' aria-hidden='true'>
+      <path d={STAR} />
+    </svg>
+    Members only
+  </div>
+)

@@ -83,6 +83,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           isLive
           isShort
           isUpcoming
+          isMembersOnly
           badges
           byline { text isVerified isVerifiedArtist }
         }
@@ -129,6 +130,7 @@ const CHANNEL_VIEW_QUERY = gql(`
             isLive
             isShort
             isUpcoming
+            isMembersOnly
             badges
             channel { id name avatar isVerified isVerifiedArtist }
             byline { text isVerified isVerifiedArtist }

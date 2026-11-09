@@ -17,7 +17,7 @@ import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
 import { formatDuration, formatMeta, readable, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
-import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
+import { CornerBadge, MembersOnly, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -33,6 +33,7 @@ export type VideoCardData =
       | 'animatedThumbnail'
       | 'description'
       | 'durationSeconds'
+      | 'isMembersOnly'
       | 'isMusic'
       | 'progressPercent'
       | 'publishedText'
@@ -429,6 +430,10 @@ const style = css`
     color: var(--text-secondary);
   }
 
+  .members-only {
+    margin-top: 0.2rem;
+  }
+
   &.channel .text,
   &.shelf .text {
     margin-left: 0;
@@ -556,6 +561,7 @@ export const VideoCard = (
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
           {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
+          {video.isMembersOnly ? <MembersOnly /> : undefined}
         </div>
         <VideoCardMenu videoId={video.id} title={video.title} class='more-menu' />
       </div>

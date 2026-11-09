@@ -90,6 +90,7 @@ type MetadataParts = {
   metadata_rows?: {
     // icon_name and leading_icon_name are this repo's patch of youtubei.js (patches/), which otherwise drops a part's icons
     metadata_parts?: { text?: Text, icon_name?: string, leading_icon_name?: string }[]
+    badges?: { style?: string }[]
   }[]
 }
 
@@ -849,6 +850,8 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
   const badges = image?.overlays?.flatMap((overlay) => overlay.badges ?? []) ?? []
   const length = badges.find((badge) => durationSeconds(badge.text) !== undefined)
   const { byline, stats } = lockupLines(lockup, own)
+  const metadata = lockup.metadata?.metadata
+  const rowBadges = metadata?.metadata_rows?.flatMap((row) => row.badges ?? []) ?? []
   return {
     id,
     title,
@@ -870,7 +873,8 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
     isLive: badges.some((badge) => badge.badge_style?.includes('LIVE')) ? true : undefined,
     progressPercent: lockupProgressPercent(image),
     isShort: lockup.content_type === 'SHORT' ? true : undefined,
-    isMembersOnly: hasBadgeStyle(badges.map((badge) => ({ style: badge.badge_style })), 'MEMBERS_ONLY')
+    // youtube.com's lockups carry it as a badge on a line of its own under the date (measured 2026-11-10)
+    isMembersOnly: hasBadgeStyle([...badges.map((badge) => ({ style: badge.badge_style })), ...rowBadges], 'MEMBERS_ONLY')
       ? true
       : undefined,
     // empty because a lockup's overlay badges carry only the length, the live pill and the corner label, all read above

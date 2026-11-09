@@ -9,7 +9,7 @@ import { Link } from 'wouter'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { BylineNames } from './byline'
 import { formatDuration, formatMeta, rowByline } from './format'
-import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
+import { CornerBadge, MembersOnly, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
 import { resumePercent, VideoCardMenu, watchHrefFor } from './video-card'
@@ -129,6 +129,10 @@ const style = css`
     color: var(--text-secondary);
   }
 
+  .members-only {
+    margin-top: 0.2rem;
+  }
+
   .more {
     flex: none;
     width: 2.4rem;
@@ -216,6 +220,7 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
           )
           : undefined}
         {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
+        {video.isMembersOnly ? <MembersOnly /> : undefined}
       </div>
       <VideoCardMenu videoId={video.id} title={video.title} iconSize={16} class='more-menu' />
     </article>

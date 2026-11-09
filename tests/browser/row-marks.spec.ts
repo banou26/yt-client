@@ -50,6 +50,37 @@ for (const kind of ['compact', 'grid'] as const) {
     await expect(plain.locator('.badge')).toHaveText('35:24')
     await expect(plain.locator('[data-mark]')).toHaveCount(0)
   })
+
+  // youtube.com's mark, measured signed out at 1280 px on 2026-11-10 on MKBHD's Live tab with Members only applied and
+  // on Linus Tech Tips' Videos tab: its own line 2px under the date, a 12px star then 2px then 12px medium text, 18px
+  // tall, in #107516 on light and #2ba640 on dark
+  test(`a ${kind} row draws Members only on its own line under its date, and a row that is not draws nothing`, async ({ page }) => {
+    const rows = (await mountMarks(page)).locator(`[data-marks="${kind}"] article`)
+    const members = rows.nth(2)
+    const mark = members.locator('.members-only')
+    await expect(mark).toHaveText('Members only')
+    await expect(members.locator('.meta')).toHaveText('Streamed 4y ago')
+    await expect(mark).toHaveCSS('color', 'rgb(16, 117, 22)')
+    await expect(mark).toHaveCSS('font-size', '12px')
+    await expect(mark).toHaveCSS('font-weight', '500')
+
+    const [date, line, star] = await Promise.all([members.locator('.meta').boundingBox(), mark.boundingBox(), mark.locator('svg').boundingBox()])
+    expect({ left: Math.round(line!.x - date!.x), top: Math.round(line!.y - date!.y - date!.height), height: line!.height })
+      .toEqual({ left: 0, top: 2, height: 18 })
+    expect(star).toMatchObject({ width: 12, height: 12 })
+    expect(await mark.evaluate(element => {
+      const text = document.createRange()
+      text.selectNodeContents([...element.childNodes].find(node => node.nodeType === Node.TEXT_NODE)!)
+      return Math.round(text.getBoundingClientRect().left - element.querySelector('svg')!.getBoundingClientRect().right)
+    }), 'the text follows the star').toBe(2)
+
+    await expect(rows.nth(0).locator('.members-only')).toHaveCount(0)
+    await expect(rows.nth(1).locator('.members-only')).toHaveCount(0)
+
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(mark).toHaveCSS('color', 'rgb(43, 166, 64)')
+  })
 }
 
 test('a search row prints the words its answer bolds in bold, and the music note on a song\'s length', async ({ page }) => {
