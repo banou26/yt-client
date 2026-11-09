@@ -151,6 +151,15 @@ const api = {
   },
 } satisfies FrameApi
 
+// a refused stream fails every later segment request of its playback with the same error, which is logged once
+let lastLogged: unknown
+
+const logFailure = (method: string, error: unknown) => {
+  if (isCancellation(error) || error === lastLogged) return
+  lastLogged = error
+  console.error(`yt-client: ${method} failed`, error)
+}
+
 const dispatch = async (request: FrameRequest, progress: (phase: string) => void) => {
   // only requestSegment takes the progress callback: its RPC heartbeat is what keeps the app realm's inactivity deadline from firing mid-download
   if (request.method === 'requestSegment') return api.requestSegment(request.args[0], progress)
@@ -176,7 +185,7 @@ const connect = (port: MessagePort) => {
       },
       (error) => {
         document.documentElement.dataset.frameApi = `${request.method}:error`
-        if (!isCancellation(error)) console.error(`yt-client: ${request.method} failed`, error)
+        logFailure(request.method, error)
         port.postMessage({
           id: request.id,
           error: error instanceof Error ? error.message : String(error),

@@ -5,7 +5,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import type { SabrSource } from '../../../src/frame/innertube'
 import type { FrameRequest, FrameResponse, PlaybackSession, SegmentRequest } from '../../../src/frame/protocol'
 import { getSabrSource } from '../../../src/frame/innertube'
-import { FRAME_CONNECT } from '../../../src/frame/protocol'
+import { FRAME_CONNECT, STREAM_REFUSED } from '../../../src/frame/protocol'
 import { createSabrSession } from '../../../src/frame/sabr'
 
 vi.mock('../../../src/frame/innertube', () => ({
@@ -45,6 +45,8 @@ const untilCancelled: Fetch = (_request, _progress, signal) =>
   new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }))
 
 const failing = (error: () => unknown): Fetch => async () => { throw error() }
+
+const refreshError = () => Object.assign(new Error('youtube: SABR stream status 2 after 3 attempts'), { name: 'SabrSessionRefreshError' })
 
 const segment = (requestId: string, sessionId: string): SegmentRequest => ({
   requestId,
@@ -125,5 +127,13 @@ describe("the frame's log of failed calls", () => {
       'yt-client: requestSegment failed youtube: SABR answered 500',
       'yt-client: captionCues failed youtube: unknown caption track en',
     ])
+  })
+
+  it('logs a refused stream once, though each later segment request fails with it', async () => {
+    const id = await open(failing(refreshError))
+    const failures = await Promise.all(['a', 'b', 'c'].map((requestId) => call('requestSegment', segment(requestId, id))))
+    expect(failures.every((failure) => failure.error?.startsWith(STREAM_REFUSED))).toBe(true)
+    expect(errors).toHaveBeenCalledTimes(1)
+    expect(errors.mock.calls[0]?.[1]).toMatchObject({ message: expect.stringMatching(STREAM_REFUSED) })
   })
 })
