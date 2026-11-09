@@ -1,7 +1,8 @@
 import type { Page, Request } from '@playwright/test'
 
-import { firefox } from '@playwright/test'
+import { chromium, firefox } from '@playwright/test'
 
+import { extensionBuild } from './extension-build'
 import { dismissFknNotice, expect, test } from './test'
 
 /* InnerTube answers a simple request from http://localhost with 403 and no Access-Control-Allow-Origin, and from
@@ -55,6 +56,32 @@ const expectSimple = (request: Seen) => {
   for (const name of ['x-origin', 'x-goog-visitor-id', 'x-youtube-client-name', 'x-youtube-client-version', 'cookie', 'authorization']) {
     expect(request.headers, `${request.url} carried ${name}`).not.toHaveProperty(name)
   }
+}
+
+/* Writes a youtube.com SAPISID into the Scramjet jar the engine loads its cookies from (scramjet-controller's database,
+   read by src/scramjet/jar.ts), from a blank page on the app's origin, before the app first loads. The value is not a
+   real session, so YouTube may refuse what it signs; the lane each request takes is what is read. */
+const seedSession = async (page: Page, origin: string) => {
+  const blank = `${origin}/__seed-session`
+  await page.route(blank, (route) => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>seed</title>' }))
+  await page.goto(blank)
+  await page.evaluate(() => new Promise<void>((resolve, reject) => {
+    const open = indexedDB.open('__scramjet_controller', 1)
+    open.onupgradeneeded = () => open.result.createObjectStore('state')
+    open.onerror = () => reject(open.error)
+    open.onsuccess = () => {
+      const database = open.result
+      const cookie = { name: 'SAPISID', value: 'yt-client-test', domain: '.youtube.com', path: '/', sameSite: 'lax', secure: true }
+      const write = database.transaction('state', 'readwrite')
+      write.objectStore('state').put({ updatedAt: Date.now(), cookies: JSON.stringify({ '.youtube.com@/@SAPISID': cookie }) }, 'cookies')
+      write.oncomplete = () => {
+        database.close()
+        resolve()
+      }
+      write.onerror = () => reject(write.error)
+    }
+  }))
+  await page.unroute(blank)
 }
 
 test('with the direct step on and signed out, home and a search send InnerTube from the page', async ({ page, baseURL }) => {
@@ -145,4 +172,66 @@ test('in Firefox, with the direct step on, a search sends InnerTube from the pag
   } finally {
     await browser.close()
   }
+})
+
+test('with the direct step on and a YouTube session, InnerTube keeps the Scramjet frame and nothing leaves from the page', async ({ page, baseURL }) => {
+  test.setTimeout(240_000)
+  const origin = laneOrigin(baseURL)
+  await turnOn(page)
+  await seedSession(page, origin)
+  const innertube = watchInnertube(page)
+  const signed: Promise<string | undefined>[] = []
+  page.on('request', (request: Request) => {
+    if (request.url().includes('/__yt_scramjet__/proxy/') && decodeURIComponent(request.url()).includes('/youtubei/v1/')) {
+      signed.push(request.allHeaders().then((headers) => headers.authorization))
+    }
+  })
+  await page.goto(`${origin}/results?search_query=blender`)
+  await expect.poll(async () => (await Promise.all(signed)).filter((value) => value?.startsWith('SAPISIDHASH ')).length, { timeout: 90_000 })
+    .toBeGreaterThan(0)
+  await expect(page.locator('html')).toHaveAttribute('data-yt-direct', 'off')
+  expect(await innertube.direct()).toEqual([])
+})
+
+test.describe('with the FKN extension installed', () => {
+  test('and the direct step on, a search sends InnerTube from the page and the rest through the extension', async ({ baseURL }) => {
+    test.setTimeout(240_000)
+    const build = extensionBuild(process.env)
+    test.skip(build.skip !== undefined, `YT_EXTENSION_BUILD=skip: ${build.skip}`)
+    const context = await chromium.launchPersistentContext('', {
+      headless: true,
+      executablePath: '/etc/profiles/per-user/banou/bin/google-chrome',
+      // playwright's --disable-extensions default defeats the load, and --load-extension no longer works
+      ignoreDefaultArgs: ['--disable-extensions'],
+      args: ['--mute-audio', '--enable-unsafe-extension-debugging', '--autoplay-policy=no-user-gesture-required'],
+      viewport: { width: 1440, height: 900 },
+    })
+    try {
+      const session = await context.browser()!.newBrowserCDPSession()
+      await session.send('Extensions.loadUnpacked' as 'Browser.getVersion', { path: build.path } as object)
+      if (!context.serviceWorkers().length) await context.waitForEvent('serviceworker')
+
+      const page = await context.newPage()
+      await dismissFknNotice(page)
+      await turnOn(page)
+      const innertube = watchInnertube(page)
+      const egress: string[] = []
+      page.on('console', (message) => {
+        if (message.text().includes('egress →')) egress.push(message.text())
+      })
+      await page.goto(`${laneOrigin(baseURL)}/results?search_query=blender`, { waitUntil: 'domcontentloaded' })
+      await searchShown(page)
+      await expect(page.locator('html')).toHaveAttribute('data-fkn-extension', 'true')
+      await expect(page.locator('html')).toHaveAttribute('data-yt-direct', 'on')
+      await expect.poll(() => egress.length, { timeout: 30_000 }).toBeGreaterThan(0)
+      expect(egress.join(' ')).toContain('FKN extension')
+
+      const direct = await innertube.direct()
+      expect(direct.map(({ url }) => new URL(url).pathname)).toContain('/youtubei/v1/search')
+      for (const request of direct) expectSimple(request)
+      expect(innertube.proxied).toEqual([])
+    } finally {
+      await context.close()
+    }
+  })
 })
