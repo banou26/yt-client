@@ -12,6 +12,7 @@ import { ExtensionNotice } from './extension-notice'
 import { HeaderMenu } from './header-menu'
 import { NotificationsMenu } from './notifications-menu'
 import { splitSuggestion } from './suggestion'
+import { useSession } from '../session'
 import { signIn } from '../sign-in'
 
 const SEARCH_SUGGESTIONS_QUERY = gql(`
@@ -21,18 +22,6 @@ const SEARCH_SUGGESTIONS_QUERY = gql(`
 `)
 
 const SUGGEST_DEBOUNCE_MS = 60
-
-const HEADER_SESSION_QUERY = gql(`
-  query HeaderSession {
-    session {
-      signedIn
-      name
-      avatar
-      handle
-      accounts { brandPageId name avatar handle selected hasChannel }
-    }
-  }
-`)
 
 const logoStyle = css`
   display: flex;
@@ -271,6 +260,20 @@ const style = css`
     border-color: transparent;
   }
 
+  .pending-bell,
+  .pending-avatar {
+    flex: none;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 50%;
+    background: var(--bg-chip);
+  }
+
+  /* the bell's button is 4rem wide */
+  .pending-bell {
+    margin: 0 0.4rem;
+  }
+
   @media (max-width: 792px) {
     .search {
       margin: 0 1.6rem;
@@ -327,6 +330,34 @@ const style = css`
   }
 `
 
+// as the guide does, this keeps the signed-in shape until the session answers, with youtube.com's plain circles in the
+// bell's and the avatar's places, so a signed-in header never rearranges and a signed-out one never shows a bell
+const HeaderAccount = () => {
+  const session = useSession()
+  if (!session.ready) {
+    return (
+      <>
+        <span className='pending-bell' aria-hidden='true' />
+        <span className='pending-avatar' aria-hidden='true' />
+      </>
+    )
+  }
+  if (!session.signedIn) {
+    return (
+      <button type='button' className='sign-in' onClick={signIn}>
+        <CircleUserRound size={24} strokeWidth={1.5} />
+        Sign in
+      </button>
+    )
+  }
+  return (
+    <>
+      <NotificationsMenu />
+      <AccountMenu name={session.name} avatar={session.avatar} handle={session.handle} accounts={session.accounts} />
+    </>
+  )
+}
+
 export const Header = ({ onMenu }: { onMenu?: () => void }) => {
   const [, navigate] = useLocation()
   const search = useSearch()
@@ -337,8 +368,6 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
   const [searchOpen, setSearchOpen] = useState(false)
   const [engineReady, setEngineReady] = useState(() => document.documentElement.dataset.engine === 'ready')
-  const [{ data: sessionData }] = useQuery({ query: HEADER_SESSION_QUERY, pause: !engineReady })
-  const session = sessionData?.session
 
   useEffect(() => {
     if (engineReady) return
@@ -519,27 +548,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
         {/* renders nothing at all with the extension installed, or once declined */}
         <ExtensionNotice />
         <HeaderMenu />
-        <NotificationsMenu />
-        {session?.signedIn
-          ? <AccountMenu
-              name={session.name ?? undefined}
-              avatar={session.avatar ?? undefined}
-              handle={session.handle ?? undefined}
-              accounts={session.accounts.map((account) => ({
-                brandPageId: account.brandPageId ?? undefined,
-                name: account.name ?? undefined,
-                avatar: account.avatar ?? undefined,
-                handle: account.handle ?? undefined,
-                selected: account.selected ?? undefined,
-                hasChannel: account.hasChannel ?? undefined,
-              }))}
-            />
-          : (
-            <button type='button' className='sign-in' onClick={signIn}>
-              <CircleUserRound size={24} strokeWidth={1.5} />
-              Sign in
-            </button>
-          )}
+        <HeaderAccount />
       </div>
     </header>
   )

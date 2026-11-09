@@ -16,9 +16,9 @@ test('searches from the header\'s search icon at a phone\'s width', async ({ pag
 
   await page.setViewportSize({ width: 412, height: 860 })
   await expect(home).toBeVisible()
-  // the header is final once the session is known: before that it also holds the notifications bell
+  // the header is final once the session is known: before that it holds the bell's and the avatar's places
   await expect(page.locator('html')).toHaveAttribute('data-engine', 'ready', { timeout: 90_000 })
-  await expect(page.getByRole('button', { name: 'Notifications' })).toHaveCount(0, { timeout: 30_000 })
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible({ timeout: 30_000 })
   for (const width of [360, 412]) {
     await page.setViewportSize({ width, height: 860 })
     const signIn = (await page.getByRole('button', { name: 'Sign in' }).boundingBox())!
