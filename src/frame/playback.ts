@@ -27,6 +27,12 @@ export type PlaybackEntry = {
   liveAnchorMs?: number
 }
 
+const SEGMENT_CANCELLED = 'youtube: segment request cancelled'
+
+/** Whether a failure is one the app or the frame asked for: a segment request it cancelled, or an abort. */
+export const isCancellation = (error: unknown) =>
+  (error instanceof Error && error.message === SEGMENT_CANCELLED) || (error instanceof DOMException && error.name === 'AbortError')
+
 /** Reads the video's watch page and opens a SABR session on it. */
 export const openPlaybackEntry = async (videoId: string, maxHeight?: number) => {
   const source = await getSabrSource(videoId)
@@ -98,7 +104,7 @@ export const requestPlaybackSegment = (
   document.documentElement.dataset.segmentStartMs = String(request.startTimeMs)
   const assertActive = () => {
     if (controller.signal.aborted || request.generation < entry.generation) {
-      throw new Error('youtube: segment request cancelled')
+      throw new Error(SEGMENT_CANCELLED)
     }
     if (entry.closed) throw new Error(`youtube: unknown playback session ${request.sessionId}`)
   }

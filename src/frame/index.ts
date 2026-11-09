@@ -10,7 +10,7 @@ import { json3ToWebVtt, parseCaptionTracks, timedTextUrl } from './captions'
 import { catalogInnertube, hasSessionCookie, prefetchInitialPlayerResponse } from './innertube'
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
 import { openLiveManifest } from './live-open'
-import { closePlaybackEntry, openPlaybackEntry, requestPlaybackSegment } from './playback'
+import { closePlaybackEntry, isCancellation, openPlaybackEntry, requestPlaybackSegment } from './playback'
 import { resetIdentity } from './identity'
 import { FRAME_CONNECT, isFrameMethod } from './protocol'
 
@@ -176,7 +176,7 @@ const connect = (port: MessagePort) => {
       },
       (error) => {
         document.documentElement.dataset.frameApi = `${request.method}:error`
-        console.error(`yt-client: ${request.method} failed`, error)
+        if (!isCancellation(error)) console.error(`yt-client: ${request.method} failed`, error)
         port.postMessage({
           id: request.id,
           error: error instanceof Error ? error.message : String(error),
