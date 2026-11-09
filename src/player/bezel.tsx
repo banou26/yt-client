@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import { ChevronLeft, ChevronRight, Gauge, Pause, Play, Volume2, VolumeX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Code, Gauge, Link, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 
 const ICONS = {
   play: Play,
@@ -7,6 +7,8 @@ const ICONS = {
   volume: Volume2,
   mute: VolumeX,
   speed: Gauge,
+  link: Link,
+  code: Code,
 }
 
 /**
@@ -95,7 +97,7 @@ const style = css`
 `
 
 /**
- * youtube.com's feedback for a play, pause, volume or speed change, centered,
+ * youtube.com's feedback for a play, pause, volume or speed change or a copy from the player menu, centered,
  * and for a seek, at the side it moved toward. Key it on `cue.id` to replay it.
  */
 export const Bezel = ({ cue }: { cue: BezelCue }) => {

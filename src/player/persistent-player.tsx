@@ -204,7 +204,10 @@ const PersistentPlayer = () => {
             <VideoPlayer
               key={`player:${session.videoId}`}
               videoId={session.videoId}
+              list={session.list}
+              title={session.title}
               startAt={session.startAt}
+              docked={docked}
               theater={session.theater}
               onTheater={() => setTheater(!session.theater)}
               onMiniplayer={toggleMiniplayer}

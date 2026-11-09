@@ -1,7 +1,9 @@
 import type { ComponentChildren, FunctionComponent, RefObject, VNode } from 'preact'
 
+import type { Point } from './popup'
+
 import { css } from '@emotion/react'
-import { Square, SquareCheck } from 'lucide-react'
+import { Check, Square, SquareCheck } from 'lucide-react'
 import { cloneElement, createContext } from 'preact'
 import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 
@@ -13,6 +15,58 @@ type IconComponent = FunctionComponent<{ size?: number, strokeWidth?: number }>
 const ITEM_SELECTOR = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]'
 
 const TYPEAHEAD_RESET_MS = 500
+
+const itemsOf = (panel: HTMLElement | null) => [...(panel?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])]
+
+const focusAt = (panel: HTMLElement | null, index: number) => {
+  const list = itemsOf(panel)
+  if (list.length === 0) return
+  list[((index % list.length) + list.length) % list.length]?.focus()
+}
+
+const step = (panel: HTMLElement | null, delta: number) => {
+  const list = itemsOf(panel)
+  const from = list.indexOf(document.activeElement as HTMLElement)
+  focusAt(panel, from === -1 ? (delta > 0 ? 0 : -1) : from + delta)
+}
+
+// the keys an open panel answers: the arrows, Home and End, Tab, and typeahead on the rows' labels
+const navigate = (panel: HTMLElement | null, event: KeyboardEvent, typeahead: { buffer: string, at: number }) => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+    step(panel, event.key === 'ArrowDown' ? 1 : -1)
+    return
+  }
+  if (event.key === 'Home' || event.key === 'End') {
+    event.preventDefault()
+    focusAt(panel, event.key === 'Home' ? 0 : -1)
+    return
+  }
+  if (event.key === 'Tab') {
+    if (itemsOf(panel).length === 0) return
+    event.preventDefault()
+    step(panel, event.shiftKey ? -1 : 1)
+    return
+  }
+  /* Enter and Space are absent on purpose: every row is a real <button>, so handling them here would fire the row twice. */
+  if (event.key.length !== 1 || event.key === ' ' || event.ctrlKey || event.metaKey || event.altKey) return
+  const now = Date.now()
+  typeahead.buffer = now - typeahead.at > TYPEAHEAD_RESET_MS
+    ? event.key.toLowerCase()
+    : typeahead.buffer + event.key.toLowerCase()
+  typeahead.at = now
+  const list = itemsOf(panel)
+  if (list.length === 0) return
+  const buffer = typeahead.buffer
+  const from = list.indexOf(document.activeElement as HTMLElement)
+  const start = buffer.length === 1 ? from + 1 : Math.max(from, 0)
+  const match = list
+    .map((_, offset) => list[(start + offset + list.length) % list.length]!)
+    .find(item => (item.dataset.menuLabel ?? item.textContent ?? '').trim().toLowerCase().startsWith(buffer))
+  if (!match) return
+  event.preventDefault()
+  match.focus()
+}
 
 type MenuControls = {
   /**
@@ -100,67 +154,22 @@ export const Menu = (
     triggerRef.current?.focus()
   }, [change])
 
-  const items = () => [...(panelRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])]
-
-  const focusAt = (index: number) => {
-    const list = items()
-    if (list.length === 0) return
-    list[((index % list.length) + list.length) % list.length]?.focus()
-  }
-
-  const step = (delta: number) => {
-    const list = items()
-    const from = list.indexOf(document.activeElement as HTMLElement)
-    focusAt(from === -1 ? (delta > 0 ? 0 : -1) : from + delta)
-  }
-
   useLayoutEffect(() => {
     if (!open) return
-    focusAt(entry.current === 'last' ? -1 : 0)
+    focusAt(panelRef.current, entry.current === 'last' ? -1 : 0)
   }, [open])
 
   const onKeyDown = (event: KeyboardEvent) => {
     const tag = (event.target as HTMLElement | null)?.tagName
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault()
-      if (!open) {
-        entry.current = event.key === 'ArrowUp' ? 'last' : 'first'
-        change(true)
-        return
-      }
-      step(event.key === 'ArrowDown' ? 1 : -1)
+    if (open) {
+      navigate(panelRef.current, event, typeahead.current)
       return
     }
-    if (!open) return
-    if (event.key === 'Home' || event.key === 'End') {
-      event.preventDefault()
-      focusAt(event.key === 'Home' ? 0 : -1)
-      return
-    }
-    if (event.key === 'Tab') {
-      if (items().length === 0) return
-      event.preventDefault()
-      step(event.shiftKey ? -1 : 1)
-      return
-    }
-    /* Enter and Space are absent on purpose: every row is a real <button>, so handling them here would fire the row twice. */
-    if (event.key.length !== 1 || event.key === ' ' || event.ctrlKey || event.metaKey || event.altKey) return
-    const now = Date.now()
-    const buffer = now - typeahead.current.at > TYPEAHEAD_RESET_MS
-      ? event.key.toLowerCase()
-      : typeahead.current.buffer + event.key.toLowerCase()
-    typeahead.current = { buffer, at: now }
-    const list = items()
-    if (list.length === 0) return
-    const from = list.indexOf(document.activeElement as HTMLElement)
-    const start = buffer.length === 1 ? from + 1 : Math.max(from, 0)
-    const match = list
-      .map((_, offset) => list[(start + offset + list.length) % list.length]!)
-      .find(item => (item.dataset.menuLabel ?? item.textContent ?? '').trim().toLowerCase().startsWith(buffer))
-    if (!match) return
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
     event.preventDefault()
-    match.focus()
+    entry.current = event.key === 'ArrowUp' ? 'last' : 'first'
+    change(true)
   }
 
   const controls = useMemo(() => ({ close }), [close])
@@ -194,6 +203,36 @@ export const Menu = (
         )
         : undefined}
     </div>
+  )
+}
+
+/**
+ * A menu opened at a viewport point rather than from a trigger, as a right-click opens youtube.com's player menu: `at`
+ * is read as Popup reads it. It takes the focus onto its first row, answers the same keys as Menu, and calls `onClose`
+ * on Escape, on a press outside it and on a row's select. With no trigger to go back to, the focus is left to the page.
+ */
+export const ContextMenu = (
+  { at, label, media, onClose, children }: {
+    at: () => Point
+    label: string
+    media?: boolean
+    onClose: () => void
+    children: ComponentChildren
+  },
+) => {
+  const panelRef = useRef<HTMLDivElement>(null)
+  const typeahead = useRef({ buffer: '', at: 0 })
+  useDismiss({ open: true, onClose, rootRef: panelRef })
+  useLayoutEffect(() => focusAt(panelRef.current, 0), [])
+  const controls = useMemo(() => ({ close: onClose }), [onClose])
+  const onKeyDown = (event: KeyboardEvent) => navigate(panelRef.current, event, typeahead.current)
+
+  return (
+    <MenuContext.Provider value={controls}>
+      <Popup label={label} at={at} media={media} panelRef={panelRef} onKeyDown={onKeyDown}>
+        {children}
+      </Popup>
+    </MenuContext.Provider>
   )
 }
 
@@ -237,6 +276,10 @@ const itemStyle = css`
   }
 `
 
+/**
+ * One row. A row with `checked` is a checkbox: with an `icon` it keeps the icon and shows a check mark at its end while
+ * checked, as youtube.com's player menu draws Loop, and without one its box is the icon.
+ */
 export const MenuItem = (
   { icon: Icon, label, detail, checked, disabled, trailingIcon: TrailingIcon, closeOnSelect, onSelect, ariaLabel }: {
     icon?: IconComponent
@@ -270,14 +313,13 @@ export const MenuItem = (
         if (dismisses) menu?.close()
       }}
     >
-      {checked === undefined
-        ? (Icon ? <Icon size={20} strokeWidth={1.5} /> : undefined)
-        : checked
-          ? <SquareCheck size={20} strokeWidth={1.5} />
-          : <Square size={20} strokeWidth={1.5} />}
+      {Icon
+        ? <Icon size={20} strokeWidth={1.5} />
+        : checked === undefined ? undefined : checked ? <SquareCheck size={20} strokeWidth={1.5} /> : <Square size={20} strokeWidth={1.5} />}
       <span className='label'>{label}</span>
       {detail ? <span className='detail'>{detail}</span> : undefined}
       {TrailingIcon ? <TrailingIcon size={16} strokeWidth={1.5} /> : undefined}
+      {Icon && checked ? <Check size={20} strokeWidth={1.5} /> : undefined}
     </button>
   )
 }

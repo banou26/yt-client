@@ -473,7 +473,8 @@ export const PlayerControls = (
   }
 
   const onPointerDown = (event: PointerEvent) => {
-    if (duration <= 0) return
+    // a right-click opens the player menu rather than seeking
+    if (duration <= 0 || event.button !== 0) return
     const target = event.currentTarget as HTMLElement
     target.setPointerCapture(event.pointerId)
     setScrubbing(true)

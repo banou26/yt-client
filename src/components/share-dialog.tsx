@@ -4,6 +4,7 @@ import { css } from '@emotion/react'
 import { useState } from 'preact/hooks'
 
 import { formatDuration } from './format'
+import { watchLink } from '../player/links'
 import { playheadOf } from '../player/seek'
 import { Dialog } from './ui/dialog'
 import { showToast } from './ui/toast'
@@ -102,10 +103,7 @@ export const ShareDialog = (
   const [startAt] = useState(() => playheadOf(videoId))
   const [useStart, setUseStart] = useState(false)
 
-  const params = new URLSearchParams({ v: videoId })
-  if (list) params.set('list', list)
-  if (useStart && startAt !== undefined) params.set('t', String(startAt))
-  const url = `${location.origin}/watch?${params}`
+  const url = watchLink(location.origin, videoId, { list, t: useStart ? startAt : undefined })
 
   const embedSource = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}${useStart && startAt !== undefined ? `?start=${startAt}` : ''}`
   const embed = `<iframe width="560" height="315" src="${embedSource}" frameborder="0" allowfullscreen></iframe>`

@@ -2,7 +2,7 @@ import type { ComponentChildren, FunctionComponent, RefObject } from 'preact'
 
 import { css } from '@emotion/react'
 import { createPortal } from 'preact/compat'
-import { useEffect, useLayoutEffect } from 'preact/hooks'
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks'
 
 /** `panelRef` is for a panel drawn outside `rootRef`, as an anchored Popup is: a press inside either keeps it open. */
 export const useDismiss = (
@@ -62,6 +62,24 @@ const popupStyle = css`
     position: fixed;
     width: min-content;
   }
+
+  /* youtube.com's player menu, measured 2026-11-10: see-through black over the video in either theme, as wide as its
+     longest row */
+  &.media {
+    --bg-menu: rgba(0, 0, 0, 0.6);
+    --bg-hover: rgba(255, 255, 255, 0.1);
+    --text-primary: #eeeeee;
+    --shadow-menu: none;
+    width: max-content;
+    backdrop-filter: blur(16px);
+  }
+
+  /* the row's wash is its focus mark: Chrome rings the row a right-click focuses, where youtube.com's shows nothing */
+  &.media [role^='menuitem'] {
+    outline: none;
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
 `
 
 // youtube.com's gap between a menu and its button, in CSS pixels
@@ -86,20 +104,38 @@ const place = (panel: HTMLElement, anchor: HTMLElement, align: 'start' | 'end', 
   panel.style.left = `${Math.max(GAP, Math.min(left, width - panel.offsetWidth - GAP))}px`
 }
 
+export type Point = { x: number, y: number }
+
+// youtube.com's player menu opens 1 px down and right of the pointer and, short of room, slides back inside the
+// viewport rather than flipping (measured 2026-11-10)
+const placeAt = (panel: HTMLElement, { x, y }: Point) => {
+  const { clientWidth: width, clientHeight: height } = document.documentElement
+  panel.style.top = `${Math.max(0, Math.min(y + 1, height - panel.offsetHeight))}px`
+  panel.style.left = `${Math.max(0, Math.min(x + 1, width - panel.offsetWidth))}px`
+}
+
 /**
- * A menu panel. Without `anchor` it sits in place under its positioned parent, lined up with its `align` edge.
+ * A menu panel. Without `anchor` or `at` it sits in place under its positioned parent, lined up with its `align` edge.
  *
  * With `anchor` it is drawn on document.body at a fixed position, so no scrolling row can clip it or scroll to it: it
  * opens on `side` of the anchor unless only the other side has the room, lines its `align` edge up with the anchor's
  * unless that leaves the viewport, keeps 8px from the viewport's sides, and follows the anchor as anything scrolls or
  * resizes. Being on the body, it takes the page's palette rather than the one around the anchor, as youtube.com's menus
  * do. `onKeyDown` is there because a key pressed in it no longer reaches the anchor's ancestors.
+ *
+ * With `at` it is drawn the same way at that viewport point, as youtube.com's player menu opens at the pointer. `at`
+ * is read again on every scroll and resize, so a point taken relative to an element follows it.
+ *
+ * In fullscreen it is drawn on the fullscreen element rather than the body, since nothing outside that element shows.
+ * `media` gives it youtube.com's player menu look.
  */
 export const Popup = (
-  { align = 'end', side = 'below', anchor, panelRef, onKeyDown, label, children, class: className }: {
+  { align = 'end', side = 'below', anchor, at, media = false, panelRef, onKeyDown, label, children, class: className }: {
     align?: 'start' | 'end'
     side?: 'below' | 'above'
     anchor?: RefObject<HTMLElement | null>
+    at?: () => Point
+    media?: boolean
     panelRef?: RefObject<HTMLDivElement | null>
     onKeyDown?: (event: KeyboardEvent) => void
     label: string
@@ -107,17 +143,25 @@ export const Popup = (
     class?: string
   },
 ) => {
+  const point = useRef(at)
+  point.current = at
+  const floating = Boolean(anchor ?? at)
+
   useLayoutEffect(() => {
     const panel = panelRef?.current
     const trigger = anchor?.current
-    if (!panel || !trigger) return
-    place(panel, trigger, align, side)
+    if (!panel || (!trigger && !point.current)) return
+    const position = () => {
+      if (point.current) placeAt(panel, point.current())
+      else if (trigger) place(panel, trigger, align, side)
+    }
+    position()
     let frame: number | undefined
     const update = () => {
       if (frame !== undefined) return
       frame = requestAnimationFrame(() => {
         frame = undefined
-        place(panel, trigger, align, side)
+        position()
       })
     }
     // capture, because a scroll of the row or of any other box does not bubble
@@ -136,7 +180,7 @@ export const Popup = (
   const panel = (
     <div
       css={popupStyle}
-      className={[anchor ? 'anchored' : `align-${align}`, className].filter(part => part !== undefined).join(' ')}
+      className={[floating ? 'anchored' : `align-${align}`, media ? 'media' : undefined, className].filter(part => part !== undefined).join(' ')}
       ref={panelRef}
       role='menu'
       aria-label={label}
@@ -145,7 +189,7 @@ export const Popup = (
       {children}
     </div>
   )
-  return anchor ? createPortal(panel, document.body) : panel
+  return floating ? createPortal(panel, document.fullscreenElement ?? document.body) : panel
 }
 
 const itemStyle = css`

@@ -1,6 +1,7 @@
 import type shaka from 'shaka-player'
 
 import type { CaptionTrack, PlaybackRefusal, Storyboard } from '../frame/protocol'
+import type { Point } from '../components/ui/popup'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './controls'
 import type { SkipSegment } from './sponsorblock'
@@ -27,6 +28,7 @@ import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { RefusalScreen } from './refusal-screen'
 import { stepRate } from './rates'
+import { PlayerMenu } from './player-menu'
 import { ShortcutsDialog } from './shortcuts'
 import { CLOCK_SLACK, skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
@@ -170,9 +172,12 @@ export type PlayerUpNext = {
 const FALLBACK_FPS = 30
 
 const VideoPlayer = (
-  { videoId, startAt, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [] }: {
+  { videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [] }: {
     videoId: string
+    list?: string
+    title?: string
     startAt?: number
+    docked?: boolean
     theater?: boolean
     onTheater?: () => void
     onMiniplayer?: () => void
@@ -202,6 +207,11 @@ const VideoPlayer = (
   const [bezel, setBezel] = useState<BezelCue | undefined>(undefined)
   const [shortcuts, setShortcuts] = useState(false)
   const closeShortcuts = useCallback(() => setShortcuts(false), [])
+  const [loop, setLoop] = useState(false)
+  // from the player's corner, so the menu follows the player as the page scrolls
+  const [menu, setMenu] = useState<Point | undefined>(undefined)
+  const closeMenu = useCallback(() => setMenu(undefined), [])
+  const menuAtPress = useRef(false)
   const flash = useCallback((icon: BezelCue['icon'], text?: string) => {
     setBezel(previous => ({ id: (previous?.id ?? 0) + 1, icon, text }))
   }, [])
@@ -409,9 +419,25 @@ const VideoPlayer = (
 
   useEffect(() => () => clearTimeout(idleTimer.current), [])
 
+  // the menu is drawn on the fullscreen element or the body, so a switch between the two would strand it
+  useEffect(() => {
+    document.addEventListener('fullscreenchange', closeMenu)
+    return () => document.removeEventListener('fullscreenchange', closeMenu)
+  }, [closeMenu])
+
+  const onContextMenu = (event: MouseEvent) => {
+    // a second right-click gets the browser's own menu, as on youtube.com
+    const second = menuAtPress.current
+    menuAtPress.current = false
+    if (second) return
+    event.preventDefault()
+    const box = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    setMenu({ x: event.clientX - box.left, y: event.clientY - box.top })
+  }
+
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, menu })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, menu }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -419,7 +445,7 @@ const VideoPlayer = (
       if (!video || event.defaultPrevented || isTypingTarget(event.target)) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       const actions = latest.current
-      if (actions.shortcuts) return
+      if (actions.shortcuts || actions.menu) return
       const key = event.key
       const handled = () => {
         event.preventDefault()
@@ -533,15 +559,20 @@ const VideoPlayer = (
     <div
       css={playerStyle}
       data-player-root
-      className={!active && !state.paused ? 'idle' : undefined}
+      className={!active && !state.paused && !menu ? 'idle' : undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
+      onPointerDown={() => {
+        menuAtPress.current = menu !== undefined
+      }}
+      onContextMenu={onContextMenu}
     >
       <video
         key={attempt}
         ref={videoRef}
         playsInline
         preload='auto'
+        loop={loop}
         onClick={() => {
           const current = videoRef.current
           if (!current) return
@@ -603,6 +634,25 @@ const VideoPlayer = (
             </button>
           )
           : undefined}
+      {video && menu
+        ? (
+          <PlayerMenu
+            at={() => {
+              const box = video.closest('[data-player-root]')!.getBoundingClientRect()
+              return { x: box.left + menu.x, y: box.top + menu.y }
+            }}
+            onClose={closeMenu}
+            video={video}
+            videoId={videoId}
+            list={list}
+            title={title}
+            loop={loop}
+            onLoop={() => setLoop(value => !value)}
+            onMiniplayer={docked || document.fullscreenElement ? undefined : onMiniplayer}
+            onCopied={flash}
+          />
+        )
+        : undefined}
       {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
     </div>
   )
