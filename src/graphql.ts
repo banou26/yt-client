@@ -20,7 +20,8 @@ const invalidatePlaylistPages = (cache: Cache, playlistId: string) =>
 const invalidatePlaylistList = (cache: Cache) =>
   invalidateQueryField(cache, 'playlists', () => true)
 
-const cache = cacheExchange({
+/** The app's cache, made anew for each client so a test harness renders through the same keys on a store of its own. */
+export const createCache = () => cacheExchange({
   // with no schema and no possibleTypes, graphcache guesses which member of a union a fragment reads from its cached fields
   possibleTypes: {
     SearchResult: ['Video', 'Channel', 'Playlist', 'SearchCard', 'SearchShelf'],
@@ -80,6 +81,6 @@ const cache = cacheExchange({
 
 export const client = new Client({
   url: 'http://yt-client.local/graphql',
-  exchanges: [cache, fetchExchange],
+  exchanges: [createCache(), fetchExchange],
   fetch: (input, init) => handleRequest(input, init),
 })

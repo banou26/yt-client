@@ -55,3 +55,26 @@ test('names both channels on a collaboration\'s watch page, whose Subscribe open
   await expect(dialog.getByRole('link')).toHaveCount(2)
 })
 
+// channel-home-mkbhd.json's Videos row holds a video that its First Impressions row holds too, which the cache keeps
+// as one video with the channel First Impressions gave it
+test('a channel\'s own Home uploads name no channel, and a collaboration\'s names open the video', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/settings')
+  await expect(page.locator('html')).toHaveAttribute('data-engine', 'ready', { timeout: 90_000 })
+  const home = page.locator('[data-channel-home-harness]')
+  const videos = home.getByRole('region', { name: 'Videos', exact: true })
+  // the harness's first import can add a dependency for the dev server to bundle, which reloads the page under it
+  await expect(async () => {
+    if (await home.count() === 0) {
+      await page.evaluate(async (path) => {
+        const harness = await import(path) as { mountChannelHome: () => void }
+        harness.mountChannelHome()
+      }, '/tests/browser/fixtures/channel-home-harness.tsx')
+    }
+    await expect(videos.locator('a[href^="/watch?v="]').first()).toBeVisible({ timeout: 15_000 })
+  }).toPass({ timeout: 120_000 })
+  await expect(videos.locator('.channel-name')).toHaveText(['Marques Brownlee and Auto Focus'])
+  await expect(videos.locator('a.channel-name')).toHaveAttribute('href', '/watch?v=scwlR0QHGOk')
+  const impressions = home.getByRole('region', { name: 'First Impressions!', exact: true })
+  await expect(impressions.locator('.channel-name')).toHaveText(['Marques Brownlee', 'Marques Brownlee and Auto Focus'])
+})
