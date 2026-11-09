@@ -85,7 +85,7 @@ index 996db9d..0219751 100644
 +        // YouTube counts some command runs in UTF-8 bytes (search's playlist rows, 2026-11-10), so one over a whole text reaches past its end
          if (command_runs?.length)
 -            this.processCommandRuns(runs, command_runs, data);
-+            this.processCommandRuns(runs, command_runs.map((run) => ({ ...run, length: Math.min(run.length, content.length - run.startIndex) })), data);
++            this.processCommandRuns(runs, command_runs.map((run) => ({ ...run, length: run.startIndex === 0 ? Math.min(run.length, content.length) : run.length })), data);
          const normalized_attachment_runs = attachment_runs?.map((run) => ({
              ...run,
              startIndex: run.startIndex ?? 0,

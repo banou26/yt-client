@@ -30,4 +30,12 @@ describe('an attributed text', () => {
     expect(text.runs?.map((run) => run.text)).toEqual(['Rick Astley', ' · 3:33'])
     expect(text.endpoint?.payload).toMatchObject({ videoId: 'dQw4w9WgXcQ' })
   })
+
+  it('leaves a command run that starts inside the text and overshoots it to youtubei.js', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const text = Misc.Text.fromAttributed({ content: 'Rick Astley · 3:33', commandRuns: [{ startIndex: 14, length: 10, onTap }] })
+    expect(text.runs?.map((run) => run.text)).toEqual(['Rick Astley · 3:33'])
+    expect(text.runs?.some((run) => 'endpoint' in run && run.endpoint)).toBe(false)
+    expect(warn).toHaveBeenCalledOnce()
+  })
 })
