@@ -617,17 +617,11 @@ const tabChips = (feed: ChannelFeed) => {
   const chips = ((feed.memo?.get('ChipView') ?? []) as SortChip[])
     .filter((chip): chip is SortChip & { text: string } => Boolean(chip.text))
   if (!chips[0]?.display_type?.includes('DROP_DOWN')) return { sorts: chips, filters: [], menu: false }
-  let items: DropdownRow[] | undefined
-  try {
-    items = feed.filter_nodes?.primary_filters
-  } catch {
-    // filter_nodes THROWS when a feed carries more than one chip bar
-  }
-  const sorts = (items ?? []).flatMap((item) => {
+  const sorts = (feed.filter_nodes?.primary_filters ?? []).flatMap((item) => {
     const text = item.title?.toString()
     return text ? [{ text, selected: item.is_selected === true }] : []
   })
-  return { sorts, filters: chips.slice(1), menu: true }
+  return { sorts, filters: chips.slice(1), menu: sorts.length > 0 }
 }
 
 const openChannelTab = async (

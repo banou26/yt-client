@@ -42,7 +42,7 @@ const ANSWERS: [Answer, string][] = [
   ['popularMembers', tokenOf('popular', 'Members only')],
 ]
 
-const liveSource = () => {
+const liveSource = (latest: unknown = fixture.latest) => {
   const sent: Answer[] = []
   const actions = {
     session: { logged_in: false },
@@ -55,7 +55,7 @@ const liveSource = () => {
   }
   const source = createYoutubeSource({
     fetch: globalThis.fetch,
-    createClient: async () => ({ getChannel: async () => new YT.Channel(actions as never, Parser.parseResponse(fixture.latest as never), true) }) as never,
+    createClient: async () => ({ getChannel: async () => new YT.Channel(actions as never, Parser.parseResponse(latest as never), true) }) as never,
   })
   return { source, sent }
 }
@@ -101,6 +101,20 @@ describe('a channel\'s Live tab', () => {
     expect(sent).toEqual(['popular', 'popularMembers'])
     expect(page).toMatchObject({ appliedSort: 'Popular', appliedFilter: 'Members only' })
     expect(titles(page.videos.items)).toEqual(['May the 4th Be With You!', 'Is This Thing On?'])
+  })
+
+  it('offers no sort menu when the dropdown carries no rows, and keeps the filters', async () => {
+    const empty = structuredClone(fixture.latest)
+    let emptied = 0
+    walk(empty, (node) => {
+      if (!Array.isArray(node.listItems)) return
+      node.listItems = []
+      emptied++
+    })
+    expect(emptied).toBe(1)
+    const { source } = liveSource(empty)
+    const page = await source.channel(MKBHD, 'LIVE')
+    expect(page).toMatchObject({ sortMenu: false, sortOptions: [], filterOptions: ['Members only', 'Public'] })
   })
 
   it('ignores a filter the tab does not offer', async () => {
