@@ -122,8 +122,7 @@ const style = css`
     background: var(--brand-red);
   }
 
-  /* The knob is what makes the bar look grabbable before it is grabbed. It sits
-     outside the track's overflow so it can be taller than the 4px line. */
+  /* hidden at rest, as youtube.com's playhead dot is */
   .knob {
     position: absolute;
     bottom: -0.3rem;
@@ -132,6 +131,42 @@ const style = css`
     margin-left: -0.6rem;
     border-radius: 50%;
     background: var(--brand-red);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .scrubber:hover .knob,
+  .scrubber.scrubbing .knob {
+    opacity: 1;
+  }
+
+  .scrubber.scrubbing .track {
+    height: 0.6rem;
+  }
+
+  /* a storyboard tile scaled up to the whole preview while a drag is held, the video seeking only on release */
+  .scrub-frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background-color: #000;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .scrub-time {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0 1.2rem;
+    border-radius: 1.6rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 3.2rem;
+    font-variant-numeric: tabular-nums;
     pointer-events: none;
   }
 
@@ -200,6 +235,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
   const [muted, setMuted] = useState(preferMuted)
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
   const [hover, setHover] = useState<{ x: number, width: number, time: number } | undefined>()
+  const [scrub, setScrub] = useState<{ ratio: number, width: number, height: number } | undefined>()
 
   useEffect(() => {
     const video = videoRef.current
@@ -264,8 +300,16 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     return Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
   }
 
+  const scrubFromPointer = (event: PointerEvent) => {
+    const root = (event.currentTarget as HTMLElement).parentElement
+    if (!root || !videoRef.current?.duration) return
+    setScrub({ ratio: ratioFromPointer(event), width: root.clientWidth, height: root.clientHeight })
+  }
+
+  // one seek per gesture: every seek cancels the segment in flight, so seeking on each move left the frame stalled
   const seekFromPointer = (event: PointerEvent) => {
     const video = videoRef.current
+    setScrub(undefined)
     if (!video || !video.duration) return
     const ratio = ratioFromPointer(event)
     video.currentTime = ratio * video.duration
@@ -280,7 +324,15 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     setHover({ x: event.clientX - box.left, width: box.width, time: ratio * video.duration })
   }
 
-  const board = hover ? previewStoryboard(storyboards, hover.width) : undefined
+  const duration = videoRef.current?.duration ?? 0
+  const scrubBoard = scrub ? bestStoryboard(storyboards) : undefined
+  const scrubFrame = scrub && scrubBoard ? storyboardFrame(scrubBoard, scrub.ratio * duration) : undefined
+  const scrubScale = scrub && scrubFrame
+    ? Math.max(scrub.width / scrubFrame.width, scrub.height / scrubFrame.height)
+    : 1
+  const position = scrub?.ratio ?? progress
+
+  const board = hover && !scrub ? previewStoryboard(storyboards, hover.width) : undefined
   const frame = board && hover ? storyboardFrame(board, hover.time) : undefined
   // half the tile plus its 2px border
   const half = frame ? frame.width / 2 + 2 : 0
@@ -292,7 +344,22 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     <div css={style} data-painted={painted ? '' : undefined}>
       {/* No preload='none': an element told not to preload never runs its resource selection, so the MediaSource sits at networkState 0 forever */}
       <video ref={videoRef} muted playsInline tabIndex={-1} aria-hidden='true' />
-      {ready
+      {scrubFrame
+        ? (
+          <div
+            className='scrub-frame'
+            style={{
+              width: `${scrubFrame.width}px`,
+              height: `${scrubFrame.height}px`,
+              backgroundImage: `url("${scrubFrame.url}")`,
+              backgroundPosition: `-${scrubFrame.x}px -${scrubFrame.y}px`,
+              transform: `translate(-50%, -50%) scale(${scrubScale})`,
+            }}
+          />
+        )
+        : undefined}
+      {scrub ? <div className='scrub-time'>{clock(scrub.ratio * duration)}</div> : undefined}
+      {ready && !scrub
         ? (
           <button
             type='button'
@@ -319,19 +386,23 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
       {ready
         ? (
           <div
-            className='scrubber'
+            className={scrub ? 'scrubber scrubbing' : 'scrubber'}
             onPointerLeave={() => setHover(undefined)}
             onPointerDown={(event: PointerEvent) => {
               // this is drawn INSIDE the card's watch link, so an unguarded press opens the video
               event.preventDefault()
               event.stopPropagation()
               ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-              seekFromPointer(event)
+              scrubFromPointer(event)
             }}
             onPointerMove={(event: PointerEvent) => {
               trackHover(event)
-              if (event.buttons !== 0) seekFromPointer(event)
+              if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId)) scrubFromPointer(event)
             }}
+            onPointerUp={(event: PointerEvent) => {
+              if ((event.currentTarget as HTMLElement).hasPointerCapture(event.pointerId)) seekFromPointer(event)
+            }}
+            onPointerCancel={() => setScrub(undefined)}
             onClick={(event: MouseEvent) => {
               event.preventDefault()
               event.stopPropagation()
@@ -339,10 +410,10 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
           >
             <div className='track'>
               <div className='buffered' style={{ width: `${Math.round(buffered * 100)}%` }} />
-              <div className='fill' style={{ width: `${Math.round(progress * 100)}%` }} />
-              <div className='knob' style={{ left: `${Math.round(progress * 100)}%` }} />
+              <div className='fill' style={{ width: `${position * 100}%` }} />
+              <div className='knob' style={{ left: `${position * 100}%` }} />
             </div>
-            {hover
+            {hover && !scrub
               ? (
                 <div className='preview' style={{ left: `${previewLeft}px` }}>
                   {frame

@@ -1,4 +1,6 @@
-import { expect, test } from './test'
+import type { Locator, Page } from '@playwright/test'
+
+import { expect, hideFknNotice, test } from './test'
 
 /* The inline preview must never paint over a thumbnail it cannot yet replace: its root is an opaque black box mounted the moment the pointer lands.
    Sampled continuously because the defect is a flash, which a before-and-after assertion passes straight through. */
@@ -49,4 +51,101 @@ test('keeps the thumbnail until the preview has a frame, then fades it in', asyn
   expect(tooEarly, `the preview was visible with no decodable frame: ${JSON.stringify(tooEarly.slice(0, 3))}`)
     .toHaveLength(0)
   expect(samples.some(sample => sample.painted && sample.opacity > 0.95)).toBe(true)
+})
+
+/* With navigator.webdriver true every far seek walls, on youtube.com's own previews as much as on these (measured
+   2026-11-10), so the specs that seek run as a plain Chrome, the same launch as live.spec.ts. */
+const plain = test.extend<object, object>({
+  userAgent: async ({ browser }, use) => {
+    await use(`Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browser.version()} Safari/537.36`)
+  },
+  page: async ({ page }, use) => {
+    await hideFknNotice(page)
+    await use(page)
+  },
+  browser: [async ({ playwright, browserName, headless, launchOptions }, use) => {
+    const browser = await playwright[browserName].launch({
+      ...launchOptions,
+      headless,
+      args: [...(launchOptions.args ?? []), '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--disable-blink-features=AutomationControlled'],
+      ignoreDefaultArgs: ['--enable-automation'],
+    })
+    await use(browser)
+    await browser.close()
+  }, { scope: 'worker' }],
+})
+
+// the first row is Blender Guru's 4 h donut course (read 2026-11-10): long enough that every 5% of the bar is minutes
+const SEARCH = '/results?search_query=blender+tutorial'
+
+const seconds = (clock: string) => clock.split(':').reduce((total, part) => total * 60 + Number(part), 0)
+
+const hoverFirstResult = async (page: Page) => {
+  await page.goto(SEARCH)
+  const card = page.locator('article.result').filter({ has: page.locator('a.thumb') }).first()
+  await expect(card.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
+  await card.locator('a.thumb').hover()
+  await expect(card.locator('[data-painted]')).toBeVisible({ timeout: 90_000 })
+  await expect(card.locator('.scrubber')).toBeVisible()
+  return card
+}
+
+const countSeeks = async (page: Page, card: Locator) => {
+  await card.locator('video').evaluate((video: HTMLVideoElement) => {
+    const counter = window as unknown as { seeks: number }
+    counter.seeks = 0
+    video.addEventListener('seeking', () => {
+      counter.seeks += 1
+    })
+  })
+  return () => page.evaluate(() => (window as unknown as { seeks: number }).seeks)
+}
+
+plain('a click on the bar seeks there, and a drag scrubs storyboard frames and seeks once, on release', async ({ page }) => {
+  plain.setTimeout(240_000)
+  const card = await hoverFirstResult(page)
+  const video = card.locator('video')
+  const seeks = await countSeeks(page, card)
+  const duration = await video.evaluate((element: HTMLVideoElement) => element.duration)
+  expect(duration).toBeGreaterThan(600)
+  const bar = (await card.locator('.scrubber').boundingBox())!
+  const y = bar.y + bar.height - 3
+  const at = (ratio: number) => bar.x + bar.width * ratio
+
+  await page.mouse.click(at(0.3), y)
+  await expect.poll(seeks).toBe(1)
+  expect(Math.abs(await video.evaluate((element: HTMLVideoElement) => element.currentTime) - duration * 0.3))
+    .toBeLessThan(duration * 0.01)
+  expect(new URL(page.url()).pathname).toBe('/results')
+
+  await page.mouse.move(at(0.2), y)
+  await page.mouse.down()
+  const frame = card.locator('.scrub-frame')
+  const shown: string[] = []
+  for (let step = 1; step <= 8; step += 1) {
+    await page.mouse.move(at(0.2 + step * 0.0625), y)
+    await page.waitForTimeout(150)
+    shown.push(await frame.evaluateAll((elements: HTMLElement[]) =>
+      elements.map(element => element.style.backgroundImage + element.style.backgroundPosition).join()))
+  }
+  expect(await seeks(), 'the video seeked while the button was still down').toBe(1)
+  expect(new Set(shown).size, 'the scrub frame did not follow the pointer').toBeGreaterThan(1)
+  const root = (await card.locator('[data-painted]').boundingBox())!
+  const cover = (await frame.boundingBox())!
+  expect(cover.width).toBeGreaterThanOrEqual(root.width - 2)
+  expect(cover.height).toBeGreaterThanOrEqual(root.height - 2)
+  expect(Math.abs(seconds(await card.locator('.scrub-time').innerText()) - duration * 0.7)).toBeLessThan(duration * 0.01)
+  const mute = card.getByRole('button', { name: /mute preview/i, includeHidden: true })
+  await expect(mute).toHaveCount(0)
+
+  await page.mouse.up()
+  await expect.poll(seeks).toBeGreaterThanOrEqual(2)
+  expect(await seeks()).toBe(2)
+  const landed = await video.evaluate((element: HTMLVideoElement) => element.currentTime)
+  expect(Math.abs(landed - duration * 0.7)).toBeLessThan(duration * 0.01)
+  await expect(frame).toHaveCount(0)
+  await expect(mute).toHaveCount(1)
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime), { timeout: 30_000 })
+    .toBeGreaterThan(landed + 1)
+  expect(new URL(page.url()).pathname).toBe('/results')
 })

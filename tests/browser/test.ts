@@ -4,14 +4,26 @@ import { test as base } from '@playwright/test'
 
 export { expect } from '@playwright/test'
 
+const fknDismiss = (page: Page) =>
+  page.frameLocator('iframe[title="FKN"]').getByRole('button', { name: 'Dismiss', exact: true })
+
 // FKN shows this notice over the bottom corner once the day's free data is used. A dispatched click, never a pointer
 // one: clicking into FKN's frame takes the focus off the page, so a box being typed in closes its suggestions and the
 // spec's next key lands at the start of the box (measured 2026-11-10, the notice up about 1 s after the engine ready)
 export const dismissFknNotice = (page: Page) =>
-  page.addLocatorHandler(
-    page.frameLocator('iframe[title="FKN"]').getByRole('button', { name: 'Dismiss', exact: true }),
-    dismiss => dismiss.dispatchEvent('click'),
-  )
+  page.addLocatorHandler(fknDismiss(page), dismiss => dismiss.dispatchEvent('click'))
+
+// for a spec that holds the pointer on one card: even a dispatched Dismiss can end the hover, so the notice is hidden
+export const hideFknNotice = async (page: Page) => {
+  await page.removeLocatorHandler(fknDismiss(page))
+  await page.addInitScript(() => {
+    const style = document.createElement('style')
+    style.textContent = 'iframe[title="FKN"] { visibility: hidden !important; pointer-events: none !important; }'
+    const add = () => document.documentElement.append(style)
+    if (document.documentElement) add()
+    else document.addEventListener('DOMContentLoaded', add, { once: true })
+  })
+}
 
 export const test = base.extend({
   // the watch page's third-party lookups answer with nothing unless a spec routes them itself (a page route wins over
