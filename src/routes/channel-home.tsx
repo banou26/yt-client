@@ -11,6 +11,7 @@ import { PostCard } from '../components/post-card'
 import { Rail } from '../components/rail'
 import { ShortsShelf } from '../components/shorts-shelf'
 import { VideoCard, watchHrefFor } from '../components/video-card'
+import { isRichRow } from './channel-rows'
 
 type Home = NonNullable<ChannelViewQuery['channel']['home']>
 type Shelf = Home['shelves'][number]
@@ -282,7 +283,7 @@ const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
   if (shelf.shorts.length > 0 && shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length + shelf.posts.length === 0) {
     return <ShortsShelf shorts={shelf.shorts} />
   }
-  if (shelf.expandable) return <RichShelfRow shelf={shelf} />
+  if (isRichRow(shelf)) return <RichShelfRow shelf={shelf} />
   const count = shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length
   return (
     <section aria-label={shelf.title}>
