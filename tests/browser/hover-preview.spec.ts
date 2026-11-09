@@ -149,3 +149,31 @@ plain('a click on the bar seeks there, and a drag scrubs storyboard frames and s
     .toBeGreaterThan(landed + 1)
   expect(new URL(page.url()).pathname).toBe('/results')
 })
+
+plain('a playing preview counts down the time left, mutes on request and stops when the pointer leaves', async ({ page }) => {
+  plain.setTimeout(240_000)
+  const card = await hoverFirstResult(page)
+  const video = card.locator('video')
+  const left = card.locator('[data-painted] .time')
+  await expect(left).toHaveText(/^\d+(:\d{2}){1,2}$/)
+  const first = seconds(await left.innerText())
+  const [current, duration] = await video.evaluate((element: HTMLVideoElement) => [element.currentTime, element.duration])
+  expect(Math.abs(first - (duration - current))).toBeLessThanOrEqual(2)
+  await expect.poll(async () => seconds(await left.innerText()), { timeout: 15_000 }).toBeLessThan(first)
+
+  const bar = (await card.locator('.scrubber').boundingBox())!
+  await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height - 3)
+  await expect(left).toHaveCount(0)
+  await page.mouse.move(bar.x + bar.width / 2, bar.y - 40)
+  await expect(left).toHaveCount(1)
+
+  await card.getByRole('button', { name: 'Unmute preview', includeHidden: true }).click()
+  expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(false)
+  await card.getByRole('button', { name: 'Mute preview', includeHidden: true }).click()
+  expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true)
+  expect(new URL(page.url()).pathname).toBe('/results')
+
+  const row = (await card.boundingBox())!
+  await page.mouse.move(row.x - 40, row.y + row.height / 2, { steps: 4 })
+  await expect(card.locator('video')).toHaveCount(0)
+})

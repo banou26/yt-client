@@ -197,6 +197,21 @@ const style = css`
     text-shadow: 0 1px 3px #000;
   }
 
+  .time {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.8rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.4rem;
+    background: var(--bg-badge);
+    color: var(--text-on-media);
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.8rem;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
   .muted {
     position: absolute;
     top: 0.8rem;
@@ -228,7 +243,7 @@ const style = css`
  */
 export const HoverPreview = ({ videoId }: { videoId: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [progress, setProgress] = useState(0)
+  const [time, setTime] = useState(0)
   const [buffered, setBuffered] = useState(0)
   const [ready, setReady] = useState(false)
   const [painted, setPainted] = useState(false)
@@ -267,7 +282,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     }, DWELL_MS)
 
     const onTime = () => {
-      if (video.duration > 0) setProgress(video.currentTime / video.duration)
+      setTime(video.currentTime)
       // the range that CONTAINS the playhead, not the last one: a seek leaves earlier ranges behind
       const ranges = video.buffered
       for (let index = 0; index < ranges.length; index += 1) {
@@ -313,7 +328,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
     if (!video || !video.duration) return
     const ratio = ratioFromPointer(event)
     video.currentTime = ratio * video.duration
-    setProgress(ratio)
+    setTime(video.currentTime)
   }
 
   const trackHover = (event: PointerEvent) => {
@@ -330,7 +345,7 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
   const scrubScale = scrub && scrubFrame
     ? Math.max(scrub.width / scrubFrame.width, scrub.height / scrubFrame.height)
     : 1
-  const position = scrub?.ratio ?? progress
+  const position = scrub?.ratio ?? (duration > 0 ? time / duration : 0)
 
   const board = hover && !scrub ? previewStoryboard(storyboards, hover.width) : undefined
   const frame = board && hover ? storyboardFrame(board, hover.time) : undefined
@@ -383,6 +398,8 @@ export const HoverPreview = ({ videoId }: { videoId: string }) => {
           </button>
         )
         : undefined}
+      {/* time LEFT, as youtube.com's preview counts, and out of the way while the pointer is on the bar */}
+      {ready && !scrub && !hover ? <span className='time'>{clock(duration - time)}</span> : undefined}
       {ready
         ? (
           <div
