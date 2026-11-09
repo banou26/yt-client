@@ -57,6 +57,22 @@ index 07596db..b907770 100644
          this.enable_subscribe_button_post_click_animation = data.enableSubscribeButtonPostClickAnimation;
          if ('bellAccessibilityData' in data) {
              this.bell_accessibility_data = {
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/Tab.js b/node_modules/youtubei.js/dist/src/parser/classes/Tab.js
+index 3346601..87c442b 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/Tab.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/Tab.js
+@@ -16,7 +16,9 @@ export default class Tab extends YTNode {
+         this.title = data.title || 'N/A';
+         this.selected = !!data.selected;
+         this.endpoint = new NavigationEndpoint(data.endpoint);
+-        this.content = Parser.parseItem(data.content, [SectionList, MusicQueue, RichGrid, Message]);
++        // the Music topic channel's Home sends an empty sectionListRenderer ahead of the richGridRenderer it shows
++        const filled = Object.keys(data.content ?? {}).find((key) => data.content[key]?.contents);
++        this.content = Parser.parseItem(filled ? { [filled]: data.content[filled] } : data.content, [SectionList, MusicQueue, RichGrid, Message]);
+     }
+ }
+ //# sourceMappingURL=Tab.js.map
+\ No newline at end of file
 diff --git a/node_modules/youtubei.js/dist/src/parser/nodes.js b/node_modules/youtubei.js/dist/src/parser/nodes.js
 index 1b6b23b..6bd294a 100644
 --- a/node_modules/youtubei.js/dist/src/parser/nodes.js
