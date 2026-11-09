@@ -1,9 +1,10 @@
-import type { SourceVideo } from '../../../../src/sources/types'
+import type { SourceChannelShelf, SourceVideo } from '../../../../src/sources/types'
 
 import { describe, expect, it } from 'vite-plus/test'
 
 import { Parser, YT } from 'youtubei.js'
 
+import { rowByline } from '../../../../src/components/format'
 import { createYoutubeSource } from '../../../../src/sources/youtube'
 import home from '../../fixtures/channel-home-mkbhd.json'
 import threeChannels from '../../fixtures/search-colin-and-samir.json'
@@ -37,6 +38,21 @@ const homeShelves = async () => {
   })
   return (await source.channel(MKBHD)).home?.shelves ?? []
 }
+
+// the app's cache keeps one video per id, with the fields of the last row that wrote it (src/graphql.ts)
+const cached = (shelves: SourceChannelShelf[]) => {
+  const videos = new Map<string, SourceVideo>()
+  for (const video of shelves.flatMap((shelf) => shelf.videos)) videos.set(video.id, { ...videos.get(video.id), ...video })
+  return videos
+}
+
+const printed = (shelf: SourceChannelShelf, videos: Map<string, SourceVideo>) =>
+  shelf.videos.map(({ id }) => {
+    const video = videos.get(id)!
+    const kind = rowByline(video, shelf.uploads)
+    if (kind === 'names') return video.byline?.map((part) => part.text).join(' ')
+    return kind === 'channel' ? video.channel?.name : undefined
+  })
 
 describe('a video two channels made', () => {
   it('keeps a search row\'s byline and the channels its dialog lists, the first as its channel', async () => {
@@ -73,5 +89,22 @@ describe('a video two channels made', () => {
       byline: [{ text: 'Marques Brownlee', isVerified: true }, { text: 'and Auto Focus', isVerified: true }],
       collaborators: [{ id: MKBHD, handle: '@mkbhd' }, { name: 'Auto Focus', handle: '@AutoFocus' }],
     })
+  })
+
+  // The same video in the Videos row and in First Impressions is one cached video, so the Videos row read the name
+  // First Impressions gave it on 5 of 12 rows (2026-11-10)
+  it('prints no name on the channel\'s own uploads, a collaboration\'s names on every row', async () => {
+    const shelves = await homeShelves()
+    expect(shelves.map((shelf) => [shelf.title, shelf.uploads])).toEqual([
+      ['Videos', true],
+      ['First Impressions!', undefined],
+      ['Collaborations', undefined],
+    ])
+    const videos = cached(shelves)
+    expect(shelves.map((shelf) => printed(shelf, videos))).toEqual([
+      [undefined, undefined, 'Marques Brownlee and Auto Focus'],
+      ['Marques Brownlee', 'Marques Brownlee and Auto Focus'],
+      ['Marques Brownlee and Auto Focus', 'Mrwhosetheboss and Marques Brownlee'],
+    ])
   })
 })

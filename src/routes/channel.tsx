@@ -117,6 +117,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           subtitle
           url
           expandable
+          uploads
           videos {
             id
             title

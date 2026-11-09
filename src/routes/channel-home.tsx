@@ -248,7 +248,7 @@ const RichShelfRow = ({ shelf }: { shelf: Shelf }) => {
     return () => observer.disconnect()
   }, [])
   const cards = [
-    ...shelf.videos.map(video => <VideoCard key={video.id} video={video} />),
+    ...shelf.videos.map(video => <VideoCard key={video.id} video={video} variant={shelf.uploads ? 'channel' : undefined} />),
     ...shelf.playlists.map(playlist => (
       <PlaylistCard
         key={playlist.id}
@@ -292,7 +292,7 @@ const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
         <Rail label={shelf.title} count={count}>
           {shelf.videos.map(video => (
             <div className='shelf-card' key={video.id}>
-              <VideoCard video={video} variant='shelf' />
+              <VideoCard video={video} variant={shelf.uploads ? 'channel' : 'shelf'} />
             </div>
           ))}
           {shelf.playlists.map(playlist => (

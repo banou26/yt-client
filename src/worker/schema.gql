@@ -356,6 +356,10 @@ type ChannelShelf {
   # A row of full-size cards that "Show more" opens to all of them, as
   # youtube.com draws a topic channel's rows. Otherwise the row scrolls.
   expandable: Boolean
+  # The channel's own uploads, whose rows youtube.com prints without the
+  # channel's name. A row's video can carry the name all the same: the cache
+  # keys a video by its id, so another row of the same video lends it.
+  uploads: Boolean
   videos: [Video!]!
   shorts: [Video!]!
   playlists: [Playlist!]!

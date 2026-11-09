@@ -1003,6 +1003,7 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
     if (type === 'LockupView') {
       const video = normalizeLockupVideo(item, { own: true })
       const playlist = video ? undefined : normalizePlaylistLockup(item)
+      if (video && lockupLines(item as LockupVideo, true).byline.length === 0) shelf.uploads = true
       if (video) shelf.videos.push(video)
       if (playlist) shelf.playlists.push(playlist)
     } else if (type === 'GridVideo' || type === 'Video' || type === 'VideoCard') {

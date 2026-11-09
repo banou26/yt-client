@@ -243,6 +243,8 @@ export type SourceChannelShelf = {
   url?: string
   // a row of full-size cards that opens to all of them, as youtube.com draws a topic channel's rows; otherwise it scrolls
   expandable?: boolean
+  // the channel's own uploads, whose rows youtube.com prints without the channel's name
+  uploads?: boolean
   videos: SourceVideo[]
   shorts: SourceVideo[]
   playlists: SourcePlaylist[]
