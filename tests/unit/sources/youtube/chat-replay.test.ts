@@ -14,7 +14,14 @@ const VIDEO = 'fOT0BUpITw8'
 
 type Ask = { endpoint: string, continuation?: string, offset?: string }
 
-const sourceFor = ({ replay = true } = {}) => {
+// a live stream's /next names its chat in the same conversation bar, with a token for get_live_chat instead
+const liveNext = { contents: { twoColumnWatchNextResults: { conversationBar: { liveChatRenderer: {
+  ...fixture.next.contents.twoColumnWatchNextResults.conversationBar.liveChatRenderer,
+  continuations: [{ reloadContinuationData: { continuation: 'live-open' } }],
+  isReplay: false,
+} } } } }
+
+const sourceFor = ({ next = fixture.next as unknown } = {}) => {
   const asked: Ask[] = []
   const pages: Record<string, unknown> = {
     'replay-open': fixture.first,
@@ -25,7 +32,7 @@ const sourceFor = ({ replay = true } = {}) => {
   }
   const execute = async (endpoint: string, args: { continuation?: string, currentPlayerState?: { playerOffsetMs?: string } }) => {
     asked.push({ endpoint, continuation: args.continuation, offset: args.currentPlayerState?.playerOffsetMs })
-    if (endpoint === '/next') return Parser.parseResponse((replay ? fixture.next : { contents: { twoColumnWatchNextResults: {} } }) as never)
+    if (endpoint === '/next') return Parser.parseResponse(next as never)
     return Parser.parseResponse(pages[args.continuation ?? ''] as never)
   }
   const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => ({ actions: { execute } }) as never })
@@ -79,8 +86,15 @@ describe('chat replay', () => {
   })
 
   it('has no replay on a video whose /next names none', async () => {
-    const { source } = sourceFor({ replay: false })
+    const { source } = sourceFor({ next: { contents: { twoColumnWatchNextResults: {} } } })
     expect((await source.watch(VIDEO))?.hasChatReplay).toBe(false)
     await expect(source.liveChatReplay(VIDEO, 0)).resolves.toEqual({ items: [], disabled: true })
+  })
+
+  it('has no replay on a stream that is still live, whose chat is the live one', async () => {
+    const { source, asked } = sourceFor({ next: liveNext })
+    expect((await source.watch(VIDEO))?.hasChatReplay).toBe(false)
+    await expect(source.liveChatReplay(VIDEO, 0)).resolves.toEqual({ items: [], disabled: true })
+    expect(asked.map((ask) => ask.endpoint)).toEqual(['/next', '/next'])
   })
 })
