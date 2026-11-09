@@ -89,6 +89,18 @@ test('renders the watch page without waiting for a lookup that never answers', a
   await expect(page.locator('main h1')).toBeVisible({ timeout: 120_000 })
   await expect(like).toHaveText(/^[\d.]+[KMB]$/)
   await expect(dislike).toHaveText('')
+  const video = page.locator('[data-player-root] video')
+  await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime), { timeout: 120_000 }).toBeGreaterThan(1)
+})
+
+test('the shared fixture answers the lookup with no count when a spec routes nothing', async ({ page }) => {
+  test.setTimeout(240_000)
+  const lookup = page.waitForResponse(LOOKUP_URL, { timeout: 120_000 })
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  expect(await (await lookup).json()).toEqual({ likes: 0, dislikes: 0 })
+  const { like, dislike } = likeButtons(page)
+  await expect(like).toHaveText(/^[\d.]+[KMB]$/, { timeout: 120_000 })
+  await expect(dislike).toHaveText('')
 })
 
 test('asks for nothing while the setting is off', async ({ page }) => {
