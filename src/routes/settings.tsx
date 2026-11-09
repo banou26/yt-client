@@ -182,6 +182,18 @@ export const SettingsPage = () => {
             onChange={() => set({ theater: !settings.theater })}
           />
         </div>
+        <div className='row'>
+          <div className='row-label'>
+            Show dislike counts (<a className='link' href='https://returnyoutubedislike.com' target='_blank' rel='noreferrer'>Return YouTube Dislike</a>)
+          </div>
+          <input
+            type='checkbox'
+            className='toggle'
+            aria-label='Show dislike counts'
+            checked={settings.showDislikes}
+            onChange={() => set({ showDislikes: !settings.showDislikes })}
+          />
+        </div>
       </section>
 
       <section className='section'>

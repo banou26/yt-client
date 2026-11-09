@@ -12,6 +12,13 @@ export const dismissFknNotice = (page: Page) =>
   )
 
 export const test = base.extend({
+  // the watch page's third-party lookups answer with nothing unless a spec routes them itself (a page route wins over
+  // a context route), so no spec depends on their live data
+  context: async ({ context }, use) => {
+    await context.route('https://returnyoutubedislikeapi.com/**', route =>
+      route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { likes: 0, dislikes: 0 } }))
+    await use(context)
+  },
   page: async ({ page }, use) => {
     await dismissFknNotice(page)
     await use(page)

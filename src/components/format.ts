@@ -1,5 +1,7 @@
 const compactNumber = new Intl.NumberFormat('en', { notation: 'compact' })
 
+export const formatCompact = (count: number) => compactNumber.format(count)
+
 // wouter already decodeURI-s the pathname, so params can hold a literal '%' that makes decodeURIComponent throw
 export const safeDecode = (value: string) => {
   try {
@@ -12,7 +14,7 @@ export const safeDecode = (value: string) => {
 export const formatViews = (viewCount?: string | null) => {
   if (!viewCount) return undefined
   if (!/^\d+$/.test(viewCount)) return viewCount
-  return `${compactNumber.format(Number(viewCount))} views`
+  return `${formatCompact(Number(viewCount))} views`
 }
 
 export const formatDuration = (seconds?: number | null) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { descriptionMeta, formatAgo, formatCount, parseStartSeconds } from '../../../src/components/format'
+import { descriptionMeta, formatAgo, formatCompact, formatCount, parseStartSeconds } from '../../../src/components/format'
 
 describe('start offsets', () => {
   it('accepts both forms upstream mints for `t`', () => {
@@ -67,5 +67,14 @@ describe('the description line', () => {
     expect(descriptionMeta({ expanded: false, viewCountText: '12 views', publishedDateText: 'Oct 25, 2009' })).toBe('12 views  Oct 25, 2009')
     expect(descriptionMeta({ expanded: true, shortViewCountText: '1.8B views' })).toBe('1.8B views')
     expect(descriptionMeta({ expanded: true })).toBe('')
+  })
+})
+
+describe('compact counts', () => {
+  it('rounds a count the way the like button shows one', () => {
+    expect(formatCompact(521680)).toBe('522K')
+    expect(formatCompact(19496469)).toBe('19M')
+    expect(formatCompact(1234)).toBe('1.2K')
+    expect(formatCompact(0)).toBe('0')
   })
 })

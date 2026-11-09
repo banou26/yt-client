@@ -9,7 +9,7 @@ const EXTENSION_PRIVACY_URL = 'https://fkn.app/extension/privacy'
 const KEPT: { title: string, what: string }[] = [
   {
     title: 'Settings',
-    what: 'Your theme, autoplay, volume and mute, quality, speed, captions and their language, and theater mode, whether the guide is collapsed, whether to offer the FKN extension, and whether it was there on your last visit. Kept until you change them.',
+    what: 'Your theme, autoplay, volume and mute, quality, speed, captions and their language, and theater mode, whether to show dislike counts, whether the guide is collapsed, whether to offer the FKN extension, and whether it was there on your last visit. Kept until you change them.',
   },
   {
     title: 'Channel groups',
@@ -139,7 +139,8 @@ export const PrivacyPage = () => {
         <p>
           Without the FKN browser extension, yt-client reaches YouTube's pages, API and video through FKN, the platform it
           runs on, so YouTube sees FKN's address there rather than yours. Thumbnails, pictures and fonts are the
-          exception: your browser loads them itself, from the servers listed further down.
+          exception, and so are dislike counts while they are on: your browser loads them itself, from the servers listed
+          further down.
         </p>
         <ul>
           <li>

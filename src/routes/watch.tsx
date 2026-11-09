@@ -12,7 +12,7 @@ import { Link, useSearch } from 'wouter'
 import { useDocumentTitle } from '../app'
 import Comments from '../components/comments'
 import DescriptionBox from '../components/description-box'
-import { parseStartSeconds, readable } from '../components/format'
+import { formatCompact, parseStartSeconds, readable } from '../components/format'
 import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
 import SaveMenu from '../components/save-menu'
@@ -21,6 +21,7 @@ import SubscribeButton from '../components/subscribe-button'
 import { FeedSentinel } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
+import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
 import { claimPlayer, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
@@ -212,19 +213,19 @@ const style = css`
   .dislike {
     display: flex;
     align-items: center;
+    gap: 0.8rem;
     border: none;
     background: transparent;
     color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 500;
     cursor: pointer;
     transition: background 0.15s ease;
   }
 
   .like {
-    gap: 0.8rem;
     padding: 0 1.2rem 0 1.6rem;
     border-right: 1px solid var(--border-subtle);
-    font-size: 1.4rem;
-    font-weight: 500;
   }
 
   .dislike {
@@ -353,6 +354,7 @@ const WatchPage = () => {
     pause: videoId === ''
   })
   const [rateState, rateVideo] = useMutation(RATE_VIDEO)
+  const dislikes = useDislikes(videoId)
   const playerSession = usePlayerSession()
   const theater = playerSession.theater
   const toggleTheater = useCallback(() => {
@@ -463,6 +465,7 @@ const WatchPage = () => {
                     onClick={() => rate('DISLIKE')}
                   >
                     <ThumbsDown size={20} strokeWidth={1.5} fill={disliked ? 'currentColor' : 'none'} />
+                    {dislikes !== undefined ? <span>{formatCompact(dislikes)}</span> : undefined}
                   </button>
                 </div>
                 <button type='button' className='pill' onClick={() => setSharing(true)}>

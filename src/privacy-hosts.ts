@@ -14,6 +14,7 @@ export const DIRECT_HOSTS: readonly DirectHost[] = [
   { domain: 'googleusercontent.com', what: 'Channel pictures and banners' },
   { domain: 'fonts.googleapis.com', what: 'The Roboto font' },
   { domain: 'fonts.gstatic.com', what: 'The Roboto font and live chat emoji' },
+  { domain: 'returnyoutubedislikeapi.com', what: 'Dislike counts from Return YouTube Dislike, which gets the ID of each video you open' },
 ]
 
 /** FKN's own servers: the broker, relay, WebVPN and storage.fkn.app under fkn.app, and the render proxy page the BotGuard agent runs in on sdbx.app. */

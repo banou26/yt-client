@@ -38,6 +38,7 @@ const NOT_FETCHED_FROM_THE_PAGE: Record<string, string[]> = {
     'src/sources/youtube/index.ts',
   ],
   'accounts.google.com': ['src/scramjet/signin-window.ts'],
+  'returnyoutubedislike.com': ['src/routes/settings.tsx'],
   'yt-client.local': ['src/graphql.ts'],
 }
 

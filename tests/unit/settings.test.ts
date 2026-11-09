@@ -52,3 +52,20 @@ describe('the theme setting', () => {
     expect((await load({ theme: 'sepia' })).getSettings().theme).toBe('device')
   })
 })
+
+describe('the dislike counts setting', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('is on until turned off', async () => {
+    expect((await load()).getSettings().showDislikes).toBe(true)
+    expect((await load({ theater: true })).getSettings().showDislikes).toBe(true)
+    expect((await load({ showDislikes: false })).getSettings().showDislikes).toBe(false)
+  })
+
+  it('is on when the stored value is not a boolean', async () => {
+    expect((await load({ showDislikes: 'no' })).getSettings().showDislikes).toBe(true)
+    expect((await load({ showDislikes: 0 })).getSettings().showDislikes).toBe(true)
+  })
+})
