@@ -33,12 +33,17 @@ test('the Live tab sorts from its Latest dropdown and filters by Members only an
   await expect(bar.getByRole('button')).toHaveText(['Latest', 'Members only', 'Public'])
   const members = bar.getByRole('button', { name: 'Members only', exact: true })
   await expect(members).toHaveAttribute('aria-pressed', 'false')
-  const everyone = await titles.first().textContent()
+  // the first few titles, so a false failure needs both lists to open with the same streams
+  const opening = async () => (await titles.allTextContents()).slice(0, 6)
+  const everyone = await opening()
 
   await members.click()
   await expect(page).toHaveURL(/[?&]filter=Members\+only/)
   await expect(members).toHaveAttribute('aria-pressed', 'true')
-  await expect(titles.first()).not.toHaveText(everyone!, { timeout: 120_000 })
+  await expect.poll(async () => {
+    const now = await opening()
+    return now.length > 0 && now.join('\n') !== everyone.join('\n')
+  }, { timeout: 120_000 }).toBe(true)
 
   await sort.click()
   const menu = page.getByRole('menu', { name: 'Sort by' })
