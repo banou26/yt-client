@@ -6,7 +6,7 @@ import type { startShakaPlayback } from './shaka'
 import { css } from '@emotion/react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
-import { LIVE_UNSUPPORTED } from '../frame/protocol'
+import { LIVE_UNSUPPORTED, playbackRefusal } from '../frame/protocol'
 import { startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
 import { getSettings, updateSettings } from '../settings'
@@ -185,8 +185,9 @@ const ShortsPlayer = (
     const fail = (error: unknown) => {
       if (abort.signal.aborted || retryTimer !== undefined) return
       const message = error instanceof Error ? error.message : String(error)
-      if (attempt >= 2 || message === LIVE_UNSUPPORTED) {
-        setStatus(message)
+      const refused = playbackRefusal(error)
+      if (attempt >= 2 || message === LIVE_UNSUPPORTED || refused?.final === true) {
+        setStatus(refused?.title ?? message)
         return
       }
       retryTimer = setTimeout(() => {

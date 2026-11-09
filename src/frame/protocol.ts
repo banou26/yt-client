@@ -12,6 +12,34 @@ export type { Storyboard, StoryboardFrame } from './storyboard'
 // the terminal marker the players match on, declared here because the app realm has to recognize it too
 export const LIVE_UNSUPPORTED = 'youtube: live streams are not playable in this client yet'
 
+/**
+ * What youtube.com shows in place of the player when upstream refuses a video, in its own words: the title and the
+ * line under it, the channel's avatar over the video's thumbnail for a members-only video, and whether it offers
+ * Sign in. `final` marks a refusal that asking again cannot change, such as a deleted, members-only, age-restricted
+ * or private video, which the players show at once rather than retrying.
+ */
+export type PlaybackRefusal = {
+  title: string
+  description?: string
+  thumbnail?: string
+  avatar?: string
+  signIn?: boolean
+  final: boolean
+}
+
+/** Leads the message `openPlayback` rejects with when upstream refuses the video, followed by its `PlaybackRefusal` as JSON. */
+export const PLAYBACK_REFUSED = 'youtube: refused: '
+
+/** The refusal an `openPlayback` rejection carries, undefined for any other failure. */
+export const playbackRefusal = (error: unknown): PlaybackRefusal | undefined => {
+  if (!(error instanceof Error) || !error.message.startsWith(PLAYBACK_REFUSED)) return undefined
+  try {
+    return JSON.parse(error.message.slice(PLAYBACK_REFUSED.length)) as PlaybackRefusal
+  } catch {
+    return undefined
+  }
+}
+
 export type PlaybackFormat = {
   key: string
   itag: number

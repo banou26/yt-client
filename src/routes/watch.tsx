@@ -24,7 +24,7 @@ import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-
 import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
-import { claimPlayer, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
+import { claimPlayer, closePlayer, getPlayerSession, openPlayer, setTheater as setPlayerTheater, usePlayerSession } from '../player/session'
 import { WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
 import { showToast } from '../components/ui/toast'
@@ -136,6 +136,20 @@ const style = css`
     font-weight: 700;
     line-height: 2.8rem;
     color: var(--text-primary);
+  }
+
+  .members-only {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.8rem;
+    color: var(--membership);
+  }
+
+  .members-only svg {
+    fill: currentColor;
   }
 
   .owner-row {
@@ -343,6 +357,43 @@ const RELATED_MORE_QUERY = gql(`
 
 type RelatedPage = RelatedVideosQuery['relatedVideos']
 
+// youtube.com's page for a video that no longer exists, measured at 1280 px on 2026-11-10
+const unavailableStyle = css`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14rem 2.4rem 2.4rem;
+  text-align: center;
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 3.2rem;
+    color: var(--text-primary);
+  }
+
+  .home {
+    display: flex;
+    align-items: center;
+    height: 4rem;
+    margin-top: 3.2rem;
+    padding: 0 1.5rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 2rem;
+    color: var(--accent);
+    font-size: 1.4rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .home:hover {
+    background: var(--accent-hover);
+  }
+`
+
+// Material's "stars", the mark youtube.com puts before Members only
+const MEMBERS_STAR = 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z'
+
 const RELATED_SKELETON_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 const WatchPage = () => {
@@ -379,11 +430,16 @@ const WatchPage = () => {
   const watch = watchData?.watch
   useDocumentTitle(watch?.title ?? undefined)
   const channel = watch?.channel
+  const unavailable = watch?.unavailableText ?? undefined
 
   useEffect(() => {
     if (videoId === '') return
+    if (unavailable) {
+      if (getPlayerSession().videoId === videoId) closePlayer()
+      return
+    }
     openPlayer({ videoId, startAt, title: watch?.title ?? undefined, list: listId, index: playlistIndex })
-  }, [videoId, startAt, watch?.title, listId, playlistIndex])
+  }, [videoId, startAt, watch?.title, listId, playlistIndex, unavailable])
   // the sidebar pages from its own cursor: re-running /next would restart the whole watch
   const [wantMoreRelated, setWantMoreRelated] = useState(false)
   const [relatedPages, setRelatedPages] = useState<RelatedPage[]>([])
@@ -417,6 +473,15 @@ const WatchPage = () => {
 
   const [sharing, setSharing] = useState(false)
 
+  if (unavailable) {
+    return (
+      <main css={unavailableStyle}>
+        <h1>{unavailable}</h1>
+        <Link href='/' className='home'>GO TO HOME</Link>
+      </main>
+    )
+  }
+
   return (
     <main css={style} className={theater ? 'theater' : undefined}>
       <div className='stage'>
@@ -425,6 +490,14 @@ const WatchPage = () => {
       </div>
       <div className='primary'>
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
+        {watch?.isMembersOnly
+          ? (
+            <p className='members-only'>
+              <svg width={12} height={12} viewBox='0 0 24 24' aria-hidden='true'><path d={MEMBERS_STAR} /></svg>
+              Members only
+            </p>
+          )
+          : undefined}
         {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
         {channel
           ? (
@@ -518,7 +591,7 @@ const WatchPage = () => {
             />
           )
           : undefined}
-        {!watchFetching
+        {!watchFetching && !watch?.commentsHidden
           ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
           : undefined}
       </div>

@@ -1126,6 +1126,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   const primary = first('VideoPrimaryInfo') as {
     title?: Text
     super_title_link?: Text
+    badges?: { style?: string }[]
     view_count?: {
       view_count?: Text
       short_view_count?: Text
@@ -1189,12 +1190,19 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   const views = primary?.view_count
   // upstream now sends only the bare '1.8B' for a video, and youtube.com adds the word itself
   const extraShort = presentText(views?.extra_short_view_count)
+  // a section that holds "Comments are turned off" is named comment-item-section, one that loads comments comments-section
+  const commentSections = (memo.get('ItemSection') ?? []) as { target_id?: string }[]
+  const hasComments = commentSections.some((section) => section.target_id === 'comments-section' || section.target_id === 'comment-item-section')
+  const promo = primary ? undefined : first('BackgroundPromo') as { title?: Text } | undefined
   return {
     id,
+    unavailableText: presentText(promo?.title),
     title: text(primary?.title),
     isLive: primary?.view_count?.is_live === true,
+    isMembersOnly: hasBadgeStyle(primary?.badges, 'MEMBERS_ONLY') ? true : undefined,
+    commentsHidden: hasComments ? undefined : true,
     concurrentViewers: primary?.view_count?.original_view_count,
-    viewCountText: text(primary?.view_count?.view_count ?? primary?.view_count?.short_view_count),
+    viewCountText: presentText(views?.view_count) ?? presentText(views?.short_view_count),
     publishedDateText: text(primary?.published) ?? text(primary?.relative_date),
     shortViewCountText: views?.is_live
       ? undefined
@@ -1205,7 +1213,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
       .filter(tag => tag.startsWith('#')),
     likeCountText: likeCount,
     commentCountText: text(commentsHeader?.comment_count) ?? text(commentsPanel?.header?.contextual_info),
-    description: text(secondary?.description),
+    description: presentText(secondary?.description),
     descriptionRuns: normalizeRuns(secondary?.description),
     likeStatus: status,
     channel: author?.id && author.name

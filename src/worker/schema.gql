@@ -374,6 +374,9 @@ type WatchPlaylist {
 
 type WatchMeta {
   id: ID!
+  # Upstream's own line for a video that no longer exists ("This video isn't
+  # available anymore"), which the page shows in place of the player and the rest.
+  unavailableText: String
   # The watch page branches on this instead of mounting a player: live playback
   # is not wired, and letting the player try produces three failed attempts and
   # an internal error string.
@@ -382,6 +385,12 @@ type WatchMeta {
   # while a stream is live.
   concurrentViewers: Int
   title: String
+  # youtube.com's Members only badge under the title.
+  isMembersOnly: Boolean
+  # True when youtube.com's watch page has no comments section at all, as on a
+  # members-only or private video, so the page shows none rather than "Comments
+  # are turned off".
+  commentsHidden: Boolean
   # The exact count and date, which the expanded description shows.
   viewCountText: String
   publishedDateText: String

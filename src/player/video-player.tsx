@@ -1,6 +1,6 @@
 import type shaka from 'shaka-player'
 
-import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { CaptionTrack, PlaybackRefusal, Storyboard } from '../frame/protocol'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './controls'
 import type { SkipSegment } from './sponsorblock'
@@ -9,7 +9,7 @@ import type { UpNext } from './up-next'
 // must stay type-only: a value import puts the on-demand shaka chunk back in the entry
 import type { startShakaPlayback } from './shaka'
 
-import { LIVE_UNSUPPORTED } from '../frame/protocol'
+import { LIVE_UNSUPPORTED, playbackRefusal } from '../frame/protocol'
 import { preferredTrack } from '../frame/captions'
 
 import { css } from '@emotion/react'
@@ -25,6 +25,7 @@ import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
+import { RefusalScreen } from './refusal-screen'
 import { stepRate } from './rates'
 import { ShortcutsDialog } from './shortcuts'
 import { CLOCK_SLACK, skipTarget } from './sponsorblock'
@@ -185,6 +186,7 @@ const VideoPlayer = (
   const [attempt, setAttempt] = useState(0)
   const restarts = useMemo(() => createRestartBudget(), [videoId])
   const [status, setStatus] = useState('Loading player')
+  const [refusal, setRefusal] = useState<PlaybackRefusal | undefined>(undefined)
   const [player, setPlayer] = useState<shaka.Player | undefined>(undefined)
   const [heights, setHeights] = useState<number[]>([])
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
@@ -287,9 +289,15 @@ const VideoPlayer = (
     const restart = (error: unknown) => {
       if (abort.signal.aborted || retryTimer !== undefined) return
       resumeAt.current = video.currentTime || resumeAt.current
-      const terminal = error instanceof Error && error.message === LIVE_UNSUPPORTED
+      const refused = playbackRefusal(error)
+      const terminal = (error instanceof Error && error.message === LIVE_UNSUPPORTED) || refused?.final === true
       if (terminal || !restarts.spend()) {
         void controller?.destroy()
+        if (refused) {
+          setStatus('')
+          setRefusal(refused)
+          return
+        }
         const message = error instanceof Error ? error.message : String(error)
         setStatus(`Playback failed: ${message}`)
         console.error(error)
@@ -550,12 +558,13 @@ const VideoPlayer = (
       {showSpinner ? <div className='spinner' /> : undefined}
       {bezel ? <Bezel key={bezel.id} cue={bezel} /> : undefined}
       {status ? <div className='playback-status'>{status}</div> : undefined}
+      {refusal ? <RefusalScreen refusal={refusal} /> : undefined}
       {upNext && ending === 'countdown' && upNext.pick
         ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />
         : upNext && ending === 'suggestions' && upNext.suggestions.length > 0
           ? <EndScreen videos={upNext.suggestions} onOpen={upNext.onOpen} />
           : undefined}
-      {video && !status
+      {video && !status && !refusal
         ? (
           <PlayerControls
             video={video}
@@ -581,9 +590,9 @@ const VideoPlayer = (
           />
         )
         : undefined}
-      {video && !status && undoable
+      {video && !status && !refusal && undoable
         ? <button type='button' className='sponsor-skip' onClick={undo}>Undo</button>
-        : video && !status && upcoming
+        : video && !status && !refusal && upcoming
           ? (
             <button
               type='button'

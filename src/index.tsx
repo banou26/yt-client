@@ -52,6 +52,7 @@ const globalStyles = css`
     --accent-focus: #1c62b9;
     --accent-inverse: #065fd4;
     --danger: #f28b82;
+    --membership: #2ba640;
 
     --shadow-menu: 0 0.4rem 3.2rem rgba(0, 0, 0, 0.4);
 
@@ -124,6 +125,7 @@ const globalStyles = css`
     --accent-focus: #065fd4;
     --accent-inverse: #3ea6ff;
     --danger: #c5221f;
+    --membership: #107516;
   }
 
   *,

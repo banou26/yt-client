@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vite-plus/test'
 import { Parser, YT, YTNodes } from 'youtubei.js'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
-import { CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
+import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
 import { accountsListAnswer, BRAND_PAGE_ID, twoChannels } from '../../fixtures/accounts-list'
 
 type FakeFeed = {
@@ -540,6 +540,18 @@ describe('youtube channel tabs', () => {
       }) as never,
     })
     await expect(broken.channel('UCzzzzzzzzzzzzzzzzzzzzzz')).rejects.toThrow(new Error('Tab "featured" not found'))
+  })
+
+  it('rejects a handle upstream answers 404 for as not found, and any other failure as it came', async () => {
+    const resolving = (error: Error) => createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => ({ resolveURL: async () => { throw error } }) as never,
+    })
+    // youtubei.js's own words for a failed request, measured on resolve_url for a missing handle on 2026-11-10
+    const failed = (status: number) => new Error(`Request to https://www.youtube.com/youtubei/v1/navigation/resolve_url?prettyPrint=false&alt=json failed with status code ${status}`)
+    await expect(resolving(failed(404)).channel('@thischanneldoesnotexist9876543')).rejects.toThrow(new Error(CHANNEL_NOT_FOUND))
+    await expect(resolving(failed(500)).channel('@someone')).rejects.toThrow(failed(500))
+    await expect(resolving(new TypeError('Failed to fetch')).channel('@someone')).rejects.toThrow(new TypeError('Failed to fetch'))
   })
 })
 

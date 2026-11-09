@@ -246,6 +246,9 @@ export type SourceChannelPage = {
  */
 export const CHANNEL_UNAVAILABLE = 'youtube: channel unavailable: '
 
+/** The message `channel` rejects with when a handle names no channel, where youtube.com answers with its 404 page. */
+export const CHANNEL_NOT_FOUND = 'youtube: no channel has this handle'
+
 export type SourceWatchPlaylist = {
   id: string
   title?: string
@@ -257,7 +260,12 @@ export type SourceWatchPlaylist = {
 
 export type SourceWatchMeta = {
   id: string
+  /** Upstream's own line for a video that no longer exists, which youtube.com shows in place of the whole page. */
+  unavailableText?: string
   isLive?: boolean
+  isMembersOnly?: boolean
+  /** True when youtube.com's watch page has no comments section at all, as on a members-only or private video. */
+  commentsHidden?: boolean
   concurrentViewers?: number
   title?: string
   viewCountText?: string

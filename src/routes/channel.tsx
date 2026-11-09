@@ -17,7 +17,7 @@ import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
-import { CHANNEL_UNAVAILABLE } from '../sources/types'
+import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../sources/types'
 import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
 import { ChannelHome } from './channel-home'
 
@@ -446,6 +446,15 @@ const style = css`
     color: var(--text-secondary);
   }
 
+  /* youtube.com's 404 page, measured at 1280 px on 2026-11-10 */
+  .not-found {
+    margin-top: 16rem;
+    text-align: center;
+    font-size: 1.6rem;
+    line-height: 1.8rem;
+    color: var(--text-primary);
+  }
+
   @media (max-width: 768px) {
     .header {
       flex-direction: column;
@@ -506,6 +515,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   })
   const channel = data?.channel.channel
   const unavailable = error?.graphQLErrors.find(entry => entry.message.startsWith(CHANNEL_UNAVAILABLE))
+  const missing = error?.graphQLErrors.some(entry => entry.message === CHANNEL_NOT_FOUND) === true
   const page = data?.channel.videos
   const { items, cursor } = useInfiniteFeed({
     pages: page ? [...pages, page] : pages,
@@ -645,7 +655,15 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
       {channel && (aboutOpen || aboutRequested)
         ? <ChannelAboutDialog name={channel.name} about={about} description={channel.description} onClose={closeAbout} />
         : undefined}
-      {error
+      {missing
+        ? (
+          <div className='not-found'>
+            <p>This page isn't available. Sorry about that.</p>
+            <p>Try searching for something else.</p>
+          </div>
+        )
+        : undefined}
+      {error && !missing
         ? (
           <p className='status'>
             {unavailable ? unavailable.message.slice(CHANNEL_UNAVAILABLE.length) : 'Couldn\'t load this channel. Try again later.'}

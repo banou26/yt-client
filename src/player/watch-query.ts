@@ -10,9 +10,12 @@ export const WATCH_META_QUERY = gql(`
   query WatchMeta($id: ID!, $playlistId: ID, $playlistIndex: Int) {
     watch(id: $id, playlistId: $playlistId, playlistIndex: $playlistIndex) {
       id
+      unavailableText
       isLive
       concurrentViewers
       title
+      isMembersOnly
+      commentsHidden
       viewCountText
       publishedDateText
       shortViewCountText

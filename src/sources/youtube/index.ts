@@ -3,7 +3,7 @@ import type { EntityMutation } from './normalize'
 
 import { Innertube, Utils } from 'youtubei.js/web'
 
-import { CHANNEL_UNAVAILABLE } from '../types'
+import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
 import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
@@ -711,7 +711,10 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
   const resolveHandle = async (handle: string) => {
     const endpoint = await (await client)
       .resolveURL(`https://www.youtube.com/${handle}`)
-      .catch(() => { throw new Error(`youtube: no channel with the handle ${handle}`) })
+      .catch((error: unknown) => {
+        // youtubei.js names only the status of a failed request
+        throw error instanceof Error && error.message.endsWith('status code 404') ? new Error(CHANNEL_NOT_FOUND, { cause: error }) : error
+      })
     const browseId = (endpoint as { payload?: { browseId?: string } }).payload?.browseId
     if (!browseId) throw new Error(`youtube: ${handle} does not resolve to a channel`)
     return browseId

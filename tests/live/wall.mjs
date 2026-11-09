@@ -105,6 +105,7 @@ const sample = page => withTimeout(page.evaluate(target => {
   const round = n => Math.round(n * 10) / 10
   const seen = window.__wall ?? { videos: 0, hosts: 0, engine: [] }
   const video = document.querySelector('[data-player-root] video')
+  const refused = document.querySelector('[data-player-root] [data-refusal] .refusal-title')?.textContent
   const menu = document.querySelector('button[aria-label="Account menu"]')
   const base = {
     account: menu ? (menu.querySelector('img') ? 'avatar' : 'initial') : 'none',
@@ -112,7 +113,7 @@ const sample = page => withTimeout(page.evaluate(target => {
     videos: seen.videos,
     hosts: seen.hosts,
     engine: seen.engine.join('>'),
-    status: document.querySelector('[data-player-root] .playback-status')?.textContent ?? null,
+    status: document.querySelector('[data-player-root] .playback-status')?.textContent ?? (refused ? `Playback failed: ${refused}` : null),
     playbackRecovery: document.documentElement.dataset.playbackRecovery ?? null,
   }
   if (!video) return { ...base, video: false }

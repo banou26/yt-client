@@ -747,6 +747,7 @@ describe('youtube normalization', () => {
       }]],
       ['SegmentedLikeDislikeButtonView', [{ like_count: 123456, short_like_count: '123K' }]],
       ['CommentsEntryPointHeader', [{ comment_count: { text: '4.2K' } }]],
+      ['ItemSection', [{ target_id: 'comments-section' }, { target_id: 'watch-next-feed' }]],
       ['CompactVideo', [{
         video_id: 'rel1',
         title: { text: 'Related one' },
@@ -808,6 +809,69 @@ describe('youtube normalization', () => {
       shortViewCountText: '1.8B views',
       relativeDateText: '17y ago',
       hashtags: ['#OfficialMusicVideo', '#NeverGonnaGiveYouUp'],
+    })
+  })
+
+  describe('a watch page youtube.com draws differently', () => {
+    const watchNext = (...contents: unknown[]) =>
+      Parser.parseResponse({ contents: { twoColumnWatchNextResults: { results: { results: { contents } } } } } as never)
+    // trimmed from /next on 2026-11-10: a members-only video carries empty counts, a badge and no comments section
+    const membersOnly = {
+      videoPrimaryInfoRenderer: {
+        title: { runs: [{ text: 'Extras - GTA 6 on PC May be Sooner than We Thought' }] },
+        viewCount: { videoViewCountRenderer: { viewCount: {}, shortViewCount: {}, originalViewCount: '0' } },
+        badges: [{ metadataBadgeRenderer: { icon: { iconType: 'SPONSORSHIP_STAR' }, style: 'BADGE_STYLE_TYPE_MEMBERS_ONLY', label: 'Members only' } }],
+        relativeDateText: { simpleText: '4d ago' },
+      },
+    }
+
+    it('reads a members-only video\'s badge, with no N/A count and no comments section', () => {
+      expect(normalizeWatchMeta(watchNext(membersOnly), 'CNbsMah32Ss')).toMatchObject({
+        title: 'Extras - GTA 6 on PC May be Sooner than We Thought',
+        isMembersOnly: true,
+        commentsHidden: true,
+        viewCountText: undefined,
+        shortViewCountText: undefined,
+        relativeDateText: '4d ago',
+        unavailableText: undefined,
+      })
+    })
+
+    it('reads a video with no description as having none, not the text N/A', () => {
+      const bare = {
+        videoPrimaryInfoRenderer: { title: { runs: [{ text: 'The Witcher 3: Wild Hunt - The Sword Of Destiny Trailer' }] } },
+      }
+      const owner = { videoSecondaryInfoRenderer: { owner: { videoOwnerRenderer: { title: { runs: [{ text: 'The Witcher' }] } } } } }
+      expect(normalizeWatchMeta(watchNext(bare, owner), 'HtVdAasjOgU')).toMatchObject({ description: undefined, descriptionRuns: [] })
+    })
+
+    it('keeps the comments section for a video whose comments are on or turned off', () => {
+      const primary = { videoPrimaryInfoRenderer: { title: { runs: [{ text: 'A video' }] } } }
+      const loading = { itemSectionRenderer: { contents: [{ continuationItemRenderer: { trigger: 'CONTINUATION_TRIGGER_ON_ITEM_SHOWN' } }], sectionIdentifier: 'comment-item-section', targetId: 'comments-section' } }
+      const off = { itemSectionRenderer: { contents: [{ messageRenderer: { text: { runs: [{ text: 'Comments are turned off' }] } } }], sectionIdentifier: 'comment-item-section' } }
+      expect(normalizeWatchMeta(watchNext(primary, loading), 'on')?.commentsHidden).toBeUndefined()
+      expect(normalizeWatchMeta(watchNext(primary, off), 'off')?.commentsHidden).toBeUndefined()
+      expect(normalizeWatchMeta(watchNext(primary), 'none')?.commentsHidden).toBe(true)
+    })
+
+    it('reads upstream\'s own line for a video that no longer exists', () => {
+      const gone = {
+        itemSectionRenderer: {
+          contents: [{
+            backgroundPromoRenderer: {
+              title: { runs: [{ text: 'This video isn\'t available anymore' }] },
+              ctaButton: { buttonRenderer: { text: { simpleText: 'GO TO HOME' }, navigationEndpoint: { browseEndpoint: { browseId: 'FEwhat_to_watch' } } } },
+              style: { value: 'BACKGROUND_PROMO_STYLE_TYPE_FULL_HEIGHT' },
+            },
+          }],
+        },
+      }
+      expect(normalizeWatchMeta(watchNext(gone), 'aaaaaaaaaaa')).toMatchObject({
+        unavailableText: 'This video isn\'t available anymore',
+        title: undefined,
+        channel: undefined,
+      })
+      expect(normalizeWatchMeta(watchNext(membersOnly, gone), 'CNbsMah32Ss')?.unavailableText).toBeUndefined()
     })
   })
 

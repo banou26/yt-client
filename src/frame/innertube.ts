@@ -14,6 +14,8 @@ import { parseCaptionTracks } from './captions'
 import { createYoutubeFetch, directLane, reportDirect } from './direct'
 import { egressFetch } from './egress'
 import { playableFormats } from './formats'
+import { PLAYBACK_REFUSED } from './protocol'
+import { readRefusal } from './refusal'
 import { parseStoryboards } from './storyboard'
 import { GVS_ORIGIN_KEY, VISITOR_DATA_KEY } from './identity'
 import { fetchPlayerResponse, pagePlayerOf } from './watch-page'
@@ -286,9 +288,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
   const context = client.session.context as unknown as InnertubeContext
   const raw = await rawPromise
   const info = new YT.VideoInfo([{ data: raw } as never], client.actions, Utils.generateRandomString(16))
-  if (info.playability_status?.status !== 'OK') {
-    throw new Error(`youtube: ${info.playability_status?.reason ?? info.playability_status?.status ?? 'not playable'}`)
-  }
+  if (info.playability_status?.status !== 'OK') throw new Error(`${PLAYBACK_REFUSED}${JSON.stringify(readRefusal(raw))}`)
   const streaming = info.streaming_data
   /* `is_live` rather than `is_live_content`, which stays true for the VOD a finished stream leaves behind. */
   const isLive = info.basic_info?.is_live === true
