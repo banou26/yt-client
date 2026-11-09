@@ -166,9 +166,7 @@ export const PrivacyPage = () => {
         </p>
         <p>When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at that point.</p>
         <p>
-          Skip sponsors works using{' '}
-          <a className='link' href={SPONSORBLOCK_URL} target='_blank' rel='noreferrer'>SponsorBlock</a>
-          . yt-client only reads sponsor segments from it, and sends it no votes and no report of what was skipped.
+          Skip sponsors: Using <a className='link' href={SPONSORBLOCK_URL} target='_blank' rel='noreferrer'>SponsorBlock</a>
         </p>
         <p>
           What FKN keeps, in this browser and on its servers, is in the{' '}

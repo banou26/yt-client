@@ -19,6 +19,7 @@ test('Settings links the privacy page, which lists every server the browser reac
   await expect(main.getByRole('link', { name: 'FKN privacy policy' })).toHaveAttribute('href', 'https://fkn.app/privacy')
   await expect(main.getByRole('link', { name: 'extension privacy policy' })).toHaveAttribute('href', 'https://fkn.app/extension/privacy')
   await expect(main.getByRole('link', { name: 'SponsorBlock' })).toHaveAttribute('href', 'https://sponsor.ajay.app')
+  await expect(main.locator('p').filter({ has: page.getByRole('link', { name: 'SponsorBlock' }) })).toHaveText('Skip sponsors: Using SponsorBlock')
 })
 
 test("the guide's footer links the privacy page", async ({ page }) => {
