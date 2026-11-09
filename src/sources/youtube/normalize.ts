@@ -1142,6 +1142,15 @@ const normalizeChapters = (input: unknown): SourceChapter[] => {
   })
 }
 
+/** The token that opens a finished stream's or premiere's chat replay, off /next's conversation bar. */
+export const chatReplayToken = (input: unknown) => {
+  const results = (input as WatchNextResponse | undefined)?.contents_memo?.get('TwoColumnWatchNextResults')?.[0] as {
+    conversation_bar?: { is_replay?: boolean, continuation?: string } | null
+  } | undefined
+  const bar = results?.conversation_bar
+  return bar?.is_replay === true && bar.continuation ? bar.continuation : undefined
+}
+
 export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta | undefined => {
   const memo = (input as WatchNextResponse | undefined)?.contents_memo
   if (!memo) return undefined
@@ -1224,6 +1233,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     isLive: primary?.view_count?.is_live === true,
     isMembersOnly: hasBadgeStyle(primary?.badges, 'MEMBERS_ONLY') ? true : undefined,
     commentsHidden: hasComments ? undefined : true,
+    hasChatReplay: chatReplayToken(input) !== undefined,
     concurrentViewers: primary?.view_count?.original_view_count,
     viewCountText: presentText(views?.view_count) ?? presentText(views?.short_view_count),
     publishedDateText: text(primary?.published) ?? text(primary?.relative_date),

@@ -266,6 +266,8 @@ export type SourceWatchMeta = {
   isMembersOnly?: boolean
   /** True when youtube.com's watch page has no comments section at all, as on a members-only or private video. */
   commentsHidden?: boolean
+  /** A finished stream or premiere whose chat can be replayed with `liveChatReplay`. */
+  hasChatReplay?: boolean
   concurrentViewers?: number
   title?: string
   viewCountText?: string
@@ -313,7 +315,12 @@ export type SourceLiveChatMessage = {
   purchaseAmountText?: string
   headerBackgroundColor?: string
   bodyBackgroundColor?: string
+  /** On a replay only: the point of the video the line was said at, in milliseconds. */
+  offsetMs?: number
 }
+
+/** youtube.com's two replays: TOP leaves out what upstream filters as likely spam, ALL keeps everything. */
+export type SourceChatReplayView = 'TOP' | 'ALL'
 
 export type SourceLiveChatRun = SourceTextRun & {
   emojiUrl?: string
@@ -435,6 +442,12 @@ export type Source = {
   commentReplies(cursor: string): Promise<SourceCommentPage>
   // Polled rather than streamed: the emitter is kept running and each call drains what it buffered since the previous cursor
   liveChat(videoId: string, cursor?: string): Promise<SourceLiveChatPage>
+  /**
+   * A finished stream's or premiere's chat, as pages of lines placed by `offsetMs`. Without a cursor it starts at
+   * `offsetMs`, with some lines from before that point; a cursor continues past the previous page and ignores
+   * `offsetMs`. A page with no cursor is the end of the replay, and `disabled` means the video has none.
+   */
+  liveChatReplay(videoId: string, offsetMs: number, view?: SourceChatReplayView, cursor?: string): Promise<SourceLiveChatPage>
   relatedVideos(cursor: string): Promise<SourceVideoPage>
   playlists(cursor?: string): Promise<SourcePlaylistListPage>
   playlist(id: string, cursor?: string): Promise<SourcePlaylistPage>
@@ -482,6 +495,7 @@ export const SOURCE_METHODS = [
   'comments',
   'commentReplies',
   'liveChat',
+  'liveChatReplay',
   'relatedVideos',
   'playlists',
   'playlist',
@@ -524,6 +538,7 @@ export const SOURCE_CURSOR_ARGUMENT = {
   comments: 2,
   commentReplies: 0,
   liveChat: 1,
+  liveChatReplay: 3,
   relatedVideos: 0,
   communityPosts: 1,
   notifications: 0,
@@ -550,6 +565,7 @@ export const SOURCE_REPLAY = {
   comments: 'unless-cursor',
   commentReplies: 'unless-cursor',
   liveChat: 'unless-cursor',
+  liveChatReplay: 'unless-cursor',
   relatedVideos: 'unless-cursor',
   playlists: 'unless-cursor',
   playlist: 'unless-cursor',

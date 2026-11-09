@@ -1,0 +1,538 @@
+{
+  "next": {
+    "contents": {
+      "twoColumnWatchNextResults": {
+        "conversationBar": {
+          "liveChatRenderer": {
+            "continuations": [
+              {
+                "reloadContinuationData": {
+                  "continuation": "replay-open"
+                }
+              }
+            ],
+            "header": {
+              "liveChatHeaderRenderer": {
+                "viewSelector": {
+                  "sortFilterSubMenuRenderer": {
+                    "subMenuItems": [
+                      {
+                        "title": "Top chat replay",
+                        "selected": true,
+                        "continuation": {
+                          "reloadContinuationData": {
+                            "continuation": "next-top"
+                          }
+                        },
+                        "subtitle": "Some messages, such as potential spam, may not be visible"
+                      },
+                      {
+                        "title": "Live chat replay",
+                        "selected": false,
+                        "continuation": {
+                          "reloadContinuationData": {
+                            "continuation": "next-all"
+                          }
+                        },
+                        "subtitle": "All messages are visible"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "clientMessages": {
+              "reconnectMessage": {
+                "runs": [
+                  {
+                    "text": "Chat disconnected. Please wait while we try to reconnect you."
+                  }
+                ]
+              },
+              "unableToReconnectMessage": {
+                "runs": [
+                  {
+                    "text": "Unable to connect to chat. Please try again later."
+                  }
+                ]
+              },
+              "fatalError": {
+                "runs": [
+                  {
+                    "text": "Unable to connect to chat. Please try again later."
+                  }
+                ]
+              },
+              "reconnectedMessage": {
+                "runs": [
+                  {
+                    "text": "Successfully connected."
+                  }
+                ]
+              },
+              "genericError": {
+                "runs": [
+                  {
+                    "text": "Error, try again."
+                  }
+                ]
+              }
+            },
+            "isReplay": true,
+            "initialDisplayState": "LIVE_CHAT_DISPLAY_STATE_COLLAPSED"
+          }
+        }
+      }
+    }
+  },
+  "first": {
+    "continuationContents": {
+      "liveChatContinuation": {
+        "continuations": [
+          {
+            "liveChatReplayContinuationData": {
+              "timeUntilLastMessageMsec": 5000,
+              "continuation": "replay-more"
+            }
+          },
+          {
+            "playerSeekContinuationData": {
+              "continuation": "replay-seek"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatViewerEngagementMessageRenderer": {
+                        "id": "replay-notice",
+                        "timestampUsec": "1701993600000000",
+                        "icon": {
+                          "iconType": "YOUTUBE_ROUND"
+                        },
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "Live chat replay is on. Messages that appeared during the Premiere will show up here."
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "0"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 1"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer1"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer1=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-1",
+                        "timestampUsec": "1701993601000000",
+                        "authorExternalChannelId": "UCviewer0000000000000001",
+                        "timestampText": {
+                          "simpleText": "2:54"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "174274"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatPlaceholderItemRenderer": {
+                        "id": "replay-placeholder",
+                        "timestampUsec": "1701993600000000"
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "174300"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 2"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer2"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer2=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-2",
+                        "timestampUsec": "1701993602000000",
+                        "authorExternalChannelId": "UCviewer0000000000000002",
+                        "timestampText": {
+                          "simpleText": "2:54"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "174602"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 3"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer3"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer3=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-3",
+                        "timestampUsec": "1701993603000000",
+                        "authorExternalChannelId": "UCviewer0000000000000003",
+                        "timestampText": {
+                          "simpleText": "2:54"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "174625"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 4"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer4"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer4=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-4",
+                        "timestampUsec": "1701993604000000",
+                        "authorExternalChannelId": "UCviewer0000000000000004",
+                        "timestampText": {
+                          "simpleText": "2:54"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "174913"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 5"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer5"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer5=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-5",
+                        "timestampUsec": "1701993605000000",
+                        "authorExternalChannelId": "UCviewer0000000000000005",
+                        "timestampText": {
+                          "simpleText": "2:55"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "175348"
+            }
+          }
+        ],
+        "header": {
+          "liveChatHeaderRenderer": {
+            "viewSelector": {
+              "sortFilterSubMenuRenderer": {
+                "subMenuItems": [
+                  {
+                    "title": "Top chat replay",
+                    "selected": true,
+                    "continuation": {
+                      "reloadContinuationData": {
+                        "continuation": "view-top"
+                      }
+                    },
+                    "subtitle": "Some messages, such as potential spam, may not be visible"
+                  },
+                  {
+                    "title": "Live chat replay",
+                    "selected": false,
+                    "continuation": {
+                      "reloadContinuationData": {
+                        "continuation": "view-all"
+                      }
+                    },
+                    "subtitle": "All messages are visible"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "isReplay": true
+      }
+    }
+  },
+  "more": {
+    "continuationContents": {
+      "liveChatContinuation": {
+        "continuations": [
+          {
+            "liveChatReplayContinuationData": {
+              "timeUntilLastMessageMsec": 5000,
+              "continuation": "replay-last"
+            }
+          },
+          {
+            "playerSeekContinuationData": {
+              "continuation": "replay-seek"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 6"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer6"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer6=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-6",
+                        "timestampUsec": "1701993606000000",
+                        "authorExternalChannelId": "UCviewer0000000000000006",
+                        "timestampText": {
+                          "simpleText": "3:05"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "185070"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 7"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer7"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer7=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-7",
+                        "timestampUsec": "1701993607000000",
+                        "authorExternalChannelId": "UCviewer0000000000000007",
+                        "timestampText": {
+                          "simpleText": "3:05"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "185148"
+            }
+          },
+          {
+            "replayChatItemAction": {
+              "actions": [
+                {
+                  "addChatItemAction": {
+                    "item": {
+                      "liveChatTextMessageRenderer": {
+                        "message": {
+                          "runs": [
+                            {
+                              "text": "message 8"
+                            }
+                          ]
+                        },
+                        "authorName": {
+                          "simpleText": "@viewer8"
+                        },
+                        "authorPhoto": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt4.ggpht.com/viewer8=s32-c-k-c0x00ffffff-no-rj",
+                              "width": 32,
+                              "height": 32
+                            }
+                          ]
+                        },
+                        "id": "replay-message-8",
+                        "timestampUsec": "1701993608000000",
+                        "authorExternalChannelId": "UCviewer0000000000000008",
+                        "timestampText": {
+                          "simpleText": "3:05"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "videoOffsetTimeMsec": "185609"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "end": {
+    "continuationContents": {
+      "liveChatContinuation": {
+        "continuations": [
+          {
+            "playerSeekContinuationData": {
+              "continuation": "replay-seek"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

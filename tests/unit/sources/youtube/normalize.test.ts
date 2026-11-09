@@ -763,6 +763,7 @@ describe('youtube normalization', () => {
     expect(normalizeWatchMeta({ contents_memo: memo }, 'abc')).toEqual({
       id: 'abc',
       isLive: false,
+      hasChatReplay: false,
       concurrentViewers: undefined,
       viewCountText: '55,504,131 views',
       publishedDateText: 'Jun 8, 2021',

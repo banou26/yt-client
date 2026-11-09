@@ -5,7 +5,7 @@ import { Innertube, Utils } from 'youtubei.js/web'
 
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -199,6 +199,14 @@ type LiveChatAction = {
   target_item_id?: string
 }
 
+type LiveChatReplayResponse = {
+  continuation_contents?: {
+    actions?: { video_offset_time_msec?: string, actions?: { type?: string, item?: unknown }[] }[]
+    header?: { view_selector?: { sub_menu_items?: { continuation?: string }[] } }
+    continuation?: { token?: string }
+  }
+}
+
 type VideoInfoWithChat = {
   livechat?: unknown
   getLiveChat(): LiveChatEmitter
@@ -267,6 +275,7 @@ export type YoutubeClient = {
     execute(endpoint: '/reel/reel_item_watch', args: { params: string, inputType: string }): Promise<SeedlessReelResponse>
     execute(endpoint: '/account/accounts_list', args: { client: 'WEB', parse: true }): Promise<{ actions_memo?: { get(type: string): unknown[] | undefined } }>
     execute(endpoint: '/browse', args: { browseId: string, params?: string, parse: true }): Promise<{ contents_memo?: Map<string, unknown[]> }>
+    execute(endpoint: 'live_chat/get_live_chat_replay', args: { continuation: string, currentPlayerState: { playerOffsetMs: string }, parse: true }): Promise<unknown>
   }
 }
 
@@ -702,6 +711,37 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       }
       return drainLiveChat(videoId, current)
     })
+    return page
+  }
+
+  // the token that starts each view of a video's replay at any point: /next names TOP's, and every first page's header both
+  const chatReplayViews = new Map<string, { TOP: string, ALL?: string }>()
+  const chatReplayContinuations = createContinuations<SourceLiveChatPage>()
+
+  const chatReplayPage = async (videoId: string, token: string, offsetMs: number): Promise<SourceLiveChatPage> => {
+    const response = await (await client).actions.execute('live_chat/get_live_chat_replay', {
+      continuation: token,
+      currentPlayerState: { playerOffsetMs: String(Math.max(0, Math.round(offsetMs))) },
+      parse: true,
+    }) as LiveChatReplayResponse
+    const contents = response.continuation_contents
+    // in youtube.com's order, which is also how youtubei.js's own applyFilter tells them apart
+    const [top, all] = (contents?.header?.view_selector?.sub_menu_items ?? []).map((item) => item.continuation)
+    if (top) chatReplayViews.set(videoId, { TOP: top, ALL: all })
+    const items = (contents?.actions ?? []).flatMap((replay) => {
+      const at = Number(replay.video_offset_time_msec)
+      return (replay.actions ?? []).flatMap((action) => {
+        const message = action.type === 'AddChatItemAction' ? normalizeLiveChatMessage(action.item) : undefined
+        // the opening notice and the placeholders of removed lines carry no author
+        return message?.author && Number.isFinite(at) ? [{ ...message, offsetMs: at }] : []
+      })
+    })
+    const page: SourceLiveChatPage = { items }
+    const next = contents?.continuation?.token
+    if (next) {
+      const reached = items.at(-1)?.offsetMs ?? offsetMs
+      page.cursor = chatReplayContinuations.register(`replay:${videoId}`, () => chatReplayPage(videoId, next, reached))
+    }
     return page
   }
 
@@ -1229,6 +1269,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       })
       const meta = normalizeWatchMeta(response, id)
       if (!meta) return undefined
+      const replay = chatReplayToken(response)
+      if (replay && !chatReplayViews.has(id)) chatReplayViews.set(id, { TOP: replay })
       // Read off secondary_results rather than the memo, which also holds the comments entry's ContinuationItem.
       const watchNext = (response as WatchNextContainer).contents_memo?.get('TwoColumnWatchNextResults')?.[0]
       const secondary = (watchNext as { secondary_results?: unknown[] } | undefined)?.secondary_results ?? []
@@ -1309,6 +1351,21 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
         await Promise.race([waited, new Promise((resolve) => setTimeout(resolve, LIVE_CHAT_OPEN_GRACE_MS))])
       }
       return drainLiveChat(videoId, session)
+    },
+
+    liveChatReplay: async (videoId, offsetMs, view = 'TOP', cursor) => {
+      if (cursor) return chatReplayContinuations.resolve(`replay:${videoId}`, cursor)
+      if (!chatReplayViews.has(videoId)) {
+        const token = chatReplayToken(await (await client).actions.execute('/next', { videoId, racyCheckOk: true, contentCheckOk: true, parse: true }))
+        if (!token) return { items: [], disabled: true }
+        chatReplayViews.set(videoId, { TOP: token })
+      }
+      const views = chatReplayViews.get(videoId)!
+      // ALL's token comes only in a first page's header, so an engine that has not asked TOP yet asks it first
+      if (!views[view]) await chatReplayPage(videoId, views.TOP, offsetMs)
+      const token = chatReplayViews.get(videoId)?.[view]
+      if (!token) return { items: [], disabled: true }
+      return chatReplayPage(videoId, token, offsetMs)
     },
 
     sendLiveChatMessage: async (videoId, textBody) => {
