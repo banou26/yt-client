@@ -1,6 +1,6 @@
 import type { SearchFilters } from '../generated/graphql'
 import type { Resolvers } from '../generated/resolvers'
-import type { SourceSearchFilters } from '../sources/types'
+import type { SourceSearchFilters, SourceSearchResult } from '../sources/types'
 
 // A null reaching youtubei.js is a real filter value, not an absent one, so every field is converted rather than passed through
 const searchFilters = (filters: SearchFilters | null | undefined): SourceSearchFilters | undefined => {
@@ -14,10 +14,17 @@ const searchFilters = (filters: SearchFilters | null | undefined): SourceSearchF
   }
 }
 
+const SEARCH_RESULT_TYPES = {
+  video: 'Video',
+  channel: 'Channel',
+  playlist: 'Playlist',
+  card: 'SearchCard',
+  shelf: 'SearchShelf',
+} as const satisfies Record<SourceSearchResult['kind'], string>
+
 export const resolvers = {
   SearchResult: {
-    __resolveType: (result) =>
-      result.kind === 'video' ? 'Video' : result.kind === 'channel' ? 'Channel' : 'Playlist',
+    __resolveType: (result) => SEARCH_RESULT_TYPES[result.kind],
   },
   Query: {
     home: (_, { chip, cursor }, context) => context.source.home(chip ?? undefined, cursor ?? undefined),

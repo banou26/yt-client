@@ -68,11 +68,11 @@ const style = css`
   }
 `
 
-export const ShortsShelf = ({ shorts }: { shorts: readonly VideoCardData[] }) => {
+export const ShortsShelf = ({ shorts, title = 'Shorts' }: { shorts: readonly VideoCardData[], title?: string }) => {
   if (shorts.length === 0) return null
 
   return (
-    <section css={style} aria-label='Shorts'>
+    <section css={style} aria-label={title}>
       <div className='shelf-head'>
         <svg width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'>
           <path
@@ -81,7 +81,7 @@ export const ShortsShelf = ({ shorts }: { shorts: readonly VideoCardData[] }) =>
           />
           <path fill='#fff' d='M10 14.65v-5.3L15 12z' />
         </svg>
-        <h2 className='shelf-title'>Shorts</h2>
+        <h2 className='shelf-title'>{title}</h2>
       </div>
       <Rail label='shorts' count={shorts.length}>
         {shorts.map(short => (

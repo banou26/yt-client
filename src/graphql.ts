@@ -41,6 +41,9 @@ const cache = cacheExchange({
     ChannelShelf: () => null,
     ChannelAbout: () => null,
     ChannelLink: () => null,
+    SearchPage: () => null,
+    SearchCard: () => null,
+    SearchShelf: () => null,
     CommentPage: () => null,
     // deliberately NOT an entity: one playlist can hold the same video twice under different setVideoIds
     PlaylistItem: () => null,

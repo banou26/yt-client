@@ -99,6 +99,34 @@ test('search has the chip row, a filters dialog, wide rows and a preview on hove
   await expect(page.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
 
+test('an artist search opens on the artist card and keeps the shelves, and every row has a menu', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/results?search_query=rick+astley')
+  const card = page.getByRole('region', { name: 'Rick Astley', exact: true })
+  await expect(card).toBeVisible({ timeout: 120_000 })
+  await expect(page.locator('main .results > *').first()).toHaveAttribute('aria-label', 'Rick Astley')
+  await expect(card.getByRole('link', { name: 'View Channel' })).toHaveAttribute('href', /^\/channel\/UC/)
+  await expect(card.getByRole('link', { name: 'Mix' }).first()).toHaveAttribute('href', /^\/watch\?v=.+&list=RD/)
+
+  const official = card.locator('article').filter({ has: page.locator('a[href="/watch?v=dQw4w9WgXcQ"]') })
+  await expect(official).toContainText(/1\.\dB\b/)
+  const box = await official.boundingBox()
+  expect(box!.y + box!.height, 'the official video is below the first screen').toBeLessThan(900)
+
+  const latest = page.getByRole('region', { name: 'Latest from Rick Astley' })
+  const latestRows = latest.locator('article.result')
+  await expect(latestRows).toHaveCount(2)
+  await latest.getByRole('button', { name: /^\+\d+ More$/ }).click()
+  await expect.poll(() => latestRows.count()).toBeGreaterThan(2)
+  await expect(page.getByRole('region', { name: /Shorts/ }).first().locator('a[href^="/shorts/"]').first()).toBeVisible()
+
+  const more = page.locator('main article.result').first().getByRole('button', { name: /^More actions for / })
+  await expect(more).toBeVisible()
+  await more.click()
+  await expect(page.getByRole('menuitem', { name: 'Save to Watch later' })).toBeVisible()
+})
+
 test('badges verified and artist channels on the watch page, its related column and the channel', async ({ page }) => {
   test.setTimeout(240_000)
   await page.goto('/watch?v=dQw4w9WgXcQ')

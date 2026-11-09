@@ -107,11 +107,37 @@ export type SourceSearchFilters = {
   features?: SourceSearchFeature[]
 }
 
+// A mix has no playlist page: it plays at /watch on `videoId` inside its list
+export type SourceMix = {
+  id: string
+  title: string
+  thumbnail?: string
+  videoId: string
+}
+
+// The card youtube.com puts above the results of an artist or channel search
+export type SourceSearchCard = {
+  channel: SourceChannel
+  mix?: SourceMix
+  videos: SourceVideo[]
+}
+
+// "Latest from" a channel as result rows, or a row of Shorts
+export type SourceSearchShelf = {
+  title: string
+  videos: SourceVideo[]
+  // how many of `videos` upstream shows before the rest fold behind a button
+  collapsedCount?: number
+  shorts: SourceVideo[]
+}
+
 // The tag sits ALONGSIDE the entity's own fields rather than wrapping them, and `kind` is not in the schema
 export type SourceSearchResult =
   | (SourceVideo & { kind: 'video' })
   | (SourceChannel & { kind: 'channel' })
   | (SourcePlaylist & { kind: 'playlist' })
+  | (SourceSearchCard & { kind: 'card' })
+  | (SourceSearchShelf & { kind: 'shelf' })
 
 export type SourceSearchPage = {
   results: SourceSearchResult[]

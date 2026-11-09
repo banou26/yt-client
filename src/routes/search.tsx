@@ -1,4 +1,4 @@
-import type { SearchDuration, SearchFeature, SearchResultsQuery, SearchSort, SearchType, SearchUploadDate } from '../generated/graphql'
+import type { SearchDuration, SearchFeature, SearchResultsQuery, SearchSort, SearchType, SearchUploadDate, SearchVideoFragment } from '../generated/graphql'
 
 import type { TargetedPointerEvent } from 'preact'
 
@@ -11,12 +11,14 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { useDocumentTitle } from '../app'
 import { formatDuration, formatMeta } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
+import { SearchCard } from '../components/search-card'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
+import { ShortsShelf } from '../components/shorts-shelf'
 import SubscribeButton from '../components/subscribe-button'
 import Dialog from '../components/ui/dialog'
 import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
-import { watchHrefFor } from '../components/video-card'
+import { VideoCardMenu, watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
 import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
@@ -30,21 +32,7 @@ const SEARCH_RESULTS_QUERY = gql(`
     search(query: $query, filters: $filters, cursor: $cursor) {
       results {
         __typename
-        ... on Video {
-          id
-          title
-          description
-          descriptionSnippet
-          thumbnail
-          thumbnailSrcset
-          durationSeconds
-          viewCount
-          publishedText
-          isLive
-          isUpcoming
-          badges
-          channel { id name avatar isVerified isVerifiedArtist }
-        }
+        ...SearchVideo
         ... on Channel {
           id
           name
@@ -65,10 +53,50 @@ const SEARCH_RESULTS_QUERY = gql(`
           videoCountText
           channel { id name }
         }
+        ... on SearchCard {
+          # aliased: the same selection holds a Video's nullable channel, and one field name cannot be both
+          cardChannel: channel {
+            id
+            name
+            avatar
+            handle
+            subscriberCountText
+            videoCountText
+            description
+            isSubscribed
+            notificationLevel
+            isVerified
+            isVerifiedArtist
+          }
+          mix { id title thumbnail videoId }
+          videos { ...SearchVideo }
+        }
+        ... on SearchShelf {
+          title
+          collapsedCount
+          videos { ...SearchVideo }
+          shorts { id title thumbnail viewCount }
+        }
       }
       refinements
       cursor
     }
+  }
+
+  fragment SearchVideo on Video {
+    id
+    title
+    description
+    descriptionSnippet
+    thumbnail
+    thumbnailSrcset
+    durationSeconds
+    viewCount
+    publishedText
+    isLive
+    isUpcoming
+    badges
+    channel { id name avatar isVerified isVerifiedArtist }
   }
 `)
 
@@ -305,7 +333,7 @@ const style = css`
     gap: 1.6rem;
   }
 
-  .thumb {
+  .result .thumb {
     position: relative;
     display: block;
     aspect-ratio: 16 / 9;
@@ -314,13 +342,13 @@ const style = css`
     background: var(--bg-chip);
   }
 
-  .thumb img {
+  .result .thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  .badge {
+  .result .badge {
     position: absolute;
     right: 0.8rem;
     bottom: 0.8rem;
@@ -332,11 +360,19 @@ const style = css`
     font-weight: 500;
   }
 
-  .badge.live {
+  .result .badge.live {
     background: var(--brand-red);
   }
 
-  .title {
+  .result .title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .result .title {
+    flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: 1.8rem;
     font-weight: 400;
@@ -344,7 +380,51 @@ const style = css`
     color: var(--text-primary);
   }
 
-  .meta {
+  .result .more {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-top: -0.7rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  .result .more:hover {
+    background: var(--bg-hover);
+  }
+
+  .shelf-heading {
+    margin: 0.8rem 0 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.8rem;
+    color: var(--text-primary);
+  }
+
+  .shelf-more {
+    display: block;
+    margin: 0 auto;
+    padding: 0.8rem 1.6rem;
+    border: none;
+    border-radius: 1.8rem;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .shelf-more:hover {
+    background: var(--bg-hover);
+  }
+
+  .result .meta {
     margin-top: 0.4rem;
     font-size: 1.2rem;
     color: var(--text-secondary);
@@ -374,7 +454,7 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  .avatar {
+  .result .avatar {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -386,7 +466,7 @@ const style = css`
     font-size: 1.1rem;
   }
 
-  .avatar img {
+  .result .avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -430,7 +510,7 @@ const style = css`
     object-fit: cover;
   }
 
-  .channel-name {
+  .result .channel-name {
     margin: 0;
     font-size: 1.8rem;
     font-weight: 400;
@@ -478,7 +558,7 @@ const style = css`
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .thumb {
+    .result .thumb {
       max-width: none;
       min-width: 0;
     }
@@ -486,12 +566,16 @@ const style = css`
 `
 
 // a video and a channel can hold the same id string, so the key carries the member as well or one evicts the other from the deduped feed
-const rowKey = (row: SearchRow) =>
-  row.__typename === 'Channel' ? `channel:${row.id}` : `${row.__typename}:${row.id}`
+const rowKey = (row: SearchRow) => {
+  if (row.__typename === 'SearchCard') return `card:${row.cardChannel.id}`
+  // two shelves can share a title ("Shorts"), never a first item
+  if (row.__typename === 'SearchShelf') return `shelf:${row.title}:${(row.videos[0] ?? row.shorts[0])?.id}`
+  return row.__typename === 'Channel' ? `channel:${row.id}` : `${row.__typename}:${row.id}`
+}
 
-type VideoResult = Extract<SearchRow, { __typename: 'Video' }>
+type ShelfResult = Extract<SearchRow, { __typename: 'SearchShelf' }>
 
-const VideoRow = ({ row }: { row: VideoResult }) => {
+const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
   const prefetch = usePrefetchOnIntent(row.id)
   const [previewing, setPreviewing] = useState(false)
   const watchHref = watchHrefFor(row.id)
@@ -530,9 +614,12 @@ const VideoRow = ({ row }: { row: VideoResult }) => {
           : duration ? <span className='badge'>{duration}</span> : undefined}
       </Link>
       <div className='info'>
-        <h2 className='title'>
-          <Link href={watchHref}>{row.title}</Link>
-        </h2>
+        <div className='title-row'>
+          <h2 className='title'>
+            <Link href={watchHref}>{row.title}</Link>
+          </h2>
+          <VideoCardMenu videoId={row.id} title={row.title} iconSize={24} />
+        </div>
         {meta ? <div className='meta'>{meta}</div> : undefined}
         {row.badges.length > 0
           ? (
@@ -556,6 +643,22 @@ const VideoRow = ({ row }: { row: VideoResult }) => {
         {snippet ? <p className='description'>{snippet}</p> : undefined}
       </div>
     </article>
+  )
+}
+
+const ResultShelf = ({ shelf }: { shelf: ShelfResult }) => {
+  const [expanded, setExpanded] = useState(false)
+  if (shelf.shorts.length > 0) return <ShortsShelf shorts={shelf.shorts} title={shelf.title} />
+  const shown = expanded || !shelf.collapsedCount ? shelf.videos : shelf.videos.slice(0, shelf.collapsedCount)
+  const hidden = shelf.videos.length - shown.length
+  return (
+    <section className='results' aria-label={shelf.title}>
+      <h2 className='shelf-heading'>{shelf.title}</h2>
+      {shown.map(video => <VideoRow key={video.id} row={video} />)}
+      {hidden > 0
+        ? <button type='button' className='shelf-more' onClick={() => setExpanded(true)}>+{hidden} More</button>
+        : undefined}
+    </section>
   )
 }
 
@@ -705,6 +808,8 @@ const SearchPage = () => {
       {fetching && items.length === 0 ? <p className='status'>Searching…</p> : undefined}
       <div className='results'>
         {items.map(row => {
+          if (row.__typename === 'SearchCard') return <SearchCard key={rowKey(row)} card={row} />
+          if (row.__typename === 'SearchShelf') return <ResultShelf key={rowKey(row)} shelf={row} />
           if (row.__typename === 'Channel') {
             return (
               <article className='result channel-row' key={rowKey(row)}>

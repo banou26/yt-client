@@ -126,11 +126,37 @@ type HomeFeed {
   cursor: String
 }
 
+# A mix has no playlist page: it plays at /watch on `videoId` inside its list.
+type Mix {
+  id: ID!
+  title: String!
+  thumbnail: String
+  videoId: ID!
+}
+
+# The card youtube.com puts above the results of an artist or channel search:
+# the channel, its mix and a row of its top videos.
+type SearchCard {
+  channel: Channel!
+  mix: Mix
+  videos: [Video!]!
+}
+
+# A titled group inside the results: "Latest from" a channel as result rows, or
+# a row of Shorts.
+type SearchShelf {
+  title: String!
+  videos: [Video!]!
+  # How many of `videos` upstream shows before the rest fold behind a button.
+  collapsedCount: Int
+  shorts: [Video!]!
+}
+
 # Search ranks channels and playlists above videos for a name query, so a
 # video-only page silently drops the best answer. The source tags every row with
 # its kind, which keeps __resolveType a pure field switch in the worker rather
 # than a second place that has to know youtubei.js node shapes.
-union SearchResult = Video | Channel | Playlist
+union SearchResult = Video | Channel | Playlist | SearchCard | SearchShelf
 
 type SearchPage {
   results: [SearchResult!]!

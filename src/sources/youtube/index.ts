@@ -1,9 +1,10 @@
 import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
+import type { EntityMutation } from './normalize'
 
 import { Innertube } from 'youtubei.js/web'
 
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchChannel, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -52,6 +53,7 @@ type SearchFeed = Feed & {
   results?: Iterable<unknown>
   refinements?: string[]
   estimated_results?: number
+  page?: { entity_mutations?: EntityMutation[] }
 }
 
 type ChannelFeed = Feed & {
@@ -777,10 +779,19 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
         continue
       }
       const channel = normalizeSearchChannel(node)
-      if (channel && !seen.has(`channel:${channel.id}`)) {
+      if (channel) {
+        if (seen.has(`channel:${channel.id}`)) continue
         seen.add(`channel:${channel.id}`)
         results.push({ ...channel, kind: 'channel' })
+        continue
       }
+      const card = normalizeSearchCard(node, feed.page?.entity_mutations)
+      if (card) {
+        results.push({ ...card, kind: 'card' })
+        continue
+      }
+      const shelf = normalizeSearchShelf(node)
+      if (shelf) results.push({ ...shelf, kind: 'shelf' })
     }
     const result: SourceSearchPage = {
       results,

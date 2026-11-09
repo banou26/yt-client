@@ -1,4 +1,4 @@
-import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -88,6 +88,9 @@ type ChannelHeader = {
   }
 }
 
+// state_entity_store_key and entity_mutations are this repo's patch of youtubei.js (patches/), which otherwise drops both
+export type EntityMutation = { payload?: { subscriptionStateEntity?: { key?: string, subscribed?: boolean } } }
+
 type ChannelDetails = {
   header?: ChannelHeader
   metadata?: {
@@ -101,10 +104,9 @@ type ChannelDetails = {
     subscribed?: boolean
     notification_preference_button?: { current_state_id?: string | number }
   }
-  // state_entity_store_key and entity_mutations are this repo's patch of youtubei.js (patches/), which otherwise drops both
   page?: {
     header_memo?: Map<string, { state_entity_store_key?: string }[]>
-    entity_mutations?: { payload?: { subscriptionStateEntity?: { key?: string, subscribed?: boolean } } }[]
+    entity_mutations?: EntityMutation[]
   }
 }
 
@@ -135,6 +137,7 @@ type LockupVideo = {
     }
     metadata?: MetadataParts
   }
+  renderer_context?: { command_context?: { on_tap?: { payload?: { videoId?: string } } } }
 }
 
 type PlaylistVideoNode = FeedVideo & {
@@ -394,14 +397,16 @@ const lockupChannel = (lockup: LockupVideo, byline: LockupPart | undefined): Sou
   }
 }
 
-// the page header's button carries only a key, and the state it names arrives in the response's entity store
-const headerSubscribed = (channel: ChannelDetails) => {
-  const key = channel.page?.header_memo?.get('SubscribeButtonView')?.[0]?.state_entity_store_key
+// a page header's button carries only a key, and the state it names arrives in the response's entity store
+const storedSubscribed = (mutations: EntityMutation[] | undefined, key: string | undefined) => {
   if (!key) return undefined
-  return channel.page?.entity_mutations
+  return mutations
     ?.find((mutation) => mutation.payload?.subscriptionStateEntity?.key === key)
     ?.payload?.subscriptionStateEntity?.subscribed
 }
+
+const headerSubscribed = (channel: ChannelDetails) =>
+  storedSubscribed(channel.page?.entity_mutations, channel.page?.header_memo?.get('SubscribeButtonView')?.[0]?.state_entity_store_key)
 
 export const normalizeChannel = (input: unknown, fallbackId?: string): SourceChannel => {
   const channel = input as ChannelDetails
@@ -845,6 +850,85 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
   }
   const { videos, shorts, playlists, channels } = shelf
   return videos.length + shorts.length + playlists.length + channels.length > 0 ? shelf : undefined
+}
+
+type CardAction = {
+  type?: string
+  channel_id?: string
+  state_entity_store_key?: string
+  is_signed_out?: boolean
+  on_tap?: { payload?: { browseId?: string } }
+}
+
+type OfficialCardNode = {
+  header?: {
+    title?: { text?: Text }
+    image?: { image?: Thumbnail[] }
+    metadata?: MetadataParts
+    description?: { description?: Text }
+    actions?: { actions_rows?: { actions?: CardAction[] }[] }
+  }
+  contents?: { items?: unknown[] }[]
+}
+
+const normalizeMixLockup = (input: unknown): SourceMix | undefined => {
+  const playlist = normalizePlaylistLockup(input)
+  const videoId = (input as LockupVideo).renderer_context?.command_context?.on_tap?.payload?.videoId
+  return playlist && videoId ? { id: playlist.id, title: playlist.title, thumbnail: playlist.thumbnail, videoId } : undefined
+}
+
+// OfficialCardView and its HorizontalShelfView are this repo's patch of youtubei.js (patches/), which otherwise builds
+// both at runtime off the first card it meets, logging each as missing. Signed out, the entity store still says
+// "not subscribed", so the state is left absent there: an absent state is what makes the button sign in.
+export const normalizeSearchCard = (input: unknown, mutations?: EntityMutation[]): SourceSearchCard | undefined => {
+  const card = input as OfficialCardNode
+  const header = card.header
+  const actions = header?.actions?.actions_rows?.flatMap((row) => row.actions ?? []) ?? []
+  const subscribe = actions.find((action) => action.type === 'SubscribeButtonView')
+  const id = subscribe?.channel_id ?? actions.map((action) => action.on_tap?.payload?.browseId).find(Boolean)
+  const name = presentText(header?.title?.text)
+  if (!id || !name) return undefined
+  const parts = metadataTexts(header?.metadata)
+  const handle = parts.find((part) => part.startsWith('@'))
+  const [subscriberCountText, videoCountText] = parts.filter((part) => part !== handle)
+  const items = card.contents?.flatMap((shelf) => shelf.items ?? []) ?? []
+  return {
+    channel: {
+      id,
+      name,
+      avatar: thumbnail(header?.image?.image, AVATAR_WIDTH),
+      handle,
+      subscriberCountText,
+      videoCountText,
+      description: presentText(header?.description?.description),
+      isSubscribed: subscribe?.is_signed_out === true ? undefined : storedSubscribed(mutations, subscribe?.state_entity_store_key),
+      ...iconBadges(runIcons(header?.title?.text)),
+    },
+    mix: items.map(normalizeMixLockup).find((mix) => mix !== undefined),
+    videos: items.flatMap((item) => normalizeLockupVideo(item) ?? []),
+  }
+}
+
+// Only a Shelf of rows ("Latest from") and a GridShelfView of Shorts: a horizontal Shelf holds posts or related searches
+export const normalizeSearchShelf = (input: unknown): SourceSearchShelf | undefined => {
+  const node = input as {
+    type?: string
+    title?: Text
+    content?: { type?: string, items?: unknown[], collapsed_item_count?: number }
+    header?: { headline?: Text }
+    contents?: unknown[]
+  }
+  if (node.type === 'GridShelfView') {
+    const title = presentText(node.header?.headline)
+    const shorts = (node.contents ?? []).flatMap((item) => normalizeShortsLockup(item) ?? [])
+    return title && shorts.length > 0 ? { title, videos: [], shorts } : undefined
+  }
+  if (node.type !== 'Shelf' || node.content?.type !== 'VerticalList') return undefined
+  const title = presentText(node.title)
+  const videos = (node.content.items ?? []).flatMap((item) => normalizeFeedVideo(item) ?? normalizeLockupVideo(item) ?? [])
+  return title && videos.length > 0
+    ? { title, videos, collapsedCount: node.content.collapsed_item_count, shorts: [] }
+    : undefined
 }
 
 // the playlist id is nowhere in `info` on any renderer, so the caller carries the id it browsed with
