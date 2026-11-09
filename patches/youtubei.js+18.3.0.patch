@@ -1,12 +1,13 @@
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js b/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js
-index 6e9c132..8ddf90b 100644
+index 6e9c132..5ac1c67 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js
 +++ b/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js
-@@ -13,6 +13,7 @@ export default class ContentMetadataView extends YTNode {
+@@ -13,6 +13,8 @@ export default class ContentMetadataView extends YTNode {
              metadata_parts: row.metadataParts?.map((part) => ({
                  text: part.text ? Text.fromAttributed(part.text) : null,
                  avatar_stack: Parser.parseItem(part.avatarStack, AvatarStackView),
 +                icon_name: part.icon?.name,
++                leading_icon_name: part.leadingIcon?.name,
                  enable_truncation: data.enableTruncation
              })),
              badges: Parser.parseArray(row.badges, BadgeView)

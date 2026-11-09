@@ -9,7 +9,7 @@ const style = css`
 `
 
 const CHECK = 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm-1.9 14.7L6 12.6l1.4-1.4 2.7 2.7 6.5-6.5 1.4 1.4-7.9 7.9Z'
-const NOTE = 'M12 4v9.38A3.95 3.95 0 0 0 10 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V8h4V4h-6Z'
+export const NOTE = 'M12 4v9.38A3.95 3.95 0 0 0 10 13c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V8h4V4h-6Z'
 
 export type BadgedChannel = {
   isVerified?: boolean | null

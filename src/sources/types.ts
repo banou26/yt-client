@@ -26,11 +26,19 @@ export type SourceVideo = {
   title: string
   description?: string
   descriptionSnippet?: string
+  // a search row's excerpt, with the query's words as bold runs
+  snippetRuns?: SourceTextRun[]
   thumbnail?: string
   thumbnailSrcset?: string
   animatedThumbnail?: string
+  // the label youtube.com draws in the still's top corner, such as New
+  thumbnailBadge?: string
   durationSeconds?: number
+  // youtube.com draws a music note before a song's length
+  isMusic?: boolean
   viewCount?: string
+  // youtube.com draws a play arrow before this row's view count
+  viewCountIcon?: boolean
   publishedText?: string
   // ISO 8601, only on a channel's uploads: exact off its feed, about right off its Videos tab's '6d ago'
   publishedAt?: string
@@ -301,6 +309,7 @@ export type SourceChapter = {
 
 export type SourceTextRun = {
   text: string
+  bold?: boolean
   url?: string
   videoId?: string
   startSeconds?: number

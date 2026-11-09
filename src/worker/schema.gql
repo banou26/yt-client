@@ -40,6 +40,9 @@ type Video {
   title: String!
   description: String
   descriptionSnippet: String
+  # A search row's excerpt as runs, the words that matched the query bold, as
+  # youtube.com prints them.
+  snippetRuns: [TextRun!]
   thumbnail: String
   # Every still upstream published for this video, already formatted as a
   # srcset. The same Video renders at ~360px in a grid and ~168px in the watch
@@ -50,8 +53,17 @@ type Video {
   # A few seconds of the video as an animated image, which youtube.com plays
   # over a related video's still on hover. Only lockups carry it.
   animatedThumbnail: String
+  # The label youtube.com draws in the still's top corner, such as New. Read
+  # off a lockup's top-corner overlay, never inferred from the date.
+  thumbnailBadge: String
   durationSeconds: Int
+  # A song: youtube.com draws a music note before its length. Read off the
+  # length badge's own icon, never the title.
+  isMusic: Boolean
   viewCount: String
+  # youtube.com draws a play arrow before this row's view count. Read off the
+  # views part's own icon.
+  viewCountIcon: Boolean
   publishedText: String
   # An ISO 8601 time, set only by channelUploads: exact off the uploads feed,
   # about right off the Videos tab's '6d ago' when the feed fails.
@@ -446,6 +458,7 @@ type Chapter {
 # renders as its own text instead of disappearing.
 type TextRun {
   text: String!
+  bold: Boolean
   # An off-site link.
   url: String
   # A /watch link. `startSeconds` is what makes a description chapter or a

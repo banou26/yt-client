@@ -1,0 +1,1249 @@
+{
+  "all": {
+    "estimatedResults": "55588458",
+    "contents": {
+      "twoColumnSearchResultsRenderer": {
+        "primaryContents": {
+          "sectionListRenderer": {
+            "contents": [
+              {
+                "itemSectionRenderer": {
+                  "contents": [
+                    {
+                      "videoRenderer": {
+                        "videoId": "dQw4w9WgXcQ",
+                        "thumbnail": {
+                          "thumbnails": [
+                            {
+                              "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEjCOgCEMoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLA6t_8gXhVJaexTSRAZ4rQm4iSlKQ",
+                              "width": 360,
+                              "height": 202
+                            },
+                            {
+                              "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
+                              "width": 720,
+                              "height": 404
+                            }
+                          ]
+                        },
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)"
+                            }
+                          ],
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster) 3 minutes, 34 seconds"
+                            }
+                          }
+                        },
+                        "longBylineText": {
+                          "runs": [
+                            {
+                              "text": "Rick Astley",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                  "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "publishedTimeText": {
+                          "simpleText": "17y ago"
+                        },
+                        "lengthText": {
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "3 minutes, 34 seconds"
+                            }
+                          },
+                          "simpleText": "3:34"
+                        },
+                        "viewCountText": {
+                          "simpleText": "1,835,515,914 views"
+                        },
+                        "navigationEndpoint": {
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "url": "/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                              "rootVe": 3832
+                            }
+                          },
+                          "watchEndpoint": {
+                            "videoId": "dQw4w9WgXcQ",
+                            "playlistId": "RDdQw4w9WgXcQ",
+                            "params": "wAEBqgMXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXC6AwoIjqavw7WCkrZcugMKCIm2ndWapdjYLLoDCwjTzoLLpI-i4J4BugMLCNn83Pb154Cu7AG6AwoIvNm4gM6rmZM6ugMKCIHaxa7Qka_gDroDCgiZ_6eZpZeGlXq6AwoI6su2otLXxNhGugMPEg1SRGRRdzR3OVdnWGNRugMLCKzv2_Oo8dSI3AG6AwsIgpSimLCA4KvyAboDCwj9xZ6ts-bb7JoBugMLCNXWmJ-4v5e3mQG6AwoIurX995GNxPMwugMLCOyIo5nP1rb56AG6AwsI_fWW-_e7vfmGAboDCgip1eWa4JSpnjK6AwoIweifxe6wvekaugMKCLHolqHe_bPOK_IDBQ1YjXQ9uAUB",
+                            "playerParams": "ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                            "watchEndpointSupportedOnesieConfig": {
+                              "html5PlaybackOnesieConfig": {
+                                "commonConfig": {
+                                  "url": "https://rr3---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=750c38c3d5a05dc4&ip=59.138.72.110&initcwndbps=4023625&mt=1794261904&oweuc="
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "badges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "style": "BADGE_STYLE_TYPE_MEDIA",
+                              "label": "CC",
+                              "accessibilityData": {
+                                "label": "Closed captions"
+                              }
+                            }
+                          }
+                        ],
+                        "ownerBadges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "icon": {
+                                "iconType": "AUDIO_BADGE"
+                              },
+                              "style": "BADGE_STYLE_TYPE_VERIFIED_ARTIST",
+                              "tooltip": "Official Artist Channel",
+                              "accessibilityData": {
+                                "label": "Official Artist Channel"
+                              }
+                            }
+                          }
+                        ],
+                        "ownerText": {
+                          "runs": [
+                            {
+                              "text": "Rick Astley",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                  "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortBylineText": {
+                          "runs": [
+                            {
+                              "text": "Rick Astley",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                  "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortViewCountText": {
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "1.8 billion views"
+                            }
+                          },
+                          "simpleText": "1.8B"
+                        },
+                        "thumbnailOverlays": [
+                          {
+                            "thumbnailOverlayTimeStatusRenderer": {
+                              "text": {
+                                "accessibility": {
+                                  "accessibilityData": {
+                                    "label": "3 minutes, 34 seconds"
+                                  }
+                                },
+                                "simpleText": "3:34"
+                              },
+                              "style": "DEFAULT",
+                              "icon": {
+                                "iconType": "MUSIC"
+                              }
+                            }
+                          }
+                        ],
+                        "detailedMetadataSnippets": [
+                          {
+                            "snippetText": {
+                              "runs": [
+                                {
+                                  "text": "The official video for “"
+                                },
+                                {
+                                  "text": "Never Gonna Give You Up",
+                                  "bold": true
+                                },
+                                {
+                                  "text": "” by Rick Astley. Never: The Autobiography OUT NOW! Follow this link to get ..."
+                                }
+                              ]
+                            },
+                            "snippetHoverText": {
+                              "runs": [
+                                {
+                                  "text": "From the video description"
+                                }
+                              ]
+                            },
+                            "maxOneLine": false
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "videoRenderer": {
+                        "videoId": "XGxIE1hr0w4",
+                        "thumbnail": {
+                          "thumbnails": [
+                            {
+                              "url": "https://i.ytimg.com/vi/XGxIE1hr0w4/hq720.jpg?sqp=-oaymwEjCOgCEMoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLA9jf_1aMwFZJcnCor6hG-q7GvbYA",
+                              "width": 360,
+                              "height": 202
+                            },
+                            {
+                              "url": "https://i.ytimg.com/vi/XGxIE1hr0w4/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCrUCoWL2_r7xNYieTxf2jFRm9Q8w",
+                              "width": 720,
+                              "height": 404
+                            }
+                          ]
+                        },
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Never Gonna Give You Up | Rick Astley Rocks New Year's Eve - BBC"
+                            }
+                          ],
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "Never Gonna Give You Up | Rick Astley Rocks New Year's Eve - BBC 3 minutes, 54 seconds"
+                            }
+                          }
+                        },
+                        "longBylineText": {
+                          "runs": [
+                            {
+                              "text": "BBC",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BBC",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCCj956IF62FbT7Gouszaj9w",
+                                  "canonicalBaseUrl": "/@BBC"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "publishedTimeText": {
+                          "simpleText": "2y ago"
+                        },
+                        "lengthText": {
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "3 minutes, 54 seconds"
+                            }
+                          },
+                          "simpleText": "3:54"
+                        },
+                        "viewCountText": {
+                          "simpleText": "5,664,014 views"
+                        },
+                        "navigationEndpoint": {
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "url": "/watch?v=XGxIE1hr0w4&list=RDXGxIE1hr0w4&start_radio=1&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                              "rootVe": 3832
+                            }
+                          },
+                          "watchEndpoint": {
+                            "videoId": "XGxIE1hr0w4",
+                            "playlistId": "RDXGxIE1hr0w4",
+                            "params": "wAEBqgMXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXC6AwoIxLuBrb2YjoZ1ugMKCIm2ndWapdjYLLoDCwjTzoLLpI-i4J4BugMLCNn83Pb154Cu7AG6AwoIvNm4gM6rmZM6ugMKCIHaxa7Qka_gDroDCgiZ_6eZpZeGlXq6AwoI6su2otLXxNhGugMPEg1SRGRRdzR3OVdnWGNRugMLCKzv2_Oo8dSI3AG6AwsIgpSimLCA4KvyAboDCwj9xZ6ts-bb7JoBugMLCNXWmJ-4v5e3mQG6AwoIurX995GNxPMwugMLCOyIo5nP1rb56AG6AwsI_fWW-_e7vfmGAboDCgip1eWa4JSpnjK6AwoIweifxe6wvekaugMKCLHolqHe_bPOK_IDBQ1YjXQ9uAUB",
+                            "playerParams": "ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                            "watchEndpointSupportedOnesieConfig": {
+                              "html5PlaybackOnesieConfig": {
+                                "commonConfig": {
+                                  "url": "https://rr7---sn-3qqp-ioqse.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=5c6c4813586bd30e&ip=59.138.72.110&initcwndbps=4023625&mt=1794261904&oweuc="
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "ownerBadges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "icon": {
+                                "iconType": "CHECK_CIRCLE_THICK"
+                              },
+                              "style": "BADGE_STYLE_TYPE_VERIFIED",
+                              "tooltip": "Verified",
+                              "accessibilityData": {
+                                "label": "Verified"
+                              }
+                            }
+                          }
+                        ],
+                        "ownerText": {
+                          "runs": [
+                            {
+                              "text": "BBC",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BBC",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCCj956IF62FbT7Gouszaj9w",
+                                  "canonicalBaseUrl": "/@BBC"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortBylineText": {
+                          "runs": [
+                            {
+                              "text": "BBC",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BBC",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCCj956IF62FbT7Gouszaj9w",
+                                  "canonicalBaseUrl": "/@BBC"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortViewCountText": {
+                          "accessibility": {
+                            "accessibilityData": {
+                              "label": "5.6 million views"
+                            }
+                          },
+                          "simpleText": "5.6M"
+                        },
+                        "thumbnailOverlays": [
+                          {
+                            "thumbnailOverlayTimeStatusRenderer": {
+                              "text": {
+                                "accessibility": {
+                                  "accessibilityData": {
+                                    "label": "3 minutes, 54 seconds"
+                                  }
+                                },
+                                "simpleText": "3:54"
+                              },
+                              "style": "DEFAULT",
+                              "icon": {
+                                "iconType": "MUSIC"
+                              }
+                            }
+                          }
+                        ],
+                        "detailedMetadataSnippets": [
+                          {
+                            "snippetText": {
+                              "runs": [
+                                {
+                                  "text": "Rickrolling into 2024 #RickAstleyRocksNewYearsEve #iPlayer #Sounds #NeverGonnaGiveYouUp Subscribe and to the ..."
+                                }
+                              ]
+                            },
+                            "snippetHoverText": {
+                              "runs": [
+                                {
+                                  "text": "From the video description"
+                                }
+                              ]
+                            },
+                            "maxOneLine": false
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "header": {
+      "searchHeaderRenderer": {
+        "chipBar": {
+          "chipCloudRenderer": {
+            "chips": [
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "All"
+                  },
+                  "isSelected": true,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Shorts"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "EvcFEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrYBUVwMEVrZ0daQkRxWEFSS1FBU2hoSUhsdmRYUjFZbVZmYzJodmNuUnpYMlJsWm1sdWFYUnBiMjRnT25SNWNHVTZjaUFvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDNCeVpXMXBaWEpsWDNacFpHVnZYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtnS0c0Z2VXOTFkSFZpWlY5bWJHRm5YMmhoYzE5c2FYWmxYM04wY21WaGJWOXRaWFJoWkdGMFlUMHhJRHAwZVhCbE9uSXBLVGdCWUJwS19BSUtKd29YYm1WMlpYSWdaMjl1Ym1FZ1oybDJaU0I1YjNVZ2RYRHlBUVVLQTBGc2JOZ0NBYmdEWVFxbEFmSUJDQW9HVTJodmNuUnp3Z0tRQVNoaElIbHZkWFIxWW1WZmMyaHZjblJ6WDJSbFptbHVhWFJwYjI0Z09uUjVjR1U2Y2lBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgzQnlaVzFwWlhKbFgzWnBaR1Z2WDIxbGRHRmtZWFJoUFRFZ09uUjVjR1U2Y2lrZ0tHNGdlVzkxZEhWaVpWOW1iR0ZuWDJoaGMxOXNhWFpsWDNOMGNtVmhiVjl0WlhSaFpHRjBZVDB4SURwMGVYQmxPbklwS2ZnQ0FiZ0RHZ29XOGdFTENnbFZibmRoZEdOb1pXVEtBZ0lZQWJnREhBbzY4Z0VJQ2daV2FXUmxiM1BDQWhwNWIzVjBkV0psWDNacFpHVnZYM0JoWjJVZ09uUjVjR1U2Y3VnQ0FhZ0RBYmdEU01BREFjZ0RBZEFEQVFvYllBZnlBUk1LRVZKbFkyVnVkR3g1SUhWd2JHOWhaR1ZrdUFNSENqYnlBUVlLQkV4cGRtWENBaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25LNEF3UVlDM2dBkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Unwatched"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "ErsEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBqcBEVvc0RrZ0dIQXpvR0dnSVlBV0FjU3Z3Q0NpY0tGMjVsZG1WeUlHZHZibTVoSUdkcGRtVWdlVzkxSUhWdzhnRUZDZ05CYkd6WUFnRzRBMkVLcFFIeUFRZ0tCbE5vYjNKMGM4SUNrQUVvWVNCNWIzVjBkV0psWDNOb2IzSjBjMTlrWldacGJtbDBhVzl1SURwMGVYQmxPbklnS0c0Z2VXOTFkSFZpWlY5bWJHRm5YMmhoYzE5d2NtVnRhV1Z5WlY5MmFXUmxiMTl0WlhSaFpHRjBZVDB4SURwMGVYQmxPbklwSUNodUlIbHZkWFIxWW1WZlpteGhaMTlvWVhOZmJHbDJaVjl6ZEhKbFlXMWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU240QWdHNEF4b0tGdklCQ3dvSlZXNTNZWFJqYUdWa3lnSUNHQUc0QXh3S092SUJDQW9HVm1sa1pXOXp3Z0lhZVc5MWRIVmlaVjkyYVdSbGIxOXdZV2RsSURwMGVYQmxPbkxvQWdHb0F3RzRBMGpBQXdISUF3SFFBd0VLRzJBSDhnRVRDaEZTWldObGJuUnNlU0IxY0d4dllXUmxaTGdEQndvMjhnRUdDZ1JNYVhabHdnSW5lVzkxZEhWaVpWOXNhWFpsWDJKeWIyRmtZMkZ6ZEY5emRHRjBkWE05TUNBNmRIbHdaVHB5dUFNRUdBdDRBQSUzRCUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Videos"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "EuUEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrGBEVxMERrZ0dwQXpvb0VocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmNpZ0JVQUZnU0dnQmNBRjRBVXI4QWdvbkNoZHVaWFpsY2lCbmIyNXVZU0JuYVhabElIbHZkU0IxY1BJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2pyeUFRZ0tCbFpwWkdWdmM4SUNHbmx2ZFhSMVltVmZkbWxrWlc5ZmNHRm5aU0E2ZEhsd1pUcHk2QUlCcUFNQnVBTkl3QU1CeUFNQjBBTUJDaHRnQl9JQkV3b1JVbVZqWlc1MGJIa2dkWEJzYjJGa1pXUzRBd2NLTnZJQkJnb0VUR2wyWmNJQ0ozbHZkWFIxWW1WZmJHbDJaVjlpY205aFpHTmhjM1JmYzNSaGRIVnpQVEFnT25SNWNHVTZjcmdEQkJnTGVBQSUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Recently uploaded"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "ErUEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBqWBEVva0RrZ0dGQXpvRUlBZGdCMHI4QWdvbkNoZHVaWFpsY2lCbmIyNXVZU0JuYVhabElIbHZkU0IxY1BJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2pyeUFRZ0tCbFpwWkdWdmM4SUNHbmx2ZFhSMVltVmZkbWxrWlc5ZmNHRm5aU0E2ZEhsd1pUcHk2QUlCcUFNQnVBTkl3QU1CeUFNQjBBTUJDaHRnQl9JQkV3b1JVbVZqWlc1MGJIa2dkWEJzYjJGa1pXUzRBd2NLTnZJQkJnb0VUR2wyWmNJQ0ozbHZkWFIxWW1WZmJHbDJaVjlpY205aFpHTmhjM1JmYzNSaGRIVnpQVEFnT25SNWNHVTZjcmdEQkJnTGVBQSUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Live"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "EukEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrKBEVyQURrZ0dzQXpvckVpZDViM1YwZFdKbFgyeHBkbVZmWW5KdllXUmpZWE4wWDNOMFlYUjFjejB3SURwMGVYQmxPbkpnQkVyOEFnb25DaGR1WlhabGNpQm5iMjV1WVNCbmFYWmxJSGx2ZFNCMWNQSUJCUW9EUVd4czJBSUJ1QU5oQ3FVQjhnRUlDZ1pUYUc5eWRIUENBcEFCS0dFZ2VXOTFkSFZpWlY5emFHOXlkSE5mWkdWbWFXNXBkR2x2YmlBNmRIbHdaVHB5SUNodUlIbHZkWFIxWW1WZlpteGhaMTlvWVhOZmNISmxiV2xsY21WZmRtbGtaVzlmYldWMFlXUmhkR0U5TVNBNmRIbHdaVHB5S1NBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgyeHBkbVZmYzNSeVpXRnRYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtwLUFJQnVBTWFDaGJ5QVFzS0NWVnVkMkYwWTJobFpNb0NBaGdCdUFNY0NqcnlBUWdLQmxacFpHVnZjOElDR25sdmRYUjFZbVZmZG1sa1pXOWZjR0ZuWlNBNmRIbHdaVHB5NkFJQnFBTUJ1QU5Jd0FNQnlBTUIwQU1CQ2h0Z0JfSUJFd29SVW1WalpXNTBiSGtnZFhCc2IyRmtaV1M0QXdjS052SUJCZ29FVEdsMlpjSUNKM2x2ZFhSMVltVmZiR2wyWlY5aWNtOWhaR05oYzNSZmMzUmhkSFZ6UFRBZ09uUjVjR1U2Y3JnREJCZ0xlQUElM0SQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              }
+            ],
+            "nextButton": {
+              "buttonRenderer": {
+                "style": "STYLE_DEFAULT",
+                "size": "SIZE_DEFAULT",
+                "isDisabled": false,
+                "icon": {
+                  "iconType": "CHEVRON_RIGHT"
+                },
+                "accessibility": {
+                  "label": "Next"
+                }
+              }
+            },
+            "previousButton": {
+              "buttonRenderer": {
+                "style": "STYLE_DEFAULT",
+                "size": "SIZE_DEFAULT",
+                "isDisabled": false,
+                "icon": {
+                  "iconType": "CHEVRON_LEFT"
+                },
+                "accessibility": {
+                  "label": "Previous"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "unwatched": {
+    "estimatedResults": "55590390",
+    "onResponseReceivedCommands": [
+      {
+        "reloadContinuationItemsCommand": {
+          "targetId": "search-page",
+          "slot": "RELOAD_CONTINUATION_SLOT_BODY",
+          "continuationItems": [
+            {
+              "twoColumnSearchResultsRenderer": {
+                "primaryContents": {
+                  "sectionListRenderer": {
+                    "contents": [
+                      {
+                        "itemSectionRenderer": {
+                          "contents": [
+                            {
+                              "videoRenderer": {
+                                "videoId": "LLFhKaqnWwk",
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hq720.jpg?sqp=-oaymwEjCOgCEMoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLAijOdzx8zocotZnuDkHIWhF1Ay-w",
+                                      "width": 360,
+                                      "height": 202
+                                    },
+                                    {
+                                      "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLADjevLhDjoCtGh-hEVstLsTt1CSg",
+                                      "width": 720,
+                                      "height": 404
+                                    }
+                                  ]
+                                },
+                                "title": {
+                                  "runs": [
+                                    {
+                                      "text": "Rick Astley - Never Gonna Give You Up (Official Animated Video)"
+                                    }
+                                  ],
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "Rick Astley - Never Gonna Give You Up (Official Animated Video) 3 minutes, 33 seconds"
+                                    }
+                                  }
+                                },
+                                "longBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Rick Astley",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                          "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "publishedTimeText": {
+                                  "simpleText": "4y ago"
+                                },
+                                "lengthText": {
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "3 minutes, 33 seconds"
+                                    }
+                                  },
+                                  "simpleText": "3:33"
+                                },
+                                "viewCountText": {
+                                  "simpleText": "4,064,806 views"
+                                },
+                                "navigationEndpoint": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=LLFhKaqnWwk&list=RDLLFhKaqnWwk&start_radio=1&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "LLFhKaqnWwk",
+                                    "playlistId": "RDLLFhKaqnWwk",
+                                    "params": "wAEBqgMXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXC6AwoIxLuBrb2YjoZ1ugMKCI6mr8O1gpK2XLoDCwjTzoLLpI-i4J4BugMLCNn83Pb154Cu7AG6AwoIvNm4gM6rmZM6ugMKCIHaxa7Qka_gDroDCgiZ_6eZpZeGlXq6AwoI6su2otLXxNhGugMPEg1SRGRRdzR3OVdnWGNRugMLCKzv2_Oo8dSI3AG6AwsIgpSimLCA4KvyAboDCwj9xZ6ts-bb7JoBugMLCNXWmJ-4v5e3mQG6AwoIurX995GNxPMwugMLCOyIo5nP1rb56AG6AwsI_fWW-_e7vfmGAboDCgip1eWa4JSpnjK6AwoIseiWod79s84rugMKCMHon8XusL3pGvIDBQ1YjXQ9uAUB",
+                                    "playerParams": "ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                                    "watchEndpointSupportedOnesieConfig": {
+                                      "html5PlaybackOnesieConfig": {
+                                        "commonConfig": {
+                                          "url": "https://rr6---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2cb16129aaa75b09&ip=59.138.72.110&initcwndbps=4023625&mt=1794261904&oweuc="
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "ownerBadges": [
+                                  {
+                                    "metadataBadgeRenderer": {
+                                      "icon": {
+                                        "iconType": "AUDIO_BADGE"
+                                      },
+                                      "style": "BADGE_STYLE_TYPE_VERIFIED_ARTIST",
+                                      "tooltip": "Official Artist Channel",
+                                      "accessibilityData": {
+                                        "label": "Official Artist Channel"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "ownerText": {
+                                  "runs": [
+                                    {
+                                      "text": "Rick Astley",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                          "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Rick Astley",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                          "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortViewCountText": {
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "4 million views"
+                                    }
+                                  },
+                                  "simpleText": "4M"
+                                },
+                                "thumbnailOverlays": [
+                                  {
+                                    "thumbnailOverlayTimeStatusRenderer": {
+                                      "text": {
+                                        "accessibility": {
+                                          "accessibilityData": {
+                                            "label": "3 minutes, 33 seconds"
+                                          }
+                                        },
+                                        "simpleText": "3:33"
+                                      },
+                                      "style": "DEFAULT",
+                                      "icon": {
+                                        "iconType": "MUSIC"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "detailedMetadataSnippets": [
+                                  {
+                                    "snippetText": {
+                                      "runs": [
+                                        {
+                                          "text": "The official animated video for \""
+                                        },
+                                        {
+                                          "text": "Never Gonna Give You Up",
+                                          "bold": true
+                                        },
+                                        {
+                                          "text": "” by Rick Astley Taken from the album 'Whenever You Need ..."
+                                        }
+                                      ]
+                                    },
+                                    "snippetHoverText": {
+                                      "runs": [
+                                        {
+                                          "text": "From the video description"
+                                        }
+                                      ]
+                                    },
+                                    "maxOneLine": false
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "videoRenderer": {
+                                "videoId": "nsCIeklgp1M",
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://i.ytimg.com/vi/nsCIeklgp1M/hq720.jpg?sqp=-oaymwEjCOgCEMoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLCzH_5nVuSgygkuyRniCy-Q569vSQ",
+                                      "width": 360,
+                                      "height": 202
+                                    },
+                                    {
+                                      "url": "https://i.ytimg.com/vi/nsCIeklgp1M/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCxstxEDrnwwbN6fuY3-vU0YNe1TQ",
+                                      "width": 720,
+                                      "height": 404
+                                    }
+                                  ]
+                                },
+                                "title": {
+                                  "runs": [
+                                    {
+                                      "text": "Rick Astley - Never Gonna Give You Up | Glastonbury 2023"
+                                    }
+                                  ],
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "Rick Astley - Never Gonna Give You Up | Glastonbury 2023 9 minutes, 20 seconds"
+                                    }
+                                  }
+                                },
+                                "longBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "BBC Music",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@BBCMusic",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCZtDUmC3W7j25XHZWFT_XgQ",
+                                          "canonicalBaseUrl": "/@BBCMusic"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "publishedTimeText": {
+                                  "simpleText": "3y ago"
+                                },
+                                "lengthText": {
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "9 minutes, 20 seconds"
+                                    }
+                                  },
+                                  "simpleText": "9:20"
+                                },
+                                "viewCountText": {
+                                  "simpleText": "6,319,131 views"
+                                },
+                                "navigationEndpoint": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=nsCIeklgp1M&list=RDnsCIeklgp1M&start_radio=1&pp=ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "nsCIeklgp1M",
+                                    "playlistId": "RDnsCIeklgp1M",
+                                    "params": "wAEBqgMXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXC6AwoIxLuBrb2YjoZ1ugMKCI6mr8O1gpK2XLoDCgiJtp3VmqXY2Cy6AwsI2fzc9vXngK7sAboDCgi82biAzquZkzq6AwoIgdrFrtCRr-AOugMKCJn_p5mll4aVeroDCgjqy7ai0tfE2Ea6Aw8SDVJEZFF3NHc5V2dYY1G6AwsIrO_b86jx1IjcAboDCwiClKKYsIDgq_IBugMLCP3Fnq2z5tvsmgG6AwsI1daYn7i_l7eZAboDCgi6tf33kY3E8zC6AwsI7Iijmc_WtvnoAboDCwj99Zb797u9-YYBugMKCKnV5ZrglKmeMroDCgix6Jah3v2zziu6AwoIweifxe6wveka8gMFDViNdD24BQE%3D",
+                                    "playerParams": "ygUXbmV2ZXIgZ29ubmEgZ2l2ZSB5b3UgdXCgBwE%3D",
+                                    "watchEndpointSupportedOnesieConfig": {
+                                      "html5PlaybackOnesieConfig": {
+                                        "commonConfig": {
+                                          "url": "https://rr8---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=9ec0887a4960a753&ip=59.138.72.110&initcwndbps=4023625&mt=1794261904&oweuc="
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "ownerBadges": [
+                                  {
+                                    "metadataBadgeRenderer": {
+                                      "icon": {
+                                        "iconType": "CHECK_CIRCLE_THICK"
+                                      },
+                                      "style": "BADGE_STYLE_TYPE_VERIFIED",
+                                      "tooltip": "Verified",
+                                      "accessibilityData": {
+                                        "label": "Verified"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "ownerText": {
+                                  "runs": [
+                                    {
+                                      "text": "BBC Music",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@BBCMusic",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCZtDUmC3W7j25XHZWFT_XgQ",
+                                          "canonicalBaseUrl": "/@BBCMusic"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "BBC Music",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@BBCMusic",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCZtDUmC3W7j25XHZWFT_XgQ",
+                                          "canonicalBaseUrl": "/@BBCMusic"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortViewCountText": {
+                                  "accessibility": {
+                                    "accessibilityData": {
+                                      "label": "6.3 million views"
+                                    }
+                                  },
+                                  "simpleText": "6.3M"
+                                },
+                                "thumbnailOverlays": [
+                                  {
+                                    "thumbnailOverlayTimeStatusRenderer": {
+                                      "text": {
+                                        "accessibility": {
+                                          "accessibilityData": {
+                                            "label": "9 minutes, 20 seconds"
+                                          }
+                                        },
+                                        "simpleText": "9:20"
+                                      },
+                                      "style": "DEFAULT",
+                                      "icon": {
+                                        "iconType": "MUSIC"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "detailedMetadataSnippets": [
+                                  {
+                                    "snippetText": {
+                                      "runs": [
+                                        {
+                                          "text": "Rick Astley performs "
+                                        },
+                                        {
+                                          "text": "Never Gonna Give You Up",
+                                          "bold": true
+                                        },
+                                        {
+                                          "text": " at Glastonbury 2023. Watch more highlights on BBC iPlayer: ..."
+                                        }
+                                      ]
+                                    },
+                                    "snippetHoverText": {
+                                      "runs": [
+                                        {
+                                          "text": "From the video description"
+                                        }
+                                      ]
+                                    },
+                                    "maxOneLine": false
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "reloadContinuationItemsCommand": {
+          "targetId": "search-page",
+          "slot": "RELOAD_CONTINUATION_SLOT_HEADER",
+          "continuationItems": [
+            {
+              "searchHeaderRenderer": {
+                "chipBar": {
+                  "chipCloudRenderer": {
+                    "chips": [
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "All"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EtcEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBq4BEVxQURrZ0djQXpvYkNoZHVaWFpsY2lCbmIyNXVZU0JuYVhabElIbHZkU0IxY0dCaFN2d0NDaWNLRjI1bGRtVnlJR2R2Ym01aElHZHBkbVVnZVc5MUlIVnc4Z0VGQ2dOQmJHellBZ0c0QTJFS3BRSHlBUWdLQmxOb2IzSjBjOElDa0FFb1lTQjViM1YwZFdKbFgzTm9iM0owYzE5a1pXWnBibWwwYVc5dUlEcDBlWEJsT25JZ0tHNGdlVzkxZEhWaVpWOW1iR0ZuWDJoaGMxOXdjbVZ0YVdWeVpWOTJhV1JsYjE5dFpYUmhaR0YwWVQweElEcDBlWEJsT25JcElDaHVJSGx2ZFhSMVltVmZabXhoWjE5b1lYTmZiR2wyWlY5emRISmxZVzFmYldWMFlXUmhkR0U5TVNBNmRIbHdaVHB5S1NuNEFnRzRBeG9LRnZJQkN3b0pWVzUzWVhSamFHVmt5Z0lDR0FHNEF4d0tPdklCQ0FvR1ZtbGtaVzl6d2dJYWVXOTFkSFZpWlY5MmFXUmxiMTl3WVdkbElEcDBlWEJsT25Mb0FnR29Bd0c0QTBqQUF3SElBd0hRQXdFS0cyQUg4Z0VUQ2hGU1pXTmxiblJzZVNCMWNHeHZZV1JsWkxnREJ3bzI4Z0VHQ2dSTWFYWmx3Z0luZVc5MWRIVmlaVjlzYVhabFgySnliMkZrWTJGemRGOXpkR0YwZFhNOU1DQTZkSGx3WlRweXVBTUVHQXQ0QUElM0QlM0SQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Shorts"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EvcFEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrYBUVwMEVrZ0daQkRxWEFSS1FBU2hoSUhsdmRYUjFZbVZmYzJodmNuUnpYMlJsWm1sdWFYUnBiMjRnT25SNWNHVTZjaUFvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDNCeVpXMXBaWEpsWDNacFpHVnZYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtnS0c0Z2VXOTFkSFZpWlY5bWJHRm5YMmhoYzE5c2FYWmxYM04wY21WaGJWOXRaWFJoWkdGMFlUMHhJRHAwZVhCbE9uSXBLVGdCWUJwS19BSUtKd29YYm1WMlpYSWdaMjl1Ym1FZ1oybDJaU0I1YjNVZ2RYRHlBUVVLQTBGc2JOZ0NBYmdEWVFxbEFmSUJDQW9HVTJodmNuUnp3Z0tRQVNoaElIbHZkWFIxWW1WZmMyaHZjblJ6WDJSbFptbHVhWFJwYjI0Z09uUjVjR1U2Y2lBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgzQnlaVzFwWlhKbFgzWnBaR1Z2WDIxbGRHRmtZWFJoUFRFZ09uUjVjR1U2Y2lrZ0tHNGdlVzkxZEhWaVpWOW1iR0ZuWDJoaGMxOXNhWFpsWDNOMGNtVmhiVjl0WlhSaFpHRjBZVDB4SURwMGVYQmxPbklwS2ZnQ0FiZ0RHZ29XOGdFTENnbFZibmRoZEdOb1pXVEtBZ0lZQWJnREhBbzY4Z0VJQ2daV2FXUmxiM1BDQWhwNWIzVjBkV0psWDNacFpHVnZYM0JoWjJVZ09uUjVjR1U2Y3VnQ0FhZ0RBYmdEU01BREFjZ0RBZEFEQVFvYllBZnlBUk1LRVZKbFkyVnVkR3g1SUhWd2JHOWhaR1ZrdUFNSENqYnlBUVlLQkV4cGRtWENBaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25LNEF3UVlDM2dBkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Unwatched"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "Eq0EEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBqOBEVvTURrZ0hfQWtyOEFnb25DaGR1WlhabGNpQm5iMjV1WVNCbmFYWmxJSGx2ZFNCMWNQSUJCUW9EUVd4czJBSUJ1QU5oQ3FVQjhnRUlDZ1pUYUc5eWRIUENBcEFCS0dFZ2VXOTFkSFZpWlY5emFHOXlkSE5mWkdWbWFXNXBkR2x2YmlBNmRIbHdaVHB5SUNodUlIbHZkWFIxWW1WZlpteGhaMTlvWVhOZmNISmxiV2xsY21WZmRtbGtaVzlmYldWMFlXUmhkR0U5TVNBNmRIbHdaVHB5S1NBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgyeHBkbVZmYzNSeVpXRnRYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtwLUFJQnVBTWFDaGJ5QVFzS0NWVnVkMkYwWTJobFpNb0NBaGdCdUFNY0NqcnlBUWdLQmxacFpHVnZjOElDR25sdmRYUjFZbVZmZG1sa1pXOWZjR0ZuWlNBNmRIbHdaVHB5NkFJQnFBTUJ1QU5Jd0FNQnlBTUIwQU1CQ2h0Z0JfSUJFd29SVW1WalpXNTBiSGtnZFhCc2IyRmtaV1M0QXdjS052SUJCZ29FVEdsMlpjSUNKM2x2ZFhSMVltVmZiR2wyWlY5aWNtOWhaR05oYzNSZmMzUmhkSFZ6UFRBZ09uUjVjR1U2Y3JnREJCZ0xlQUElM0SQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": true,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Videos"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EuUEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrGBEVxMERrZ0dwQXpvb0VocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmNpZ0JVQUZnU0dnQmNBRjRBVXI4QWdvbkNoZHVaWFpsY2lCbmIyNXVZU0JuYVhabElIbHZkU0IxY1BJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2pyeUFRZ0tCbFpwWkdWdmM4SUNHbmx2ZFhSMVltVmZkbWxrWlc5ZmNHRm5aU0E2ZEhsd1pUcHk2QUlCcUFNQnVBTkl3QU1CeUFNQjBBTUJDaHRnQl9JQkV3b1JVbVZqWlc1MGJIa2dkWEJzYjJGa1pXUzRBd2NLTnZJQkJnb0VUR2wyWmNJQ0ozbHZkWFIxWW1WZmJHbDJaVjlpY205aFpHTmhjM1JmYzNSaGRIVnpQVEFnT25SNWNHVTZjcmdEQkJnTGVBQSUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Recently uploaded"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "ErUEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBqWBEVva0RrZ0dGQXpvRUlBZGdCMHI4QWdvbkNoZHVaWFpsY2lCbmIyNXVZU0JuYVhabElIbHZkU0IxY1BJQkJRb0RRV3hzMkFJQnVBTmhDcVVCOGdFSUNnWlRhRzl5ZEhQQ0FwQUJLR0VnZVc5MWRIVmlaVjl6YUc5eWRITmZaR1ZtYVc1cGRHbHZiaUE2ZEhsd1pUcHlJQ2h1SUhsdmRYUjFZbVZmWm14aFoxOW9ZWE5mY0hKbGJXbGxjbVZmZG1sa1pXOWZiV1YwWVdSaGRHRTlNU0E2ZEhsd1pUcHlLU0FvYmlCNWIzVjBkV0psWDJac1lXZGZhR0Z6WDJ4cGRtVmZjM1J5WldGdFgyMWxkR0ZrWVhSaFBURWdPblI1Y0dVNmNpa3AtQUlCdUFNYUNoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2pyeUFRZ0tCbFpwWkdWdmM4SUNHbmx2ZFhSMVltVmZkbWxrWlc5ZmNHRm5aU0E2ZEhsd1pUcHk2QUlCcUFNQnVBTkl3QU1CeUFNQjBBTUJDaHRnQl9JQkV3b1JVbVZqWlc1MGJIa2dkWEJzYjJGa1pXUzRBd2NLTnZJQkJnb0VUR2wyWmNJQ0ozbHZkWFIxWW1WZmJHbDJaVjlpY205aFpHTmhjM1JmYzNSaGRIVnpQVEFnT25SNWNHVTZjcmdEQkJnTGVBQSUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Live"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EukEEhduZXZlciBnb25uYSBnaXZlIHlvdSB1cBrKBEVyQURrZ0dzQXpvckVpZDViM1YwZFdKbFgyeHBkbVZmWW5KdllXUmpZWE4wWDNOMFlYUjFjejB3SURwMGVYQmxPbkpnQkVyOEFnb25DaGR1WlhabGNpQm5iMjV1WVNCbmFYWmxJSGx2ZFNCMWNQSUJCUW9EUVd4czJBSUJ1QU5oQ3FVQjhnRUlDZ1pUYUc5eWRIUENBcEFCS0dFZ2VXOTFkSFZpWlY5emFHOXlkSE5mWkdWbWFXNXBkR2x2YmlBNmRIbHdaVHB5SUNodUlIbHZkWFIxWW1WZlpteGhaMTlvWVhOZmNISmxiV2xsY21WZmRtbGtaVzlmYldWMFlXUmhkR0U5TVNBNmRIbHdaVHB5S1NBb2JpQjViM1YwZFdKbFgyWnNZV2RmYUdGelgyeHBkbVZmYzNSeVpXRnRYMjFsZEdGa1lYUmhQVEVnT25SNWNHVTZjaWtwLUFJQnVBTWFDaGJ5QVFzS0NWVnVkMkYwWTJobFpNb0NBaGdCdUFNY0NqcnlBUWdLQmxacFpHVnZjOElDR25sdmRYUjFZbVZmZG1sa1pXOWZjR0ZuWlNBNmRIbHdaVHB5NkFJQnFBTUJ1QU5Jd0FNQnlBTUIwQU1CQ2h0Z0JfSUJFd29SVW1WalpXNTBiSGtnZFhCc2IyRmtaV1M0QXdjS052SUJCZ29FVEdsMlpjSUNKM2x2ZFhSMVltVmZiR2wyWlY5aWNtOWhaR05oYzNSZmMzUmhkSFZ6UFRBZ09uUjVjR1U2Y3JnREJCZ0xlQUElM0SQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      }
+                    ],
+                    "nextButton": {
+                      "buttonRenderer": {
+                        "style": "STYLE_DEFAULT",
+                        "size": "SIZE_DEFAULT",
+                        "isDisabled": false,
+                        "icon": {
+                          "iconType": "CHEVRON_RIGHT"
+                        },
+                        "accessibility": {
+                          "label": "Next"
+                        }
+                      }
+                    },
+                    "previousButton": {
+                      "buttonRenderer": {
+                        "style": "STYLE_DEFAULT",
+                        "size": "SIZE_DEFAULT",
+                        "isDisabled": false,
+                        "icon": {
+                          "iconType": "CHEVRON_LEFT"
+                        },
+                        "accessibility": {
+                          "label": "Previous"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

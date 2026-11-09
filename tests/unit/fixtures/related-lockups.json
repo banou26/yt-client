@@ -1,0 +1,336 @@
+{
+  "contents": {
+    "twoColumnWatchNextResults": {
+      "secondaryResults": {
+        "secondaryResults": {
+          "results": [
+            {
+              "lockupViewModel": {
+                "contentImage": {
+                  "thumbnailViewModel": {
+                    "image": {
+                      "sources": [
+                        {
+                          "url": "https://i.ytimg.com/vi/yPYZpwSpKmA/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLCTILWN-kuUo1xeSl_YFE7Ts0XFwA",
+                          "width": 168,
+                          "height": 94
+                        },
+                        {
+                          "url": "https://i.ytimg.com/vi/yPYZpwSpKmA/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCgJt2_an7C_u4uNIF2n9cGD0N0Ig",
+                          "width": 336,
+                          "height": 188
+                        }
+                      ]
+                    },
+                    "overlays": [
+                      {
+                        "thumbnailBottomOverlayViewModel": {
+                          "badges": [
+                            {
+                              "thumbnailBadgeViewModel": {
+                                "icon": {
+                                  "sources": [
+                                    {
+                                      "clientResource": {
+                                        "imageName": "MUSIC"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "text": "3:24",
+                                "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                "rendererContext": {}
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "metadata": {
+                  "lockupMetadataViewModel": {
+                    "title": {
+                      "content": "Rick Astley - Together Forever (Official Video) [4K Remaster]"
+                    },
+                    "image": {
+                      "decoratedAvatarViewModel": {
+                        "a11yLabel": "Go to channel Rick Astley",
+                        "rendererContext": {
+                          "commandContext": {
+                            "onTap": {
+                              "innertubeCommand": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "contentMetadataViewModel": {
+                        "metadataRows": [
+                          {
+                            "metadataParts": [
+                              {
+                                "text": {
+                                  "content": "Rick Astley"
+                                },
+                                "icon": {
+                                  "name": "AUDIO_BADGE",
+                                  "height": 14,
+                                  "width": 14,
+                                  "accessibilityLabel": "Official Artist Channel"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "metadataParts": [
+                              {
+                                "text": {
+                                  "content": "208M"
+                                },
+                                "accessibilityLabel": "208 million views",
+                                "leadingIcon": {
+                                  "name": "PLAY_ARROW_OUTLINED",
+                                  "height": 12,
+                                  "width": 12,
+                                  "marginEndToken": {
+                                    "spacing": 2
+                                  }
+                                }
+                              },
+                              {
+                                "text": {
+                                  "content": "17y ago"
+                                },
+                                "accessibilityLabel": "17 years ago"
+                              }
+                            ]
+                          }
+                        ],
+                        "delimiter": " "
+                      }
+                    }
+                  }
+                },
+                "contentId": "yPYZpwSpKmA",
+                "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                "rendererContext": {
+                  "commandContext": {
+                    "onTap": {
+                      "innertubeCommand": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=yPYZpwSpKmA&list=RDyPYZpwSpKmA&start_radio=1&pp=oAcB",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "yPYZpwSpKmA",
+                          "playlistId": "RDyPYZpwSpKmA",
+                          "params": "wAEBuAUB",
+                          "playerParams": "oAcB",
+                          "nofollow": true,
+                          "watchEndpointSupportedOnesieConfig": {
+                            "html5PlaybackOnesieConfig": {
+                              "commonConfig": {
+                                "url": "https://rr3---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=c8f619a704a92a60&ip=59.138.72.110&initcwndbps=4041875&mt=1794261199&oweuc="
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "lockupViewModel": {
+                "contentImage": {
+                  "thumbnailViewModel": {
+                    "image": {
+                      "sources": [
+                        {
+                          "url": "https://i.ytimg.com/vi/LO5iHyYa0XM/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLB6pGtmLQ_-_6GswMln6qGk8xULXg",
+                          "width": 168,
+                          "height": 94
+                        },
+                        {
+                          "url": "https://i.ytimg.com/vi/LO5iHyYa0XM/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDaLnDUtQoQyGkF94hIj8VeX3eD1A",
+                          "width": 336,
+                          "height": 188
+                        }
+                      ]
+                    },
+                    "overlays": [
+                      {
+                        "thumbnailBottomOverlayViewModel": {
+                          "badges": [
+                            {
+                              "thumbnailBadgeViewModel": {
+                                "text": "35:24",
+                                "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                "rendererContext": {}
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "animatedThumbnailOverlayViewModel": {
+                          "thumbnail": {
+                            "sources": [
+                              {
+                                "url": "https://i.ytimg.com/an_webp/LO5iHyYa0XM/mqdefault_6s.webp?du=3000&sqp=CLL4yNcG&rs=AOn4CLCVhjEyfItwSYRFHyGsYvtnuxeGuQ",
+                                "width": 320,
+                                "height": 180
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "thumbnailOverlayBadgeViewModel": {
+                          "thumbnailBadges": [
+                            {
+                              "thumbnailBadgeViewModel": {
+                                "text": "New",
+                                "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_SPECIAL",
+                                "rendererContext": {}
+                              }
+                            }
+                          ],
+                          "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_TOP_START"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "metadata": {
+                  "lockupMetadataViewModel": {
+                    "title": {
+                      "content": "Pete Hegseth: Last Week Tonight with John Oliver (HBO)"
+                    },
+                    "image": {
+                      "decoratedAvatarViewModel": {
+                        "a11yLabel": "Go to channel LastWeekTonight",
+                        "rendererContext": {
+                          "commandContext": {
+                            "onTap": {
+                              "innertubeCommand": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@LastWeekTonight",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UC3XTzVzaHQEd30rQbuvCtTQ",
+                                  "canonicalBaseUrl": "/@LastWeekTonight"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "metadata": {
+                      "contentMetadataViewModel": {
+                        "metadataRows": [
+                          {
+                            "metadataParts": [
+                              {
+                                "text": {
+                                  "content": "LastWeekTonight"
+                                },
+                                "icon": {
+                                  "name": "CHECK_CIRCLE_FILLED",
+                                  "height": 14,
+                                  "width": 14,
+                                  "accessibilityLabel": "Verified"
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "metadataParts": [
+                              {
+                                "text": {
+                                  "content": "3.9M"
+                                },
+                                "accessibilityLabel": "3.9 million views",
+                                "leadingIcon": {
+                                  "name": "PLAY_ARROW_OUTLINED",
+                                  "height": 12,
+                                  "width": 12,
+                                  "marginEndToken": {
+                                    "spacing": 2
+                                  }
+                                }
+                              },
+                              {
+                                "text": {
+                                  "content": "14h ago"
+                                },
+                                "accessibilityLabel": "14 hours ago"
+                              }
+                            ]
+                          }
+                        ],
+                        "delimiter": " "
+                      }
+                    }
+                  }
+                },
+                "contentId": "LO5iHyYa0XM",
+                "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                "rendererContext": {
+                  "commandContext": {
+                    "onTap": {
+                      "innertubeCommand": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=LO5iHyYa0XM",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "LO5iHyYa0XM",
+                          "nofollow": true,
+                          "watchEndpointSupportedOnesieConfig": {
+                            "html5PlaybackOnesieConfig": {
+                              "commonConfig": {
+                                "url": "https://rr4---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2cee621f261ad173&ip=59.138.72.110&initcwndbps=4041875&mt=1794261199&oweuc="
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

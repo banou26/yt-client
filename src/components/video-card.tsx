@@ -15,6 +15,7 @@ import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { formatDuration, formatMeta, readable } from './format'
 import { WATCH_LATER_ID } from './playlist'
+import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -30,11 +31,14 @@ export type VideoCardData =
       | 'animatedThumbnail'
       | 'description'
       | 'durationSeconds'
+      | 'isMusic'
       | 'progressPercent'
       | 'publishedText'
       | 'thumbnail'
+      | 'thumbnailBadge'
       | 'thumbnailSrcset'
       | 'viewCount'
+      | 'viewCountIcon'
     >
   >
   & {
@@ -307,6 +311,9 @@ const style = css`
     position: absolute;
     right: 0.6rem;
     bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
     padding: 0.1rem 0.4rem;
     border-radius: 0.4rem;
     background: var(--bg-badge);
@@ -487,9 +494,10 @@ export const VideoCard = (
           ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='(max-width: 500px) 100vw, 38rem' />
           : undefined}
         {previewing ? <HoverPreview videoId={video.id} href={watchHref} /> : undefined}
+        {video.thumbnailBadge ? <CornerBadge label={video.thumbnailBadge} /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
-          : duration ? <span className='badge'>{duration}</span> : undefined}
+          : duration ? <span className='badge'>{video.isMusic ? <MusicNote /> : undefined}{duration}</span> : undefined}
         {progress !== undefined
           ? (
             <span className='progress'>
@@ -519,7 +527,7 @@ export const VideoCard = (
           {video.channel && channelHref && variant !== 'channel'
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
-          {meta ? <div className='meta'>{meta}</div> : undefined}
+          {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
         </div>
         <VideoCardMenu videoId={video.id} title={video.title} class='more-menu' />
       </div>

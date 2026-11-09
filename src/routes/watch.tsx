@@ -374,8 +374,11 @@ const RELATED_MORE_QUERY = gql(`
         thumbnail
         thumbnailSrcset
         animatedThumbnail
+        thumbnailBadge
         durationSeconds
+        isMusic
         viewCount
+        viewCountIcon
         publishedText
         isLive
         channel { id name isVerified isVerifiedArtist }

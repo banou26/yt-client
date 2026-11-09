@@ -12,6 +12,7 @@ import { useDocumentTitle } from '../app'
 import { ChapterStrip } from '../components/chapters'
 import { formatDuration, formatMeta } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
+import { MusicNote } from '../components/row-marks'
 import { SearchCard } from '../components/search-card'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
 import { ShortsShelf } from '../components/shorts-shelf'
@@ -90,9 +91,11 @@ const SEARCH_RESULTS_QUERY = gql(`
     title
     description
     descriptionSnippet
+    snippetRuns { text bold }
     thumbnail
     thumbnailSrcset
     durationSeconds
+    isMusic
     viewCount
     publishedText
     isLive
@@ -356,6 +359,9 @@ const style = css`
     position: absolute;
     right: 0.8rem;
     bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
     padding: 0.2rem 0.4rem;
     border-radius: 0.4rem;
     background: rgba(0, 0, 0, 0.8);
@@ -485,6 +491,10 @@ const style = css`
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .description b {
+    font-weight: 500;
   }
 
   /* A channel row is centred on its own axis rather than sharing the video
@@ -645,7 +655,9 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
   const watchHref = watchHrefFor(row.id)
   const duration = formatDuration(row.durationSeconds)
   const meta = formatMeta(row.viewCount, row.publishedText)
-  const snippet = row.descriptionSnippet ?? row.description
+  const snippet = row.snippetRuns?.map((run, index) => run.bold ? <b key={index}>{run.text}</b> : run.text)
+    ?? row.descriptionSnippet
+    ?? row.description
   const canPreview = row.isUpcoming !== true && row.isLive !== true
   return (
     <article
@@ -665,7 +677,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
         {previewing ? <HoverPreview videoId={row.id} href={watchHref} /> : undefined}
         {row.isLive
           ? <span className='badge live'>LIVE</span>
-          : duration ? <span className='badge'>{duration}</span> : undefined}
+          : duration ? <span className='badge'>{row.isMusic ? <MusicNote /> : undefined}{duration}</span> : undefined}
       </Link>
       <div className='info'>
         <div className='title-row'>

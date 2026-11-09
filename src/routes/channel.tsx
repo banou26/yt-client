@@ -73,8 +73,11 @@ const CHANNEL_VIEW_QUERY = gql(`
           title
           thumbnail
           thumbnailSrcset
+          thumbnailBadge
           durationSeconds
+          isMusic
           viewCount
+          viewCountIcon
           publishedText
           isLive
           isShort

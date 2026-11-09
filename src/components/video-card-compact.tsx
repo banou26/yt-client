@@ -8,6 +8,7 @@ import { Link } from 'wouter'
 
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { formatDuration, formatMeta } from './format'
+import { CornerBadge, MusicNote, ViewsArrow } from './row-marks'
 import { Thumbnail } from './thumbnail'
 import { VerifiedBadge } from './verified-badge'
 import { resumePercent, VideoCardMenu, watchHrefFor } from './video-card'
@@ -46,6 +47,9 @@ const style = css`
     position: absolute;
     right: 0.4rem;
     bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
     padding: 0.1rem 0.4rem;
     border-radius: 0.4rem;
     background: var(--bg-badge);
@@ -179,9 +183,10 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
         {video.thumbnail ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='16.8rem' /> : undefined}
         {moving ? <img className='moving' src={moving} alt='' /> : undefined}
+        {video.thumbnailBadge ? <CornerBadge label={video.thumbnailBadge} /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
-          : duration && !moving ? <span className='badge'>{duration}</span> : undefined}
+          : duration && !moving ? <span className='badge'>{video.isMusic ? <MusicNote /> : undefined}{duration}</span> : undefined}
         {/* After the badge so the resume bar wins wherever the two overlap. */}
         {progress !== undefined
           ? (
@@ -203,7 +208,7 @@ export const VideoCardCompact = ({ video, context }: { video: VideoCardData, con
             </Link>
           )
           : undefined}
-        {meta ? <div className='meta'>{meta}</div> : undefined}
+        {meta ? <div className='meta'>{video.viewCountIcon ? <ViewsArrow /> : undefined}{meta}</div> : undefined}
       </div>
       <VideoCardMenu videoId={video.id} title={video.title} iconSize={16} class='more-menu' />
     </article>

@@ -14,6 +14,7 @@ type Text = {
 
 type RunNode = {
   text?: string
+  bold?: boolean
   attachment?: { element?: { type?: { imageType?: { image?: { sources?: { clientResource?: { imageName?: string } }[] } } } } }
   endpoint?: {
     payload?: {
@@ -40,6 +41,8 @@ type FeedVideo = {
   title?: string | Text
   description?: string
   description_snippet?: Text
+  // a search row's description excerpt, with the words that matched the query as bold runs
+  snippets?: { text?: Text }[]
   thumbnails?: Thumbnail[]
   best_thumbnail?: Thumbnail
   duration?: { seconds?: number }
@@ -51,7 +54,7 @@ type FeedVideo = {
   is_live?: boolean
   is_upcoming?: boolean
   badges?: { label?: string, text?: string, style?: string }[]
-  thumbnail_overlays?: unknown[]
+  thumbnail_overlays?: { type?: string, icon_type?: string }[]
   expandable_metadata?: {
     header?: { expanded_title?: Text }
     expanded_content?: { cards?: { title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
@@ -72,8 +75,8 @@ type VideoDetails = {
 
 type MetadataParts = {
   metadata_rows?: {
-    // icon_name is this repo's patch of youtubei.js (patches/), which otherwise drops a part's icon
-    metadata_parts?: { text?: Text, icon_name?: string }[]
+    // icon_name and leading_icon_name are this repo's patch of youtubei.js (patches/), which otherwise drops a part's icons
+    metadata_parts?: { text?: Text, icon_name?: string, leading_icon_name?: string }[]
   }[]
 }
 
@@ -130,7 +133,8 @@ type WatchNextResponse = {
 
 type LockupOverlay = {
   type?: string
-  badges?: { text?: string, badge_style?: string }[]
+  badges?: { text?: string, badge_style?: string, icon_name?: string }[]
+  position?: string
   progress_bar?: { start_percent?: number }
   thumbnail?: Thumbnail[]
 }
@@ -332,6 +336,9 @@ const metadataTexts = (metadata: MetadataParts | undefined) =>
 // a lockup or a page header names its badge by icon rather than by an author badge style
 const VERIFIED_ICONS = new Set(['CHECK_CIRCLE_FILLED', 'CHECK_CIRCLE_THICK'])
 const ARTIST_ICONS = new Set(['AUDIO_BADGE', 'OFFICIAL_ARTIST_BADGE'])
+
+// the outlined play arrow youtube.com draws before a lockup's view count (measured 2026-11-10)
+const VIEW_COUNT_ICONS = new Set(['PLAY_ARROW_OUTLINED'])
 
 const iconBadges = (names: (string | undefined)[]): Pick<SourceChannel, 'isVerified' | 'isVerifiedArtist'> => ({
   isVerified: names.some((name) => name !== undefined && VERIFIED_ICONS.has(name)) ? true : undefined,
@@ -612,6 +619,7 @@ export const normalizeRuns = (value: string | Text | undefined): SourceTextRun[]
     const startSeconds = payload?.startTimeSeconds
     return [{
       text: runText,
+      bold: run.bold === true ? true : undefined,
       url: payload?.url,
       videoId: payload?.videoId,
       startSeconds: typeof startSeconds === 'number' && Number.isFinite(startSeconds) ? startSeconds : undefined,
@@ -677,14 +685,19 @@ export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
   const id = video.video_id ?? video.id
   const title = text(video.title)
   if (!id || !title) return undefined
+  const snippetRuns = video.snippets?.flatMap((snippet) => normalizeRuns(snippet.text))
   return {
     id,
     title,
     description: video.description ?? text(video.description_snippet),
     descriptionSnippet: text(video.description_snippet),
+    snippetRuns: snippetRuns?.length ? snippetRuns : undefined,
     thumbnail: video.best_thumbnail?.url ?? thumbnail(video.thumbnails, STILL_WIDTH),
     thumbnailSrcset: srcset(video.thumbnails),
     durationSeconds: duration(video),
+    isMusic: video.thumbnail_overlays?.some((overlay) => overlay.type === 'ThumbnailOverlayTimeStatus' && overlay.icon_type === 'MUSIC')
+      ? true
+      : undefined,
     viewCount: text(video.short_view_count ?? video.view_count),
     // a live VideoCard's one line holds no date, which youtubei.js reads as 'N/A'
     publishedText: presentText(video.published),
@@ -757,6 +770,7 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
   if (!id || !title) return undefined
   const image = lockup.content_image?.primary_thumbnail ?? lockup.content_image
   const badges = image?.overlays?.flatMap((overlay) => overlay.badges ?? []) ?? []
+  const length = badges.find((badge) => durationSeconds(badge.text) !== undefined)
   const { byline, stats } = lockupLines(lockup, own)
   return {
     id,
@@ -766,10 +780,15 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
     animatedThumbnail: thumbnail(
       image?.overlays?.find((overlay) => overlay.type === 'AnimatedThumbnailOverlayView')?.thumbnail,
     ),
-    durationSeconds: badges
-      .map((badge) => durationSeconds(badge.text))
-      .find((seconds) => seconds !== undefined),
+    thumbnailBadge: image?.overlays
+      ?.filter((overlay) => overlay.position?.endsWith('_TOP_START'))
+      .flatMap((overlay) => overlay.badges ?? [])
+      .map((badge) => presentText(badge.text))
+      .find((label) => Boolean(label)),
+    durationSeconds: durationSeconds(length?.text),
+    isMusic: length?.icon_name === 'MUSIC' ? true : undefined,
     viewCount: text(stats[0]?.text),
+    viewCountIcon: VIEW_COUNT_ICONS.has(stats[0]?.leading_icon_name ?? '') ? true : undefined,
     publishedText: text(stats[1]?.text),
     isLive: badges.some((badge) => badge.badge_style?.includes('LIVE')) ? true : undefined,
     progressPercent: lockupProgressPercent(image),
@@ -777,7 +796,7 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
     isMembersOnly: hasBadgeStyle(badges.map((badge) => ({ style: badge.badge_style })), 'MEMBERS_ONLY')
       ? true
       : undefined,
-    // empty because a lockup's overlay badges carry only the duration and the live pill, both read above
+    // empty because a lockup's overlay badges carry only the length, the live pill and the corner label, all read above
     badges: [],
     channel: lockupChannel(lockup, byline),
   }
