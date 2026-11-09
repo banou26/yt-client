@@ -44,3 +44,14 @@ test('opens /hashtag/<tag> as a search for the tag', async ({ page }) => {
   await expect(page).toHaveURL('/results?search_query=%23nevergonnagiveyouup')
   await expect(page.getByRole('combobox', { name: 'Search' })).toHaveValue('#nevergonnagiveyouup')
 })
+
+test('opens /post/<id> on the post, and says when there is none', async ({ page }) => {
+  test.setTimeout(180_000)
+  await page.goto('/post/UgkxX6gkDxQ0KRucvyG7NLui0LhjHp0CLlfZ')
+  const post = page.locator('main article.post')
+  await expect(post).toContainText('Welcome to the Blind Smartphone Camera Test 2023!', { timeout: 120_000 })
+  await expect(post.getByRole('link', { name: 'Marques Brownlee' })).toHaveAttribute('href', '/channel/UCBJycsmduvYEL83R_U4JriQ')
+
+  await page.goto('/post/UgkxNOPENOPENOPENOPENOPENOPENOPENOPE1')
+  await expect(page.locator('main .status')).toHaveText('This post isn\'t available.', { timeout: 120_000 })
+})

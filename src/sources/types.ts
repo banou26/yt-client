@@ -427,6 +427,8 @@ export type Source = {
   channel(id: string, tab?: SourceChannelTab, sort?: string, query?: string, cursor?: string): Promise<SourceChannelPage>
   channelAbout(id: string): Promise<SourceChannelAbout | undefined>
   communityPosts(channelId: string, cursor?: string): Promise<SourcePostPage>
+  // undefined when youtube.com has no post under that id
+  post(id: string): Promise<SourcePost | undefined>
   // `playlistIndex` is 0-based; the server corrects an out-of-range one, so the honoured position is the one on the result
   watch(id: string, playlistId?: string, playlistIndex?: number): Promise<SourceWatchMeta | undefined>
   comments(videoId: string, sort?: SourceCommentSort, cursor?: string): Promise<SourceCommentPage>
@@ -475,6 +477,7 @@ export const SOURCE_METHODS = [
   'channel',
   'channelAbout',
   'communityPosts',
+  'post',
   'watch',
   'comments',
   'commentReplies',
@@ -542,6 +545,7 @@ export const SOURCE_REPLAY = {
   channel: 'unless-cursor',
   channelAbout: 'always',
   communityPosts: 'unless-cursor',
+  post: 'always',
   watch: 'always',
   comments: 'unless-cursor',
   commentReplies: 'unless-cursor',

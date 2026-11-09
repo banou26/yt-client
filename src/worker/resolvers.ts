@@ -43,6 +43,7 @@ export const resolvers = {
     channelAbout: (_, { id }, context) => context.source.channelAbout(id).then((about) => about ?? null),
     communityPosts: (_, { channelId, cursor }, context) =>
       context.source.communityPosts(channelId, cursor ?? undefined),
+    post: (_, { id }, context) => context.source.post(id).then((post) => post ?? null),
     watch: (_, { id, playlistId, playlistIndex }, context) =>
       context.source.watch(id, playlistId ?? undefined, playlistIndex ?? undefined).then((meta) => meta ?? null),
     comments: (_, { videoId, sort, cursor }, context) =>

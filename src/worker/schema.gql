@@ -640,6 +640,8 @@ type Query {
   # ask at all.
   channelAbout(id: ID!): ChannelAbout
   communityPosts(channelId: ID!, cursor: String): PostPage!
+  # Null when youtube.com has no post under that id.
+  post(id: ID!): Post
   # `playlistId` puts the video in a queue: the same /next call then also returns
   # the playlist panel. `playlistIndex` is 0-based, and the server corrects an
   # out-of-range one rather than failing, so read the position back off

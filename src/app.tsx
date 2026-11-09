@@ -23,6 +23,7 @@ const FeedSubscriptionsPage = lazyRoute(() => import('./routes/feed-subscription
 const FeedYouPage = lazyRoute(() => import('./routes/feed-you'))
 const GroupPage = lazyRoute(() => import('./routes/group'))
 const PlaylistPage = lazyRoute(() => import('./routes/playlist'))
+const PostPage = lazyRoute(() => import('./routes/post'))
 const PrivacyPage = lazyRoute(() => import('./routes/privacy'))
 const SearchPage = lazyRoute(() => import('./routes/search'))
 const SettingsPage = lazyRoute(() => import('./routes/settings'))
@@ -241,6 +242,7 @@ export const App = () => {
               </Route>
               {/* youtube.com's Gaming topic channel, as the guide's Explore links it */}
               <Route path='/gaming'><Redirect to='/channel/UCOpNcN46UbXVtpKMrmU4Abg' replace /></Route>
+              <Route path='/post/:postId' component={PostPage} />
               {/* claims the whole segment because wouter's parser never matches `/@:handle`, so it MUST stay declared after every real single-segment route: Switch takes the first match, and this can then only see paths nothing else wanted */}
               <Route path='/:segment'>
                 {(params: { segment?: string }) => params.segment?.startsWith('@')

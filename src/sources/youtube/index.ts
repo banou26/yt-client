@@ -241,7 +241,7 @@ export type YoutubeClient = {
   getBasicInfo(id: string): Promise<{ basic_info?: unknown }>
   getShortsVideoInfo(id: string): Promise<ShortsSequence>
   getChannel(id: string): Promise<ChannelFeed>
-  resolveURL(url: string): Promise<{ payload?: { browseId?: string } }>
+  resolveURL(url: string): Promise<{ payload?: { browseId?: string, params?: string } }>
   getInfo(id: string): Promise<VideoInfoWithChat>
   getComments(videoId: string, sortBy?: 'TOP_COMMENTS' | 'NEWEST_FIRST'): Promise<CommentsFeed>
   getNotifications(): Promise<NotificationsFeed>
@@ -266,6 +266,7 @@ export type YoutubeClient = {
     execute(endpoint: 'playlist/delete', args: { playlistId: string }): Promise<ApiResponse>
     execute(endpoint: '/reel/reel_item_watch', args: { params: string, inputType: string }): Promise<SeedlessReelResponse>
     execute(endpoint: '/account/accounts_list', args: { client: 'WEB', parse: true }): Promise<{ actions_memo?: { get(type: string): unknown[] | undefined } }>
+    execute(endpoint: '/browse', args: { browseId: string, params?: string, parse: true }): Promise<{ contents_memo?: Map<string, unknown[]> }>
   }
 }
 
@@ -1202,6 +1203,19 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const result = await fetchChannel(channelId)
       if (result.has_community !== true || !result.getCommunity) return { items: [] }
       return postPage(kind, await result.getCommunity.call(result) as PostsFeed)
+    },
+    post: async (id) => {
+      const active = await client
+      // a post's browse is keyed by its channel too, which only youtube.com's own address for it resolves
+      const endpoint = await active.resolveURL(`https://www.youtube.com/post/${encodeURIComponent(id)}`).catch((error: unknown) => {
+        if (String(error).includes('status code 404')) return undefined
+        throw error
+      })
+      const { browseId, params } = endpoint?.payload ?? {}
+      if (!browseId) return undefined
+      const memo = (await active.actions.execute('/browse', { browseId, params, parse: true })).contents_memo
+      const nodes = [...(memo?.get('BackstagePost') ?? []), ...(memo?.get('Post') ?? [])] as { id?: string }[]
+      return normalizeCommunityPost(nodes.find((node) => node.id === id))
     },
     watch: async (id, playlistId, playlistIndex) => {
       const response = await (await client).actions.execute('/next', {
