@@ -48,14 +48,15 @@ const RATE_VIDEO = gql(`
 
 const style = css`
   display: grid;
-  /* youtube.com's own proportions, measured at 1280 to 2560 px wide: the
-     sidebar is 27.5% of the window, held between 402 and 700 px, and the
-     player takes the rest, up to the width whose 16:9 frame still fits under
-     the header with room below it. A short window gives the width the player
-     cannot take to the sidebar, up to its 700 px, and only an ultrawide one
-     centers the two. */
+  /* youtube.com's own proportions, measured at 1000 to 2560 px wide on
+     2026-11-10: a 16 px margin and gap, 12 px above the player, the sidebar
+     27.5% of the window held between 320 px and 35% of the window or 700 px,
+     and the player takes the rest, up to the width whose 16:9 frame still
+     fits under the header with room below it. A short window gives the width
+     the player cannot take to the sidebar, up to that maximum, and only what
+     is left past both centers the two. */
   --player-max: max(64rem, calc((100vh - var(--header-height) - 6rem) * 16 / 9));
-  --sidebar: clamp(40.2rem, max(27.5vw, 100% - 2.4rem - var(--player-max)), 70rem);
+  --sidebar: clamp(32rem, max(27.5vw, 100% - 1.6rem - var(--player-max)), min(35vw, 70rem));
   grid-template-columns: minmax(0, var(--player-max)) var(--sidebar);
   justify-content: center;
   /* The sidebar spans BOTH rows, and an auto-sized row absorbs a share of a
@@ -71,8 +72,8 @@ const style = css`
      excess instead. */
   grid-template-rows: min-content 1fr;
   align-items: start;
-  gap: 0 2.4rem;
-  padding: 2.4rem;
+  gap: 0 1.6rem;
+  padding: 1.2rem 1.6rem 2.4rem;
 
   .stage {
     grid-column: 1;
@@ -103,19 +104,20 @@ const style = css`
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    /* 168 px at the 402 px minimum, growing 1.25 px per px the row gains, up
-       to youtube.com's 62.5% of the row (330 of 528 at 1920) */
-    --compact-thumb-width: clamp(16.8rem, calc(125% - 33.45rem), 62.5%);
+    /* youtube.com's 62.5% of the row at every width: 200 of 320, 220 of 352, 330 of 528 */
+    --compact-thumb-width: 62.5%;
   }
 
-  /* a theater player runs edge to edge, so nothing is left over to center */
+  /* a theater player runs edge to edge, so nothing is left over to center;
+     the columns under it keep the page's margins, as youtube.com's do */
   &.theater {
     grid-template-columns: minmax(0, 1fr) var(--sidebar);
-    padding: 0 0 2.4rem;
+    padding-top: 0;
   }
 
   &.theater .stage {
     grid-column: 1 / -1;
+    margin: 0 -1.6rem;
     background: #000;
   }
 
@@ -132,13 +134,13 @@ const style = css`
     border-radius: 0;
   }
 
-  &.theater .primary {
-    padding: 2.4rem 0 0 2.4rem;
+  &.theater .primary,
+  &.theater .secondary {
+    padding-top: 2.4rem;
   }
 
   &.theater .secondary {
     grid-row: 2;
-    padding: 2.4rem 2.4rem 0 0;
   }
 
   .primary > .chat-replay {
@@ -326,7 +328,9 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  @media (max-width: 1017px) {
+  @media (max-width: 999px) {
+    padding: 2.4rem;
+
     &,
     &.theater {
       grid-template-columns: minmax(0, 1fr);
@@ -347,9 +351,12 @@ const style = css`
       --compact-thumb-width: 16.8rem;
     }
 
-    &.theater .primary,
-    &.theater .secondary {
-      padding: 2.4rem 1.2rem 0;
+    &.theater {
+      padding: 0 1.2rem 2.4rem;
+    }
+
+    &.theater .stage {
+      margin: 0 -1.2rem;
     }
   }
 
@@ -504,7 +511,7 @@ const WatchPage = () => {
   const [replayFor, setReplayFor] = useState<string | undefined>(undefined)
   const replayOpen = watch?.hasChatReplay === true && replayFor === videoId
   // the same width the layout drops to one column at: youtube.com then opens the panel under the player
-  const oneColumn = useMediaQuery('(max-width: 1017px)')
+  const oneColumn = useMediaQuery('(max-width: 999px)')
   const replay = replayOpen
     ? <ChatReplay key={`replay:${videoId}`} videoId={videoId} onClose={() => setReplayFor(undefined)} />
     : undefined
