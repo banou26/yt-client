@@ -4,13 +4,13 @@ import { expect, test } from './test'
 
 test.use({ colorScheme: 'light' })
 
-const mountMarks = async (page: Page) => {
+const mountMarks = async (page: Page, options: { unwatchedChip?: boolean } = {}) => {
   await page.goto('/privacy?search_query=never+gonna+give+you+up')
-  await page.evaluate(async () => {
+  await page.evaluate(async (options) => {
     const harness = '/tests/browser/fixtures/marks-harness.tsx'
-    const { mountMarks } = await import(harness) as { mountMarks: () => void }
-    mountMarks()
-  })
+    const { mountMarks } = await import(harness) as { mountMarks: (options: { unwatchedChip?: boolean }) => void }
+    mountMarks(options)
+  }, options)
   return page.locator('[data-marks-harness]')
 }
 
@@ -60,6 +60,17 @@ test('a search row prints the words its answer bolds in bold, and the music note
   await expect(row.locator('.description')).toHaveText('The official video for Never Gonna Give You Up by Rick Astley.')
   await expect(row.locator('.badge [data-mark="music"]')).toBeVisible()
   await expect(row.locator('.badge')).toHaveText('3:34')
+})
+
+// youtube.com shows no chip bar at all on some searches ("election results", measured 2026-11-10)
+test('the Unwatched chip shows only on a search whose answer offers it', async ({ page }) => {
+  const chips = (await mountMarks(page, { unwatchedChip: false })).locator('[data-marks="search"] .filter-chips button')
+  await expect(page.locator('[data-marks="search"] article.result')).toBeVisible()
+  await expect(chips).toHaveText(['All', 'Shorts', 'Videos', 'Recently uploaded', 'Live'])
+
+  const offered = (await mountMarks(page)).locator('[data-marks="search"] .filter-chips button')
+  await expect(page.locator('[data-marks="search"] article.result')).toBeVisible()
+  await expect(offered).toHaveText(['All', 'Shorts', 'Unwatched', 'Videos', 'Recently uploaded', 'Live'])
 })
 
 test('the related column and a search draw the marks youtube.com answers with', async ({ page }) => {

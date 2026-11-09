@@ -1,0 +1,1063 @@
+{
+  "all": {
+    "estimatedResults": "10086455",
+    "contents": {
+      "twoColumnSearchResultsRenderer": {
+        "primaryContents": {
+          "sectionListRenderer": {
+            "contents": [
+              {
+                "itemSectionRenderer": {
+                  "contents": [
+                    {
+                      "videoRenderer": {
+                        "videoId": "K5KVEU3aaeQ",
+                        "thumbnail": {
+                          "thumbnails": [
+                            {
+                              "url": "https://i.ytimg.com/vi/K5KVEU3aaeQ/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDRdc2qE8vtFe-WOi8LQc7NZGXDvw",
+                              "width": 360,
+                              "height": 202
+                            },
+                            {
+                              "url": "https://i.ytimg.com/vi/K5KVEU3aaeQ/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBU_XzziowJTR0U9Y8-I4BIWpWxEQ",
+                              "width": 720,
+                              "height": 404
+                            }
+                          ]
+                        },
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Python Full Course for Beginners"
+                            }
+                          ]
+                        },
+                        "longBylineText": {
+                          "runs": [
+                            {
+                              "text": "Programming with Mosh",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@programmingwithmosh",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                  "canonicalBaseUrl": "/@programmingwithmosh"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "publishedTimeText": {
+                          "simpleText": "1y ago"
+                        },
+                        "lengthText": {
+                          "simpleText": "2:02:21"
+                        },
+                        "viewCountText": {
+                          "simpleText": "8,105,221 views"
+                        },
+                        "navigationEndpoint": {
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "url": "/watch?v=K5KVEU3aaeQ&t=56s&pp=ygUPcHl0aG9uIHR1dG9yaWFs",
+                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                              "rootVe": 3832
+                            }
+                          },
+                          "watchEndpoint": {
+                            "videoId": "K5KVEU3aaeQ",
+                            "params": "uAI4qgMPcHl0aG9uIHR1dG9yaWFsugMLCO2rkYPaiNePiwG6AwsI18yRp_TkivL-AboDCwiv6J_T3fzQ1ZIBugMKCPee36Phjru0fboDCwi8677p0orH_a0BugMLCILGprHK7pPltwG6AyQSIlBMc3llb2J6V3hsN3BvTDlKVFZ5bmRLZTYyaWVvTi1NWjO6AwoI8ZXWs_ygzuYmugMkEiJQTHN5ZW9ield4bDdvbURvRVlycmYzb1h2WHhhNk1QZ2VrugMkEiJQTC1vc2lFODBUZVR0MmQ5YmZWeVRpWEpBLVVUSG42V3dVugMkEiJQTE5jZ19GVjluN3FaR2ZGbDJBTklfeklTek5wMjU3THduugMKCM76jaacifPHRroDJBIiUExUalJ2RG96cmRseGo1d2dINHFrdndTT2RITE9DeDEwZroDJBIiUExaUFpxMHJfUlpPT2tVUWJhdDhMeVFpaTM2Y0pmMlNXVLoDCgj1keaAqu3dp2-6AyQSIlBMV0tqaEp0cVZBYm5xQnhjZGpWR2dUM3VWUjEwYnpURUK6AyQSIlBMR2pwbE5FUTFpdDgtMENtb2xqUzV5ZVYtR2xLU1VFdDC6AyQSIlBMdTBXXzlsSUk5YWd3aDFYalJ0MjQyeElwSGhQVDJsbGe6AwoI5unDx6iVw9FU8gMFDcez_z6CBAIYAQ%3D%3D",
+                            "startTimeSeconds": 56
+                          }
+                        },
+                        "ownerBadges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "icon": {
+                                "iconType": "CHECK_CIRCLE_THICK"
+                              },
+                              "style": "BADGE_STYLE_TYPE_VERIFIED",
+                              "tooltip": "Verified"
+                            }
+                          }
+                        ],
+                        "ownerText": {
+                          "runs": [
+                            {
+                              "text": "Programming with Mosh",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@programmingwithmosh",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                  "canonicalBaseUrl": "/@programmingwithmosh"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortBylineText": {
+                          "runs": [
+                            {
+                              "text": "Programming with Mosh",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@programmingwithmosh",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                  "canonicalBaseUrl": "/@programmingwithmosh"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortViewCountText": {
+                          "simpleText": "8.1M"
+                        },
+                        "thumbnailOverlays": [
+                          {
+                            "thumbnailOverlayTimeStatusRenderer": {
+                              "text": {
+                                "simpleText": "2:02:21"
+                              },
+                              "style": "DEFAULT"
+                            }
+                          }
+                        ],
+                        "detailedMetadataSnippets": [
+                          {
+                            "snippetText": {
+                              "runs": [
+                                {
+                                  "text": "Master "
+                                },
+                                {
+                                  "text": "Python",
+                                  "bold": true
+                                },
+                                {
+                                  "text": " from scratch No fluff—just clear, practical coding skills to kickstart your journey! Want to dive deeper? - Check ..."
+                                }
+                              ]
+                            },
+                            "snippetHoverText": {
+                              "runs": [
+                                {
+                                  "text": "From the video description"
+                                }
+                              ]
+                            },
+                            "maxOneLine": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "videoRenderer": {
+                        "videoId": "ix9cRaBkVe0",
+                        "thumbnail": {
+                          "thumbnails": [
+                            {
+                              "url": "https://i.ytimg.com/vi/ix9cRaBkVe0/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDZv-i_oSz2BkQZWpbrIOvGZTn25w",
+                              "width": 360,
+                              "height": 202
+                            },
+                            {
+                              "url": "https://i.ytimg.com/vi/ix9cRaBkVe0/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDsLPZCX5PFS2a-Wng9IwGAduPqOQ",
+                              "width": 720,
+                              "height": 404
+                            }
+                          ]
+                        },
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Python Full Course for free 🐍"
+                            }
+                          ]
+                        },
+                        "longBylineText": {
+                          "runs": [
+                            {
+                              "text": "Bro Code",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BroCodez",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+                                  "canonicalBaseUrl": "/@BroCodez"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "publishedTimeText": {
+                          "simpleText": "2y ago"
+                        },
+                        "lengthText": {
+                          "simpleText": "12:00:00"
+                        },
+                        "viewCountText": {
+                          "simpleText": "13,408,460 views"
+                        },
+                        "navigationEndpoint": {
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "url": "/watch?v=ix9cRaBkVe0&pp=ygUPcHl0aG9uIHR1dG9yaWFs",
+                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                              "rootVe": 3832
+                            }
+                          },
+                          "watchEndpoint": {
+                            "videoId": "ix9cRaBkVe0",
+                            "params": "qgMPcHl0aG9uIHR1dG9yaWFsugMKCOTT6e6UoqXJK7oDCwjXzJGn9OSK8v4BugMLCK_on9Pd_NDVkgG6AwoI957fo-GOu7R9ugMLCLzrvunSisf9rQG6AwsIgsamscruk-W3AboDJBIiUExzeWVvYnpXeGw3cG9MOUpUVnluZEtlNjJpZW9OLU1aM7oDCgjxldaz_KDO5ia6AyQSIlBMc3llb2J6V3hsN29tRG9FWXJyZjNvWHZYeGE2TVBnZWu6AyQSIlBMLW9zaUU4MFRlVHQyZDliZlZ5VGlYSkEtVVRIbjZXd1W6AyQSIlBMTmNnX0ZWOW43cVpHZkZsMkFOSV96SVN6TnAyNTdMd266AwoIzvqNppyJ88dGugMkEiJQTFRqUnZEb3pyZGx4ajV3Z0g0cWt2d1NPZEhMT0N4MTBmugMkEiJQTFpQWnEwcl9SWk9Pa1VRYmF0OEx5UWlpMzZjSmYyU1dUugMKCPWR5oCq7d2nb7oDJBIiUExXS2poSnRxVkFibnFCeGNkalZHZ1QzdVZSMTBielRFQroDJBIiUExHanBsTkVRMWl0OC0wQ21vbGpTNXllVi1HbEtTVUV0MLoDJBIiUEx1MFdfOWxJSTlhZ3doMVhqUnQyNDJ4SXBIaFBUMmxsZ7oDCgjm6cPHqJXD0VTyAwUNx7P_PoIEAhgB"
+                          }
+                        },
+                        "badges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "style": "BADGE_STYLE_TYPE_YPC",
+                              "label": "Fundraiser"
+                            }
+                          }
+                        ],
+                        "ownerBadges": [
+                          {
+                            "metadataBadgeRenderer": {
+                              "icon": {
+                                "iconType": "CHECK_CIRCLE_THICK"
+                              },
+                              "style": "BADGE_STYLE_TYPE_VERIFIED",
+                              "tooltip": "Verified"
+                            }
+                          }
+                        ],
+                        "ownerText": {
+                          "runs": [
+                            {
+                              "text": "Bro Code",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BroCodez",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+                                  "canonicalBaseUrl": "/@BroCodez"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortBylineText": {
+                          "runs": [
+                            {
+                              "text": "Bro Code",
+                              "navigationEndpoint": {
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/@BroCodez",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UC4SVo0Ue36XCfOyb5Lh1viQ",
+                                  "canonicalBaseUrl": "/@BroCodez"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "shortViewCountText": {
+                          "simpleText": "13M"
+                        },
+                        "thumbnailOverlays": [
+                          {
+                            "thumbnailOverlayTimeStatusRenderer": {
+                              "text": {
+                                "simpleText": "12:00:00"
+                              },
+                              "style": "DEFAULT"
+                            }
+                          }
+                        ],
+                        "detailedMetadataSnippets": [
+                          {
+                            "snippetText": {
+                              "runs": [
+                                {
+                                  "text": "python",
+                                  "bold": true
+                                },
+                                {
+                                  "text": " #"
+                                },
+                                {
+                                  "text": "tutorial",
+                                  "bold": true
+                                },
+                                {
+                                  "text": " #beginners "
+                                },
+                                {
+                                  "text": "Python tutorial",
+                                  "bold": true
+                                },
+                                {
+                                  "text": " for beginners' full course 2024 *Learn Python in 1 HOUR* ..."
+                                }
+                              ]
+                            },
+                            "snippetHoverText": {
+                              "runs": [
+                                {
+                                  "text": "From the video description"
+                                }
+                              ]
+                            },
+                            "maxOneLine": true
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "header": {
+      "searchHeaderRenderer": {
+        "chipBar": {
+          "chipCloudRenderer": {
+            "chips": [
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "All"
+                  },
+                  "isSelected": true,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Unwatched"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "EsUCEg9weXRob24gdHV0b3JpYWwargJFdHNCa2dIWEFUb0dHZ0lZQVdBY1Nzd0JDaDhLRDNCNWRHaHZiaUIwZFhSdmNtbGhiUElCQlFvRFFXeHMyQUlCdUFOaENoYnlBUXNLQ1ZWdWQyRjBZMmhsWk1vQ0FoZ0J1QU1jQ2pyeUFRZ0tCbFpwWkdWdmM4SUNHbmx2ZFhSMVltVmZkbWxrWlc5ZmNHRm5aU0E2ZEhsd1pUcHk2QUlCcUFNQnVBTkl3QU1CeUFNQjBBTUJDaHRnQl9JQkV3b1JVbVZqWlc1MGJIa2dkWEJzYjJGa1pXUzRBd2NLTnZJQkJnb0VUR2wyWmNJQ0ozbHZkWFIxWW1WZmJHbDJaVjlpY205aFpHTmhjM1JmYzNSaGRIVnpQVEFnT25SNWNHVTZjcmdEQkJnTGVBQSUzRJABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Videos"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "Eu8CEg9weXRob24gdHV0b3JpYWwa2AJFdjBCa2dINUFUb29FaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjaWdCVUFGZ1NHZ0JjQUY0QVVyTUFRb2ZDZzl3ZVhSb2IyNGdkSFYwYjNKcFlXenlBUVVLQTBGc2JOZ0NBYmdEWVFvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW82OGdFSUNnWldhV1JsYjNQQ0FocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmN1Z0NBYWdEQWJnRFNNQURBY2dEQWRBREFRb2JZQWZ5QVJNS0VWSmxZMlZ1ZEd4NUlIVndiRzloWkdWa3VBTUhDamJ5QVFZS0JFeHBkbVhDQWlkNWIzVjBkV0psWDJ4cGRtVmZZbkp2WVdSallYTjBYM04wWVhSMWN6MHdJRHAwZVhCbE9uSzRBd1FZQzNnQZABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Recently uploaded"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "Er8CEg9weXRob24gdHV0b3JpYWwaqAJFdGtCa2dIVkFUb0VJQWRnQjByTUFRb2ZDZzl3ZVhSb2IyNGdkSFYwYjNKcFlXenlBUVVLQTBGc2JOZ0NBYmdEWVFvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW82OGdFSUNnWldhV1JsYjNQQ0FocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmN1Z0NBYWdEQWJnRFNNQURBY2dEQWRBREFRb2JZQWZ5QVJNS0VWSmxZMlZ1ZEd4NUlIVndiRzloWkdWa3VBTUhDamJ5QVFZS0JFeHBkbVhDQWlkNWIzVjBkV0psWDJ4cGRtVmZZbkp2WVdSallYTjBYM04wWVhSMWN6MHdJRHAwZVhCbE9uSzRBd1FZQzNnQZABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              },
+              {
+                "chipCloudChipRenderer": {
+                  "style": {
+                    "styleType": "STYLE_HOME_FILTER"
+                  },
+                  "text": {
+                    "simpleText": "Live"
+                  },
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "sendPost": true,
+                        "apiUrl": "/youtubei/v1/search"
+                      }
+                    },
+                    "continuationCommand": {
+                      "token": "EvMCEg9weXRob24gdHV0b3JpYWwa3AJFb0FDa2dIOEFUb3JFaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25KZ0JFck1BUW9mQ2c5d2VYUm9iMjRnZEhWMGIzSnBZV3p5QVFVS0EwRnNiTmdDQWJnRFlRb1c4Z0VMQ2dsVmJuZGhkR05vWldUS0FnSVlBYmdESEFvNjhnRUlDZ1pXYVdSbGIzUENBaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjdWdDQWFnREFiZ0RTTUFEQWNnREFkQURBUW9iWUFmeUFSTUtFVkpsWTJWdWRHeDVJSFZ3Ykc5aFpHVmt1QU1IQ2pieUFRWUtCRXhwZG1YQ0FpZDViM1YwZFdKbFgyeHBkbVZmWW5KdllXUmpZWE4wWDNOMFlYUjFjejB3SURwMGVYQmxPbks0QXdRWUMzZ0GQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                      "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                      "command": {
+                        "showReloadUiCommand": {
+                          "targetId": "search-page"
+                        }
+                      }
+                    }
+                  },
+                  "isSelected": false,
+                  "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "unwatched": {
+    "estimatedResults": "10082063",
+    "onResponseReceivedCommands": [
+      {
+        "reloadContinuationItemsCommand": {
+          "targetId": "search-page",
+          "slot": "RELOAD_CONTINUATION_SLOT_BODY",
+          "continuationItems": [
+            {
+              "twoColumnSearchResultsRenderer": {
+                "primaryContents": {
+                  "sectionListRenderer": {
+                    "contents": [
+                      {
+                        "itemSectionRenderer": {
+                          "contents": [
+                            {
+                              "videoRenderer": {
+                                "videoId": "kqtD5dpn9C8",
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://i.ytimg.com/vi/kqtD5dpn9C8/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDx46jm-SK8eAe7VnJe4sYVks5YUA",
+                                      "width": 360,
+                                      "height": 202
+                                    },
+                                    {
+                                      "url": "https://i.ytimg.com/vi/kqtD5dpn9C8/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLD0dBhtORbMQwzcfnpyENbeikoJ7w",
+                                      "width": 720,
+                                      "height": 404
+                                    }
+                                  ]
+                                },
+                                "title": {
+                                  "runs": [
+                                    {
+                                      "text": "Python for Beginners - Learn Coding with Python in 1 Hour"
+                                    }
+                                  ]
+                                },
+                                "longBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Programming with Mosh",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@programmingwithmosh",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                          "canonicalBaseUrl": "/@programmingwithmosh"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "publishedTimeText": {
+                                  "simpleText": "6y ago"
+                                },
+                                "lengthText": {
+                                  "simpleText": "1:00:06"
+                                },
+                                "viewCountText": {
+                                  "simpleText": "25,875,899 views"
+                                },
+                                "navigationEndpoint": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=kqtD5dpn9C8&pp=ygUPcHl0aG9uIHR1dG9yaWFs",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "kqtD5dpn9C8",
+                                    "params": "qgMPcHl0aG9uIHR1dG9yaWFsugMKCOTT6e6UoqXJK7oDCwjtq5GD2ojXj4sBugMLCNfMkaf05Iry_gG6AyQSIlBMc3llb2J6V3hsN29tRG9FWXJyZjNvWHZYeGE2TVBnZWu6AyQSIlBMLW9zaUU4MFRlVHQyZDliZlZ5VGlYSkEtVVRIbjZXd1W6AwsIvOu-6dKKx_2tAboDJBIiUExHanBsTkVRMWl0OC0wQ21vbGpTNXllVi1HbEtTVUV0MLoDCgj3nt-j4Y67tH26AyQSIlBMVGpSdkRvenJkbHhqNXdnSDRxa3Z3U09kSExPQ3gxMGa6AwsIgsamscruk-W3AboDJBIiUExzeWVvYnpXeGw3cG9MOUpUVnluZEtlNjJpZW9OLU1aM7oDCgiUz8_j1YSY10a6AyQSIlBMdTBXXzlsSUk5YWd3aDFYalJ0MjQyeElwSGhQVDJsbGe6AyQSIlBMWlBacTByX1JaT09rVVFiYXQ4THlRaWkzNmNKZjJTV1S6AwoI5unDx6iVw9FUugMKCPGV1rP8oM7mJroDCgj1keaAqu3dp2-6AwoIzvqNppyJ88dGugMkEiJQTFdLamhKdHFWQWJucUJ4Y2RqVkdnVDN1VlIxMGJ6VEVC8gMFDcez_z6CBAIYAQ%3D%3D"
+                                  }
+                                },
+                                "ownerBadges": [
+                                  {
+                                    "metadataBadgeRenderer": {
+                                      "icon": {
+                                        "iconType": "CHECK_CIRCLE_THICK"
+                                      },
+                                      "style": "BADGE_STYLE_TYPE_VERIFIED",
+                                      "tooltip": "Verified"
+                                    }
+                                  }
+                                ],
+                                "ownerText": {
+                                  "runs": [
+                                    {
+                                      "text": "Programming with Mosh",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@programmingwithmosh",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                          "canonicalBaseUrl": "/@programmingwithmosh"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Programming with Mosh",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@programmingwithmosh",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UCWv7vMbMWH4-V0ZXdmDpPBA",
+                                          "canonicalBaseUrl": "/@programmingwithmosh"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortViewCountText": {
+                                  "simpleText": "25M"
+                                },
+                                "thumbnailOverlays": [
+                                  {
+                                    "thumbnailOverlayTimeStatusRenderer": {
+                                      "text": {
+                                        "simpleText": "1:00:06"
+                                      },
+                                      "style": "DEFAULT"
+                                    }
+                                  }
+                                ],
+                                "detailedMetadataSnippets": [
+                                  {
+                                    "snippetText": {
+                                      "runs": [
+                                        {
+                                          "text": "... out my Complete Python Mastery course: - Full course: https://mosh.link/python-course - Subscribe for more "
+                                        },
+                                        {
+                                          "text": "Python tutorials",
+                                          "bold": true
+                                        },
+                                        {
+                                          "text": " like ..."
+                                        }
+                                      ]
+                                    },
+                                    "snippetHoverText": {
+                                      "runs": [
+                                        {
+                                          "text": "From the video description"
+                                        }
+                                      ]
+                                    },
+                                    "maxOneLine": true
+                                  },
+                                  {
+                                    "snippetText": {
+                                      "runs": [
+                                        {
+                                          "text": "In this "
+                                        },
+                                        {
+                                          "text": "Python tutorial",
+                                          "bold": true
+                                        },
+                                        {
+                                          "text": " you're going to learn everything you need to know to start programming in Python if you want to learn Python ..."
+                                        }
+                                      ]
+                                    },
+                                    "snippetHoverText": {
+                                      "runs": [
+                                        {
+                                          "text": "Automatic captions"
+                                        }
+                                      ]
+                                    },
+                                    "maxOneLine": true,
+                                    "snippetTimestamp": {
+                                      "simpleText": "0:02"
+                                    },
+                                    "timestampEndpoint": {
+                                      "commandMetadata": {
+                                        "webCommandMetadata": {
+                                          "url": "/watch?v=kqtD5dpn9C8&t=2s",
+                                          "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                          "rootVe": 3832
+                                        }
+                                      },
+                                      "watchEndpoint": {
+                                        "videoId": "kqtD5dpn9C8",
+                                        "startTimeSeconds": 2
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "videoRenderer": {
+                                "videoId": "Rq5gJVxz55Q",
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://i.ytimg.com/vi/Rq5gJVxz55Q/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCafCf_gC4pzd2vZPRVRNQJQeLTIA",
+                                      "width": 360,
+                                      "height": 202
+                                    },
+                                    {
+                                      "url": "https://i.ytimg.com/vi/Rq5gJVxz55Q/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCtMCBV5NZGIQlGNm76dMvqXzSd9w",
+                                      "width": 720,
+                                      "height": 404
+                                    }
+                                  ]
+                                },
+                                "title": {
+                                  "runs": [
+                                    {
+                                      "text": "Python Full Course for Beginners (13 Hours) – From Zero to Hero"
+                                    }
+                                  ]
+                                },
+                                "longBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Data with Baraa",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@DataWithBaraa",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UC8_RSKwbU1OmZWNEoLV1tQg",
+                                          "canonicalBaseUrl": "/@DataWithBaraa"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "publishedTimeText": {
+                                  "simpleText": "8mo ago"
+                                },
+                                "lengthText": {
+                                  "simpleText": "13:02:53"
+                                },
+                                "viewCountText": {
+                                  "simpleText": "1,639,625 views"
+                                },
+                                "navigationEndpoint": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=Rq5gJVxz55Q&pp=ygUPcHl0aG9uIHR1dG9yaWFs",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "Rq5gJVxz55Q",
+                                    "params": "qgMPcHl0aG9uIHR1dG9yaWFsugMKCOTT6e6UoqXJK7oDCwiv6J_T3fzQ1ZIBugMLCO2rkYPaiNePiwG6AwsI18yRp_TkivL-AboDJBIiUExzeWVvYnpXeGw3b21Eb0VZcnJmM29Ydlh4YTZNUGdla7oDJBIiUEwtb3NpRTgwVGVUdDJkOWJmVnlUaVhKQS1VVEhuNld3VboDCwi8677p0orH_a0BugMkEiJQTEdqcGxORVExaXQ4LTBDbW9salM1eWVWLUdsS1NVRXQwugMKCPee36Phjru0fboDJBIiUExUalJ2RG96cmRseGo1d2dINHFrdndTT2RITE9DeDEwZroDCwiCxqaxyu6T5bcBugMkEiJQTHN5ZW9ield4bDdwb0w5SlRWeW5kS2U2Mmllb04tTVozugMkEiJQTHUwV185bElJOWFnd2gxWGpSdDI0MnhJcEhoUFQybGxnugMkEiJQTFpQWnEwcl9SWk9Pa1VRYmF0OEx5UWlpMzZjSmYyU1dUugMKCObpw8eolcPRVLoDCgjxldaz_KDO5ia6AwoI9ZHmgKrt3advugMKCM76jaacifPHRroDJBIiUExXS2poSnRxVkFibnFCeGNkalZHZ1QzdVZSMTBielRFQvIDBQ3Hs_8-ggQCGAE%3D"
+                                  }
+                                },
+                                "badges": [
+                                  {
+                                    "metadataBadgeRenderer": {
+                                      "style": "BADGE_STYLE_TYPE_MEDIA",
+                                      "label": "4K"
+                                    }
+                                  }
+                                ],
+                                "ownerBadges": [
+                                  {
+                                    "metadataBadgeRenderer": {
+                                      "icon": {
+                                        "iconType": "CHECK_CIRCLE_THICK"
+                                      },
+                                      "style": "BADGE_STYLE_TYPE_VERIFIED",
+                                      "tooltip": "Verified"
+                                    }
+                                  }
+                                ],
+                                "ownerText": {
+                                  "runs": [
+                                    {
+                                      "text": "Data with Baraa",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@DataWithBaraa",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UC8_RSKwbU1OmZWNEoLV1tQg",
+                                          "canonicalBaseUrl": "/@DataWithBaraa"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortBylineText": {
+                                  "runs": [
+                                    {
+                                      "text": "Data with Baraa",
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "/@DataWithBaraa",
+                                            "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                            "rootVe": 3611,
+                                            "apiUrl": "/youtubei/v1/browse"
+                                          }
+                                        },
+                                        "browseEndpoint": {
+                                          "browseId": "UC8_RSKwbU1OmZWNEoLV1tQg",
+                                          "canonicalBaseUrl": "/@DataWithBaraa"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "shortViewCountText": {
+                                  "simpleText": "1.6M"
+                                },
+                                "thumbnailOverlays": [
+                                  {
+                                    "thumbnailOverlayTimeStatusRenderer": {
+                                      "text": {
+                                        "simpleText": "13:02:53"
+                                      },
+                                      "style": "DEFAULT"
+                                    }
+                                  }
+                                ],
+                                "detailedMetadataSnippets": [
+                                  {
+                                    "snippetText": {
+                                      "runs": [
+                                        {
+                                          "text": "Learn "
+                                        },
+                                        {
+                                          "text": "Python",
+                                          "bold": true
+                                        },
+                                        {
+                                          "text": " from scratch in this complete 13-hour course designed for beginners who want to build real programming ..."
+                                        }
+                                      ]
+                                    },
+                                    "snippetHoverText": {
+                                      "runs": [
+                                        {
+                                          "text": "From the video description"
+                                        }
+                                      ]
+                                    },
+                                    "maxOneLine": false
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "reloadContinuationItemsCommand": {
+          "targetId": "search-page",
+          "slot": "RELOAD_CONTINUATION_SLOT_HEADER",
+          "continuationItems": [
+            {
+              "searchHeaderRenderer": {
+                "chipBar": {
+                  "chipCloudRenderer": {
+                    "chips": [
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "All"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EtMCEg9weXRob24gdHV0b3JpYWwavAJFdWdCa2dIa0FUb1RDZzl3ZVhSb2IyNGdkSFYwYjNKcFlXeGdZVXJNQVFvZkNnOXdlWFJvYjI0Z2RIVjBiM0pwWVd6eUFRVUtBMEZzYk5nQ0FiZ0RZUW9XOGdFTENnbFZibmRoZEdOb1pXVEtBZ0lZQWJnREhBbzY4Z0VJQ2daV2FXUmxiM1BDQWhwNWIzVjBkV0psWDNacFpHVnZYM0JoWjJVZ09uUjVjR1U2Y3VnQ0FhZ0RBYmdEU01BREFjZ0RBZEFEQVFvYllBZnlBUk1LRVZKbFkyVnVkR3g1SUhWd2JHOWhaR1ZrdUFNSENqYnlBUVlLQkV4cGRtWENBaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25LNEF3UVlDM2dBkAEBGIHg6BgiC3NlYXJjaC1wYWdl",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Unwatched"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "ErcCEg9weXRob24gdHV0b3JpYWwaoAJFdE1Ca2dIUEFVck1BUW9mQ2c5d2VYUm9iMjRnZEhWMGIzSnBZV3p5QVFVS0EwRnNiTmdDQWJnRFlRb1c4Z0VMQ2dsVmJuZGhkR05vWldUS0FnSVlBYmdESEFvNjhnRUlDZ1pXYVdSbGIzUENBaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjdWdDQWFnREFiZ0RTTUFEQWNnREFkQURBUW9iWUFmeUFSTUtFVkpsWTJWdWRHeDVJSFZ3Ykc5aFpHVmt1QU1IQ2pieUFRWUtCRXhwZG1YQ0FpZDViM1YwZFdKbFgyeHBkbVZmWW5KdllXUmpZWE4wWDNOMFlYUjFjejB3SURwMGVYQmxPbks0QXdRWUMzZ0GQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": true,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Videos"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "Eu8CEg9weXRob24gdHV0b3JpYWwa2AJFdjBCa2dINUFUb29FaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjaWdCVUFGZ1NHZ0JjQUY0QVVyTUFRb2ZDZzl3ZVhSb2IyNGdkSFYwYjNKcFlXenlBUVVLQTBGc2JOZ0NBYmdEWVFvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW82OGdFSUNnWldhV1JsYjNQQ0FocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmN1Z0NBYWdEQWJnRFNNQURBY2dEQWRBREFRb2JZQWZ5QVJNS0VWSmxZMlZ1ZEd4NUlIVndiRzloWkdWa3VBTUhDamJ5QVFZS0JFeHBkbVhDQWlkNWIzVjBkV0psWDJ4cGRtVmZZbkp2WVdSallYTjBYM04wWVhSMWN6MHdJRHAwZVhCbE9uSzRBd1FZQzNnQZABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Recently uploaded"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "Er8CEg9weXRob24gdHV0b3JpYWwaqAJFdGtCa2dIVkFUb0VJQWRnQjByTUFRb2ZDZzl3ZVhSb2IyNGdkSFYwYjNKcFlXenlBUVVLQTBGc2JOZ0NBYmdEWVFvVzhnRUxDZ2xWYm5kaGRHTm9aV1RLQWdJWUFiZ0RIQW82OGdFSUNnWldhV1JsYjNQQ0FocDViM1YwZFdKbFgzWnBaR1Z2WDNCaFoyVWdPblI1Y0dVNmN1Z0NBYWdEQWJnRFNNQURBY2dEQWRBREFRb2JZQWZ5QVJNS0VWSmxZMlZ1ZEd4NUlIVndiRzloWkdWa3VBTUhDamJ5QVFZS0JFeHBkbVhDQWlkNWIzVjBkV0psWDJ4cGRtVmZZbkp2WVdSallYTjBYM04wWVhSMWN6MHdJRHAwZVhCbE9uSzRBd1FZQzNnQZABARiB4OgYIgtzZWFyY2gtcGFnZQ%3D%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_HOME_FILTER"
+                          },
+                          "text": {
+                            "simpleText": "Live"
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "sendPost": true,
+                                "apiUrl": "/youtubei/v1/search"
+                              }
+                            },
+                            "continuationCommand": {
+                              "token": "EvMCEg9weXRob24gdHV0b3JpYWwa3AJFb0FDa2dIOEFUb3JFaWQ1YjNWMGRXSmxYMnhwZG1WZlluSnZZV1JqWVhOMFgzTjBZWFIxY3owd0lEcDBlWEJsT25KZ0JFck1BUW9mQ2c5d2VYUm9iMjRnZEhWMGIzSnBZV3p5QVFVS0EwRnNiTmdDQWJnRFlRb1c4Z0VMQ2dsVmJuZGhkR05vWldUS0FnSVlBYmdESEFvNjhnRUlDZ1pXYVdSbGIzUENBaHA1YjNWMGRXSmxYM1pwWkdWdlgzQmhaMlVnT25SNWNHVTZjdWdDQWFnREFiZ0RTTUFEQWNnREFkQURBUW9iWUFmeUFSTUtFVkpsWTJWdWRHeDVJSFZ3Ykc5aFpHVmt1QU1IQ2pieUFRWUtCRXhwZG1YQ0FpZDViM1YwZFdKbFgyeHBkbVZmWW5KdllXUmpZWE4wWDNOMFlYUjFjejB3SURwMGVYQmxPbks0QXdRWUMzZ0GQAQEYgeDoGCILc2VhcmNoLXBhZ2U%3D",
+                              "request": "CONTINUATION_REQUEST_TYPE_SEARCH",
+                              "command": {
+                                "showReloadUiCommand": {
+                                  "targetId": "search-page"
+                                }
+                              }
+                            }
+                          },
+                          "isSelected": false,
+                          "location": "CHIP_LOCATION_SEARCH_RESULTS"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

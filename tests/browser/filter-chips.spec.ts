@@ -2,21 +2,24 @@ import { expect, test } from './test'
 
 test.use({ colorScheme: 'light' })
 
-test('the Unwatched chip lists what upstream\'s own chip brings', async ({ page }) => {
-  test.setTimeout(240_000)
-  await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/results?search_query=never+gonna+give+you+up')
-  const rows = page.locator('article.result').filter({ has: page.locator('a.thumb') })
-  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
-  const unwatched = page.getByRole('button', { name: 'Unwatched', exact: true })
-  await expect(unwatched).toHaveAttribute('aria-pressed', 'false')
-  await unwatched.click()
-  await expect(page).toHaveURL(/[?&]unwatched=1/)
-  await expect(unwatched).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'false')
-  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
-  await expect(page.locator('main .status')).toHaveCount(0)
-})
+// youtube.com's bar has a Shorts chip on the first search and none on the second, measured signed out on 2026-11-10
+for (const query of ['never gonna give you up', 'python tutorial']) {
+  test(`the Unwatched chip lists what upstream's own chip brings for "${query}"`, async ({ page }) => {
+    test.setTimeout(240_000)
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto(`/results?${new URLSearchParams({ search_query: query })}`)
+    const rows = page.locator('article.result').filter({ has: page.locator('a.thumb') })
+    await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+    const unwatched = page.getByRole('button', { name: 'Unwatched', exact: true })
+    await expect(unwatched).toHaveAttribute('aria-pressed', 'false')
+    await unwatched.click()
+    await expect(page).toHaveURL(/[?&]unwatched=1/)
+    await expect(unwatched).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'false')
+    await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+    await expect(page.locator('main .status')).toHaveCount(0)
+  })
+}
 
 test('the Live tab sorts from its Latest dropdown and filters by Members only and Public', async ({ page }) => {
   test.setTimeout(300_000)

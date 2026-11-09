@@ -44,19 +44,19 @@ const searchRow = {
   channel: { ...channel, avatar: null, isVerified: null, isVerifiedArtist: null },
 }
 
-const fetchAnswer = async (_url: RequestInfo | URL, init?: RequestInit) => {
+const answerWith = (unwatchedChip: boolean) => async (_url: RequestInfo | URL, init?: RequestInit) => {
   const { operationName } = JSON.parse(init?.body as string) as { operationName: string }
-  const data = operationName === 'SearchResults' ? { search: { results: [searchRow], refinements: [], cursor: null } } : null
+  const data = operationName === 'SearchResults' ? { search: { results: [searchRow], refinements: [], cursor: null, unwatchedChip } } : null
   return new Response(JSON.stringify({ data }), { headers: { 'content-type': 'application/json' } })
 }
 
 // served by the dev server and imported from a spec, to render each kind of row against fixed answers
-export const mountMarks = () => {
+export const mountMarks = ({ unwatchedChip = true }: { unwatchedChip?: boolean } = {}) => {
   const host = document.createElement('div')
   host.setAttribute('data-marks-harness', '')
   host.style.width = '1200px'
   document.body.append(host)
-  const client = new Client({ url: '/marks-harness', exchanges: [fetchExchange], fetch: fetchAnswer, preferGetMethod: false })
+  const client = new Client({ url: '/marks-harness', exchanges: [fetchExchange], fetch: answerWith(unwatchedChip), preferGetMethod: false })
   render(
     <Provider value={client}>
       <section data-marks='compact' style={{ width: '400px' }}>

@@ -7,12 +7,14 @@ import { createYoutubeSource } from '../../../../src/sources/youtube'
 import { normalizeWatchMeta } from '../../../../src/sources/youtube/normalize'
 import related from '../../fixtures/related-lockups.json'
 import search from '../../fixtures/search-never-gonna.json'
+import searchNoShorts from '../../fixtures/search-python-tutorial.json'
 
 /* related-lockups.json is two rows of the related column youtube.com's own watch page read for dQw4w9WgXcQ signed out
    on 2026-11-10 (English, United States): a song, whose length badge carries a music note, and a new upload, whose still
    carries the New badge. search-never-gonna.json is the signed-out search for "never gonna give you up" captured the
    same day, cut to two rows, with the answer its Unwatched chip brings, cut to two other rows. Both are stripped of
-   tracking, menus and playback fields and run through the real upstream parser. */
+   tracking, menus and playback fields and run through the real upstream parser. search-python-tutorial.json is the same
+   for "python tutorial", whose chip bar has no Shorts chip, captured the same way that day. */
 
 const SONG = 'yPYZpwSpKmA'
 const NEW_UPLOAD = 'LO5iHyYa0XM'
@@ -42,10 +44,14 @@ const searchSource = (answers: { all: unknown, unwatched: unknown } = search) =>
 
 const videos = (results: { kind: string, id?: string }[]) => results.filter((result) => result.kind === 'video')
 
-const chipToken = (label: string) => {
-  const chips = search.all.header.searchHeaderRenderer.chipBar.chipCloudRenderer.chips
-  return chips.find((chip) => chip.chipCloudChipRenderer.text.simpleText === label)?.chipCloudChipRenderer.navigationEndpoint?.continuationCommand.token
-}
+type Chip = { chipCloudChipRenderer: { text: { simpleText: string }, navigationEndpoint?: { continuationCommand: { token: string } } } }
+
+type ChipAnswer = { header: { searchHeaderRenderer: { chipBar: { chipCloudRenderer: { chips: Chip[] } } } } }
+
+const chipsOf = (answer: ChipAnswer) => answer.header.searchHeaderRenderer.chipBar.chipCloudRenderer.chips
+
+const chipToken = (label: string, answer: ChipAnswer = search.all) =>
+  chipsOf(answer).find((chip) => chip.chipCloudChipRenderer.text.simpleText === label)?.chipCloudChipRenderer.navigationEndpoint?.continuationCommand.token
 
 describe('the related column\'s marks', () => {
   it('reads the New badge off the top corner of the still that carries it', () => {
@@ -102,6 +108,7 @@ describe('the Unwatched search chip', () => {
     const { source, sent } = searchSource()
     const page = await source.search('never gonna give you up')
     expect(videos(page.results).map((video) => video.id)).toEqual(['dQw4w9WgXcQ', 'XGxIE1hr0w4'])
+    expect(page.unwatchedChip).toBe(true)
     expect(sent).toEqual([])
   })
 
@@ -110,22 +117,44 @@ describe('the Unwatched search chip', () => {
     const page = await source.search('never gonna give you up', { unwatched: true })
     expect(sent).toEqual([{ path: 'search', continuation: chipToken('Unwatched') }])
     expect(videos(page.results).map((video) => video.id)).toEqual(['LLFhKaqnWwk', 'nsCIeklgp1M'])
+    expect(page.unwatchedChip).toBe(true)
   })
 
-  it('finds the chip by its place, so a bar in another language works the same', async () => {
+  it('finds it in a bar without Shorts', async () => {
+    const { source, sent } = searchSource(searchNoShorts)
+    expect(chipsOf(searchNoShorts.all).map((chip) => chip.chipCloudChipRenderer.text.simpleText))
+      .toEqual(['All', 'Unwatched', 'Videos', 'Recently uploaded', 'Live'])
+    const page = await source.search('python tutorial', { unwatched: true })
+    expect(sent).toEqual([{ path: 'search', continuation: chipToken('Unwatched', searchNoShorts.all) }])
+    expect(videos(page.results).map((video) => video.id)).toEqual(['kqtD5dpn9C8', 'Rq5gJVxz55Q'])
+  })
+
+  it('finds it by the filter its token asks for, whatever its label or place', async () => {
     const japanese = JSON.parse(JSON.stringify(search.all)
       .replace('"simpleText":"All"', '"simpleText":"すべて"')
-      .replace('"simpleText":"Unwatched"', '"simpleText":"未視聴"'))
+      .replace('"simpleText":"Unwatched"', '"simpleText":"未視聴"')) as typeof search.all
+    chipsOf(japanese).reverse()
     const { source, sent } = searchSource({ all: japanese, unwatched: search.unwatched })
     await source.search('never gonna give you up', { unwatched: true })
     expect(sent).toEqual([{ path: 'search', continuation: chipToken('Unwatched') }])
   })
 
-  it('refuses a bar laid out otherwise rather than apply another chip', async () => {
-    const short = structuredClone(search.all)
-    short.header.searchHeaderRenderer.chipBar.chipCloudRenderer.chips.splice(1, 1)
-    const { source, sent } = searchSource({ all: short, unwatched: search.unwatched })
-    await expect(source.search('never gonna give you up', { unwatched: true })).rejects.toThrow('no Unwatched chip')
+  it('lists the plain results and says so on a search that has no Unwatched chip', async () => {
+    const { header: _, ...bare } = search.all
+    const { source, sent } = searchSource({ all: bare, unwatched: search.unwatched })
+    const page = await source.search('election results', { unwatched: true })
     expect(sent).toEqual([])
+    expect(videos(page.results).map((video) => video.id)).toEqual(['dQw4w9WgXcQ', 'XGxIE1hr0w4'])
+    expect(page.unwatchedChip).toBe(false)
+  })
+
+  it('takes no other chip in its place', async () => {
+    const other = structuredClone(search.all)
+    const chips = chipsOf(other)
+    chips[2] = structuredClone(chips[3]!)
+    const { source, sent } = searchSource({ all: other, unwatched: search.unwatched })
+    const page = await source.search('never gonna give you up', { unwatched: true })
+    expect(sent).toEqual([])
+    expect(page.unwatchedChip).toBe(false)
   })
 })

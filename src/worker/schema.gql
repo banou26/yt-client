@@ -183,6 +183,9 @@ type SearchPage {
   refinements: [String!]!
   estimatedResults: Float
   cursor: String
+  # Whether upstream offers its Unwatched chip for this search. Without one, a
+  # search asked with `unwatched` lists the plain results.
+  unwatchedChip: Boolean!
 }
 
 # Upstream's own vocabulary, lowercased by the source before it reaches

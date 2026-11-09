@@ -158,6 +158,8 @@ export type SourceSearchPage = {
   refinements: string[]
   estimatedResults?: number
   cursor?: string
+  // whether upstream offers its Unwatched chip for this search
+  unwatchedChip: boolean
 }
 
 export type SourceChannelTab =

@@ -83,6 +83,7 @@ const SEARCH_RESULTS_QUERY = gql(`
       }
       refinements
       cursor
+      unwatchedChip
     }
   }
 
@@ -768,6 +769,9 @@ const SearchPage = () => {
     key: rowKey
   })
 
+  // shown until the first page says upstream has none, so the row does not shift on most searches
+  const unwatchedChip = (pages[0] ?? page)?.unwatchedChip ?? true
+
   const onMore = () => {
     if (!page?.cursor || fetching || error) return
     setLoaded({ key: feedKey, pages: pages[pages.length - 1] === page ? pages : [...pages, page] })
@@ -801,7 +805,7 @@ const SearchPage = () => {
       <h1 className='sr-only'>Results for {query}</h1>
       <div className='toolbar'>
         <div className='filter-chips'>
-          {SEARCH_CHIPS.map(entry => (
+          {SEARCH_CHIPS.filter(entry => entry.id !== 'unwatched' || unwatchedChip).map(entry => (
             <button
               type='button'
               key={entry.id}

@@ -55,8 +55,8 @@ type SearchFeed = Feed & {
   refinements?: string[]
   estimated_results?: number
   page?: { entity_mutations?: EntityMutation[] }
-  header?: { chip_bar?: { chips?: unknown[] } }
-  applyRefinement?: (chip: unknown) => Promise<SearchFeed>
+  header?: { chip_bar?: { chips?: SearchChip[] } }
+  applyRefinement?: (chip: SearchChip) => Promise<SearchFeed>
 }
 
 type ChannelFeed = Feed & {
@@ -493,17 +493,65 @@ const filterKey = (filters: SourceSearchFilters | undefined) =>
     filters?.unwatched ? 'unwatched' : '',
   ].join('|')
 
-// Upstream's search chips are localized but laid out alike in every language (All, Shorts, Unwatched, Videos, Recently
-// uploaded, Live in English, Japanese and French, filtered or not, measured 2026-11-10), so Unwatched is found by its place
-const SEARCH_CHIP_COUNT = 6
-const UNWATCHED_CHIP = 2
-
-const unwatchedSearch = async (feed: SearchFeed) => {
-  const chips = feed.header?.chip_bar?.chips ?? []
-  const chip = chips.length === SEARCH_CHIP_COUNT ? chips[UNWATCHED_CHIP] : undefined
-  if (!chip || !feed.applyRefinement) throw new Error('youtube: this search has no Unwatched chip')
-  return feed.applyRefinement(chip)
+const varint = (bytes: Uint8Array, start: number) => {
+  let value = 0
+  let at = start
+  for (let shift = 0; ; shift += 7) {
+    const byte = bytes[at++] ?? 0
+    value += (byte & 0x7f) * 2 ** shift
+    if (byte < 0x80) return { value, at }
+  }
 }
+
+// The field a path of field numbers leads to in a protobuf message: a varint's value, or a length-delimited field's bytes
+const protoField = (message: Uint8Array, [field, ...rest]: number[]): Uint8Array | number | undefined => {
+  let found: Uint8Array | number | undefined
+  let at = 0
+  while (at < message.length) {
+    const key = varint(message, at)
+    const wire = key.value % 8
+    let value: Uint8Array | number
+    if (wire === 0) {
+      const read = varint(message, key.at)
+      value = read.value
+      at = read.at
+    } else if (wire === 2) {
+      const length = varint(message, key.at)
+      value = message.subarray(length.at, length.at + length.value)
+      at = length.at + length.value
+    } else if (wire === 1 || wire === 5) {
+      at = key.at + (wire === 1 ? 8 : 4)
+      continue
+    } else {
+      return undefined
+    }
+    if (Math.floor(key.value / 8) === field) found = value
+  }
+  if (rest.length === 0) return found
+  return found instanceof Uint8Array ? protoField(found, rest) : undefined
+}
+
+const base64Bytes = (text: string) =>
+  Uint8Array.from(atob(decodeURIComponent(text).replaceAll('-', '+').replaceAll('_', '/')), (char) => char.charCodeAt(0))
+
+type SearchChip = { endpoint?: { payload?: { token?: unknown } } }
+
+// A search chip's token carries the search's params, base64 in its field 2.3, and their field 2.18.7 is the filter the
+// chip applies. Unwatched's is {3: {3: 1}}, and no other chip's: measured 2026-11-10 on bars of 6 and 5 chips (with and
+// without Shorts, which varies by query), in English, Japanese and French. Its label is localized and its place varies.
+const isUnwatchedChip = (chip: SearchChip) => {
+  const token = chip.endpoint?.payload?.token
+  if (typeof token !== 'string') return false
+  try {
+    const params = protoField(base64Bytes(token), [2, 3])
+    if (!(params instanceof Uint8Array)) return false
+    return protoField(base64Bytes(new TextDecoder().decode(params)), [2, 18, 7, 3, 3]) === 1
+  } catch {
+    return false
+  }
+}
+
+const findUnwatchedChip = (feed: SearchFeed) => feed.header?.chip_bar?.chips?.find(isUnwatchedChip)
 
 // Upstream's display order, which is also the order the tab strip renders in. `path` is the last word of the tab's URL.
 // Home has no opener: the browse lands on it.
@@ -857,7 +905,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
   }
 
   // Search rows are read off `results` rather than the `videos` getter, which emits only videos and would drop channel and playlist hits.
-  const searchPage = (kind: string, feed: SearchFeed): SourceSearchPage => {
+  const searchPage = (kind: string, feed: SearchFeed, unwatchedChip: boolean): SourceSearchPage => {
     const results: SourceSearchResult[] = []
     const seen = new Set<string>()
     for (const node of feed.results ?? []) {
@@ -894,11 +942,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       results,
       refinements: feed.refinements ?? [],
       estimatedResults: feed.estimated_results,
+      unwatchedChip,
     }
     if (feed.has_continuation) {
       result.cursor = searchContinuations.register(
         kind,
-        async () => searchPage(kind, await feed.getContinuation() as SearchFeed),
+        async () => searchPage(kind, await feed.getContinuation() as SearchFeed, unwatchedChip),
       )
     }
     return result
@@ -1220,7 +1269,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const kind = `search:${query}:${filterKey(filters)}`
       if (cursor) return searchContinuations.resolve(kind, cursor)
       const feed = await (await client).search(query, upstreamFilters(filters))
-      return searchPage(kind, filters?.unwatched ? await unwatchedSearch(feed) : feed)
+      const chip = findUnwatchedChip(feed)
+      const shown = filters?.unwatched && chip && feed.applyRefinement ? await feed.applyRefinement(chip) : feed
+      return searchPage(kind, shown, chip !== undefined)
     },
     searchSuggestions: async (query, previousQuery) => {
       if (query.trim() === '') return []
