@@ -59,6 +59,7 @@ const cache = cacheExchange({
     Chapter: () => null,
     LiveChatPage: () => null,
     LiveChatRun: () => null,
+    TextRun: () => null,
     Session: () => null,
   },
   updates: {
