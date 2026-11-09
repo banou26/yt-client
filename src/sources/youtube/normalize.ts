@@ -206,12 +206,8 @@ type AccountItemNode = {
   channel_handle?: Text
   is_selected?: boolean
   has_channel?: boolean
-}
-
-type AccountInfo = {
-  contents?: {
-    contents?: AccountItemNode[]
-  }
+  // selectActiveIdentityEndpoint's: only a brand channel's row has a pageIdToken (measured 2026-11-06)
+  endpoint?: { payload?: { supportedTokens?: { pageIdToken?: { pageId?: string } }[] } }
 }
 
 type CommentViewNode = {
@@ -1223,19 +1219,17 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
   }
 }
 
+/** The channels of the signed-in Google account, from the AccountItem nodes of WEB's accounts_list. */
 export const normalizeSession = (input: unknown): SourceSession => {
-  // AccountInfo.contents is an AccountItemSection: the account is an AccountItem inside ITS contents
-  const rows = (input as AccountInfo).contents?.contents ?? []
-  const named = rows.filter((row) => row.account_name !== undefined)
-  const account = named.find((row) => row.is_selected === true) ?? named[0]
+  const rows = Array.isArray(input) ? input as AccountItemNode[] : []
+  const account = rows.find((row) => row.is_selected === true) ?? rows[0]
   return {
     signedIn: true,
     name: presentText(account?.account_name),
     avatar: thumbnail(account?.account_photo, AVATAR_WIDTH),
     handle: presentText(account?.channel_handle),
-    // position among the NAMED rows: counting the section's CompactLink rows would switch to the wrong account
-    accounts: named.map((row, index) => ({
-      index,
+    accounts: rows.map((row) => ({
+      brandPageId: row.endpoint?.payload?.supportedTokens?.find((token) => token.pageIdToken?.pageId)?.pageIdToken?.pageId,
       name: presentText(row.account_name),
       avatar: thumbnail(row.account_photo, AVATAR_WIDTH),
       handle: presentText(row.channel_handle),

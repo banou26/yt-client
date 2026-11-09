@@ -563,12 +563,11 @@ type PlaylistListPage {
   cursor: String
 }
 
-# One account on the signed-in Google login.
+# One channel of the signed-in Google account.
 type Account {
-  # The account's position in the login, which becomes X-Goog-Authuser. It is
-  # the identity because it is the only handle the transport accepts: there is
-  # no runtime switch that takes anything else.
-  index: Int!
+  # A brand channel's page ID, which the engine sends as X-Goog-PageId to act as
+  # it. Null for the Google account's own channel.
+  brandPageId: String
   name: String
   avatar: String
   handle: String
@@ -582,8 +581,8 @@ type Session {
   name: String
   avatar: String
   handle: String
-  # Every account on this login, including the selected one. Comes off the same
-  # response the header avatar does, so listing them costs no extra round trip.
+  # Every channel of the Google account, including the selected one. Comes off the
+  # same response the header avatar does, so listing them costs no extra round trip.
   accounts: [Account!]!
 }
 

@@ -3,10 +3,11 @@ import { Check, CircleUser, LogOut } from 'lucide-react'
 import { useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
+import type { SessionAccount } from '../session'
+
 import { useDocumentTitle } from '../app'
-import { clearSessionCookies, startEngine } from '../scramjet/client'
-import { useSession } from '../session'
-import { signIn } from '../sign-in'
+import { atHandle, channelKey, useSession } from '../session'
+import { signIn, signOut, switchChannel } from '../sign-in'
 
 const style = css`
   max-width: 78rem;
@@ -114,6 +115,21 @@ const style = css`
     text-overflow: ellipsis;
   }
 
+  .row .channel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .channel > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .channel-handle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+  }
+
   .row .state {
     flex: none;
     font-size: 1.2rem;
@@ -159,25 +175,17 @@ const Avatar = ({ name, avatar }: { name?: string, avatar?: string }) =>
 export const AccountPage = () => {
   useDocumentTitle('Account')
   const { ready, signedIn, name, avatar, handle, accounts } = useSession()
-  const [switching, setSwitching] = useState<number>()
+  const [switching, setSwitching] = useState<string>()
   const [signingOut, setSigningOut] = useState(false)
   const [failed, setFailed] = useState<string>()
 
   const busy = signingOut || switching !== undefined
 
-  // youtubei.js has no runtime identity switch, so recording the choice and reloading IS the switch
-  const onSwitch = async (index: number) => {
+  const onSwitch = (account: SessionAccount) => {
     if (busy) return
-    setSwitching(index)
+    setSwitching(channelKey(account))
     setFailed(undefined)
-    try {
-      await (await startEngine()).switchAccount(index)
-    } catch {
-      setSwitching(undefined)
-      setFailed('Could not switch account. Try again.')
-      return
-    }
-    location.assign('/')
+    switchChannel(account.brandPageId)
   }
 
   const onSignOut = async () => {
@@ -185,17 +193,11 @@ export const AccountPage = () => {
     setSigningOut(true)
     setFailed(undefined)
     try {
-      await (await startEngine()).resetIdentity()
-    } catch {}
-    try {
-      // The cookie clear IS the sign-out, so only reload once the jar is gone
-      await clearSessionCookies()
+      await signOut()
     } catch {
       setSigningOut(false)
       setFailed('Could not clear the session. Try again.')
-      return
     }
-    location.assign('/')
   }
 
   if (ready && !signedIn) {
@@ -215,14 +217,14 @@ export const AccountPage = () => {
         <Avatar name={name} avatar={avatar} />
         <div className='identity'>
           <div className='name'>{name ?? 'Signed in'}</div>
-          {handle ? <div className='handle'>{handle.startsWith('@') ? handle : `@${handle}`}</div> : undefined}
+          {handle ? <div className='handle'>{atHandle(handle)}</div> : undefined}
         </div>
       </div>
 
       {handle
         ? (
           <div className='section'>
-            <Link className='row' href={`/channel/${handle.startsWith('@') ? handle : `@${handle}`}`}>
+            <Link className='row' href={`/channel/${atHandle(handle)}`}>
               <CircleUser size={20} strokeWidth={1.5} />
               <span className='label'>Your channel</span>
             </Link>
@@ -234,22 +236,23 @@ export const AccountPage = () => {
         ? (
           <div className='section'>
             <h2 className='section-heading'>Accounts</h2>
-            {accounts.map((account) => (
+            {accounts.map((account, index) => (
               <button
-                key={account.index}
+                key={channelKey(account)}
                 type='button'
                 className={`row ${account.selected ? 'selected' : ''}`}
                 disabled={busy || account.selected}
-                onClick={() => onSwitch(account.index)}
+                onClick={() => onSwitch(account)}
               >
                 <Avatar name={account.name} avatar={account.avatar} />
-                <span className='label'>
-                  {account.name ?? account.handle ?? `Account ${account.index + 1}`}
+                <span className='label channel'>
+                  <span>{account.name ?? `Account ${index + 1}`}</span>
+                  {account.handle ? <span className='channel-handle'>{atHandle(account.handle)}</span> : undefined}
                 </span>
                 <span className='state'>
                   {account.selected
                     ? <><Check size={16} strokeWidth={1.5} /> Current</>
-                    : switching === account.index ? 'Switching…' : undefined}
+                    : switching === channelKey(account) ? 'Switching…' : undefined}
                 </span>
               </button>
             ))}

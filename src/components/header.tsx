@@ -29,7 +29,7 @@ const HEADER_SESSION_QUERY = gql(`
       name
       avatar
       handle
-      accounts { index name avatar handle selected hasChannel }
+      accounts { brandPageId name avatar handle selected hasChannel }
     }
   }
 `)
@@ -526,7 +526,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
               avatar={session.avatar ?? undefined}
               handle={session.handle ?? undefined}
               accounts={session.accounts.map((account) => ({
-                index: account.index,
+                brandPageId: account.brandPageId ?? undefined,
                 name: account.name ?? undefined,
                 avatar: account.avatar ?? undefined,
                 handle: account.handle ?? undefined,

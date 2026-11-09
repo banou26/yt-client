@@ -22,19 +22,19 @@ const KEPT: { title: string, what: string }[] = [
   },
   {
     title: 'Your YouTube visitor ID',
-    what: 'The ID YouTube gives this browser, and the YouTube video server it last used. Replaced when you sign in, sign out or switch accounts.',
+    what: 'The ID YouTube gives this browser, and the YouTube video server it last used. Replaced when you sign in or sign out.',
   },
   {
     title: 'Playback tokens',
-    what: 'A token from YouTube\'s playback check for each video played, previews included, filed under the video\'s ID. Each lasts six hours at most and is removed the next time a token is saved after that. All of them go when you sign in, sign out or switch accounts.',
+    what: 'A token from YouTube\'s playback check for each video played, previews included, filed under the video\'s ID. Each lasts six hours at most and is removed the next time a token is saved after that. All of them go when you sign in or sign out.',
   },
   {
-    title: 'The account you picked',
-    what: 'Which of your Google accounts yt-client uses, when you picked one other than the first. It stays after you sign out, and goes when you pick the first account again.',
+    title: 'The channel you picked',
+    what: 'YouTube\'s ID for the channel of your Google account that yt-client uses, when you picked one other than the account\'s own. Removed when you sign in or out, when you pick the account\'s own channel, when YouTube says the session has ended, or when YouTube no longer accepts it.',
   },
   {
     title: 'YouTube\'s session details and player code',
-    what: 'Kept by youtubei.js, the library yt-client reads YouTube with. The session details go when you sign in, sign out or switch accounts. The player code stays.',
+    what: 'Kept by youtubei.js, the library yt-client reads YouTube with. The session details go when you sign in or sign out. The player code stays.',
   },
   {
     title: 'What YouTube\'s and Google\'s pages keep',

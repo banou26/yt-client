@@ -10,7 +10,7 @@ import { catalogInnertube, getSabrSource, hasSessionCookie, prefetchInitialPlaye
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
 import { openLiveManifest } from './live-open'
 import { createSabrSession, isSabrSessionRefreshError } from './sabr'
-import { resetIdentity, storeAccountIndex } from './identity'
+import { resetIdentity } from './identity'
 import { FRAME_CONNECT, isFrameMethod } from './protocol'
 
 const { id: _sourceId, ...sourceApi } = createYoutubeSource({
@@ -111,11 +111,6 @@ const liveManifestFor = (entry: PlaybackEntry) => {
 const api = {
   ...sourceApi,
   resetIdentity,
-  switchAccount: async (index: number) => {
-    storeAccountIndex(index)
-    // order matters: the stored index deliberately survives resetIdentity
-    await resetIdentity()
-  },
   prefetchPlayback: async (videoId) => {
     prefetchInitialPlayerResponse(videoId)
   },

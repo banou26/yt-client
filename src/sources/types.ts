@@ -381,9 +381,9 @@ export type SourcePlaylistListPage = {
   cursor?: string
 }
 
-// `index` is the identity: youtubei.js switches accounts by `account_index`, which becomes X-Goog-Authuser
+/** One channel of the signed-in Google account. `brandPageId` is a brand channel's page ID, absent on the account's own. */
 export type SourceAccount = {
-  index: number
+  brandPageId?: string
   name?: string
   avatar?: string
   handle?: string

@@ -15,6 +15,8 @@ test('Settings links the privacy page, which lists every server the browser reac
   await expect(page.locator('[data-direct-hosts] li')).toHaveText(DIRECT_HOSTS.map(({ what, domain }) => `${what}: ${domain}`))
   const main = page.locator('main')
   await expect(main.getByRole('heading', { name: 'What yt-client keeps on your FKN account' })).toBeVisible()
+  await expect(main.locator('li', { hasText: 'The channel you picked.' })).toContainText('when you pick the account\'s own channel')
+  await expect(main).not.toContainText('switch accounts')
   await expect(main).toContainText(`FKN's own servers (${FKN_DOMAINS.join(' and ')})`)
   await expect(main.getByRole('link', { name: 'FKN privacy policy' })).toHaveAttribute('href', 'https://fkn.app/privacy')
   await expect(main.getByRole('link', { name: 'extension privacy policy' })).toHaveAttribute('href', 'https://fkn.app/extension/privacy')

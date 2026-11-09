@@ -4,6 +4,7 @@ import { Parser, YT, YTNodes } from 'youtubei.js'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
 import { CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
+import { accountsListAnswer, BRAND_PAGE_ID, twoChannels } from '../../fixtures/accounts-list'
 
 type FakeFeed = {
   videos: { video_id: string, title: { text: string } }[]
@@ -274,18 +275,6 @@ const createFakeClient = () => {
       setNotificationPreferences: async (channelId: string, type: string) =>
         void calls.push(`notifications:${channelId}:${type}`),
     },
-    account: {
-      getInfo: async (): Promise<unknown> => ({
-        contents: {
-          contents: [{
-            account_name: { text: 'Banou' },
-            account_photo: [{ url: 'avatar' }],
-            channel_handle: { text: '@banou' },
-            is_selected: true,
-          }],
-        },
-      }),
-    },
     actions: {
       execute: async (endpoint: string, args?: Record<string, unknown>) => {
         calls.push(endpoint)
@@ -334,6 +323,7 @@ const createFakeClient = () => {
             ? { replacementEndpoint: { reelWatchEndpoint: { videoId: 'seedless-short' } } }
             : { playlistId: 'PLnew' }) as { playlistId?: string, replacementEndpoint?: { reelWatchEndpoint?: { videoId?: string } } },
           contents_memo: new Map<string, unknown[]>(memo),
+          actions_memo: endpoint === '/account/accounts_list' ? Parser.parseResponse(accountsListAnswer(twoChannels('own'))).actions_memo : undefined,
         }
       },
     },
@@ -860,31 +850,31 @@ describe('youtube source', () => {
 
   it('reports a signed-out session without hitting the account API', async () => {
     const client = createFakeClient()
-    let called = false
-    client.account.getInfo = async () => {
-      called = true
-      return { contents: {} }
-    }
     const source = createYoutubeSource({
       fetch: globalThis.fetch,
       createClient: async () => client,
     })
     await expect(source.session()).resolves.toEqual({ signedIn: false, accounts: [] })
-    expect(called).toBe(false)
+    expect(client.calls).toEqual([])
   })
 
-  it('decorates a signed-in session with account info', async () => {
+  it("lists the signed-in Google account's channels from WEB's accounts_list, which carries their page IDs", async () => {
+    const client = createFakeClient()
     const source = createYoutubeSource({
       fetch: globalThis.fetch,
-      createClient: async () => createFakeClient(),
+      createClient: async () => client,
       signedIn: () => true,
     })
     await expect(source.session()).resolves.toMatchObject({
       signedIn: true,
-      name: 'Banou',
-      avatar: 'avatar',
-      handle: '@banou',
+      name: 'Viewer',
+      handle: '@viewer',
+      accounts: [
+        { brandPageId: undefined, handle: '@viewer', selected: true },
+        { brandPageId: BRAND_PAGE_ID, handle: '@viewer-brand', selected: undefined },
+      ],
     })
+    expect(client.payloads).toEqual([{ endpoint: '/account/accounts_list', args: { client: 'WEB', parse: true } }])
   })
 
   // Nothing in the type system ties SOURCE_CURSOR_ARGUMENT's index to the real signature, so these cases pin the position
@@ -1018,6 +1008,7 @@ describe('youtube source', () => {
       success: true,
       data: {} as { playlistId?: string },
       contents_memo: new Map<string, unknown[]>(),
+      actions_memo: undefined,
     })
     const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
     await expect(source.createPlaylist('Mix')).rejects.toThrow('its id did not come back')
@@ -1392,7 +1383,7 @@ describe('youtube source', () => {
 
   it('stays signed in when the account lookup fails', async () => {
     const client = createFakeClient()
-    client.account.getInfo = async () => {
+    client.actions.execute = async () => {
       throw new Error('account fetch failed')
     }
     const source = createYoutubeSource({

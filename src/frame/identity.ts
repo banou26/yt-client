@@ -2,24 +2,6 @@ import { clearStoredTokens, resetPoTokenSession } from './botguard'
 
 export const VISITOR_DATA_KEY = 'yt-client:visitor-data'
 
-// X-Goog-Authuser index, deliberately NOT cleared by resetIdentity: clearing it would make every switch reset back to the first account
-export const ACCOUNT_INDEX_KEY = 'yt-client:account-index'
-
-export const readAccountIndex = () => {
-  try {
-    const stored = Number(localStorage.getItem(ACCOUNT_INDEX_KEY))
-    return Number.isInteger(stored) && stored > 0 ? stored : undefined
-  } catch {
-    return undefined
-  }
-}
-
-export const storeAccountIndex = (index: number) => {
-  try {
-    if (index > 0) localStorage.setItem(ACCOUNT_INDEX_KEY, String(index))
-    else localStorage.removeItem(ACCOUNT_INDEX_KEY)
-  } catch {}
-}
 export const GVS_ORIGIN_KEY = 'yt-client:gvs-origin'
 
 const INNERTUBE_DB = 'youtubei.js'

@@ -10,19 +10,25 @@ const SESSION_QUERY = gql(`
       name
       avatar
       handle
-      accounts { index name avatar handle selected hasChannel }
+      accounts { brandPageId name avatar handle selected hasChannel }
     }
   }
 `)
 
 export type SessionAccount = {
-  index: number
+  brandPageId?: string
   name?: string
   avatar?: string
   handle?: string
   selected?: boolean
   hasChannel?: boolean
 }
+
+/** Which row a switch is going to: the channel's page ID, or '' for the account's own channel, which has none. */
+export const channelKey = (account: SessionAccount) => account.brandPageId ?? ''
+
+/** A channel handle as youtube.com shows it, with the leading @ added when the answer left it out. */
+export const atHandle = (handle: string) => handle.startsWith('@') ? handle : `@${handle}`
 
 export type SessionState = {
   signedIn: boolean
@@ -73,7 +79,7 @@ export const useSession = (): SessionState => {
     avatar: session?.avatar ?? undefined,
     handle: session?.handle ?? undefined,
     accounts: (session?.accounts ?? []).map((account) => ({
-      index: account.index,
+      brandPageId: account.brandPageId ?? undefined,
       name: account.name ?? undefined,
       avatar: account.avatar ?? undefined,
       handle: account.handle ?? undefined,

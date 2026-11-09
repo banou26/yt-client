@@ -15,7 +15,7 @@ import { createYoutubeFetch, directLane, reportDirect } from './direct'
 import { egressFetch } from './egress'
 import { playableFormats } from './formats'
 import { parseStoryboards } from './storyboard'
-import { GVS_ORIGIN_KEY, readAccountIndex, VISITOR_DATA_KEY } from './identity'
+import { GVS_ORIGIN_KEY, VISITOR_DATA_KEY } from './identity'
 import { fetchPlayerResponse, pagePlayerOf } from './watch-page'
 
 export { GVS_ORIGIN_KEY }
@@ -87,8 +87,6 @@ export const hasSessionCookie = () => readAuthCookie() !== undefined
 
 const authCookie = readAuthCookie()
 
-const accountIndex = readAccountIndex()
-
 const youtubeFetch = createYoutubeFetch({
   fetch: (input, init) => globalThis.fetch(input, init),
   direct: directLane,
@@ -112,7 +110,6 @@ export const catalogInnertube = keepOnSuccess(() => Innertube.create({
   retrieve_player: false,
   visitor_data: readVisitorData(),
   ...(authCookie && { cookie: authCookie }),
-  ...(authCookie && accountIndex !== undefined && { account_index: accountIndex }),
 }).then((client) => {
   const context = client.session.context as unknown as InnertubeContext
   // retrieve_innertube_config can hand back a canary/experiment clientVersion; YouTube's public innertube API then rejects EVERY request with FAILED_PRECONDITION.
@@ -135,7 +132,6 @@ const innertube = keepOnSuccess(() => catalogInnertube().then((client) => {
     visitor_data: context.client.visitorData,
     user_agent: context.client.userAgent,
     ...(authCookie && { cookie: authCookie }),
-    ...(authCookie && accountIndex !== undefined && { account_index: accountIndex }),
   })
 }))
 
@@ -207,6 +203,7 @@ const registerPlayback = async (raw: Record<string, unknown>, nonce: string, for
   const video = formats.find((format) => format.has_video)
   if (audio) url.searchParams.set('afmt', String(audio.itag))
   if (video) url.searchParams.set('fmt', String(video.itag))
+  // as a brand channel, the engine's transport sends it to www.youtube.com with the channel's header (scramjet/channel.ts)
   const response = await fetch(url, { method: 'POST' })
   if (!response.ok) console.warn(`youtube: playback registration returned ${response.status}`)
 }

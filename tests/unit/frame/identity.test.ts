@@ -7,7 +7,7 @@ const botguard = vi.hoisted(() => ({
 
 vi.mock('../../../src/frame/botguard', () => botguard)
 
-import { ACCOUNT_INDEX_KEY, GVS_ORIGIN_KEY, readAccountIndex, resetIdentity, storeAccountIndex, VISITOR_DATA_KEY } from '../../../src/frame/identity'
+import { GVS_ORIGIN_KEY, resetIdentity, VISITOR_DATA_KEY } from '../../../src/frame/identity'
 
 const createFakeStorage = () => {
   const store = new Map<string, string>()
@@ -87,44 +87,5 @@ describe('resetIdentity', () => {
     await expect(resetIdentity()).resolves.toBeUndefined()
     expect(botguard.clearStoredTokens).toHaveBeenCalledOnce()
     expect(botguard.resetPoTokenSession).toHaveBeenCalledOnce()
-  })
-})
-
-
-describe('account selection', () => {
-  afterEach(() => vi.unstubAllGlobals())
-
-  it('survives resetIdentity', async () => {
-    const storage = createFakeStorage()
-    storage.setItem(VISITOR_DATA_KEY, 'visitor')
-    vi.stubGlobal('localStorage', storage)
-    vi.stubGlobal('indexedDB', createFakeIndexedDb())
-    storeAccountIndex(2)
-    await resetIdentity()
-    expect(storage.store.has(VISITOR_DATA_KEY)).toBe(false)
-    expect(readAccountIndex()).toBe(2)
-  })
-
-  it('treats the first account as an absence rather than a value', () => {
-    // Index 0 is the default authuser, so storing it would pin a selection that is really just "no selection"
-    const storage = createFakeStorage()
-    vi.stubGlobal('localStorage', storage)
-    storeAccountIndex(3)
-    expect(storage.store.get(ACCOUNT_INDEX_KEY)).toBe('3')
-    storeAccountIndex(0)
-    expect(storage.store.has(ACCOUNT_INDEX_KEY)).toBe(false)
-    expect(readAccountIndex()).toBeUndefined()
-  })
-
-  it('ignores a stored value that is not a usable index', () => {
-    const storage = createFakeStorage()
-    storage.setItem(ACCOUNT_INDEX_KEY, 'banana')
-    vi.stubGlobal('localStorage', storage)
-    expect(readAccountIndex()).toBeUndefined()
-  })
-
-  it('reads nothing when storage is unavailable', () => {
-    expect(readAccountIndex()).toBeUndefined()
-    expect(() => storeAccountIndex(1)).not.toThrow()
   })
 })

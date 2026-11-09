@@ -1,7 +1,8 @@
 import type { SignInWindowMessage } from './scramjet/protocol'
 
 import { showToast } from './components/ui/toast'
-import { startEngine } from './scramjet/client'
+import { storeChannel } from './scramjet/channel'
+import { clearSessionCookies, startEngine } from './scramjet/client'
 import { BUILD_ID, reloadOnceForBuild } from './scramjet/engine-build'
 import { jarHoldsSession } from './scramjet/jar'
 import { startPlatform } from './scramjet/platform'
@@ -19,9 +20,10 @@ const WIDTH = 500
 const HEIGHT = 700
 const CLOSED_POLL_MS = 500
 
-// every tab's engine reads the cookies once at boot, so a sign-in in any tab reloads them all
+// every tab's engine reads the cookies and the channel once at boot, so a sign-in or a switch in any tab reloads them all
 const SIGNED_IN_CHANNEL = 'yt-client-signed-in'
 const SIGNED_IN = 'signed-in'
+const SWITCHED = 'switched'
 
 let openWindow: Window | undefined
 let finishing = false
@@ -32,8 +34,12 @@ const landSignedIn = () => {
   else location.reload()
 }
 
-const channel = new BroadcastChannel(SIGNED_IN_CHANNEL)
-channel.addEventListener('message', (event: MessageEvent) => {
+const tabs = new BroadcastChannel(SIGNED_IN_CHANNEL)
+tabs.addEventListener('message', (event: MessageEvent) => {
+  if (event.data === SWITCHED) {
+    location.reload()
+    return
+  }
   if (event.data !== SIGNED_IN || finishing) return
   finishing = true
   openWindow?.close()
@@ -43,8 +49,9 @@ channel.addEventListener('message', (event: MessageEvent) => {
 const finishSignIn = async () => {
   if (finishing) return
   finishing = true
+  storeChannel()
   await startEngine().then((engine) => engine.resetIdentity()).catch(() => {})
-  channel.postMessage(SIGNED_IN)
+  tabs.postMessage(SIGNED_IN)
   landSignedIn()
 }
 
@@ -110,4 +117,24 @@ export const signIn = () => {
     else if (outcome === 'outdated') showToast('The app was updated. Reload the page to sign in.', { label: 'Reload', onAction: () => location.reload() })
     else if (outcome === 'authed') void finishSignIn()
   })
+}
+
+/**
+ * Makes every tab act as another channel of the signed-in Google account: a brand channel's page ID, or none for the
+ * account's own channel. Each tab's next engine sends it (scramjet/channel.ts), so every tab loads again.
+ */
+export const switchChannel = (brandPageId?: string) => {
+  storeChannel(brandPageId)
+  tabs.postMessage(SWITCHED)
+  location.assign('/')
+}
+
+/** Signs out and goes home. The cookie clear IS the sign-out, so it throws, staying on the page, when the jar could not be cleared. */
+export const signOut = async () => {
+  try {
+    await (await startEngine()).resetIdentity()
+  } catch {}
+  await clearSessionCookies()
+  storeChannel()
+  location.assign('/')
 }

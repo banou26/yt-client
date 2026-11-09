@@ -246,9 +246,6 @@ export type YoutubeClient = {
   getUnseenNotificationsCount(): Promise<number>
   getPlaylists(): Promise<PlaylistsFeed>
   getPlaylist(id: string): Promise<PlaylistFeed>
-  account: {
-    getInfo(): Promise<unknown>
-  }
   interact: {
     comment(videoId: string, text: string): Promise<unknown>
     subscribe(channelId: string): Promise<unknown>
@@ -266,6 +263,7 @@ export type YoutubeClient = {
     execute(endpoint: 'playlist/create', args: { title: string, videoIds: string[], privacyStatus?: SourcePlaylistPrivacy, description?: string }): Promise<ApiResponse>
     execute(endpoint: 'playlist/delete', args: { playlistId: string }): Promise<ApiResponse>
     execute(endpoint: '/reel/reel_item_watch', args: { params: string, inputType: string }): Promise<SeedlessReelResponse>
+    execute(endpoint: '/account/accounts_list', args: { client: 'WEB', parse: true }): Promise<{ actions_memo?: { get(type: string): unknown[] | undefined } }>
   }
 }
 
@@ -1448,7 +1446,9 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     session: async () => {
       if (!signedIn?.()) return { signedIn: false, accounts: [] }
       try {
-        return normalizeSession(await (await client).account.getInfo())
+        // WEB's list holds every channel of the Google account; TV's, which account.getInfo() reads, only the current one (measured 2026-11-06)
+        const list = await (await client).actions.execute('/account/accounts_list', { client: 'WEB', parse: true })
+        return normalizeSession(list.actions_memo?.get('AccountItem'))
       } catch {
         return { signedIn: true, accounts: [] }
       }

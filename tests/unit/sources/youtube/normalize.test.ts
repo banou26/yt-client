@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { YTNodes } from 'youtubei.js'
+import { Parser, YTNodes } from 'youtubei.js'
+
+import type { AccountRowFixture } from '../../fixtures/accounts-list'
 
 import { normalizeChannel, normalizeChannelAbout, normalizeNotification, normalizeRuns, normalizeCommentThread, normalizeCommunityPost, normalizeFeedVideo, normalizeShortsLockup, normalizeGridPlaylist, normalizeLockupVideo, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistPanelVideo, normalizeSearchChannel, normalizeSession, normalizeVideoDetails, normalizeWatchMeta, normalizeWatchPlaylist } from '../../../../src/sources/youtube/normalize'
+import { accountsListAnswer, BRAND_PAGE_ID, twoChannels } from '../../fixtures/accounts-list'
+
+// the AccountItem nodes youtubei.js parses out of a WEB accounts_list answer, as the source's session read takes them
+const accountItems = (rows: AccountRowFixture[]) => Parser.parseResponse(accountsListAnswer(rows)).actions_memo?.get('AccountItem')
 
 describe('youtube normalization', () => {
   it('keeps the notification avatar and still in their own slots', () => {
@@ -907,85 +913,36 @@ describe('youtube normalization', () => {
     })
   })
 
-  it('normalizes account info into a session', () => {
-    expect(normalizeSession({
-      contents: {
-        contents: [{
-          account_name: { text: 'Banou' },
-          account_photo: [
-            { url: 'small', width: 32 },
-            { url: 'large', width: 88 },
-          ],
-          channel_handle: { text: '@banou' },
-          is_selected: true,
-        }],
-      },
-    })).toEqual({
+  it("lists every channel of WEB's accounts_list with the page ID only a brand channel's row carries", () => {
+    const session = normalizeSession(accountItems(twoChannels('own')))
+    expect(session).toEqual({
       signedIn: true,
-      name: 'Banou',
-      avatar: 'large',
-      handle: '@banou',
-      channelId: undefined,
-      accounts: [{
-        index: 0,
-        name: 'Banou',
-        avatar: 'large',
-        handle: '@banou',
-        selected: true,
-        hasChannel: undefined,
-      }],
+      name: 'Viewer',
+      avatar: 'https://yt3.ggpht.com/viewer=s88',
+      handle: '@viewer',
+      accounts: [
+        { brandPageId: undefined, name: 'Viewer', avatar: 'https://yt3.ggpht.com/viewer=s88', handle: '@viewer', selected: true, hasChannel: true },
+        { brandPageId: BRAND_PAGE_ID, name: 'Viewer', avatar: 'https://yt3.ggpht.com/viewer-brand=s88', handle: '@viewer-brand', selected: undefined, hasChannel: true },
+      ],
     })
   })
 
-  it('numbers accounts by position among the NAMED rows', () => {
-    // account_index becomes X-Goog-Authuser, so the number has to match the order authuser itself uses.
-    const session = normalizeSession({
-      contents: {
-        contents: [
-          { navigation_endpoint: {} },
-          { account_name: { text: 'First' } },
-          { navigation_endpoint: {} },
-          { account_name: { text: 'Second' }, is_selected: true },
-        ],
-      },
-    })
-    expect(session.accounts.map((account) => [account.index, account.name])).toEqual([[0, 'First'], [1, 'Second']])
-    expect(session.name).toBe('Second')
-  })
-
-  it('takes the selected account, not the first row', () => {
-    expect(normalizeSession({
-      contents: {
-        contents: [
-          { navigation_endpoint: {} },
-          { account_name: { text: 'Other' }, account_photo: [{ url: 'other', width: 88 }] },
-          { account_name: { text: 'Banou' }, account_photo: [{ url: 'mine', width: 88 }], is_selected: true },
-        ],
-      },
-    })).toMatchObject({ name: 'Banou', avatar: 'mine' })
+  it('takes the name, picture and handle of the selected row, a brand channel included', () => {
+    const session = normalizeSession(accountItems(twoChannels('brand')))
+    expect(session).toMatchObject({ name: 'Viewer', avatar: 'https://yt3.ggpht.com/viewer-brand=s88', handle: '@viewer-brand' })
+    expect(session.accounts.map((account) => [account.brandPageId, account.selected])).toEqual([[undefined, undefined], [BRAND_PAGE_ID, true]])
   })
 
   it("treats youtubei.js's 'N/A' account texts as absent", () => {
-    expect(normalizeSession({
-      contents: {
-        contents: [{
-          account_name: { text: 'Banou' },
-          channel_handle: { text: undefined, toString: () => 'N/A' },
-        }],
-      },
-    })).toMatchObject({ signedIn: true, name: 'Banou', handle: undefined })
+    expect(normalizeSession([{
+      account_name: { text: 'Viewer' },
+      channel_handle: { text: undefined, toString: () => 'N/A' },
+    }])).toMatchObject({ signedIn: true, name: 'Viewer', handle: undefined })
   })
 
-  it('still reports a signed-in session when the account section is unreadable', () => {
-    expect(normalizeSession({})).toEqual({
-      signedIn: true,
-      name: undefined,
-      avatar: undefined,
-      handle: undefined,
-      channelId: undefined,
-      accounts: [],
-    })
-    expect(normalizeSession({ contents: { contents: [] } })).toMatchObject({ signedIn: true, accounts: [] })
+  it('still reports a signed-in session when the account list is unreadable', () => {
+    expect(normalizeSession(undefined)).toEqual({ signedIn: true, name: undefined, avatar: undefined, handle: undefined, accounts: [] })
+    expect(normalizeSession([])).toMatchObject({ signedIn: true, accounts: [] })
   })
 
   it('drops comments without an id and approximates shortened reply counts', () => {

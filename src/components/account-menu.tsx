@@ -5,7 +5,8 @@ import { Check, CircleUser, LogOut, UserRoundCog } from 'lucide-react'
 import { useCallback, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
-import { clearSessionCookies, startEngine } from '../scramjet/client'
+import { atHandle, channelKey } from '../session'
+import { signOut, switchChannel } from '../sign-in'
 import { useDismiss } from './ui/popup'
 
 const style = css`
@@ -165,6 +166,21 @@ const style = css`
     text-overflow: ellipsis;
   }
 
+  .row .channel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .channel > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .channel-handle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+  }
+
   .section-title {
     padding: 0.8rem 1.6rem 0.4rem;
     font-size: 1.2rem;
@@ -187,7 +203,7 @@ export const AccountMenu = (
 ) => {
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
-  const [switching, setSwitching] = useState<number>()
+  const [switching, setSwitching] = useState<string>()
   const [signOutError, setSignOutError] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -199,35 +215,22 @@ export const AccountMenu = (
     if (signingOut) return
     setSigningOut(true)
     setSignOutError(false)
-    // the cookie clear IS the sign-out: only reload once the jar is actually gone
     try {
-      await (await startEngine()).resetIdentity()
-    } catch {}
-    try {
-      await clearSessionCookies()
+      await signOut()
     } catch {
       setSigningOut(false)
       setSignOutError(true)
-      return
     }
-    location.assign('/')
-  }
-
-  // youtubei.js has no runtime switch, so the frame only RECORDS the choice and the reload applies it
-  const onSwitch = async (index: number) => {
-    if (switching !== undefined || signingOut) return
-    setSwitching(index)
-    try {
-      await (await startEngine()).switchAccount(index)
-    } catch {
-      setSwitching(undefined)
-      return
-    }
-    location.assign('/')
   }
 
   const busy = signingOut || switching !== undefined
   const switchable = accounts.filter((account) => !account.selected)
+
+  const onSwitch = (account: SessionAccount) => {
+    if (busy) return
+    setSwitching(channelKey(account))
+    switchChannel(account.brandPageId)
+  }
 
   return (
     <div css={style} ref={rootRef}>
@@ -249,14 +252,14 @@ export const AccountMenu = (
               <Avatar name={name} avatar={avatar} />
               <div className='identity'>
                 <div className='name'>{name}</div>
-                {handle ? <div className='handle'>{handle.startsWith('@') ? handle : `@${handle}`}</div> : undefined}
+                {handle ? <div className='handle'>{atHandle(handle)}</div> : undefined}
               </div>
             </div>
             <div className='divider' role='presentation' />
             {/* By handle: the account endpoint carries GAIA tokens, not a browse id */}
             {handle
               ? (
-                <Link className='row' role='menuitem' href={`/channel/${handle.startsWith('@') ? handle : `@${handle}`}`} onClick={onClose}>
+                <Link className='row' role='menuitem' href={`/channel/${atHandle(handle)}`} onClick={onClose}>
                   <CircleUser size={20} strokeWidth={1.5} />
                   <span className='label'>Your channel</span>
                 </Link>
@@ -271,18 +274,21 @@ export const AccountMenu = (
                 <>
                   <div className='divider' role='presentation' />
                   <div className='section-title' role='presentation'>Switch account</div>
-                  {switchable.map((account) => (
+                  {switchable.map((account, index) => (
                     <button
-                      key={account.index}
+                      key={channelKey(account)}
                       type='button'
                       className='row'
                       role='menuitem'
                       disabled={busy}
-                      onClick={() => onSwitch(account.index)}
+                      onClick={() => onSwitch(account)}
                     >
                       <Avatar name={account.name} avatar={account.avatar} />
-                      <span className='label'>{account.name ?? account.handle ?? `Account ${account.index + 1}`}</span>
-                      {switching === account.index ? <Check size={16} strokeWidth={1.5} /> : undefined}
+                      <span className='label channel'>
+                        <span>{account.name ?? `Account ${index + 1}`}</span>
+                        {account.handle ? <span className='channel-handle'>{atHandle(account.handle)}</span> : undefined}
+                      </span>
+                      {switching === channelKey(account) ? <Check size={16} strokeWidth={1.5} /> : undefined}
                     </button>
                   ))}
                 </>

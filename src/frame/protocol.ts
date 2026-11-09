@@ -98,8 +98,6 @@ export type FrameApi = SourceApi & {
   selectVideoFormat(sessionId: string, formatKey: string): Promise<void>
   closePlayback(sessionId: string): Promise<void>
   resetIdentity(): Promise<void>
-  // records the choice for the NEXT engine only: youtubei.js has no runtime switch, so the caller reloads to apply it
-  switchAccount(index: number): Promise<void>
 }
 
 export const FRAME_METHODS = [
@@ -113,7 +111,6 @@ export const FRAME_METHODS = [
   'selectVideoFormat',
   'closePlayback',
   'resetIdentity',
-  'switchAccount',
 ] as const satisfies readonly (keyof FrameApi)[]
 
 export type FrameMethod = (typeof FRAME_METHODS)[number]
