@@ -490,25 +490,6 @@ describe('youtube channel tabs', () => {
     expect(oldest.videos.items[0]?.id).toBe('oldest')
   })
 
-  it('offers no sort for a chip bar led by a dropdown, which holds the sorts out of reach', async () => {
-    const client = createFakeClient()
-    const inner = client.getChannel
-    client.getChannel = async () => Object.assign(await inner(), {
-      async getVideos() {
-        return {
-          ...feed('latest'),
-          memo: new Map<string, unknown[]>([['ChipView', [
-            { text: 'Latest', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_DROP_DOWN' },
-            { text: 'Members only', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED' },
-            { text: 'Public', display_type: 'CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED' },
-          ]]]),
-        }
-      },
-    })
-    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
-    expect((await source.channel('c', 'VIDEOS')).sortOptions).toEqual([])
-  })
-
   it('refuses a cursor minted for a different tab of the same channel', async () => {
     const source = createYoutubeSource({
       fetch: globalThis.fetch,

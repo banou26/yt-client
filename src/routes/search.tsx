@@ -108,7 +108,7 @@ const SEARCH_RESULTS_QUERY = gql(`
 `)
 
 // filters live in readable query parameters, not youtube.com's `sp=` protobuf, so a link pasted from youtube.com keeps its query but loses its filters
-const FILTER_PARAMS = ['upload_date', 'type', 'duration', 'sort', 'features']
+const FILTER_PARAMS = ['upload_date', 'type', 'duration', 'sort', 'features', 'unwatched']
 
 type FilterGroup<Value extends string> = {
   param: string
@@ -745,6 +745,7 @@ const SearchPage = () => {
     duration: (params.get('duration') ?? undefined) as SearchDuration | undefined,
     sortBy: (params.get('sort') ?? undefined) as SearchSort | undefined,
     features: features.length > 0 ? features : undefined,
+    unwatched: params.get('unwatched') ? true : undefined,
   }
   const activeFilters = FILTER_PARAMS.filter(param => params.get(param)).length
   const chip = activeChip(params)

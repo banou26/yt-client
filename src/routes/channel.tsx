@@ -3,7 +3,7 @@ import type { TargetedFocusEvent, TargetedSubmitEvent } from 'preact'
 import type { ChannelTab, ChannelViewQuery, CommunityPostsQuery } from '../generated/graphql'
 
 import { css } from '@emotion/react'
-import { Link2, Search } from 'lucide-react'
+import { ChevronDown, Link2, Search } from 'lucide-react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { useLocation, useSearch } from 'wouter'
@@ -13,6 +13,7 @@ import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
 import { PostCard } from '../components/post-card'
 import { SubscribeButton } from '../components/subscribe-button'
+import { Menu, MenuItem } from '../components/ui/menu'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoGrid } from '../components/video-grid'
@@ -51,8 +52,8 @@ const COMMUNITY_POSTS_QUERY = gql(`
 `)
 
 const CHANNEL_VIEW_QUERY = gql(`
-  query ChannelView($id: ID!, $tab: ChannelTab, $sort: String, $query: String, $cursor: String) {
-    channel(id: $id, tab: $tab, sort: $sort, query: $query, cursor: $cursor) {
+  query ChannelView($id: ID!, $tab: ChannelTab, $sort: String, $filter: String, $query: String, $cursor: String) {
+    channel(id: $id, tab: $tab, sort: $sort, filter: $filter, query: $query, cursor: $cursor) {
       channel {
         id
         name
@@ -98,6 +99,9 @@ const CHANNEL_VIEW_QUERY = gql(`
       tab
       sortOptions
       appliedSort
+      sortMenu
+      filterOptions
+      appliedFilter
       home {
         featured {
           id
@@ -424,6 +428,12 @@ const style = css`
     color: var(--text-inverse);
   }
 
+  .sort.menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
   .videos {
     margin-top: 2.4rem;
   }
@@ -509,14 +519,15 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   const aboutRequested = requestedTab === 'ABOUT'
   const tab = aboutRequested ? undefined : requestedTab
   const sort = urlParams.get('sort') ?? undefined
+  const filter = urlParams.get('filter') ?? undefined
   const channelQuery = urlParams.get('query') ?? undefined
-  // tab, sort and in-channel query are part of the feed identity: switching any of them MUST restart paging
-  const feedKey = `${id}|${tab ?? ''}|${sort ?? ''}|${channelQuery ?? ''}`
+  // tab, sort, filter and in-channel query are part of the feed identity: switching any of them MUST restart paging
+  const feedKey = `${id}|${tab ?? ''}|${sort ?? ''}|${filter ?? ''}|${channelQuery ?? ''}`
   const [loaded, setLoaded] = useState<{ id: string, pages: VideosPage[] }>({ id: feedKey, pages: [] })
   const pages = loaded.id === feedKey ? loaded.pages : []
   const [{ data, error, fetching }] = useQuery({
     query: CHANNEL_VIEW_QUERY,
-    variables: { id, tab, sort, query: channelQuery, cursor: pages[pages.length - 1]?.cursor }
+    variables: { id, tab, sort, filter, query: channelQuery, cursor: pages[pages.length - 1]?.cursor }
   })
   const channel = data?.channel.channel
   const unavailable = error?.graphQLErrors.find(entry => entry.message.startsWith(CHANNEL_UNAVAILABLE))
@@ -538,11 +549,12 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
     .filter(part => part != null && part.length > 0)
   const meta = metaParts.length > 0 ? metaParts.join(' • ') : undefined
 
-  // a tab switch MUST clear sort and query: upstream's sort labels differ per tab and the new tab rejects the old one
-  const setView = (param: 'tab' | 'sort', value: string) => {
+  // a tab switch MUST clear sort, filter and query: upstream's labels differ per tab and the new tab rejects the old ones
+  const setView = (param: 'tab' | 'sort' | 'filter', value: string) => {
     const next = new URLSearchParams(search)
     if (param === 'tab') {
       next.delete('sort')
+      next.delete('filter')
       next.delete('query')
     }
     if (next.get(param) === value) next.delete(param)
@@ -715,18 +727,55 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
             )
             : undefined}
       </nav>
-      {(data?.channel.sortOptions.length ?? 0) > 1
+      {(data?.channel.sortOptions.length ?? 0) > 1 || (data?.channel.filterOptions.length ?? 0) > 0
         ? (
           <div className='sorts'>
-            {data?.channel.sortOptions.map(option => {
-              const active = option === (data.channel.appliedSort ?? data.channel.sortOptions[0])
+            {data?.channel.sortMenu
+              ? (
+                <Menu
+                  label='Sort by'
+                  align='start'
+                  trigger={
+                    <button type='button' className='sort menu'>
+                      {data.channel.appliedSort ?? data.channel.sortOptions[0]}
+                      <ChevronDown size={20} strokeWidth={1.5} />
+                    </button>
+                  }
+                >
+                  {data.channel.sortOptions.map(option => (
+                    <MenuItem
+                      key={option}
+                      label={option}
+                      onSelect={() => {
+                        if (option !== (data.channel.appliedSort ?? data.channel.sortOptions[0])) setView('sort', option)
+                      }}
+                    />
+                  ))}
+                </Menu>
+              )
+              : data?.channel.sortOptions.map(option => {
+                const active = option === (data.channel.appliedSort ?? data.channel.sortOptions[0])
+                return (
+                  <button
+                    key={option}
+                    type='button'
+                    className={active ? 'sort active' : 'sort'}
+                    aria-pressed={active}
+                    onClick={() => setView('sort', option)}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
+            {data?.channel.filterOptions.map(option => {
+              const active = option === data.channel.appliedFilter
               return (
                 <button
                   key={option}
                   type='button'
                   className={active ? 'sort active' : 'sort'}
                   aria-pressed={active}
-                  onClick={() => setView('sort', option)}
+                  onClick={() => setView('filter', option)}
                 >
                   {option}
                 </button>

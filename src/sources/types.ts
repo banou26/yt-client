@@ -117,6 +117,8 @@ export type SourceSearchFilters = {
   duration?: SourceSearchDuration
   sortBy?: SourceSearchSort
   features?: SourceSearchFeature[]
+  // youtube.com's Unwatched chip
+  unwatched?: boolean
 }
 
 // A mix has no playlist page: it plays at /watch on `videoId` inside its list
@@ -247,6 +249,10 @@ export type SourceChannelPage = {
   tab: SourceChannelTab
   sortOptions: string[]
   appliedSort?: string
+  // the sorts sit in one dropdown chip, as on the Live tab, and `filterOptions` are the chips after it
+  sortMenu: boolean
+  filterOptions: string[]
+  appliedFilter?: string
   // only on the Home tab
   home?: SourceChannelHome
 }
@@ -444,7 +450,7 @@ export type Source = {
   searchSuggestions(query: string, previousQuery?: string): Promise<string[]>
   video(id: string): Promise<SourceVideo | undefined>
   // `id` is a UC id or a youtube.com channel path without its leading slash: `@handle`, `c/<name>` or `user/<name>`
-  channel(id: string, tab?: SourceChannelTab, sort?: string, query?: string, cursor?: string): Promise<SourceChannelPage>
+  channel(id: string, tab?: SourceChannelTab, sort?: string, query?: string, cursor?: string, filter?: string): Promise<SourceChannelPage>
   channelAbout(id: string): Promise<SourceChannelAbout | undefined>
   communityPosts(channelId: string, cursor?: string): Promise<SourcePostPage>
   // undefined when youtube.com has no post under that id

@@ -11,6 +11,7 @@ const searchFilters = (filters: SearchFilters | null | undefined): SourceSearchF
     duration: filters.duration ?? undefined,
     sortBy: filters.sortBy ?? undefined,
     features: filters.features ?? undefined,
+    unwatched: filters.unwatched ?? undefined,
   }
 }
 
@@ -38,8 +39,8 @@ export const resolvers = {
     searchSuggestions: (_, { query, previousQuery }, context) =>
       context.source.searchSuggestions(query, previousQuery ?? undefined),
     video: (_, { id }, context) => context.source.video(id).then((video) => video ?? null),
-    channel: (_, { id, tab, sort, query, cursor }, context) =>
-      context.source.channel(id, tab ?? undefined, sort ?? undefined, query ?? undefined, cursor ?? undefined),
+    channel: (_, { id, tab, sort, query, cursor, filter }, context) =>
+      context.source.channel(id, tab ?? undefined, sort ?? undefined, query ?? undefined, cursor ?? undefined, filter ?? undefined),
     channelAbout: (_, { id }, context) => context.source.channelAbout(id).then((about) => about ?? null),
     communityPosts: (_, { channelId, cursor }, context) =>
       context.source.communityPosts(channelId, cursor ?? undefined),

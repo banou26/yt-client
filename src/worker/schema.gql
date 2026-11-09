@@ -240,6 +240,8 @@ input SearchFilters {
   duration: SearchDuration
   sortBy: SearchSort
   features: [SearchFeature!]
+  # youtube.com's Unwatched chip, which no other filter can say.
+  unwatched: Boolean
 }
 
 # The tabs a channel can expose. Which ones actually exist varies per channel,
@@ -366,6 +368,13 @@ type ChannelPage {
   # applied one is echoed back so the control can show what is active.
   sortOptions: [String!]!
   appliedSort: String
+  # True when upstream offers the sorts in one dropdown chip at the start of
+  # the bar, as on the Live tab, rather than one chip each.
+  sortMenu: Boolean!
+  # The chips that follow such a dropdown (Members only, Public), as upstream's
+  # own localized labels. At most one applies.
+  filterOptions: [String!]!
+  appliedFilter: String
   # Only on the Home tab.
   home: ChannelHome
 }
@@ -662,9 +671,10 @@ type Query {
   video(id: ID!): Video
   # `tab` defaults to the channel's own landing tab. `query` only applies to the
   # SEARCH tab and is ignored elsewhere. `sort` is one of the page's own
-  # `sortOptions` labels. `id` may also be a youtube.com channel path without
-  # its leading slash: `@handle`, `c/<name>` or `user/<name>`.
-  channel(id: ID!, tab: ChannelTab, sort: String, query: String, cursor: String): ChannelPage!
+  # `sortOptions` labels and `filter` one of its `filterOptions`. `id` may also
+  # be a youtube.com channel path without its leading slash: `@handle`,
+  # `c/<name>` or `user/<name>`.
+  channel(id: ID!, tab: ChannelTab, sort: String, query: String, cursor: String, filter: String): ChannelPage!
   # Null when the channel publishes no About panel, which is an ordinary state
   # rather than a failure: `ChannelPage.availableTabs` is what says whether to
   # ask at all.

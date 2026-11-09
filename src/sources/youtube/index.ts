@@ -55,6 +55,8 @@ type SearchFeed = Feed & {
   refinements?: string[]
   estimated_results?: number
   page?: { entity_mutations?: EntityMutation[] }
+  header?: { chip_bar?: { chips?: unknown[] } }
+  applyRefinement?: (chip: unknown) => Promise<SearchFeed>
 }
 
 type ChannelFeed = Feed & {
@@ -83,7 +85,9 @@ type ChannelFeed = Feed & {
   getAbout?: () => Promise<unknown>
   has_about?: boolean
   applySort?: (sort: string) => Promise<ChannelFeed>
-  applyFilter?: (chip: SortChip) => Promise<ChannelFeed>
+  // a dropdown's sort goes by its label, and the chip after it as the second argument
+  applyFilter?: (filter: SortChip | string, secondary?: string) => Promise<ChannelFeed>
+  filter_nodes?: { primary_filters?: DropdownRow[] }
   search?: (query: string) => Promise<ChannelFeed>
   current_tab?: {
     endpoint?: { metadata?: { url?: string } }
@@ -93,6 +97,8 @@ type ChannelFeed = Feed & {
 
 // youtubei.js 18 adds `selected`; 17 leaves the chip's state unparsed
 type SortChip = { text?: string, display_type?: string, selected?: boolean }
+
+type DropdownRow = { title?: { toString(): string }, is_selected?: boolean }
 
 type PostsFeed = Feed & {
   posts?: Iterable<unknown>
@@ -484,7 +490,20 @@ const filterKey = (filters: SourceSearchFilters | undefined) =>
     filters?.duration ?? '',
     filters?.sortBy ?? '',
     [...(filters?.features ?? [])].sort().join('+'),
+    filters?.unwatched ? 'unwatched' : '',
   ].join('|')
+
+// Upstream's search chips are localized but laid out alike in every language (All, Shorts, Unwatched, Videos, Recently
+// uploaded, Live in English, Japanese and French, filtered or not, measured 2026-11-10), so Unwatched is found by its place
+const SEARCH_CHIP_COUNT = 6
+const UNWATCHED_CHIP = 2
+
+const unwatchedSearch = async (feed: SearchFeed) => {
+  const chips = feed.header?.chip_bar?.chips ?? []
+  const chip = chips.length === SEARCH_CHIP_COUNT ? chips[UNWATCHED_CHIP] : undefined
+  if (!chip || !feed.applyRefinement) throw new Error('youtube: this search has no Unwatched chip')
+  return feed.applyRefinement(chip)
+}
 
 // Upstream's display order, which is also the order the tab strip renders in. `path` is the last word of the tab's URL.
 // Home has no opener: the browse lands on it.
@@ -544,11 +563,23 @@ const channelHome = (feed: ChannelFeed): SourceChannelHome => {
   return home
 }
 
-// The Videos, Shorts and Live tabs sort by a chip bar rather than the sort menu youtubei.js reads. A bar led by a dropdown is a filter bar (members only, public) with the sorts inside the dropdown, which is not read.
-const sortChips = (feed: ChannelFeed) => {
-  const chips = (feed.memo?.get('ChipView') ?? []) as SortChip[]
-  if (chips.some((chip) => chip.display_type?.includes('DROP_DOWN'))) return []
-  return chips.filter((chip): chip is SortChip & { text: string } => Boolean(chip.text))
+// The Videos, Shorts and Live tabs sort by a chip bar rather than the sort menu youtubei.js reads. A bar led by a dropdown
+// (the Live tab's) holds the sorts inside the dropdown and filters with the chips after it (Members only, Public).
+const tabChips = (feed: ChannelFeed) => {
+  const chips = ((feed.memo?.get('ChipView') ?? []) as SortChip[])
+    .filter((chip): chip is SortChip & { text: string } => Boolean(chip.text))
+  if (!chips[0]?.display_type?.includes('DROP_DOWN')) return { sorts: chips, filters: [], menu: false }
+  let items: DropdownRow[] | undefined
+  try {
+    items = feed.filter_nodes?.primary_filters
+  } catch {
+    // filter_nodes THROWS when a feed carries more than one chip bar
+  }
+  const sorts = (items ?? []).flatMap((item) => {
+    const text = item.title?.toString()
+    return text ? [{ text, selected: item.is_selected === true }] : []
+  })
+  return { sorts, filters: chips.slice(1), menu: true }
 }
 
 const openChannelTab = async (
@@ -1188,7 +1219,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     search: async (query, filters, cursor) => {
       const kind = `search:${query}:${filterKey(filters)}`
       if (cursor) return searchContinuations.resolve(kind, cursor)
-      return searchPage(kind, await (await client).search(query, upstreamFilters(filters)))
+      const feed = await (await client).search(query, upstreamFilters(filters))
+      return searchPage(kind, filters?.unwatched ? await unwatchedSearch(feed) : feed)
     },
     searchSuggestions: async (query, previousQuery) => {
       if (query.trim() === '') return []
@@ -1199,8 +1231,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       }
     },
     video: async (id) => normalizeVideoDetails((await (await client).getBasicInfo(id)).basic_info),
-    channel: async (id, tab, sort, query, cursor) => {
-      const kind = `channel:${id}:${tab ?? 'DEFAULT'}:${sort ?? ''}:${query ?? ''}`
+    channel: async (id, tab, sort, query, cursor, filter) => {
+      const kind = `channel:${id}:${tab ?? 'DEFAULT'}:${sort ?? ''}:${query ?? ''}:${filter ?? ''}`
       const known = channels.get(id)
       if (cursor) {
         if (!known) throw new Error(`youtube: channel ${id} is not loaded`)
@@ -1218,16 +1250,22 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const availableTabs = availableChannelTabs(result)
       const selected = tab && availableTabs.includes(tab) ? tab : landedTab(result) ?? defaultChannelTab(availableTabs)
       let feed = await openChannelTab(result, selected, query)
-      const chips = sortChips(feed)
-      const sortOptions = feed.sort_filters?.length ? feed.sort_filters : chips.map((chip) => chip.text)
+      const chips = tabChips(feed)
+      const sortOptions = feed.sort_filters?.length ? feed.sort_filters : chips.sorts.map((chip) => chip.text)
       const appliedSort = sort && sortOptions.includes(sort) ? sort : undefined
-      const chip = chips.find((candidate) => candidate.text === appliedSort)
-      if (chip) {
-        if (!chip.selected && feed.applyFilter) feed = await feed.applyFilter(chip)
-      } else if (appliedSort && feed.applySort) {
+      const filterOptions = chips.filters.map((chip) => chip.text)
+      const appliedFilter = filter && filterOptions.includes(filter) ? filter : undefined
+      const chip = chips.sorts.find((candidate) => candidate.text === appliedSort)
+      const filterChip = chips.filters.find((candidate) => candidate.text === appliedFilter)
+      if (chip && !chip.selected && feed.applyFilter) {
+        // a dropdown's sort goes by its label, then the filter chip of the answer it brings, as youtube.com sends them
+        feed = await (chips.menu ? feed.applyFilter(chip.text, appliedFilter) : feed.applyFilter(chip))
+      } else if (filterChip && !filterChip.selected && feed.applyFilter) {
+        feed = await feed.applyFilter(filterChip)
+      } else if (!chip && appliedSort && feed.applySort) {
         feed = await feed.applySort(appliedSort)
       }
-      const rest = { availableTabs, tab: selected, sortOptions, appliedSort }
+      const rest = { availableTabs, tab: selected, sortOptions, appliedSort, sortMenu: chips.menu, filterOptions, appliedFilter }
       channels.set(id, { channel, page: rest })
       if (selected === 'HOME') return { ...rest, channel, videos: { items: [], playlists: [] }, home: channelHome(feed) }
       return { ...rest, channel, videos: page(kind, feed, { own: true }) }

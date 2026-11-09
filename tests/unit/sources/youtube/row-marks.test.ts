@@ -42,6 +42,11 @@ const searchSource = (answers: { all: unknown, unwatched: unknown } = search) =>
 
 const videos = (results: { kind: string, id?: string }[]) => results.filter((result) => result.kind === 'video')
 
+const chipToken = (label: string) => {
+  const chips = search.all.header.searchHeaderRenderer.chipBar.chipCloudRenderer.chips
+  return chips.find((chip) => chip.chipCloudChipRenderer.text.simpleText === label)?.chipCloudChipRenderer.navigationEndpoint?.continuationCommand.token
+}
+
 describe('the related column\'s marks', () => {
   it('reads the New badge off the top corner of the still that carries it', () => {
     expect(relatedRows().map(({ id, thumbnailBadge }) => ({ id, thumbnailBadge }))).toEqual([
@@ -89,5 +94,38 @@ describe('a search row\'s marks', () => {
     const [unmarked] = videos((await plain.source.search('never gonna give you up')).results)
     expect(unmarked).toMatchObject({ id: 'dQw4w9WgXcQ', durationSeconds: 214 })
     expect((unmarked as { isMusic?: boolean }).isMusic).toBeUndefined()
+  })
+})
+
+describe('the Unwatched search chip', () => {
+  it('asks for nothing more without it', async () => {
+    const { source, sent } = searchSource()
+    const page = await source.search('never gonna give you up')
+    expect(videos(page.results).map((video) => video.id)).toEqual(['dQw4w9WgXcQ', 'XGxIE1hr0w4'])
+    expect(sent).toEqual([])
+  })
+
+  it('applies upstream\'s own Unwatched chip and lists what it brings', async () => {
+    const { source, sent } = searchSource()
+    const page = await source.search('never gonna give you up', { unwatched: true })
+    expect(sent).toEqual([{ path: 'search', continuation: chipToken('Unwatched') }])
+    expect(videos(page.results).map((video) => video.id)).toEqual(['LLFhKaqnWwk', 'nsCIeklgp1M'])
+  })
+
+  it('finds the chip by its place, so a bar in another language works the same', async () => {
+    const japanese = JSON.parse(JSON.stringify(search.all)
+      .replace('"simpleText":"All"', '"simpleText":"すべて"')
+      .replace('"simpleText":"Unwatched"', '"simpleText":"未視聴"'))
+    const { source, sent } = searchSource({ all: japanese, unwatched: search.unwatched })
+    await source.search('never gonna give you up', { unwatched: true })
+    expect(sent).toEqual([{ path: 'search', continuation: chipToken('Unwatched') }])
+  })
+
+  it('refuses a bar laid out otherwise rather than apply another chip', async () => {
+    const short = structuredClone(search.all)
+    short.header.searchHeaderRenderer.chipBar.chipCloudRenderer.chips.splice(1, 1)
+    const { source, sent } = searchSource({ all: short, unwatched: search.unwatched })
+    await expect(source.search('never gonna give you up', { unwatched: true })).rejects.toThrow('no Unwatched chip')
+    expect(sent).toEqual([])
   })
 })

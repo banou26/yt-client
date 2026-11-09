@@ -1,0 +1,51 @@
+import { expect, test } from './test'
+
+test.use({ colorScheme: 'light' })
+
+test('the Unwatched chip lists what upstream\'s own chip brings', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/results?search_query=never+gonna+give+you+up')
+  const rows = page.locator('article.result').filter({ has: page.locator('a.thumb') })
+  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+  const unwatched = page.getByRole('button', { name: 'Unwatched', exact: true })
+  await expect(unwatched).toHaveAttribute('aria-pressed', 'false')
+  await unwatched.click()
+  await expect(page).toHaveURL(/[?&]unwatched=1/)
+  await expect(unwatched).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'false')
+  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+  await expect(page.locator('main .status')).toHaveCount(0)
+})
+
+test('the Live tab sorts from its Latest dropdown and filters by Members only and Public', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/@mkbhd?tab=LIVE')
+  const bar = page.locator('main .sorts')
+  const titles = page.locator('main .videos article h3')
+  await expect(titles.first()).toBeVisible({ timeout: 120_000 })
+  const sort = bar.getByRole('button', { name: 'Latest' })
+  await expect(sort).toHaveAttribute('aria-haspopup', 'menu')
+  await expect(bar.getByRole('button')).toHaveText(['Latest', 'Members only', 'Public'])
+  const members = bar.getByRole('button', { name: 'Members only', exact: true })
+  await expect(members).toHaveAttribute('aria-pressed', 'false')
+  const everyone = await titles.first().textContent()
+
+  await members.click()
+  await expect(page).toHaveURL(/[?&]filter=Members\+only/)
+  await expect(members).toHaveAttribute('aria-pressed', 'true')
+  await expect(titles.first()).not.toHaveText(everyone!, { timeout: 120_000 })
+
+  await sort.click()
+  const menu = page.getByRole('menu', { name: 'Sort by' })
+  await expect(menu.getByRole('menuitem')).toHaveText(['Latest', 'Popular', 'Oldest'])
+  await menu.getByRole('menuitem', { name: 'Popular' }).click()
+  await expect(page).toHaveURL(/[?&]sort=Popular/)
+  await expect(page).toHaveURL(/[?&]filter=Members\+only/)
+  await expect(bar.getByRole('button', { name: 'Popular' })).toBeVisible({ timeout: 120_000 })
+
+  await members.click()
+  await expect(page).not.toHaveURL(/filter=/)
+  await expect(members).toHaveAttribute('aria-pressed', 'false')
+})

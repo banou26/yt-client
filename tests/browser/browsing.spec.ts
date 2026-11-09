@@ -75,7 +75,7 @@ test('search has the chip row, a filters dialog, wide rows and a preview on hove
   await expect(rows.first()).toBeVisible({ timeout: 120_000 })
 
   const chips = page.locator('.filter-chip')
-  await expect(chips).toHaveText(['All', 'Shorts', 'Videos', 'Recently uploaded', 'Live'])
+  await expect(chips).toHaveText(['All', 'Shorts', 'Unwatched', 'Videos', 'Recently uploaded', 'Live'])
   await expect(page.getByRole('button', { name: 'All', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByText(/About [\d,]+ results/)).toHaveCount(0)
 

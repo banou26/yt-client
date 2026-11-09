@@ -1,27 +1,29 @@
 /**
  * youtube.com's search chip row, each chip expressed as one of the app's own
- * search filters. Its Unwatched chip is left out: no filter says it.
+ * search filters. Unwatched is upstream's own chip, which the source applies as
+ * itself because no search filter says it.
  *
  * Recently uploaded is upload date "This week": upstream's own chip is an
  * opaque ranking token that no filter can encode, and a week is the nearest
  * thing a filter can say.
  */
 export type SearchChip = {
-  id: 'all' | 'shorts' | 'videos' | 'recent' | 'live'
+  id: 'all' | 'shorts' | 'unwatched' | 'videos' | 'recent' | 'live'
   label: string
-  param?: 'type' | 'upload_date' | 'features'
+  param?: 'type' | 'upload_date' | 'features' | 'unwatched'
   value?: string
 }
 
 export const SEARCH_CHIPS: SearchChip[] = [
   { id: 'all', label: 'All' },
   { id: 'shorts', label: 'Shorts', param: 'type', value: 'SHORTS' },
+  { id: 'unwatched', label: 'Unwatched', param: 'unwatched', value: '1' },
   { id: 'videos', label: 'Videos', param: 'type', value: 'VIDEO' },
   { id: 'recent', label: 'Recently uploaded', param: 'upload_date', value: 'WEEK' },
   { id: 'live', label: 'Live', param: 'features', value: 'LIVE' },
 ]
 
-const CHIP_PARAMS = ['type', 'upload_date', 'features'] as const
+const CHIP_PARAMS = ['type', 'upload_date', 'features', 'unwatched'] as const
 
 /** The chip the current filters amount to: All when no chip filter is set, none when they match no single chip. */
 export const activeChip = (params: URLSearchParams): SearchChip['id'] | undefined => {
