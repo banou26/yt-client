@@ -60,8 +60,12 @@ const rightEdges = (link: Locator) => link.evaluate(element => ({
 
 test('fits the watch page in a phone\'s width', async ({ page }) => {
   test.setTimeout(240_000)
+  // a real count as production shows one: the shared fixture's zero shows none, and so hides the width it takes
+  await page.route('https://returnyoutubedislikeapi.com/**', route =>
+    route.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { likes: 19496469, dislikes: 521680 } }))
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/watch?v=dQw4w9WgXcQ')
+  await expect(page.locator('main .like-pill .dislike')).toHaveText('522K', { timeout: 150_000 })
   const meta = page.locator('.meta').filter({ has: page.locator('a.hashtag') })
   const owner = page.locator('.owner-text a.channel-name')
   const related = page.locator('aside.secondary article a.channel-name').filter({ has: page.locator('[data-badge]') }).first()

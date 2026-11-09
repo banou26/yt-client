@@ -202,6 +202,7 @@ const style = css`
 
   .actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.8rem;
     margin-left: auto;
