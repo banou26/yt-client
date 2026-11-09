@@ -2,9 +2,12 @@ import type { ComponentChildren, FunctionComponent, RefObject } from 'preact'
 
 import { css } from '@emotion/react'
 import { createPortal } from 'preact/compat'
-import { useEffect, useLayoutEffect, useRef } from 'preact/hooks'
+import { useLayoutEffect, useRef } from 'preact/hooks'
 
-/** `panelRef` is for a panel drawn outside `rootRef`, as an anchored Popup is: a press inside either keeps it open. */
+/**
+ * `panelRef` is for a panel drawn outside `rootRef`, as an anchored Popup is: a press inside either keeps it open. The
+ * listeners are in place as the panel is drawn, so an Escape or a press that comes before the next paint closes it too.
+ */
 export const useDismiss = (
   { open, onClose, rootRef, panelRef, triggerRef }: {
     open: boolean
@@ -14,7 +17,7 @@ export const useDismiss = (
     triggerRef?: RefObject<HTMLElement | null>
   },
 ) => {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node
