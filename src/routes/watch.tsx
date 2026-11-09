@@ -6,7 +6,7 @@ import type { VideoCardData } from '../components/video-card'
 import { css } from '@emotion/react'
 import { EllipsisVertical, Link2, Share2, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { useMutation, useQuery } from 'urql'
+import { useQuery } from 'urql'
 import { Link, useSearch } from 'wouter'
 
 import { useDocumentTitle, useMediaQuery } from '../app'
@@ -14,9 +14,10 @@ import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byl
 import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
 import DescriptionBox from '../components/description-box'
-import { formatCompact, parseStartSeconds, readable } from '../components/format'
+import { formatCompact, parseStartSeconds } from '../components/format'
 import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
+import { useRateVideo } from '../components/rate-video'
 import { MembersOnly } from '../components/row-marks'
 import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
@@ -33,18 +34,7 @@ import {
 } from '../player/session'
 import { WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
-import { showToast } from '../components/ui/toast'
 import { getSettings, updateSettings } from '../settings'
-import { signIn } from '../sign-in'
-
-const RATE_VIDEO = gql(`
-  mutation RateVideo($id: ID!, $status: LikeStatus!) {
-    rateVideo(id: $id, status: $status) {
-      id
-      likeStatus
-    }
-  }
-`)
 
 // youtube.com's one column, from 999 px down, which also opens the chat replay and chapters under the player
 const ONE_COLUMN = '(max-width: 999px)'
@@ -451,7 +441,7 @@ const WatchPage = () => {
     requestPolicy: 'cache-and-network',
     pause: videoId === ''
   })
-  const [rateState, rateVideo] = useMutation(RATE_VIDEO)
+  const { rate, rating } = useRateVideo(videoId, watchData?.watch?.likeStatus)
   const dislikes = useDislikes(videoId)
   const playerSession = usePlayerSession()
   const theater = playerSession.theater
@@ -497,17 +487,6 @@ const WatchPage = () => {
     listId === undefined || watch?.playlist?.id !== listId ? undefined : watch.playlist
   const liked = watch?.likeStatus === 'LIKE'
   const disliked = watch?.likeStatus === 'DISLIKE'
-
-  const rate = (status: 'LIKE' | 'DISLIKE') => {
-    if (!watch?.likeStatus) {
-      signIn()
-      return
-    }
-    const next = watch.likeStatus === status ? 'INDIFFERENT' : status
-    void rateVideo({ id: videoId, status: next }).then((result) => {
-      if (result.error) showToast(readable(result.error.message))
-    })
-  }
 
   const [sharing, setSharing] = useState(false)
   // held as the video it was opened on, so the next video starts with the panel closed
@@ -611,7 +590,7 @@ const WatchPage = () => {
                     className='like'
                     aria-label='Like'
                     aria-pressed={liked}
-                    disabled={rateState.fetching}
+                    disabled={rating}
                     onClick={() => rate('LIKE')}
                   >
                     <ThumbsUp size={20} strokeWidth={1.5} fill={liked ? 'currentColor' : 'none'} />
@@ -622,7 +601,7 @@ const WatchPage = () => {
                     className='dislike'
                     aria-label='Dislike'
                     aria-pressed={disliked}
-                    disabled={rateState.fetching}
+                    disabled={rating}
                     onClick={() => rate('DISLIKE')}
                   >
                     <ThumbsDown size={20} strokeWidth={1.5} fill={disliked ? 'currentColor' : 'none'} />

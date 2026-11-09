@@ -161,3 +161,18 @@ test('heads the comments with the full count and Sort by, and threads them like 
   const spills = await rows.evaluateAll(elements => elements.filter(element => element.scrollHeight > element.clientHeight + 1).length)
   expect(spills).toBe(0)
 })
+
+// a signed-out read says INDIFFERENT, as a signed-in one does, so the press used to send the rating and fail
+test('opens the sign-in window from Like and Dislike signed out', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto(VIDEO)
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.engine), { timeout: 90_000 }).toBe('ready')
+  await expect(page.locator('header').getByRole('button', { name: 'Sign in' })).toBeVisible({ timeout: 60_000 })
+  for (const name of ['Like', 'Dislike']) {
+    const opened = page.context().waitForEvent('page', { timeout: 30_000 })
+    await page.locator('main').getByRole('button', { name, exact: true }).first().click()
+    const popup = await opened
+    await expect(popup).toHaveURL(/\/__yt_scramjet__\/signin(?:\.html)?$/)
+    await popup.close()
+  }
+})
