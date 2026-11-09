@@ -764,8 +764,9 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
   }
 }
 
-// an album's OLAK5uy_ id and a station's RDCLAK5uy_ one open at /playlist?list= like any playlist's
-const PLAYLIST_LOCKUPS = new Set(['PLAYLIST', 'ALBUM', 'STATION'])
+// an album's OLAK5uy_ id, a station's RDCLAK5uy_ one and a show's (a series a channel counts in episodes) PL one open at
+// /playlist?list= like any playlist's
+const PLAYLIST_LOCKUPS = new Set(['PLAYLIST', 'ALBUM', 'STATION', 'SHOW'])
 
 export const normalizePlaylistLockup = (input: unknown): SourcePlaylist | undefined => {
   const lockup = input as LockupVideo
@@ -796,6 +797,28 @@ export const normalizeGridPlaylist = (input: unknown): SourcePlaylist | undefine
       ?? thumbnail(node.sidebar_thumbnails, STILL_WIDTH)
       ?? thumbnail(node.thumbnail_renderer?.thumbnail, STILL_WIDTH),
     videoCountText: presentText(node.video_count) ?? presentText(node.video_count_short),
+    channel: bylineChannel(node.author),
+  }
+}
+
+// A channel's Shows tab: the show is the playlist its browse opens (`VL` + the playlist id), counted in episodes
+export const normalizeGridShow = (input: unknown): SourcePlaylist | undefined => {
+  const node = input as {
+    title?: Text
+    thumbnail_renderer?: { thumbnail?: Thumbnail[] }
+    endpoint?: { payload?: { browseId?: string } }
+    thumbnail_overlays?: { text?: Text }[]
+    author?: Author
+  }
+  const browseId = node.endpoint?.payload?.browseId
+  const id = browseId?.startsWith('VL') ? browseId.slice(2) : undefined
+  const title = presentText(node.title)
+  if (!id || !title) return undefined
+  return {
+    id,
+    title,
+    thumbnail: thumbnail(node.thumbnail_renderer?.thumbnail, STILL_WIDTH),
+    videoCountText: node.thumbnail_overlays?.map((overlay) => presentText(overlay.text)).find(Boolean),
     channel: bylineChannel(node.author),
   }
 }

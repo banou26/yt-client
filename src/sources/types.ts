@@ -149,7 +149,7 @@ export type SourceSearchPage = {
 
 export type SourceChannelTab =
   | 'HOME' | 'VIDEOS' | 'SHORTS' | 'LIVE' | 'RELEASES'
-  | 'PODCASTS' | 'COURSES' | 'PLAYLISTS' | 'COMMUNITY' | 'ABOUT' | 'SEARCH'
+  | 'PODCASTS' | 'COURSES' | 'SHOWS' | 'PLAYLISTS' | 'COMMUNITY' | 'ABOUT' | 'SEARCH'
 
 export type SourceNotification = {
   id: string

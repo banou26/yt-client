@@ -178,6 +178,7 @@ const TAB_LABELS: Record<ChannelTab, string> = {
   RELEASES: 'Releases',
   PODCASTS: 'Podcasts',
   COURSES: 'Courses',
+  SHOWS: 'Shows',
   PLAYLISTS: 'Playlists',
   COMMUNITY: 'Posts',
   ABOUT: 'About',
@@ -766,6 +767,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
                           thumbnail={playlist.thumbnail}
                           videoCountText={playlist.videoCountText}
                           updatedText={playlist.updatedText}
+                          channelName={activeTab === 'SHOWS' ? channel?.name : undefined}
                         />
                       ))}
                     </div>

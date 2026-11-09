@@ -5,7 +5,7 @@ import { Innertube, Utils } from 'youtubei.js/web'
 
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -66,6 +66,7 @@ type ChannelFeed = Feed & {
   has_releases?: boolean
   has_podcasts?: boolean
   has_courses?: boolean
+  has_shows?: boolean
   has_playlists?: boolean
   has_community?: boolean
   has_search?: boolean
@@ -76,6 +77,7 @@ type ChannelFeed = Feed & {
   getReleases?: () => Promise<ChannelFeed>
   getPodcasts?: () => Promise<ChannelFeed>
   getCourses?: () => Promise<ChannelFeed>
+  getShows?: () => Promise<ChannelFeed>
   getPlaylists?: () => Promise<ChannelFeed>
   getCommunity?: () => Promise<ChannelFeed>
   getAbout?: () => Promise<unknown>
@@ -326,6 +328,7 @@ const pagePlaylists = (feed: Feed) => {
   for (const node of feed.memo?.get('GridPlaylist') ?? []) add(normalizeGridPlaylist(node))
   // Releases and Podcasts serve the legacy `Playlist` renderer, which declares the same fields as GridPlaylist and so needs no normalizer of its own.
   for (const node of feed.memo?.get('Playlist') ?? []) add(normalizeGridPlaylist(node))
+  for (const node of feed.memo?.get('GridShow') ?? []) add(normalizeGridShow(node))
   return playlists
 }
 
@@ -483,6 +486,7 @@ const CHANNEL_TABS = [
   { tab: 'RELEASES', path: 'releases', has: 'has_releases', open: 'getReleases' },
   { tab: 'PODCASTS', path: 'podcasts', has: 'has_podcasts', open: 'getPodcasts' },
   { tab: 'COURSES', path: 'courses', has: 'has_courses', open: 'getCourses' },
+  { tab: 'SHOWS', path: 'shows', has: 'has_shows', open: 'getShows' },
   { tab: 'PLAYLISTS', path: 'playlists', has: 'has_playlists', open: 'getPlaylists' },
   { tab: 'COMMUNITY', path: 'posts', has: 'has_community', open: 'getCommunity' },
 ] as const satisfies readonly { tab: SourceChannelTab, path: string, has: keyof ChannelFeed, open?: keyof ChannelFeed }[]

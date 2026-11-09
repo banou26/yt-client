@@ -86,6 +86,27 @@ test('names the tabs like youtube.com, sorts Videos by chips and searches from a
   await expect(page.locator('main article a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
 })
 
+test('opens a channel\'s Shows tab, and keeps the shows on its Playlists tab', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto('/@mkbhd/shows')
+  await expect(page).toHaveURL('/@mkbhd?tab=SHOWS')
+  const tabs = page.getByRole('navigation', { name: 'Channel sections' })
+  await expect(tabs.getByRole('button', { name: 'Shows', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  const labels = await tabs.getByRole('button').allTextContents()
+  expect(labels.indexOf('Shows')).toBe(labels.indexOf('Live') + 1)
+  expect(labels.indexOf('Playlists')).toBe(labels.indexOf('Shows') + 1)
+  // youtube.com's show cards: the episode count over the still, the channel's name under the title
+  const cards = page.locator('main .playlist-grid a.card')
+  await expect(cards.first()).toHaveAttribute('href', /^\/playlist\?list=PL/, { timeout: 120_000 })
+  await expect(cards.first()).toContainText(/\d+ episodes/)
+  await expect(cards.first()).toContainText('Marques Brownlee')
+
+  await tabs.getByRole('button', { name: 'Playlists', exact: true }).click()
+  await expect(page).toHaveURL('/@mkbhd?tab=PLAYLISTS')
+  await expect(cards.filter({ hasText: /\d+ episodes/ }).first()).toBeVisible({ timeout: 120_000 })
+  await expect(cards.filter({ hasText: /\d+ videos?/ }).first()).toBeVisible()
+})
+
 test('keeps the channel\'s name in its header once its own videos fill the Home shelves', async ({ page }) => {
   test.setTimeout(180_000)
   await page.goto('/@LinusTechTips')
