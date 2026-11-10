@@ -281,7 +281,8 @@ const style = css`
  * so an error card in its place would be worse than no preview.
  *
  * `href` is the card's own watch link. A plain click on the playing preview
- * opens it at the preview's position once that is past CARRY_SECONDS.
+ * opens it at the preview's position once that is past CARRY_SECONDS; a live
+ * preview opens at the stream's edge.
  * `playerParams` are the card's inline playback params, which the preview's
  * watch page is read with, as youtube.com reads its own.
  */
