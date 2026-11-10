@@ -17,6 +17,7 @@ import { LiveMetadata, MediaHeader, UMPPartId, VideoPlaybackAbrRequest } from 'g
 import { FormatKeyUtils } from 'googlevideo/utils'
 import { GVS_ORIGIN_KEY } from './innertube'
 import { egressFetch } from './egress'
+import { LIVE_HEAD_MS } from './live-open'
 
 type AdapterState = {
   snapshot: PlaybackSnapshot
@@ -46,7 +47,7 @@ const REFRESH_ERROR = 'SabrSessionRefreshError'
 const LIVE_SEGMENT_WAIT_MS = 20_000
 // Segments kept in the advertised timeline, which is also the rewind window.
 const LIVE_TIMELINE_LIMIT = 48
-// a live session opens this many segments behind the server's head, which is also the first manifest's depth
+// a live session keeps answers from this many segments behind the server's head on, and its pump starts there when the opening answer brought no segment
 const LIVE_START_SEGMENTS = 3
 const LIVE_REFUSALS = 2
 
@@ -396,8 +397,8 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
     liveHeadMs = Math.max(liveHeadMs ?? headMs, headMs)
     liveStartMs ??= headMs - LIVE_START_SEGMENTS * targetDurationMs
   }
-  /* before the start, only an answer near its address is kept: the opening probe's answer to media time 0 is not. Near,
-     not at: an address on a segment's start was measured answered with the segment before it (2026-11-06). */
+  /* before the start, only an answer near its address is kept: an answer to media time 0, the window's oldest segment,
+     is not. Near, not at: an address on a segment's start was measured answered with the segment before it (2026-11-06). */
   const keepsLiveMedia = (startMs: number, askedMs: number) => liveStartMs !== undefined
     && (startMs >= liveStartMs || Math.abs(startMs - askedMs) <= LIVE_START_SEGMENTS * targetDurationMs)
   const liveEndMs = () => [...liveTimeline.values()]
@@ -602,6 +603,8 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       decoded.clientAbrState.clientViewportWidth = state.snapshot.viewportWidth
       decoded.clientAbrState.clientViewportHeight = state.snapshot.viewportHeight
       decoded.clientAbrState.av1QualityThreshold = 1_080
+      // the adapter's trip through seconds sends 9007199254740990, which googlevideo answers sabr.invalid_input_stream (measured 2026-11-11)
+      if (startTimeMs === LIVE_HEAD_MS) decoded.clientAbrState.playerTimeMs = String(LIVE_HEAD_MS)
       const cachedTracks = new Set(Array.from(mediaCache.values(), (segment) => segment.track))
       if (init && dualTrack && state.audio && state.video && cachedTracks.size < 2) {
         decoded.clientAbrState.enabledTrackTypesBitfield = 0
