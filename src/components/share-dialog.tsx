@@ -7,20 +7,19 @@ import { formatDuration } from './format'
 import { watchLink } from '../player/links'
 import { playheadOf } from '../player/seek'
 import { Dialog } from './ui/dialog'
-import Rail from './rail'
+import { Rail } from './rail'
 import { showToast } from './ui/toast'
 
 /* youtube.com's targets, measured at 1280 and 412 px on 2026-11-10: 60 px marks in 70 px columns 8 px apart, the name
-   12 px on 18 px 8 px below, and 40 px arrows centred on the marks 10 px inside the dialog's edges. The width is set
-   rather than left to the dialog, whose column would otherwise grow to the whole row and run off a phone's screen;
-   9.6rem is the dialog's gutter and padding on both sides */
+   12 px on 18 px 8 px below, and 40 px arrows centred on the marks 10 px inside the dialog's edges */
 const style = css`
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
-  width: min(43.2rem, 100vw - 9.6rem);
 
+  /* contained, or the dialog's column grows to the whole row and runs off a phone's screen */
   .targets {
+    contain: inline-size;
     --rail-arrow-top: 1.6rem;
   }
 
@@ -266,7 +265,7 @@ export const ShareDialog = (
 
   const url = watchLink(location.origin, videoId, { list, t: useStart ? startAt : undefined })
 
-  // a layout effect, in the task of the press that opened the dialog, which the share sheet needs
+  // a layout effect, so the sheet is asked for as soon as the dialog opens: a browser opens it only shortly after a press
   useLayoutEffect(() => {
     if (view !== 'device') return
     void navigator.share({ url }).then(onClose, (error: unknown) => {

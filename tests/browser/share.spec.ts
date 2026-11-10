@@ -71,23 +71,30 @@ test.describe('on a touch phone', () => {
         configurable: true,
         value: (data: ShareData) => {
           shared.push(data)
-          return Promise.resolve()
+          const error = (window as unknown as { shareError?: string }).shareError
+          return error === undefined ? Promise.resolve() : Promise.reject(new DOMException(error, error))
         },
       })
     })
+    const shared = () => page.evaluate(() => (window as unknown as { shared: ShareData[] }).shared)
+    const shareError = (name: string) => page.evaluate(error => Object.assign(window, { shareError: error }), name)
     await page.goto(`/watch?v=${VIDEO_ID}`)
     const share = page.locator('.actions').getByRole('button', { name: 'Share', exact: true })
+    const dialog = page.getByRole('dialog', { name: 'Share' })
     await share.tap({ timeout: 120_000 })
-    await expect.poll(() => page.evaluate(() => (window as unknown as { shared: ShareData[] }).shared))
-      .toEqual([{ url: `${new URL(page.url()).origin}/watch?v=${VIDEO_ID}` }])
-    await expect(page.getByRole('dialog', { name: 'Share' })).toHaveCount(0)
+    await expect.poll(shared).toEqual([{ url: `${new URL(page.url()).origin}/watch?v=${VIDEO_ID}` }])
+    await expect(dialog).toHaveCount(0)
 
-    // a sheet the browser refuses leaves the dialog
-    await page.evaluate(() => Object.defineProperty(Navigator.prototype, 'share', {
-      configurable: true,
-      value: () => Promise.reject(new DOMException('refused', 'NotAllowedError')),
-    }))
+    // a sheet the person cancels leaves nothing open
+    await shareError('AbortError')
     await share.tap()
-    await expect(page.getByRole('dialog', { name: 'Share' }).getByRole('link', { name: 'WhatsApp', exact: true })).toBeVisible()
+    await expect.poll(async () => (await shared()).length).toBe(2)
+    await expect(dialog).toHaveCount(0)
+
+    // a sheet the browser refuses leaves the dialog, whole on the screen
+    await shareError('NotAllowedError')
+    await share.tap()
+    await expect(dialog.getByRole('link', { name: 'WhatsApp', exact: true })).toBeVisible()
+    await expect(dialog).toBeInViewport({ ratio: 1 })
   })
 })
