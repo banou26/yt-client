@@ -98,6 +98,8 @@ describe('live manifest', () => {
     expect(manifest).toContain('timeShiftBufferDepth="PT43200.000S"')
     // and still opens behind the newest delivered segment, not anywhere in the window
     expect(manifest).toContain('suggestedPresentationDelay="PT15.000S"')
+    const [first] = segments
+    expect(build({ segments: [first!], windowStartMs: first!.startMs - 8_636 * 5_000 })).toContain('suggestedPresentationDelay="PT5.000S"')
   })
 
   it('counts the window\'s whole segments before the first delivered one', () => {

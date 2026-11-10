@@ -58,10 +58,15 @@ export const usePlayerState = (video: HTMLVideoElement | null, player: shaka.Pla
 
     const sync = () => setState(read(video, player, buffering))
 
+    let liveRead = 0
     const tick = () => {
       if (!running) return
-      // a paused live stream's edge moves on, so its window is read while paused too
-      if (!video.paused || video.seeking || player?.isLive()) sync()
+      if (!video.paused || video.seeking) sync()
+      // a paused live stream's edge moves on at a second per second, so its window is read once a second
+      else if (player?.isLive() && performance.now() - liveRead >= 1_000) {
+        liveRead = performance.now()
+        sync()
+      }
       frame = requestAnimationFrame(tick)
     }
 

@@ -183,7 +183,7 @@ test('a finished stream plays as a normal video', async ({ page }) => {
   await expect.poll(time, { timeout: 120_000 }).toBeGreaterThan(1)
   const duration = await page.locator('[data-player-root] video').evaluate((video) => (video as HTMLVideoElement).duration)
   expect(Number.isFinite(duration) && duration > 3_600, `duration ${duration}`).toBe(true)
-  await expect(page.locator('.scrubber.live')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^(Live|Skip ahead to live broadcast)$/ })).toHaveCount(0)
   const from = await time()
   await expect.poll(time, { timeout: 30_000 }).toBeGreaterThan(from + 3)
 })

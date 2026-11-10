@@ -705,7 +705,7 @@ export const PlayerControls = (
       style={{ '--player-height': `${video.clientHeight}px` }}
     >
       <div
-        className={`${scrubbing ? 'scrubber scrubbing' : 'scrubber'}${isLive ? ' live' : ''}`}
+        className={scrubbing ? 'scrubber scrubbing' : 'scrubber'}
         role='slider'
         aria-label='Seek'
         aria-valuemin={0}
