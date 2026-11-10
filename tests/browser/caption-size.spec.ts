@@ -1,60 +1,15 @@
 import type { Page } from '@playwright/test'
 
+import { cueReader, holdOnCue } from './cues'
 import { expect, plainTest as test } from './test'
 
 /* The caption size keys against the live source: `dQw4w9WgXcQ` publishes an authored English track. */
 
 const VIDEO = '/watch?v=dQw4w9WgXcQ'
 
-type DomNode = { nodeId: number, attributes?: string[], children?: DomNode[], shadowRoots?: DomNode[], contentDocument?: DomNode }
-
 const startPlayback = async (page: Page) => {
   await page.goto(VIDEO)
   await page.waitForFunction(() => performance.getEntriesByName('yt:first-frame', 'mark').length > 0, null, { timeout: 120_000 })
-}
-
-// paused inside a cue, so the cue stays drawn
-const holdOnCue = (page: Page) => expect.poll(() => page.locator('video').evaluate((element) => {
-  const video = element as HTMLVideoElement
-  const cue = [...video.textTracks].find(track => track.mode === 'showing')?.cues?.[3]
-  if (!cue) return false
-  video.pause()
-  video.currentTime = (cue.startTime + cue.endTime) / 2
-  return true
-}), { timeout: 60_000 }).toBe(true)
-
-/**
- * The drawn cue's size against the browser's own default, and whether it shows. The cue lives in the video's shadow
- * tree, which only the DevTools protocol reaches.
- */
-const cueReader = async (page: Page) => {
-  const cdp = await page.context().newCDPSession(page)
-  await cdp.send('DOM.enable')
-  await cdp.send('CSS.enable')
-  const style = async (nodeId: number) => {
-    const { computedStyle } = await cdp.send('CSS.getComputedStyleForNode', { nodeId })
-    return (name: string) => computedStyle.find(property => property.name === name)?.value ?? ''
-  }
-  return async () => {
-    const { root } = await cdp.send('DOM.getDocument', { depth: -1, pierce: true }) as { root: DomNode }
-    const found = new Map<string, number>()
-    const walk = (node: DomNode) => {
-      const attributes = node.attributes ?? []
-      const pseudo = attributes.indexOf('pseudo')
-      if (pseudo % 2 === 0) found.set(attributes[pseudo + 1]!, node.nodeId)
-      for (const child of [...node.children ?? [], ...node.shadowRoots ?? [], ...node.contentDocument ? [node.contentDocument] : []]) walk(child)
-    }
-    walk(root)
-    const cue = found.get('cue')
-    const container = found.get('-webkit-media-text-track-container')
-    if (cue === undefined || container === undefined) return undefined
-    const [cueStyle, base] = [await style(cue), await style(container)]
-    return {
-      size: Math.round(parseFloat(cueStyle('font-size')) / parseFloat(base('font-size')) * 100),
-      visibility: cueStyle('visibility'),
-      base: parseFloat(base('font-size')),
-    }
-  }
 }
 
 const stored = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('yt-client:settings') ?? '{}').captionSize)
