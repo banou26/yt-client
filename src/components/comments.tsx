@@ -407,8 +407,7 @@ const style = css`
     color: var(--text-inverse);
   }
 
-  .disabled-notice,
-  .more-error {
+  .disabled-notice {
     margin: 2.4rem 0 0;
     font-size: 1.4rem;
     color: var(--text-secondary);
@@ -627,7 +626,7 @@ const Replies = (
 ) => {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState<RepliesPage[]>([])
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: REPLIES_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor ?? cursor },
     pause: !open,
@@ -686,8 +685,8 @@ const Replies = (
               </div>
             ))}
             {fetching ? <div className='age'>Loading replies…</div> : undefined}
-            {error && items.length === 0 ? <div className='age'>{readable(error.message)}</div> : undefined}
-            {next && !fetching
+            {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
+            {next && !fetching && !error
               ? (
                 <button
                   type='button'
@@ -727,6 +726,7 @@ export const Comments = ({ videoId, post, commentCountText }: {
     pause: post === undefined,
   })
   const { error, fetching } = post ? postComments : videoComments
+  const reexecute = post ? reexecutePostComments : reexecuteVideoComments
   const page = post ? postComments.data?.postComments : videoComments.data?.comments
   const { items } = useInfiniteFeed({
     pages: page ? [...loadedPages, page] : loadedPages,
@@ -743,7 +743,7 @@ export const Comments = ({ videoId, post, commentCountText }: {
   if (error && items.length === 0 && !fetching) {
     return (
       <section css={style}>
-        <DataFailure error={error} reexecute={post ? reexecutePostComments : reexecuteVideoComments} />
+        <DataFailure error={error} reexecute={reexecute} />
       </section>
     )
   }
@@ -819,8 +819,8 @@ export const Comments = ({ videoId, post, commentCountText }: {
           </div>
         ))}
       </div>
-      {error && items.length > 0
-        ? <p className='more-error'>Couldn’t load more comments.</p>
+      {error && !fetching
+        ? <DataFailure error={error} reexecute={reexecute} />
         : page?.cursor
           ? (
             <button type='button' className='show-more' disabled={fetching} onClick={onMore}>

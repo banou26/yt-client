@@ -555,10 +555,14 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
   const feedKey = `${id}|${tab ?? ''}|${sort ?? ''}|${filter ?? ''}|${channelQuery ?? ''}`
   const [loaded, setLoaded] = useState<{ id: string, pages: VideosPage[] }>({ id: feedKey, pages: [] })
   const pages = loaded.id === feedKey ? loaded.pages : []
-  const [{ data, error, fetching }, reexecute] = useQuery({
+  const [{ data: answer, error, fetching }, reexecute] = useQuery({
     query: CHANNEL_VIEW_QUERY,
     variables: { id, tab, sort, filter, query: channelQuery, cursor: pages[pages.length - 1]?.cursor }
   })
+  // a later page that failed answers with no data, which would take the header and tabs above the loaded pages with it
+  const lastAnswer = useRef<{ key: string, data: typeof answer }>(undefined)
+  if (answer) lastAnswer.current = { key: feedKey, data: answer }
+  const data = answer ?? (pages.length > 0 && lastAnswer.current?.key === feedKey ? lastAnswer.current.data : undefined)
   const channel = data?.channel.channel
   const unavailable = error?.graphQLErrors.find(entry => entry.message.startsWith(CHANNEL_UNAVAILABLE))
   const missing = error?.graphQLErrors.some(entry => entry.message === CHANNEL_NOT_FOUND) === true
@@ -623,7 +627,7 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
   }, [aboutRequested, base, navigate])
 
   const [postPages, setPostPages] = useState<PostsPage[]>([])
-  const [{ data: postsData, fetching: postsFetching }] = useQuery({
+  const [{ data: postsData, error: postsError, fetching: postsFetching }, reexecutePosts] = useQuery({
     query: COMMUNITY_POSTS_QUERY,
     variables: { channelId: id, cursor: postPages[postPages.length - 1]?.cursor },
     pause: activeTab !== 'COMMUNITY',
@@ -707,7 +711,7 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
         )
         : undefined}
       {unavailable ? <p className='status'>{unavailable.message.slice(CHANNEL_UNAVAILABLE.length)}</p> : undefined}
-      {error && !missing && !unavailable && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
+      {error && !missing && !unavailable && !fetching && pages.length === 0 ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <nav className='tabs' aria-label='Channel sections'>
         {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab
@@ -810,10 +814,12 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
             <div className='posts'>
               {posts.map(post => <PostCard key={post.id} post={post} />)}
             </div>
-            {!postsFetching && posts.length === 0
-              ? <p className='status'>This channel has no posts.</p>
-              : undefined}
-            <FeedSentinel onVisible={onMorePosts} disabled={postsFetching || !postsCursor} />
+            {postsError && !postsFetching
+              ? <DataFailure error={postsError} reexecute={reexecutePosts} />
+              : !postsFetching && posts.length === 0
+                ? <p className='status'>This channel has no posts.</p>
+                : undefined}
+            <FeedSentinel onVisible={onMorePosts} disabled={postsFetching || Boolean(postsError) || !postsCursor} />
           </div>
         )
         : activeTab === 'STORE' && data?.channel.store
@@ -860,7 +866,8 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
                     : undefined}
                 </div>
                 {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
-                <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
+                {error && !fetching && pages.length > 0 ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
+                <FeedSentinel onVisible={onMore} disabled={fetching || Boolean(error) || !cursor} />
               </>
             )}
     </main>

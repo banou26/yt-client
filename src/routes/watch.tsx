@@ -672,8 +672,8 @@ const WatchPage = () => {
               : undefined}
             {watch?.hasChatReplay ? <ChatReplayTeaser open={replayOpen} onOpen={() => setReplayFor(videoId)} /> : undefined}
           </div>
-          {!watchFetching && !watch?.commentsHidden
-            ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
+          {!watchFetching && watch && !watch.commentsHidden
+            ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch.commentCountText} />
             : undefined}
         </div>
         {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && videoPanel)
