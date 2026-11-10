@@ -10,7 +10,7 @@ import { useQuery } from 'urql'
 
 import { gql } from '../generated'
 import { playheadOf, seekTo } from '../player/seek'
-import { readable } from './format'
+import { DataFailure } from './data-failure'
 import { SidePanel } from './side-panel'
 
 const TRANSCRIPT_QUERY = gql(`
@@ -188,19 +188,19 @@ export const TranscriptPanel = (
 ) => {
   const [draft, setDraft] = useState('')
   const [query, setQuery] = useState('')
-  const [{ data, error }] = useQuery({ query: TRANSCRIPT_QUERY, variables: { panelId: panel.panelId, params: panel.params } })
-  const token = data?.transcript.searchToken ?? undefined
+  const [read, reexecute] = useQuery({ query: TRANSCRIPT_QUERY, variables: { panelId: panel.panelId, params: panel.params } })
+  const token = read.data?.transcript.searchToken ?? undefined
   const searching = query !== '' && token !== undefined
-  const [{ data: found, error: searchError, operation }] = useQuery({
+  const [search, reexecuteSearch] = useQuery({
     query: TRANSCRIPT_SEARCH_QUERY,
     variables: { token: token ?? '', query },
     pause: !searching,
   })
   // urql holds the previous search's answer while the next one is in flight
   const transcript = searching
-    ? operation?.variables.query === query ? found?.transcriptSearch : undefined
-    : data?.transcript
-  const failure = searching ? searchError : error
+    ? search.operation?.variables.query === query ? search.data?.transcriptSearch : undefined
+    : read.data?.transcript
+  const [failed, retry] = searching ? [search, reexecuteSearch] : [read, reexecute]
   /* The starts of the chapter headings and the lines in list order, as youtube.com's timed list syncs them: the item
      playing is the last one started, so no line is highlighted from a chapter's start to its first line. */
   const starts = useMemo(() => transcript?.sections.flatMap(section => [
@@ -319,7 +319,7 @@ export const TranscriptPanel = (
             )
           })}
           {transcript?.sections.length === 0 ? <p className='transcript-empty'>No results found.</p> : undefined}
-          {failure && !transcript ? <p className='transcript-empty'>{readable(failure.message)}</p> : undefined}
+          {failed.error && !failed.fetching && !transcript ? <DataFailure error={failed.error} reexecute={retry} /> : undefined}
         </div>
         {following
           ? undefined

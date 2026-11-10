@@ -183,6 +183,37 @@ test('the group dialog whose subscriptions failed loads them once the browser is
   await expect(dialog).not.toContainText(OFFLINE_LINE)
 })
 
+test('the transcript whose data failed says so in one line and loads on Try again', async ({ page }) => {
+  await open(page)
+  await drop(page)
+  await mount(page, 'transcript')
+  const panel = page.getByRole('region', { name: 'Transcript' })
+  const alert = panel.getByRole('alert')
+  await lineShown(alert)
+
+  await restore(page)
+  await alert.getByRole('button', { name: 'Try again' }).click()
+  await expect(panel.getByRole('button', { name: /Line 1/ })).toBeVisible()
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+})
+
+test('a transcript search that failed says so in one line and loads once the browser is back online', async ({ page, context }) => {
+  await open(page)
+  await mount(page, 'transcript')
+  const panel = page.getByRole('region', { name: 'Transcript' })
+  await expect(panel.getByRole('button', { name: /Line 1/ })).toBeVisible()
+
+  await drop(page)
+  await panel.getByRole('textbox', { name: 'Search transcript' }).fill('line')
+  await page.keyboard.press('Enter')
+  await lineShown(panel.getByRole('alert'))
+
+  await restore(page)
+  await backOnline(page, context)
+  await expect(panel.getByRole('button', { name: /Line 1/ })).toBeVisible()
+  await expect(panel.getByRole('alert')).toHaveCount(0)
+})
+
 // the toasts are the app's own, which the harness's components share
 const toastShown = (page: Page) => lineShown(page.getByRole('status'))
 

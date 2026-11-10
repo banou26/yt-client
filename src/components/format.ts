@@ -86,9 +86,6 @@ export const descriptionMeta = (
   return parts.filter(part => part).join('  ')
 }
 
-// urql prefixes a GraphQL error message with its kind ('[GraphQL] ')
-export const readable = (message: string) => message.replace(/^\[\w+]\s*/, '')
-
 // YouTube's `t` parameter is minted both as a bare count of seconds ('90', '90s') and in the compound form ('1h2m3s')
 /**
  * YouTube's `t` parameter, in seconds.
