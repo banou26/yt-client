@@ -223,12 +223,13 @@ test('opens the chapter list under the player at 412 px, where the bar has no ro
   await expect(page.locator('.chapters-panel')).toHaveCount(0)
 })
 
-test('a search row lists its chapters on one line, and opens on cards that start the video at each', async ({ page }) => {
+test('a search row lists its chapters on one line, and opens on cards that start the video at each with its params', async ({ page }) => {
   await page.goto('/settings')
-  await page.evaluate(async () => {
+  const params = await page.evaluate(async () => {
     const harness = '/tests/browser/fixtures/chapters-harness.tsx'
-    const { mountStrip } = await import(harness) as { mountStrip: () => void }
+    const { mountStrip, PARAMS } = await import(harness) as { mountStrip: () => void, PARAMS: string }
     mountStrip()
+    return PARAMS
   })
   const strip = page.locator('[data-chapters-harness]')
   const head = strip.getByRole('button', { expanded: false })
@@ -241,4 +242,11 @@ test('a search row lists its chapters on one line, and opens on cards that start
     '/watch?v=C3zuzzDLLck&t=50s',
     '/watch?v=C3zuzzDLLck&t=140s',
   ])
+  await strip.locator('a.card').nth(1).click()
+  await expect(page).toHaveURL(/\/watch\?v=C3zuzzDLLck&t=50s$/)
+  expect(await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/chapters-harness.tsx'
+    const { openedWith } = await import(harness) as { openedWith: () => string | undefined }
+    return openedWith()
+  })).toBe(params)
 })

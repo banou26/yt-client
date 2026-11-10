@@ -753,7 +753,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
           : undefined}
         {snippet ? <p className='description'>{snippet}</p> : undefined}
         {row.chapters?.length
-          ? <ChapterStrip videoId={row.id} chapters={row.chapters} title={row.chaptersTitle} />
+          ? <ChapterStrip videoId={row.id} chapters={row.chapters} title={row.chaptersTitle} playerParams={playerParams} />
           : undefined}
       </div>
     </article>

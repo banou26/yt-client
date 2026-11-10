@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
+import { cardState } from '../player/card-params'
 import { clock } from '../player/controls'
 import { seekTo } from '../player/seek'
 import { Rail } from './rail'
@@ -208,11 +209,12 @@ const startHref = (videoId: string, seconds: number) =>
  * it opens the video at the chapter, as on a search row.
  */
 export const ChapterCards = (
-  { videoId, chapters, current = -1, onSeek }: {
+  { videoId, chapters, current = -1, onSeek, playerParams }: {
     videoId: string
     chapters: readonly PlayerChapter[]
     current?: number
     onSeek?: (seconds: number) => void
+    playerParams?: string
   },
 ) => (
   <div css={cardsStyle}>
@@ -240,7 +242,7 @@ export const ChapterCards = (
               {body}
             </button>
           )
-          : <Link key={key} className='card' href={startHref(videoId, chapter.startSeconds)}>{body}</Link>
+          : <Link key={key} className='card' href={startHref(videoId, chapter.startSeconds)} state={cardState(playerParams)}>{body}</Link>
       })}
     </Rail>
   </div>
@@ -327,7 +329,12 @@ const stripStyle = css`
 
 /** A search row's chapters: their count and names on one line, which opens on their cards. */
 export const ChapterStrip = (
-  { videoId, chapters, title }: { videoId: string, chapters: readonly PlayerChapter[], title?: string | null },
+  { videoId, chapters, title, playerParams }: {
+    videoId: string
+    chapters: readonly PlayerChapter[]
+    title?: string | null
+    playerParams?: string
+  },
 ) => {
   const [open, setOpen] = useState(false)
   if (open) {
@@ -338,7 +345,7 @@ export const ChapterStrip = (
           <span className='strip-toggle'><ChevronUp size={24} strokeWidth={1.5} /></span>
         </button>
         <div className='cards'>
-          <ChapterCards videoId={videoId} chapters={chapters} />
+          <ChapterCards videoId={videoId} chapters={chapters} playerParams={playerParams} />
         </div>
       </div>
     )
