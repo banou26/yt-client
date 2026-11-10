@@ -123,7 +123,7 @@ test('a thumbnail that failed during a network drop shows its plain slot, and lo
   await context.setOffline(false)
   for (const loaded of [drop, related]) {
     await expect(loaded).toBeVisible()
-    expect(await loaded.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+    await expect.poll(() => loaded.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
   }
   await expect.poll(() => asked.get('harness-gone')).toBe(2)
   await expect(gone).toBeHidden()
