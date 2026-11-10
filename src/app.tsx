@@ -44,6 +44,7 @@ const style = css`
 
   .page {
     min-width: 0;
+    outline: none;
   }
 
   .page.guide-expanded {
@@ -63,6 +64,8 @@ const style = css`
 `
 
 const BASE_TITLE = 'yt-client'
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 export const useDocumentTitle = (title?: string) => {
   useEffect(() => {
@@ -147,6 +150,7 @@ export const App = () => {
   const tiny = useMediaQuery('(max-width: 792px)')
   const currentRoute = useRef(route)
   const offsets = useRef(new Map<string, number>())
+  const pageRef = useRef<HTMLDivElement>(null)
 
   const isWatch = location.startsWith('/watch')
   const overlayOnly = isWatch || tiny
@@ -175,12 +179,20 @@ export const App = () => {
     setCollapsed(value => updateSettings({ guideCollapsed: !value }).guideCollapsed)
   }, [overlayOnly, narrow])
 
+  // youtube.com's Skip navigation lands on the page's first control, or on the page itself when it has none
+  const onSkip = useCallback(() => {
+    const page = pageRef.current
+    if (!page) return
+    const first = [...page.querySelectorAll<HTMLElement>(FOCUSABLE)].find(element => element.checkVisibility({ visibilityProperty: true }))
+    ;(first ?? page).focus()
+  }, [])
+
   return (
     <div css={style}>
-      <Header onMenu={onMenu} />
+      <Header onMenu={onMenu} onSkip={onSkip} />
       <div className='content'>
         {guideVariant ? <Guide variant={guideVariant} /> : undefined}
-        <div className={guideVariant ? `page guide-${guideVariant}` : 'page'}>
+        <div ref={pageRef} tabIndex={-1} className={guideVariant ? `page guide-${guideVariant}` : 'page'}>
           <ErrorBoundary key={route}>
             <Suspense fallback={<div className='route-loading' />}>
             <Switch>

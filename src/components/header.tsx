@@ -76,9 +76,35 @@ const style = css`
   background: var(--bg-base);
 
   .start {
+    position: relative;
+    justify-self: start;
     display: flex;
     align-items: center;
     gap: 1.6rem;
+  }
+
+  /* youtube.com's, measured on 2026-11-10: off the page until focused, then a 40 px pill 6 px after the logo and 12 px
+     from the top, over whatever is there */
+  .skip {
+    position: absolute;
+    top: -1000px;
+    left: calc(100% + 0.6rem);
+    z-index: 1;
+    height: 4rem;
+    padding: 0 1.4rem;
+    border: 2px solid var(--text-primary);
+    border-radius: 2rem;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 500;
+    white-space: nowrap;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .skip:focus {
+    top: 0.4rem;
   }
 
   .icon-button {
@@ -358,7 +384,7 @@ const HeaderAccount = () => {
   )
 }
 
-export const Header = ({ onMenu }: { onMenu?: () => void }) => {
+export const Header = ({ onMenu, onSkip }: { onMenu?: () => void, onSkip?: () => void }) => {
   const [, navigate] = useLocation()
   const search = useSearch()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -476,6 +502,7 @@ export const Header = ({ onMenu }: { onMenu?: () => void }) => {
           <Menu size={24} strokeWidth={1.5} />
         </button>
         <Logo />
+        <button type='button' className='skip' onClick={onSkip}>Skip navigation</button>
       </div>
       <button type='button' className='icon-button back' aria-label='Back' onClick={() => setSearchOpen(false)}>
         <ArrowLeft size={24} strokeWidth={1.5} />
