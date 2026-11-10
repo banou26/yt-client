@@ -69,8 +69,11 @@ test('the Sleep timer counts down under Subtitles and pauses the video when its 
 
 const videoIdOf = (url: string) => new URL(url, 'http://localhost').searchParams.get('v')
 
+const playerIsFullscreen = (page: Page) =>
+  page.evaluate(() => document.fullscreenElement?.hasAttribute('data-player-root') ?? false)
+
 // End of video set, then played out: Time's up opens on the ended video
-const sleepAtEnd = async (page: Page) => {
+const sleepAtEnd = async (page: Page, { fullscreen = false } = {}) => {
   const video = await startPlayback(page)
   await page.clock.install()
   const settings = await openSettings(page)
@@ -78,6 +81,12 @@ const sleepAtEnd = async (page: Page) => {
   await sleepPanel(page).getByRole('menuitem', { name: /^End of video/ }).click()
   await expect(settings.getByRole('menuitem', { name: /^Sleep timer/ })).toHaveText(/^Sleep timer\d+ min left$/)
   await page.keyboard.press('Escape')
+  if (fullscreen) {
+    // a real key press from the page, since requestFullscreen needs the user's gesture
+    await page.locator('main h1').click()
+    await page.keyboard.press('f')
+    await expect.poll(() => playerIsFullscreen(page)).toBe(true)
+  }
 
   await video.evaluate((element) => {
     const player = element as HTMLVideoElement
@@ -120,4 +129,23 @@ test('Escape on Time\'s up at the end of the video cancels the countdown and kee
   await page.clock.fastForward('00:10')
   await expect(countdown(page)).toHaveCount(0)
   expect(videoIdOf(page.url())).toBe('dQw4w9WgXcQ')
+})
+
+test('in full screen End of video holds the next video, and Time\'s up shows over the player', async ({ page }) => {
+  test.setTimeout(300_000)
+  const timesUp = await sleepAtEnd(page, { fullscreen: true })
+  expect(await timesUp.evaluate(dialog => document.fullscreenElement?.contains(dialog) ?? false)).toBe(true)
+  // the countdown draws with the ended video, before Time's up opens, so none now is the hold
+  expect(await countdown(page).count()).toBe(0)
+
+  // full screen plays the next video in place, so the address stays and only the ended video tells
+  await page.clock.fastForward('00:10')
+  await expect(countdown(page)).toHaveCount(0)
+  expect(await page.locator('video').evaluate(element => (element as HTMLVideoElement).ended)).toBe(true)
+  expect(await playerIsFullscreen(page)).toBe(true)
+
+  await timesUp.getByRole('button', { name: 'Close' }).click()
+  await expect(timesUp).toBeHidden()
+  await expect(countdown(page)).toBeVisible()
+  expect(await playerIsFullscreen(page)).toBe(true)
 })
