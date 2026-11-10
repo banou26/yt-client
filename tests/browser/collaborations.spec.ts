@@ -82,7 +82,7 @@ test('a channel\'s own Home uploads name no channel, and a collaboration\'s name
       await page.evaluate(async (path) => {
         const harness = await import(path) as { mountChannelHome: () => void }
         harness.mountChannelHome()
-      }, '/tests/browser/fixtures/channel-home-harness.tsx')
+      }, '/tests/browser/fixtures/channel-harness.tsx')
     }
     await expect(videos.locator('a[href^="/watch?v="]').first()).toBeVisible({ timeout: 15_000 })
   }).toPass({ timeout: 120_000 })
