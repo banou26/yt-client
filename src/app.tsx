@@ -5,6 +5,7 @@ import { Suspense } from 'preact/compat'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Redirect, Route, Switch, useLocation, useSearch } from 'wouter'
 
+import { cameBack } from './back-navigation'
 import { safeDecode } from './components/format'
 import Guide from './components/guide'
 import Header from './components/header'
@@ -157,7 +158,6 @@ export const App = () => {
   const tiny = useMediaQuery('(max-width: 792px)')
   const currentRoute = useRef(route)
   const offsets = useRef(new Map<string, number>())
-  const wentBack = useRef(false)
 
   const isWatch = location.startsWith('/watch')
   const overlayOnly = isWatch || tiny
@@ -166,29 +166,15 @@ export const App = () => {
   useEffect(() => {
     history.scrollRestoration = 'manual'
     const onScroll = () => offsets.current.set(currentRoute.current, scrollY)
-    const onPopState = () => {
-      wentBack.current = true
-    }
-    // wouter patches history.pushState to dispatch this nonstandard event, the counterpart to popstate
-    const onPushState = () => {
-      wentBack.current = false
-    }
     addEventListener('scroll', onScroll, { passive: true })
-    addEventListener('popstate', onPopState)
-    addEventListener('pushState', onPushState)
-    return () => {
-      removeEventListener('scroll', onScroll)
-      removeEventListener('popstate', onPopState)
-      removeEventListener('pushState', onPushState)
-    }
+    return () => removeEventListener('scroll', onScroll)
   }, [])
 
   useLayoutEffect(() => {
     if (currentRoute.current === route) return
     currentRoute.current = route
     setDrawerOpen(false)
-    const restored = wentBack.current ? offsets.current.get(route) : undefined
-    wentBack.current = false
+    const restored = cameBack() ? offsets.current.get(route) : undefined
     scrollTo(0, restored ?? 0)
   }, [route])
 

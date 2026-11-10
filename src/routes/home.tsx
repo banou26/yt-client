@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
+import { cameBack } from '../back-navigation'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { ShortsShelf } from '../components/shorts-shelf'
 import { VideoGrid } from '../components/video-grid'
@@ -175,11 +176,13 @@ const HomePage = () => {
   const scrollerRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const pages = loaded.chip === chip ? loaded.pages : []
+  // youtube.com reads Home anew when a logo or link click opens it, which is where a video watched since shows up, and
+  // going back to it keeps the feed it showed
+  const [requestPolicy] = useState(() => cameBack() ? 'cache-first' as const : 'network-only' as const)
   const [{ data, error, fetching, operation }] = useQuery({
     query: HOME_FEED_QUERY,
     variables: { chip, cursor: pages[pages.length - 1]?.cursor },
-    // youtube.com reads Home anew when it is opened again, and that read is where a video watched since shows up
-    requestPolicy: 'network-only'
+    requestPolicy
   })
 
   // urql holds the previous result while the next request is in flight, so a page is only usable once it is known to come from the selected chip
