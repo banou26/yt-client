@@ -59,19 +59,25 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-it('reads a preview\'s watch page with its card\'s params, never taking the plain page an intent prefetch read', async () => {
+it('reads a preview\'s watch page with its card\'s params, leaving the plain page an intent prefetch read to the click', async () => {
   const { getSabrSource, prefetchInitialPlayerResponse } = await import('../../../src/frame/innertube')
   await prefetchInitialPlayerResponse(VIDEO)
   await getSabrSource(VIDEO, PARAMS)
+  await getSabrSource(VIDEO)
   expect(fetched).toEqual([
     `https://www.youtube.com/watch?v=${VIDEO}`,
     `https://www.youtube.com/watch?v=${VIDEO}&pp=${encodeURIComponent(PARAMS)}`,
   ])
 })
 
-it('takes a page prefetched with the same params', async () => {
+it('reads the page afresh when a session opened on it is refreshed, with params or without', async () => {
   const { getSabrSource, prefetchInitialPlayerResponse } = await import('../../../src/frame/innertube')
-  await prefetchInitialPlayerResponse(VIDEO, PARAMS)
   await getSabrSource(VIDEO, PARAMS)
-  expect(fetched).toEqual([`https://www.youtube.com/watch?v=${VIDEO}&pp=${encodeURIComponent(PARAMS)}`])
+  await getSabrSource(VIDEO, PARAMS)
+  await prefetchInitialPlayerResponse(VIDEO)
+  await getSabrSource(VIDEO)
+  await getSabrSource(VIDEO)
+  const preview = `https://www.youtube.com/watch?v=${VIDEO}&pp=${encodeURIComponent(PARAMS)}`
+  const plain = `https://www.youtube.com/watch?v=${VIDEO}`
+  expect(fetched).toEqual([preview, preview, plain, plain])
 })
