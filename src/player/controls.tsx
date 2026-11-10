@@ -638,8 +638,10 @@ export const PlayerControls = (
     updateSettings({ muted, volume: video.volume })
   }
 
-  // Shaka holds the video at rate 0 while it buffers, when the speed chosen is the stored one
-  const rate = state.playbackRate || getSettings().playbackRate
+  /* Shaka holds the video at rate 0 while it buffers, when the speed chosen is the stored one. Read off the video rather
+     than the state, which learns of a new speed only at the next frame or ratechange: saving the speed renders before
+     that, and a render with the old speed puts it back in the slider for the next key press to step from. */
+  const rate = video.playbackRate || getSettings().playbackRate
   const onRate = (value: number) => {
     video.playbackRate = value
     updateSettings({ playbackRate: value })

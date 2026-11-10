@@ -41,8 +41,16 @@ test('the speed slider sets 1.1x, which the video and the Settings row follow', 
   await expect(panel.getByText('1.00x', { exact: true })).toBeVisible()
   await expect(slider).toHaveValue('1')
   await slider.focus()
+  // the slider's value once a press's own render has run, which is before the video's ratechange and the next frame
+  await slider.evaluate((element) => {
+    element.addEventListener('input', () => {
+      const input = element as HTMLInputElement
+      input.dataset.rendered = `${input.dataset.rendered ?? ''} ${input.value}`.trim()
+    })
+  })
   await page.keyboard.press('ArrowUp')
   await page.keyboard.press('ArrowUp')
+  await expect(slider).toHaveAttribute('data-rendered', '1.05 1.1')
   await expect(panel.getByText('1.10x', { exact: true })).toBeVisible()
   await expect.poll(rate).toBe(1.1)
 
