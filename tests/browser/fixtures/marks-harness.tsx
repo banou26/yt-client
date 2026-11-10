@@ -8,7 +8,7 @@ import SearchPage from '../../../src/routes/search'
 const channel = { id: 'channel-0', name: 'Channel 0' }
 
 // a row carrying every mark, as a related lockup answers them, one carrying none, as an answer without a delimiter
-// does, and a members-only stream, as a channel's Live tab answers it
+// does, and a members-only stream, as a channel's Live tab answers it, with its lone date as viewCount
 const marked = {
   id: 'marked-0',
   title: 'A new song',
@@ -26,7 +26,7 @@ const members = {
   id: 'members-0',
   title: 'May the 4th Be With You!',
   durationSeconds: 2491,
-  publishedText: 'Streamed 4y ago',
+  viewCount: 'Streamed 4y ago',
   metaDelimiter: ' ',
   isMembersOnly: true,
   channel,
