@@ -66,6 +66,28 @@ test('a broad search\'s carousel keeps its More arrow inside the gutter', async 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1000)
 })
 
+// youtube.com draws a Short among a carousel's cards as a 16:9 card like the others, the Shorts logo alone in the
+// length's 20px badge, and opens it at /shorts/ (measured the same way, "Minecraft backrooms")
+test('a Short in a broad search\'s carousel keeps its 16:9 card, marked, and opens at /shorts/', async ({ page }) => {
+  const search = await mountSearch(page, 1280)
+  const carousel = search.getByRole('region', { name: 'Minecraft Addon', exact: true })
+  const name = 'Backrooms easter egg (Actions and stuff V1.12 Minecraft)'
+  const short = carousel.getByRole('article').filter({ has: page.getByRole('link', { name, exact: true }) })
+  await expect(short.getByRole('link', { name, exact: true })).toHaveAttribute('href', '/shorts/YsohTIAJJFs', { timeout: 60_000 })
+  const still = short.locator('a[aria-hidden="true"]').first()
+  await expect(still).toHaveAttribute('href', '/shorts/YsohTIAJJFs')
+  const box = (await still.boundingBox())!
+  expect(box.width).toBe(360)
+  expect(Math.round(box.height)).toBe(203)
+
+  const mark = short.locator('.badge [data-mark="shorts"]')
+  await expect(mark).toBeVisible()
+  expect(await mark.boundingBox()).toMatchObject({ width: 12, height: 12 })
+  expect(await short.locator('.badge').boundingBox()).toMatchObject({ width: 20, height: 20 })
+  await expect(carousel.locator('[data-mark="shorts"]')).toHaveCount(1)
+  await expect(carousel.getByRole('link', { name: 'Minecraft Bedrock addon 1', exact: true })).toHaveAttribute('href', '/watch?v=5LP8rAcpDGo')
+})
+
 // youtube.com's right column, measured the same way: a 385px card 40px beside the results, its head opening the topic's
 // channel, the newest video large, then the list; the two columns together are 1280px at most, and the column is dropped
 // below 1091px rather than moved into the results

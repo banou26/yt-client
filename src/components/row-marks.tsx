@@ -4,6 +4,7 @@ import { formatViews } from './format'
 import { NOTE } from './verified-badge'
 
 const ARROW = 'M10 8.64 15.27 12 10 15.36V8.64M8 5v14l11-7L8 5Z'
+const SHORTS = 'm13.974 2.052-8 4.7a4 4 0 00.385 7.097l.942.423-1.327.78a4 4 0 004.053 6.898l8-4.7a4 4 0 00-.385-7.097L16.7 9.73l1.328-.78a4 4 0 00-4.053-6.898Z'
 const STAR = 'M6 .5a5.5 5.5 0 100 11 5.5 5.5 0 000-11Zm.27 2.045.906 1.837 2.027.295a.3.3 0 01.166.511l-1.467 1.43.346 2.019a.3.3 0 01-.435.316L6 8l-1.813.953a.3.3 0 01-.435-.316l.346-2.019-1.467-1.43a.3.3 0 01.166-.511l2.027-.295.907-1.837a.3.3 0 01.539 0Z'
 
 const iconStyle = css`
@@ -20,6 +21,18 @@ const arrowStyle = css`
 export const MusicNote = () => (
   <svg css={iconStyle} width={12} height={12} viewBox='0 0 24 24' aria-hidden='true' data-mark='music'>
     <path d={NOTE} />
+  </svg>
+)
+
+// a length badge's 20px height around a 12px icon, as youtube.com's badge holds no text beside it
+const shortsStyle = css`
+  margin: 0.3rem 0;
+`
+
+/** The Shorts logo youtube.com draws alone in a length badge, on a Short shown as a 16:9 card. */
+export const ShortsMark = () => (
+  <svg css={[iconStyle, shortsStyle]} width={12} height={12} viewBox='0 0 24 24' aria-hidden='true' data-mark='shorts'>
+    <path d={SHORTS} />
   </svg>
 )
 

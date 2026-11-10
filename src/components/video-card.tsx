@@ -17,7 +17,8 @@ import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
 import { formatDuration, readable, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
-import { CornerBadge, MembersOnly, MusicNote, RowMeta } from './row-marks'
+import { CornerBadge, MembersOnly, MusicNote, RowMeta, ShortsMark } from './row-marks'
+import { shortsHrefFor } from './shorts-shelf'
 import { Thumbnail } from './thumbnail'
 import { Menu, MenuItem, MenuSeparator } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -507,14 +508,16 @@ const style = css`
 export const VideoCard = (
   { video, variant, context }: { video: VideoCardData, variant?: 'channel' | 'shelf' | 'carousel', context?: WatchContext },
 ) => {
-  const watchHref = watchHrefFor(video.id, context)
+  // youtube.com's search carousel keeps a Short's 16:9 card, marks it and opens it in the Shorts player
+  const carouselShort = variant === 'carousel' && video.isShort === true
+  const watchHref = carouselShort ? shortsHrefFor(video.id) : watchHrefFor(video.id, context)
   const channelHref = video.channel ? `/channel/${video.channel.id}` : undefined
   const byline = rowByline(video, variant === 'channel')
   const duration = formatDuration(video.durationSeconds)
   const progress = resumePercent(video.progressPercent)
   const prefetch = usePrefetchOnIntent(video.id)
   const [previewing, setPreviewing] = useState(false)
-  const classes = [variant, video.isShort ? 'short' : undefined]
+  const classes = [variant, video.isShort && !carouselShort ? 'short' : undefined]
     .filter(Boolean)
     .join(' ')
   const canPreview = video.isUpcoming !== true && video.isLive !== true
@@ -543,7 +546,11 @@ export const VideoCard = (
         {video.thumbnailBadge ? <CornerBadge label={video.thumbnailBadge} /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
-          : duration ? <span className='badge'>{video.isMusic ? <MusicNote /> : undefined}{duration}</span> : undefined}
+          : duration
+          ? <span className='badge'>{video.isMusic ? <MusicNote /> : undefined}{duration}</span>
+          : carouselShort
+          ? <span className='badge'><ShortsMark /></span>
+          : undefined}
         {progress !== undefined
           ? (
             <span className='progress'>

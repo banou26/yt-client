@@ -55,6 +55,23 @@ describe('a broad search', () => {
     })
   })
 
+  it('marks a Short among a carousel\'s cards by its SHORTS overlay, with no length', async () => {
+    const { results } = await search()
+    const backrooms = results.find((result) => result.kind === 'shelf' && result.title === 'Minecraft backrooms')
+    expect(backrooms?.kind === 'shelf' && backrooms.videos.map(({ id, isShort }) => ({ id, isShort }))).toEqual([
+      { id: '_58nP1Ie9EM', isShort: undefined },
+      { id: 'i_C03f1MiRo', isShort: undefined },
+      { id: 'YsohTIAJJFs', isShort: true },
+    ])
+    expect(backrooms?.kind === 'shelf' && backrooms.videos[2]).toMatchObject({
+      title: 'Backrooms easter egg 🫪 (Actions and stuff V1.12 Minecraft)',
+      durationSeconds: undefined,
+      viewCount: '791K',
+      publishedText: '1mo ago',
+      channel: { id: 'UCwUqm0D53xpnUr8PVywApJQ', name: 'Aven Games' },
+    })
+  })
+
   it('reads the topic card of the right column: the game, its newest video and its scheduled ones', async () => {
     const { topic } = await search()
     expect(topic).toMatchObject({

@@ -67,7 +67,7 @@ type FeedVideo = {
   is_live?: boolean
   is_upcoming?: boolean
   badges?: { label?: string, text?: string, style?: string }[]
-  thumbnail_overlays?: { type?: string, icon_type?: string }[]
+  thumbnail_overlays?: { type?: string, icon_type?: string, style?: string }[]
   expandable_metadata?: {
     header?: { expanded_title?: Text }
     expanded_content?: { cards?: { title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
@@ -1167,7 +1167,14 @@ export const normalizeSearchShelf = (input: unknown): SourceSearchShelf | undefi
   const horizontal = node.content?.type === 'HorizontalList'
   if (node.type !== 'Shelf' || !node.content || (!horizontal && node.content.type !== 'VerticalList')) return undefined
   const title = presentText(node.title)
-  const videos = (node.content.items ?? []).flatMap((item) => normalizeFeedVideo(item) ?? normalizeLockupVideo(item) ?? [])
+  const videos = (node.content.items ?? []).flatMap((item) => {
+    const video = normalizeFeedVideo(item) ?? normalizeLockupVideo(item)
+    if (!video) return []
+    // read here and not in normalizeFeedVideo, as a feed draws isShort as a portrait tile while a carousel keeps the card
+    const short = (item as FeedVideo).thumbnail_overlays
+      ?.some((overlay) => overlay.type === 'ThumbnailOverlayTimeStatus' && overlay.style === 'SHORTS')
+    return short ? { ...video, isShort: true } : video
+  })
   if (!title || videos.length === 0) return undefined
   return horizontal
     ? { title, subtitle: presentText(node.subtitle), videos, horizontal, shorts: [] }

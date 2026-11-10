@@ -21,6 +21,7 @@ const video = (id: string, title: string) => ({
   publishedText: '2w ago',
   isLive: null,
   isUpcoming: null,
+  isShort: null,
   badges: [],
   channel: channel('UCkjxZqW8zRi4rexA3TMvmrA', 'ECKOSOLDIER'),
   chapters: null,
@@ -38,8 +39,11 @@ const topicVideo = (id: string, title: string, rest: { durationSeconds: number |
   channel: { __typename: 'Channel', id: 'UC1sELGmy5jp5fQUugmuYlXQ', name: 'Minecraft' },
 })
 
-// the first page of a search for "minecraft" as the worker answers it: a row, a carousel of six cards, a row, and the
-// topic card with one scheduled video and one that is out
+// a Short as a carousel holds it, with no length
+const short = { ...video('YsohTIAJJFs', 'Backrooms easter egg (Actions and stuff V1.12 Minecraft)'), durationSeconds: null, isShort: true }
+
+// the first page of a search for "minecraft" as the worker answers it: a row, a carousel of six cards whose last is a
+// Short, a row, and the topic card with one scheduled video and one that is out
 const answer = {
   search: {
     __typename: 'SearchPage',
@@ -51,8 +55,11 @@ const answer = {
         subtitle: 'People also search for',
         horizontal: true,
         collapsedCount: null,
-        videos: ['5LP8rAcpDGo', '7Qo-27gyiik', 'h-vf10hoOfg', 'u00eNCXwD0A', '_58nP1Ie9EM', 'i_C03f1MiRo']
-          .map((id, index) => video(id, `Minecraft Bedrock addon ${index + 1}`)),
+        videos: [
+          ...['5LP8rAcpDGo', '7Qo-27gyiik', 'h-vf10hoOfg', 'u00eNCXwD0A', '_58nP1Ie9EM']
+            .map((id, index) => video(id, `Minecraft Bedrock addon ${index + 1}`)),
+          short,
+        ],
         shorts: [],
       },
       video('BTfFrSnVJTc', 'MINECRAFT JUST OVERHAULED THE SECRET WORLD'),

@@ -114,6 +114,7 @@ const SEARCH_RESULTS_QUERY = gql(`
     publishedText
     isLive
     isUpcoming
+    isShort
     badges
     channel { id name avatar isVerified isVerifiedArtist }
     chapters { title startSeconds thumbnail }
