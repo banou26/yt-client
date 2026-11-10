@@ -271,8 +271,10 @@ const style = css`
  *
  * `href` is the card's own watch link. A plain click on the playing preview
  * opens it at the preview's position once that is past CARRY_SECONDS.
+ * `playerParams` are the card's inline playback params, which the preview's
+ * watch page is read with, as youtube.com reads its own.
  */
-export const HoverPreview = ({ videoId, href }: { videoId: string, href: string }) => {
+export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string, href: string, playerParams: string }) => {
   const [, navigate] = useLocation()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [time, setTime] = useState(0)
@@ -303,6 +305,7 @@ export const HoverPreview = ({ videoId, href }: { videoId: string, href: string 
           api,
           video,
           videoId,
+          playerParams,
           startTime: 0,
           signal: abort.signal,
           onError: () => {},
@@ -349,7 +352,7 @@ export const HoverPreview = ({ videoId, href }: { videoId: string, href: string 
       video.removeEventListener('loadeddata', onPainted)
       void controller?.destroy()
     }
-  }, [videoId])
+  }, [videoId, playerParams])
 
   const ratioFromPointer = (event: PointerEvent) => {
     const bar = event.currentTarget as HTMLElement

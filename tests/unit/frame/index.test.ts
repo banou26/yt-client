@@ -137,3 +137,11 @@ describe("the frame's log of failed calls", () => {
     expect(errors.mock.calls[0]?.[1]).toMatchObject({ message: expect.stringMatching(STREAM_REFUSED) })
   })
 })
+
+it('opens a hover preview on a watch page read with its card\'s params, and a click\'s with none', async () => {
+  vi.mocked(getSabrSource).mockReset().mockResolvedValue({ isLive: false, captions: [], storyboards: [] } as unknown as SabrSource)
+  vi.mocked(createSabrSession).mockImplementation(() => sessionOf(untilCancelled))
+  await call('openPlayback', 'video-1', 360, 'params-1')
+  await call('openPlayback', 'video-2')
+  expect(vi.mocked(getSabrSource).mock.calls).toEqual([['video-1', 'params-1'], ['video-2', undefined]])
+})

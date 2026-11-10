@@ -79,6 +79,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           title
           thumbnail
           thumbnailSrcset
+          animatedThumbnail
           thumbnailBadge
           durationSeconds
           isMusic
@@ -131,6 +132,7 @@ const CHANNEL_VIEW_QUERY = gql(`
             title
             thumbnail
             thumbnailSrcset
+            animatedThumbnail
             durationSeconds
             isMusic
             viewCount

@@ -19,6 +19,7 @@ const HOME_FEED_QUERY = gql(`
       items {
         id
         title
+        inlinePlayerParams
         thumbnail
         thumbnailSrcset
         durationSeconds

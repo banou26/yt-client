@@ -10,6 +10,7 @@ const video = (id: string, title: string) => ({
   __typename: 'Video',
   id,
   title,
+  inlinePlayerParams: null,
   description: null,
   descriptionSnippet: null,
   snippetRuns: null,

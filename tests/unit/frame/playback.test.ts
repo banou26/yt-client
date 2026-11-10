@@ -141,6 +141,15 @@ describe('a playback YouTube keeps refusing', () => {
     expect(recoverMint).toHaveBeenCalledTimes(8)
   })
 
+  it('reads a preview\'s watch page with its card\'s params on the refresh as on the open', async () => {
+    const { entry } = await openPlaybackEntry('video-1', 360, 'params-1')
+    const first = failureOf(requestPlaybackSegment(entry, segment('a'), () => {}))
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(await first).toMatch(STREAM_REFUSED)
+    expect(vi.mocked(getSabrSource).mock.calls).toEqual([['video-1', 'params-1'], ['video-1', 'params-1']])
+    closePlaybackEntry(entry)
+  })
+
   it('answers every later request at once, with no read, once refused', async () => {
     const { entry } = await openPlaybackEntry('video-1')
     const first = failureOf(requestPlaybackSegment(entry, segment('a'), () => {}))

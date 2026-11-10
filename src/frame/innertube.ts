@@ -183,21 +183,25 @@ const catalogVisitor = async () =>
 
 const playbackResponseCache = new Map<string, Promise<Record<string, unknown>>>()
 
+// a read with a card's params is a different answer from the plain one a click takes
+const responseKey = (videoId: string, playerParams: string | undefined) => playerParams ? `${videoId}&pp=${playerParams}` : videoId
+
 /* YouTube counts a playback toward the Home of the visitor its watch page was read as, and only when the registration
    names that visitor too. In fresh youtube.com profiles, registrations sent with both filled Home 3 of 3 times (34 to
    37 videos) and with either one alone 0 of 4; with the watch-time reports blocked, youtube.com's own player still
    filled it 2 of 2 (measured 2026-11-10). So both go as the catalog's visitor, the one Home is read as. */
-export const prefetchInitialPlayerResponse = (videoId: string) => {
-  const cached = playbackResponseCache.get(videoId)
+export const prefetchInitialPlayerResponse = (videoId: string, playerParams?: string) => {
+  const key = responseKey(videoId, playerParams)
+  const cached = playbackResponseCache.get(key)
   if (cached) return cached
-  const promise = fetchPlayerResponse(videoId, catalogVisitor())
-  playbackResponseCache.set(videoId, promise)
+  const promise = fetchPlayerResponse(videoId, catalogVisitor(), playerParams)
+  playbackResponseCache.set(key, promise)
   promise.catch(() => {
-    if (playbackResponseCache.get(videoId) === promise) playbackResponseCache.delete(videoId)
+    if (playbackResponseCache.get(key) === promise) playbackResponseCache.delete(key)
   })
   if (playbackResponseCache.size > 6) {
     const oldest = playbackResponseCache.keys().next().value
-    if (oldest !== undefined && oldest !== videoId) playbackResponseCache.delete(oldest)
+    if (oldest !== undefined && oldest !== key) playbackResponseCache.delete(oldest)
   }
   return promise
 }
@@ -277,11 +281,15 @@ export type SabrSource = {
   recoverMint(): Promise<void>
 }
 
-export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
+/**
+ * A SABR session's source, off the video's watch page. A hover preview passes its card's inline playback params, which
+ * the page is read with; the plain read an intent prefetch made for the click is never used for it.
+ */
+export const getSabrSource = async (videoId: string, playerParams?: string): Promise<SabrSource> => {
   // The /player API alternative is NOT an option: anonymous /player calls yield preview-tier (~60s) SABR sessions.
-  const rawPromise = prefetchInitialPlayerResponse(videoId)
+  const rawPromise = prefetchInitialPlayerResponse(videoId, playerParams)
   // Consumed and EVICTED: a session refresh or retry re-enters here needing fresh streaming URLs and must not reuse the cached response.
-  playbackResponseCache.delete(videoId)
+  playbackResponseCache.delete(responseKey(videoId, playerParams))
   void rawPromise.catch(() => {})
   void rawPromise.then((raw) => {
     const streamingUrl = (raw as {

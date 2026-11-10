@@ -106,6 +106,17 @@ describe('reading a watch page', () => {
     expect(fetched).toEqual(['https://www.youtube.com/watch?v=video-1', 'https://www.youtube.com/watch?v=video-1'])
   })
 
+  it('reads a preview\'s page with its card\'s params as pp, the read a later session makes too', async () => {
+    const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
+    await fetchPlayerResponse('video-1', undefined, 'YAHIAQGiBhUB+/x=')
+    await takePageChallenge()
+    await takePageChallenge()
+    expect(fetched).toEqual([
+      'https://www.youtube.com/watch?v=video-1&pp=YAHIAQGiBhUB%2B%2Fx%3D',
+      'https://www.youtube.com/watch?v=video-1&pp=YAHIAQGiBhUB%2B%2Fx%3D',
+    ])
+  })
+
   it('reads a page as the visitor it is given, the read a later session makes too', async () => {
     const visitors: (string | null)[] = []
     vi.stubGlobal('fetch', async (_url: string, init?: RequestInit) => {

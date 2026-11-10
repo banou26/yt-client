@@ -22,8 +22,10 @@ const YOU_HISTORY_QUERY = gql(`
         items {
           id
           title
+          inlinePlayerParams
           thumbnail
           thumbnailSrcset
+          animatedThumbnail
           durationSeconds
           viewCount
           publishedText

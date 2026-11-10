@@ -103,6 +103,7 @@ const SEARCH_RESULTS_QUERY = gql(`
   fragment SearchVideo on Video {
     id
     title
+    inlinePlayerParams
     description
     descriptionSnippet
     snippetRuns { text bold }
@@ -677,30 +678,31 @@ const ResultPlaceholder = () => (
 
 const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
   const prefetch = usePrefetchOnIntent(row.id)
-  const [previewing, setPreviewing] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const watchHref = watchHrefFor(row.id)
   const duration = formatDuration(row.durationSeconds)
   const meta = formatMeta(row.viewCount, row.publishedText)
   const snippet = row.snippetRuns?.map((run, index) => run.bold ? <b key={index}>{run.text}</b> : run.text)
     ?? row.descriptionSnippet
     ?? row.description
-  const canPreview = row.isUpcoming !== true && row.isLive !== true
+  // youtube.com mounts a player only on a row that carries its inline playback params
+  const playerParams = row.isUpcoming !== true && row.isLive !== true ? row.inlinePlayerParams ?? undefined : undefined
   return (
     <article
       className='result'
       onPointerEnter={(event: TargetedPointerEvent<HTMLElement>) => {
         prefetch.onPointerEnter()
-        if (event.pointerType === 'mouse' && canPreview) setPreviewing(true)
+        if (event.pointerType === 'mouse') setHovered(true)
       }}
       onPointerLeave={() => {
         prefetch.onPointerLeave()
-        setPreviewing(false)
+        setHovered(false)
       }}
       onPointerDown={prefetch.onPointerDown}
     >
       <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
         {row.thumbnail ? <Thumbnail src={row.thumbnail} srcSet={row.thumbnailSrcset} sizes='50rem' /> : undefined}
-        {previewing ? <HoverPreview videoId={row.id} href={watchHref} /> : undefined}
+        {hovered && playerParams ? <HoverPreview videoId={row.id} href={watchHref} playerParams={playerParams} /> : undefined}
         {row.isLive
           ? <span className='badge live'>LIVE</span>
           : duration ? <span className='badge'>{row.isMusic ? <MusicNote /> : undefined}{duration}</span> : undefined}

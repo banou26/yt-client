@@ -73,9 +73,9 @@ const api = {
   prefetchPlayback: async (videoId) => {
     prefetchInitialPlayerResponse(videoId)
   },
-  openPlayback: async (videoId, maxHeight) => {
+  openPlayback: async (videoId, maxHeight, playerParams) => {
     const id = `playback:${++sessionId}`
-    const { source, entry } = await openPlaybackEntry(videoId, maxHeight)
+    const { source, entry } = await openPlaybackEntry(videoId, maxHeight, playerParams)
     const player = entry.player
     const manifest = source.isLive
       ? await openLiveManifest(player, { sessionId: id, videoId, manifestFor: () => liveManifestFor(entry) })

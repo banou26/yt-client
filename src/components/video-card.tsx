@@ -34,6 +34,7 @@ export type VideoCardData =
       | 'animatedThumbnail'
       | 'description'
       | 'durationSeconds'
+      | 'inlinePlayerParams'
       | 'isMembersOnly'
       | 'isMusic'
       | 'metaDelimiter'
@@ -317,6 +318,11 @@ const style = css`
     object-fit: cover;
   }
 
+  .thumb img.moving {
+    position: absolute;
+    inset: 0;
+  }
+
   .badge {
     position: absolute;
     right: 0.6rem;
@@ -520,11 +526,14 @@ export const VideoCard = (
   const duration = formatDuration(video.durationSeconds)
   const progress = resumePercent(video.progressPercent)
   const prefetch = usePrefetchOnIntent(video.id)
-  const [previewing, setPreviewing] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const classes = [variant, video.isShort && !carouselShort ? 'short' : undefined]
     .filter(Boolean)
     .join(' ')
-  const canPreview = video.isUpcoming !== true && video.isLive !== true
+  // youtube.com mounts a player only on a card that carries its inline playback params (search rows, Home), and plays the
+  // moving thumbnail on the rest (a channel's Home rows and Videos tab), measured signed out on 2026-11-10
+  const playerParams = video.isUpcoming !== true && video.isLive !== true ? video.inlinePlayerParams ?? undefined : undefined
+  const moving = hovered && !playerParams ? video.animatedThumbnail ?? undefined : undefined
   const avatar = variant === undefined || variant === 'carousel'
   return (
     <article
@@ -533,12 +542,11 @@ export const VideoCard = (
       /* Called through rather than spread: `{...prefetch}` lets the handlers below overwrite the hook's own. */
       onPointerEnter={(event: TargetedPointerEvent<HTMLElement>) => {
         prefetch.onPointerEnter()
-        if (event.pointerType !== 'mouse') return
-        if (canPreview) setPreviewing(true)
+        if (event.pointerType === 'mouse') setHovered(true)
       }}
       onPointerLeave={() => {
         prefetch.onPointerLeave()
-        setPreviewing(false)
+        setHovered(false)
       }}
       onPointerDown={prefetch.onPointerDown}
     >
@@ -546,10 +554,13 @@ export const VideoCard = (
         {video.thumbnail
           ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='(max-width: 500px) 100vw, 38rem' />
           : undefined}
-        {previewing ? <HoverPreview videoId={video.id} href={watchHref} /> : undefined}
+        {hovered && playerParams ? <HoverPreview videoId={video.id} href={watchHref} playerParams={playerParams} /> : undefined}
+        {moving ? <img className='moving' src={moving} alt='' /> : undefined}
         {video.thumbnailBadge ? <CornerBadge label={video.thumbnailBadge} /> : undefined}
         {video.isLive
           ? <span className='badge live'>LIVE</span>
+          : moving
+          ? undefined
           : duration
           ? <span className='badge'>{video.isMusic ? <MusicNote /> : undefined}{duration}</span>
           : carouselShort

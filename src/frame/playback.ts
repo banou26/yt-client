@@ -10,6 +10,8 @@ type SabrSession = ReturnType<typeof createSabrSession>
 export type PlaybackEntry = {
   videoId: string
   maxHeight?: number
+  // a hover preview's card params, which every watch page read of this playback carries, its refreshes' included
+  playerParams?: string
   player: SabrSession
   chain: Promise<unknown>
   serial: Promise<unknown>
@@ -33,12 +35,13 @@ const SEGMENT_CANCELLED = 'youtube: segment request cancelled'
 export const isCancellation = (error: unknown) =>
   (error instanceof Error && error.message === SEGMENT_CANCELLED) || (error instanceof DOMException && error.name === 'AbortError')
 
-/** Reads the video's watch page and opens a SABR session on it. */
-export const openPlaybackEntry = async (videoId: string, maxHeight?: number) => {
-  const source = await getSabrSource(videoId)
+/** Reads the video's watch page, with a hover preview's card params when given, and opens a SABR session on it. */
+export const openPlaybackEntry = async (videoId: string, maxHeight?: number, playerParams?: string) => {
+  const source = await getSabrSource(videoId, playerParams)
   const entry: PlaybackEntry = {
     videoId,
     maxHeight,
+    playerParams,
     player: createSabrSession(source, maxHeight),
     chain: Promise.resolve(),
     serial: Promise.resolve(),
@@ -66,7 +69,7 @@ const refreshSession = async (entry: PlaybackEntry) => {
   const videoMimeType = previous.videoFormat.mimeType
   const audioKey = previous.audioFormat.key
   const audioMimeType = previous.audioFormat.mimeType
-  const source = await getSabrSource(entry.videoId)
+  const source = await getSabrSource(entry.videoId, entry.playerParams)
   if (entry.closed) throw new Error('youtube: playback session closed during refresh')
   // a new live session asked at 0 is answered at the oldest end of the DVR window, so it continues where this one got to
   const next = createSabrSession(source, entry.maxHeight, source.isLive ? previous.liveEndMs : undefined)

@@ -203,6 +203,7 @@ export const startShakaPlayback = async ({
   api,
   video,
   videoId,
+  playerParams,
   startTime,
   signal,
   onError,
@@ -210,6 +211,8 @@ export const startShakaPlayback = async ({
   api: FrameApi
   video: HTMLVideoElement
   videoId: string
+  // a hover preview's card params, which the frame reads the watch page with
+  playerParams?: string
   startTime: number
   signal: AbortSignal
   onError(error: unknown): void
@@ -220,7 +223,7 @@ export const startShakaPlayback = async ({
   installScheme()
 
   const maxHeight = Math.max(360, Math.ceil(video.getBoundingClientRect().height * devicePixelRatio))
-  const sessionPromise = api.openPlayback(videoId, maxHeight)
+  const sessionPromise = api.openPlayback(videoId, maxHeight, playerParams)
   void sessionPromise.catch(() => {})
   const closeSession = () => {
     void sessionPromise.then((session) => api.closePlayback(session.id)).catch(() => {})

@@ -2,18 +2,23 @@ import type { Locator, Page } from '@playwright/test'
 
 import { answerLookups, dismissFknNotice, expect, hideFknNotice, plainTest, test } from './test'
 
+// Blender Guru's 4 h donut course, with English captions: long enough that every 5% of the bar is minutes. Signed-out
+// results are reordered per visitor, so the row is found by its link rather than its place.
+const COURSE = 'z-Xl9tGqH14'
+const SEARCH = '/results?search_query=blender+guru+donut+full+course'
+
+const courseRow = (page: Page) =>
+  page.locator('article.result').filter({ has: page.locator(`a.thumb[href="/watch?v=${COURSE}"]`) })
+
 /* The inline preview must never paint over a thumbnail it cannot yet replace: its root is an opaque black box mounted the moment the pointer lands.
    Sampled continuously because the defect is a flash, which a before-and-after assertion passes straight through. */
 
 test('keeps the thumbnail until the preview has a frame, then fades it in', async ({ page }) => {
   test.setTimeout(240_000)
 
-  await page.goto('/results?search_query=blender')
-  const channelLink = page.locator('a[href^="/channel/"]').first()
-  await expect(channelLink).toBeVisible({ timeout: 120_000 })
-  await page.goto((await channelLink.getAttribute('href')) ?? '/')
-  const cards = page.locator('article').filter({ has: page.locator('a.thumb') })
-  await expect(cards.first().locator('a.thumb')).toBeVisible({ timeout: 120_000 })
+  await page.goto(SEARCH)
+  const card = courseRow(page)
+  await expect(card.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
   await page.waitForTimeout(3000)
 
   await page.evaluate(() => {
@@ -32,7 +37,7 @@ test('keeps the thumbnail until the preview has a frame, then fades it in', asyn
     }, 40)
   })
 
-  await cards.first().hover()
+  await card.locator('a.thumb').hover()
   await expect
     .poll(
       () =>
@@ -60,16 +65,11 @@ const plain = plainTest.extend({
   },
 })
 
-// Blender Guru's 4 h donut course, with English captions: long enough that every 5% of the bar is minutes. Signed-out
-// results are reordered per visitor, so the row is found by its link rather than its place.
-const COURSE = 'z-Xl9tGqH14'
-const SEARCH = '/results?search_query=blender+guru+donut+full+course'
-
 const seconds = (clock: string) => clock.split(':').reduce((total, part) => total * 60 + Number(part), 0)
 
 const hoverCourse = async (page: Page) => {
   await page.goto(SEARCH)
-  const card = page.locator('article.result').filter({ has: page.locator(`a.thumb[href="/watch?v=${COURSE}"]`) })
+  const card = courseRow(page)
   await expect(card.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
   await card.locator('a.thumb').hover()
   await expect(card.locator('[data-painted]')).toBeVisible({ timeout: 90_000 })
@@ -249,3 +249,91 @@ test('a related video plays its moving thumbnail on hover, in place of the durat
   }
   expect(played, 'no related row played a moving thumbnail for three visitors').toBe(true)
 })
+
+type Asked = { asked: { method: string, args: unknown[] }[] }
+
+// the app asks the engine over a MessagePort, `{ id, method, args }`: a playback is answered here, so no YouTube answer is read
+const answerPlaybackHere = () => {
+  if (window.top !== window) return
+  const state = window as unknown as Asked
+  state.asked = []
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    const request = message as { id?: number, method?: string, args?: unknown[] } | null
+    if (request?.method !== 'openPlayback' && request?.method !== 'prefetchPlayback') return post.call(this, message, ...rest)
+    state.asked.push({ method: request.method, args: request.args ?? [] })
+    const answer = request.method === 'openPlayback' ? { id: request.id, error: 'answered by the spec' } : { id: request.id, result: null }
+    setTimeout(() => this.dispatchEvent(new MessageEvent('message', { data: answer })), 0)
+  } as typeof MessagePort.prototype.postMessage
+}
+
+test('a row or card with inline params opens its preview with them, and one without plays its moving thumbnail', async ({ page }) => {
+  test.setTimeout(240_000)
+  await hideFknNotice(page)
+  await page.addInitScript(answerPlaybackHere)
+  await page.setViewportSize({ width: 1280, height: 1200 })
+  await page.goto('/privacy?search_query=guitar+lesson')
+  const known = await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/preview-harness.tsx'
+    const module = await import(harness) as { mountPreviews: () => void, ROW_PARAMS: string, CARD_PARAMS: string, MOVING: string }
+    module.mountPreviews()
+    return { rowParams: module.ROW_PARAMS, cardParams: module.CARD_PARAMS, moving: module.MOVING }
+  })
+  const harness = page.locator('[data-preview-harness]')
+  const cards = harness.locator('[data-previews="cards"] article')
+  const [home, moving, still] = [cards.nth(0), cards.nth(1), cards.nth(2)]
+  const row = harness.locator('article.result')
+  const opened = () => page.evaluate(() =>
+    (window as unknown as Asked).asked.filter(({ method }) => method === 'openPlayback').map(({ args }) => [args[0], args[2]]))
+
+  await expect(row.locator('a.thumb')).toBeVisible({ timeout: 60_000 })
+  await row.locator('a.thumb').hover()
+  await expect(row.locator('video')).toHaveCount(1)
+  await expect.poll(opened, { timeout: 120_000 }).toEqual([['search-0', known.rowParams]])
+  await page.mouse.move(0, 0)
+  await expect(row.locator('video')).toHaveCount(0)
+
+  await home.locator('a.thumb').hover()
+  await expect(home.locator('video')).toHaveCount(1)
+  await expect.poll(opened, { timeout: 60_000 }).toEqual([['search-0', known.rowParams], ['home-0', known.cardParams]])
+  await page.mouse.move(0, 0)
+
+  await expect(moving.locator('.badge')).toHaveCount(1)
+  await moving.locator('a.thumb').hover()
+  await expect(moving.locator('img.moving')).toHaveAttribute('src', known.moving)
+  await expect(moving.locator('.badge')).toHaveCount(0)
+  // past the preview's 700 ms dwell, when a player would have been asked for
+  await page.waitForTimeout(1_500)
+  await expect(moving.locator('video')).toHaveCount(0)
+  await page.mouse.move(0, 0)
+  await expect(moving.locator('img.moving')).toHaveCount(0)
+  await expect(moving.locator('.badge')).toHaveCount(1)
+
+  await still.locator('a.thumb').hover()
+  await page.waitForTimeout(1_500)
+  await expect(still.locator('video')).toHaveCount(0)
+  await expect(still.locator('img.moving')).toHaveCount(0)
+  expect(await opened(), 'a card without params asked for a playback').toHaveLength(2)
+})
+
+for (const tab of ['HOME', 'VIDEOS'] as const) {
+  test(`a channel's ${tab === 'HOME' ? 'Home row' : 'Videos tab'} plays its moving thumbnail on hover and opens no preview`, async ({ page }) => {
+    test.setTimeout(240_000)
+    await hideFknNotice(page)
+    await page.addInitScript(answerPlaybackHere)
+    await page.goto('/privacy')
+    const moving = await page.evaluate(async (tab) => {
+      const harness = '/tests/browser/fixtures/preview-harness.tsx'
+      const module = await import(harness) as { mountChannel: (tab: 'HOME' | 'VIDEOS') => void, MOVING: string }
+      module.mountChannel(tab)
+      return module.MOVING
+    }, tab)
+    const card = page.locator('[data-preview-harness] article').filter({ has: page.locator('a.thumb[href="/watch?v=moving-0"]') })
+    await expect(card.locator('a.thumb')).toBeVisible({ timeout: 60_000 })
+    await card.locator('a.thumb').hover()
+    await expect(card.locator('img.moving')).toHaveAttribute('src', moving)
+    await page.waitForTimeout(1_500)
+    await expect(card.locator('video')).toHaveCount(0)
+    expect(await page.evaluate(() => (window as unknown as Asked).asked.filter(({ method }) => method === 'openPlayback'))).toEqual([])
+  })
+}
