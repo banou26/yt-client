@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { BUILD_ID, ENGINE_BUILD_MISMATCH } from '../../../src/scramjet/engine-build'
+import { buildId, ENGINE_BUILD_MISMATCH } from '../../../src/scramjet/engine-build'
 import { ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from '../../../src/scramjet/protocol'
+import { BUILD, querySelector } from '../fixtures/build-tag'
 
 vi.mock('../../../src/scramjet/platform', () => ({
   startPlatform: async () => ({
@@ -45,6 +46,7 @@ const installWindow = () => {
     },
     body: { appendChild: () => {} },
     documentElement: { dataset: {} },
+    querySelector,
   })
   vi.stubGlobal('window', {
     addEventListener: (_type: string, listener: (event: MessageEvent) => void) => listeners.add(listener),
@@ -113,7 +115,7 @@ describe('an engine from another build', () => {
   it('a host that refuses this realm by name reloads it once as well', async () => {
     const { startEngine } = await import('../../../src/scramjet/client')
     const engine = startEngine()
-    window.fromFrame(window.frames[0]!, { type: HOST_HELLO, build: BUILD_ID })
+    window.fromFrame(window.frames[0]!, { type: HOST_HELLO, build: BUILD })
     await settled(engine)
     window.fromFrame(window.frames[0]!, { type: ENGINE_READY, error: ENGINE_BUILD_MISMATCH })
     expect(await settled(engine)).toEqual({ error: new Error(ENGINE_BUILD_MISMATCH) })
@@ -123,10 +125,10 @@ describe('an engine from another build', () => {
   it('a host from this build gets its ports with this build named, and nothing reloads', async () => {
     const { startEngine, resetEngine } = await import('../../../src/scramjet/client')
     const engine = startEngine()
-    window.fromFrame(window.frames[0]!, { type: HOST_HELLO, build: BUILD_ID })
+    window.fromFrame(window.frames[0]!, { type: HOST_HELLO, build: BUILD })
     expect(await settled(engine)).toEqual({ pending: true })
     const [bootstrap] = bootstraps(window.frames[0]!)
-    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID, direct: true })
+    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD, direct: true })
     expect(bootstrap?.transfer).toHaveLength(4)
 
     const api = new MessageChannel()
@@ -142,8 +144,13 @@ describe('an engine from another build', () => {
 })
 
 describe('the build id', () => {
-  it('names this build', () => {
-    expect(BUILD_ID).toMatch(/^[0-9a-f-]{36}$/)
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('is the one the page names in its yt-build tag', () => {
+    vi.stubGlobal('document', { querySelector })
+    expect(buildId()).toBe(BUILD)
   })
 })
 
@@ -158,7 +165,7 @@ describe('the engine host', () => {
       removeEventListener: (_type: string, listener: (event: MessageEvent) => void) => { listeners.delete(listener) },
     })
     vi.stubGlobal('location', { origin: ORIGIN })
-    vi.stubGlobal('document', { documentElement: { dataset: {} } })
+    vi.stubGlobal('document', { documentElement: { dataset: {} }, querySelector })
     vi.stubGlobal('navigator', { serviceWorker: { register: () => new Promise(() => {}) } })
     vi.stubGlobal('fetch', () => new Promise(() => {}))
     const fromApp = (data: unknown, ports: MessagePort[]) => {
@@ -184,7 +191,7 @@ describe('the engine host', () => {
   ])('refuses an app realm that %s, by name and before using its ports', async (_, bootstrap) => {
     const host = installHost()
     await import('../../../src/scramjet/host')
-    expect(host.toApp).toEqual([{ type: HOST_HELLO, build: BUILD_ID }])
+    expect(host.toApp).toEqual([{ type: HOST_HELLO, build: BUILD }])
 
     const egress = new MessageChannel()
     const extFetch = new MessageChannel()
@@ -202,7 +209,7 @@ describe('the engine host', () => {
     await import('../../../src/scramjet/host')
     const egress = new MessageChannel()
     const extFetch = new MessageChannel()
-    host.fromApp({ type: HOST_BOOTSTRAP, build: BUILD_ID }, [egress.port2, extFetch.port2])
+    host.fromApp({ type: HOST_BOOTSTRAP, build: BUILD }, [egress.port2, extFetch.port2])
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(host.toApp.filter(({ type }) => type === ENGINE_READY)).toEqual([])
     egress.port1.close()

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import { CHANNEL_KEY } from '../../src/scramjet/channel'
-import { BUILD_ID } from '../../src/scramjet/engine-build'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from '../../src/scramjet/protocol'
 import { BRAND_PAGE_ID } from './fixtures/accounts-list'
+import { BUILD, querySelector } from './fixtures/build-tag'
 
 const calls: string[] = []
 const showToast = vi.fn()
@@ -67,6 +67,7 @@ const install = (...opened: (FakeWindow | null)[]) => {
   const assign = vi.fn()
   const location = { origin: ORIGIN, pathname: '/watch', reload, assign }
   vi.stubGlobal('window', { open })
+  vi.stubGlobal('document', { querySelector })
   vi.stubGlobal('location', location)
   const stored = new Map<string, string>()
   vi.stubGlobal('sessionStorage', { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => stored.set(key, value) })
@@ -142,12 +143,12 @@ describe('the sign-in window', () => {
     const { send } = install(win)
     const { openSignInWindow } = await import('../../src/sign-in')
     void openSignInWindow()
-    send({ origin: ORIGIN, source: {} as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
-    send({ origin: 'https://evil.example', source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
+    send({ origin: ORIGIN, source: {} as Window, data: { type: SIGNIN_HELLO, build: BUILD } })
+    send({ origin: 'https://evil.example', source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD } })
     // the answer waits on the platform, so give any answer time to land before reading that none did
     await settle()
     expect(win.postMessage).not.toHaveBeenCalled()
-    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD } })
     await settle()
     expect(win.postMessage).toHaveBeenCalledOnce()
     expect(openEgressPort).toHaveBeenCalledWith('signin')
@@ -160,7 +161,7 @@ describe('the sign-in window', () => {
     startPlatform.mockRejectedValueOnce(new Error('the broker never loaded'))
     const { openSignInWindow } = await import('../../src/sign-in')
     const outcome = openSignInWindow()
-    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD_ID } })
+    send({ origin: ORIGIN, source: win as unknown as Window, data: { type: SIGNIN_HELLO, build: BUILD } })
     await settle()
     vi.advanceTimersByTime(500)
     expect(startPlatform).toHaveBeenCalledOnce()

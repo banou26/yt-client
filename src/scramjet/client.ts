@@ -4,7 +4,7 @@ import type { HostBootstrap, HostControlEvent, HostControlRequest, HostHello } f
 import { FRAME_METHODS } from '../frame/protocol'
 import { openAgentBridge, startAgentHost } from '../engine/agent-host'
 import { stepEnabled } from '../engine/step-flag'
-import { BUILD_ID, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
+import { buildId, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
 import { openDirectLane, reportDirectOff } from './direct-lane'
 import { abortPlatformEgress, startPlatform } from './platform'
 import { CLEAR_COOKIES, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
@@ -174,7 +174,7 @@ export const startEngine = () => {
         engineDirect?.close()
         engineDirect = directStep ? openDirectLane() : undefined
         frame.contentWindow?.postMessage(
-          { type: HOST_BOOTSTRAP, build: BUILD_ID, ...(engineDirect && { direct: true }) } satisfies HostBootstrap,
+          { type: HOST_BOOTSTRAP, build: buildId(), ...(engineDirect && { direct: true }) } satisfies HostBootstrap,
           location.origin,
           [egress, extFetch, ...(agent ? [agent] : []), ...(engineDirect ? [engineDirect.port] : [])],
         )
@@ -186,7 +186,7 @@ export const startEngine = () => {
       if (event.origin !== location.origin || event.source !== frame.contentWindow) return
       if (event.data?.type === HOST_HELLO) {
         engineBuild = (event.data as Partial<HostHello>).build
-        if (engineBuild !== BUILD_ID) fromAnotherBuild(generation, engineBuild)
+        if (engineBuild !== buildId()) fromAnotherBuild(generation, engineBuild)
         else void answerHello()
         return
       }

@@ -4,7 +4,7 @@ import { defaultConfigDev } from '@mercuryworkshop/scramjet'
 import { Controller } from '@mercuryworkshop/scramjet-controller'
 import { expose } from 'osra'
 
-import { BUILD_ID } from './engine-build'
+import { buildId } from './engine-build'
 import { createWebvpnTransport } from './fkn-transport'
 import { EGRESS_KEY, SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS } from './protocol'
 import { CONTROLLER_CONFIG, scramjetWorker } from './scramjet-setup'
@@ -68,7 +68,7 @@ const egressPort = () => new Promise<MessagePort>((resolve, reject) => {
     resolve(port)
   }
   window.addEventListener('message', onMessage)
-  toOpener({ type: SIGNIN_HELLO, build: BUILD_ID })
+  toOpener({ type: SIGNIN_HELLO, build: buildId() })
 })
 
 const boot = async () => {

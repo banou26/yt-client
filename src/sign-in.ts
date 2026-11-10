@@ -3,7 +3,7 @@ import type { SignInWindowMessage } from './scramjet/protocol'
 import { showToast } from './components/ui/toast'
 import { storeChannel } from './scramjet/channel'
 import { clearSessionCookies, startEngine } from './scramjet/client'
-import { BUILD_ID, reloadOnceForBuild } from './scramjet/engine-build'
+import { buildId, reloadOnceForBuild } from './scramjet/engine-build'
 import { jarHoldsSession } from './scramjet/jar'
 import { startPlatform } from './scramjet/platform'
 import { SIGNIN_DONE, SIGNIN_HELLO, SIGNIN_PORTS, SIGNIN_WINDOW_PATH } from './scramjet/protocol'
@@ -80,7 +80,7 @@ export const openSignInWindow = (): Promise<SignInOutcome> => {
       if (event.origin !== location.origin || event.source !== win) return
       const message = event.data as SignInWindowMessage | undefined
       if (message?.type === SIGNIN_HELLO) {
-        if (message.build !== BUILD_ID) {
+        if (message.build !== buildId()) {
           win.close()
           settle(reloadOnceForBuild(message.build) ? 'closed' : 'outdated')
           return

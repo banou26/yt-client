@@ -8,9 +8,11 @@ import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
+// one value for the app and the engine pages it serves, new on every build (src/scramjet/engine-build.ts). It goes in
+// the HTML because a value compiled into the code would rename every file that imports it, changed or not.
+const buildTag = { tag: 'meta', attrs: { name: 'yt-build', content: randomUUID() } }
+
 export default defineConfig({
-  // one value for the app and the engine host it serves, new on every build (src/scramjet/engine-build.ts)
-  define: { __YT_BUILD_ID__: JSON.stringify(randomUUID()) },
   fmt: { semi: false, singleQuote: true },
   lint: {
     jsPlugins: [{ name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' }],
@@ -43,6 +45,7 @@ export default defineConfig({
     },
   },
   plugins: lazyPlugins(() => [
+    { name: 'yt-build', transformIndexHtml: () => [buildTag] },
     nodePolyfills({
       globals: { Buffer: true, global: true, process: true },
     }),

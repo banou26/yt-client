@@ -9,7 +9,7 @@ import { expose } from 'osra'
 import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
 import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_DIRECT_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
 import { readChannel, storeChannel } from './channel'
-import { BUILD_ID, ENGINE_BUILD_MISMATCH } from './engine-build'
+import { buildId, ENGINE_BUILD_MISMATCH } from './engine-build'
 import { createFknTransport, FRAME_BOOTSTRAP_URL } from './fkn-transport'
 import { jarHoldsSession } from './jar'
 import { CONTROLLER_CONFIG, scramjetWorker } from './scramjet-setup'
@@ -40,7 +40,7 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agen
     if (message?.type !== HOST_BOOTSTRAP) return
     window.removeEventListener('message', onMessage)
     clearTimeout(timeout)
-    if (message.build !== BUILD_ID) {
+    if (message.build !== buildId()) {
       for (const port of event.ports) port.close()
       reject(new Error(ENGINE_BUILD_MISMATCH))
       return
@@ -55,7 +55,7 @@ const bootstrap = new Promise<{ egress: MessagePort, extFetch: MessagePort, agen
     resolve({ egress, extFetch, agent, direct })
   }
   window.addEventListener('message', onMessage)
-  window.parent.postMessage({ type: HOST_HELLO, build: BUILD_ID } satisfies HostHello, location.origin)
+  window.parent.postMessage({ type: HOST_HELLO, build: buildId() } satisfies HostHello, location.origin)
 })
 
 const createExtFetch = (port: MessagePort): ExtEgressFetch => {

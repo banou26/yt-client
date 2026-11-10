@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { BUILD_ID } from '../../../src/scramjet/engine-build'
 import { HOST_BOOTSTRAP, HOST_HELLO } from '../../../src/scramjet/protocol'
+import { BUILD, querySelector } from '../fixtures/build-tag'
 
 vi.mock('../../../src/scramjet/platform', () => ({
   startPlatform: async () => ({
@@ -41,6 +41,7 @@ const installWindow = (flags: Record<string, string>) => {
     createElement: () => ({ contentWindow, remove: () => {} }),
     body: { appendChild: () => {} },
     documentElement: { dataset },
+    querySelector,
   })
   vi.stubGlobal('window', {
     addEventListener: (_type: string, listener: (event: MessageEvent) => void) => listeners.add(listener),
@@ -50,7 +51,7 @@ const installWindow = (flags: Record<string, string>) => {
   vi.stubGlobal('localStorage', { getItem: (key: string) => flags[key] ?? null })
   const hello = () => {
     for (const listener of listeners) {
-      listener({ origin: ORIGIN, source: contentWindow, data: { type: HOST_HELLO, build: BUILD_ID }, ports: [] } as unknown as MessageEvent)
+      listener({ origin: ORIGIN, source: contentWindow, data: { type: HOST_HELLO, build: BUILD }, ports: [] } as unknown as MessageEvent)
     }
   }
   return { posted, dataset, hello }
@@ -75,7 +76,7 @@ describe('the engine bootstrap and the direct lane', () => {
     window.hello()
     await settle()
     const [bootstrap] = window.posted.filter(({ message }) => message.type === HOST_BOOTSTRAP)
-    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID })
+    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD })
     expect(bootstrap?.transfer).toHaveLength(3)
     expect(lane.port).toBeUndefined()
     expect(window.dataset.ytDirect).toBe('off')
@@ -89,7 +90,7 @@ describe('the engine bootstrap and the direct lane', () => {
     window.hello()
     await settle()
     const [bootstrap] = window.posted.filter(({ message }) => message.type === HOST_BOOTSTRAP)
-    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD_ID, direct: true })
+    expect(bootstrap?.message).toEqual({ type: HOST_BOOTSTRAP, build: BUILD, direct: true })
     expect(bootstrap?.transfer).toHaveLength(4)
     expect(lane.port).toBeInstanceOf(MessagePort)
     expect(bootstrap?.transfer.at(-1)).toBe(lane.port)

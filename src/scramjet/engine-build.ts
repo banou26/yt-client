@@ -1,5 +1,6 @@
 /**
- * The id of this build, shared by the app realm and the engine host it serves, and new on every build.
+ * The id of this build, shared by the app realm and the engine host it serves, and new on every build. The build
+ * writes it into each page's `<meta name="yt-build">` (vite.config.ts), so this reads the document it runs in.
  *
  * The engine host and its frame bundle load from fixed paths (`/__yt_scramjet__/host.html`,
  * `youtube-frame.js`), so a tab opened before a deploy gets the NEW engine on its next reset while
@@ -7,7 +8,7 @@
  * pair that differs never connects: the app realm reloads instead of calling a protocol the frame no
  * longer serves.
  */
-export const BUILD_ID: string = __YT_BUILD_ID__
+export const buildId = () => document.querySelector<HTMLMetaElement>('meta[name="yt-build"]')?.content ?? ''
 
 /** The error an engine from another build answers with, in `ENGINE_READY` or on the app's own check. */
 export const ENGINE_BUILD_MISMATCH = 'yt-client: the engine is from another build'
@@ -20,7 +21,7 @@ const RELOAD_KEY = 'yt-client:engine-build-reload'
  * engine error rather than looping, and so does a tab whose session storage cannot be written.
  */
 export const reloadOnceForBuild = (engineBuild: unknown, reload = () => location.reload()) => {
-  const pair = `${BUILD_ID} ${typeof engineBuild === 'string' ? engineBuild : 'unnamed'}`
+  const pair = `${buildId()} ${typeof engineBuild === 'string' ? engineBuild : 'unnamed'}`
   try {
     if (sessionStorage.getItem(RELOAD_KEY) === pair) return false
     sessionStorage.setItem(RELOAD_KEY, pair)

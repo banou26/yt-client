@@ -7,10 +7,10 @@ import type { YoutubeClient } from '../../../src/sources/youtube'
 import type { TransportRequest } from '../../../src/scramjet/protocol'
 
 import { CHANNEL_KEY } from '../../../src/scramjet/channel'
-import { BUILD_ID } from '../../../src/scramjet/engine-build'
 import { HOST_BOOTSTRAP } from '../../../src/scramjet/protocol'
 import { createYoutubeSource } from '../../../src/sources/youtube'
 import { accountsListAnswer, BRAND_PAGE_ID, twoChannels } from '../fixtures/accounts-list'
+import { BUILD, querySelector } from '../fixtures/build-tag'
 
 // the host as it boots, up to the transport it gives Scramjet's Controller, which is what this reads
 const scramjet = vi.hoisted(() => ({ transport: undefined as ProxyTransport | undefined }))
@@ -87,6 +87,7 @@ const bootHost = async (stored: Record<string, string>, jar = SESSION) => {
     documentElement: { dataset: {} },
     createElement: () => ({ setAttribute: () => {}, style: {} }),
     body: { appendChild: () => {} },
+    querySelector,
   })
   vi.stubGlobal('navigator', { serviceWorker: { register: async () => ({ active: {} }) } })
   vi.stubGlobal('fetch', async () => new Response('the frame bundle'))
@@ -101,7 +102,7 @@ const bootHost = async (stored: Record<string, string>, jar = SESSION) => {
   })
   extension.port1.start()
   for (const listener of listeners) {
-    listener({ origin: ORIGIN, source: parent, data: { type: HOST_BOOTSTRAP, build: BUILD_ID }, ports: [egress.port2, extension.port2] } as unknown as MessageEvent)
+    listener({ origin: ORIGIN, source: parent, data: { type: HOST_BOOTSTRAP, build: BUILD }, ports: [egress.port2, extension.port2] } as unknown as MessageEvent)
   }
   await vi.waitFor(() => expect(scramjet.transport).toBeDefined())
   return scramjet.transport!

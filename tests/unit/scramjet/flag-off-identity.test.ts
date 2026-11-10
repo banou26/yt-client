@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { BUILD_ID } from '../../../src/scramjet/engine-build'
 import { ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from '../../../src/scramjet/protocol'
 import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_EGRESS_CONNECT } from '../../../src/frame/protocol'
+import { BUILD, querySelector } from '../fixtures/build-tag'
 
 const agentHost = vi.hoisted(() => ({
   startAgentHost: vi.fn(),
@@ -67,6 +67,7 @@ const installAppRealm = () => {
     },
     body: { appendChild: () => {} },
     documentElement: { dataset: {} },
+    querySelector,
   })
   vi.stubGlobal('window', {
     addEventListener: (_type: string, listener: (event: MessageEvent) => void) => listeners.add(listener),
@@ -75,7 +76,7 @@ const installAppRealm = () => {
   vi.stubGlobal('location', { origin: ORIGIN, reload: () => {} })
   const hello = async (frame: (typeof frames)[number]) => {
     for (const listener of listeners) {
-      listener({ origin: ORIGIN, source: frame.contentWindow, data: { type: HOST_HELLO, build: BUILD_ID }, ports: [] } as unknown as MessageEvent)
+      listener({ origin: ORIGIN, source: frame.contentWindow, data: { type: HOST_HELLO, build: BUILD }, ports: [] } as unknown as MessageEvent)
     }
     await vi.waitFor(() => expect(frame.posted.length).toBeGreaterThan(0))
     return frame.posted.find(({ message }) => message.type === HOST_BOOTSTRAP)!
@@ -142,12 +143,13 @@ describe('the engine host with and without the agent port', () => {
       documentElement: { dataset: {} },
       createElement: () => ({ setAttribute: () => {}, style: {} }),
       body: { appendChild: () => {} },
+      querySelector,
     })
     vi.stubGlobal('navigator', { serviceWorker: { register: async () => ({ active: {} }) } })
     vi.stubGlobal('fetch', async () => new Response('the frame bundle'))
     const fromApp = (ports: MessagePort[]) => {
       for (const listener of listeners) {
-        listener({ origin: ORIGIN, source: parent, data: { type: HOST_BOOTSTRAP, build: BUILD_ID }, ports } as unknown as MessageEvent)
+        listener({ origin: ORIGIN, source: parent, data: { type: HOST_BOOTSTRAP, build: BUILD }, ports } as unknown as MessageEvent)
       }
     }
     return { toApp, fromApp }
