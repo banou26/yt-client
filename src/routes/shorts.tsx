@@ -15,6 +15,7 @@ import { Menu, MenuItem } from '../components/ui/menu'
 import useInfiniteFeed from '../components/use-infinite-feed'
 import { gql } from '../generated'
 import { isTypingTarget } from '../player/controls'
+import { shortsHrefFor } from '../player/links'
 import ShortsPlayer from '../player/shorts-player'
 import { closePlayer } from '../player/session'
 import { useSession } from '../session'
@@ -538,7 +539,7 @@ const ShortsPage = () => {
 
   useEffect(() => {
     if (!activeId) return
-    const next = `/shorts/${encodeURIComponent(activeId)}`
+    const next = shortsHrefFor(activeId)
     if (location.pathname !== next) history.replaceState(null, '', next)
   }, [activeId])
 

@@ -3,11 +3,10 @@ import type { VideoCardData } from './video-card'
 import { css } from '@emotion/react'
 import { Link } from 'wouter'
 
+import { shortsHrefFor } from '../player/links'
 import { formatViews } from './format'
 import { Thumbnail } from './thumbnail'
 import { VideoCardMenu } from './video-card'
-
-const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
 
 /* youtube.com draws every Shorts tile alike, in a channel's Shorts tab, a channel's Home shelf and a search's shelf:
    a 2:3 still with 8px corners, a 16/22px title beside a 40px More actions button, and 14/20px views that step down
