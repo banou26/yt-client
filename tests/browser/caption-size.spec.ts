@@ -59,57 +59,60 @@ const cueReader = async (page: Page) => {
 
 const stored = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('yt-client:settings') ?? '{}').captionSize)
 
+// a key that changes nothing, or shows no sample, has no event to wait for, and a waiting assertion would outlast the
+// 1 s sample, so these read once a moment after the key
+const settle = (page: Page) => page.waitForTimeout(300)
+
 test('+ and - step the captions through youtube.com\'s sizes, on or off, and the size stays for the next visit', async ({ page }) => {
   test.setTimeout(300_000)
   await startPlayback(page)
   await page.getByRole('button', { name: 'Turn on captions' }).click()
   await holdOnCue(page)
   const cue = await cueReader(page)
-  const sized = (size: number) => expect.poll(async () => (await cue())?.size, { timeout: 30_000 }).toBe(size)
-  await sized(100)
+  await expect.poll(async () => (await cue())?.size, { timeout: 30_000 }).toBe(100)
+  const { base } = (await cue())!
   const sample = page.getByText('Captions look like this', { exact: true })
   await expect(sample).toHaveCount(0)
 
-  // the sample stands in for the captions at their new size for about a second
+  // with a cue on screen, the cue itself takes the new size at once and no sample shows
   await page.keyboard.press('Shift+Equal')
-  await expect(sample).toBeVisible()
-  expect(await cue()).toMatchObject({ size: 150, visibility: 'hidden' })
-  const sampleSize = await sample.evaluate(element => parseFloat(getComputedStyle(element).fontSize))
-  expect(sampleSize / (await cue())!.base).toBeCloseTo(1.5, 1)
-  await expect(sample).toBeHidden({ timeout: 3_000 })
+  await settle(page)
+  expect(await sample.count()).toBe(0)
   expect(await cue()).toMatchObject({ size: 150, visibility: 'visible' })
   expect(await stored(page)).toBe(150)
 
   await page.keyboard.press('Equal')
-  await sized(200)
-  await expect(sample).toBeHidden({ timeout: 3_000 })
-  // at the top step nothing changes and no sample shows, read once since a waiting count would outlast a sample
+  await settle(page)
+  expect((await cue())?.size).toBe(200)
+  // at the top step nothing changes
   await page.keyboard.press('Shift+Equal')
-  await page.waitForTimeout(300)
-  expect(await sample.count()).toBe(0)
+  await settle(page)
   expect((await cue())?.size).toBe(200)
   // the numpad's keys are not these
   await page.keyboard.press('NumpadSubtract')
-  await page.waitForTimeout(300)
+  await settle(page)
   expect((await cue())?.size).toBe(200)
 
   await page.keyboard.press('Minus')
   await page.keyboard.press('Shift+Minus')
   await page.keyboard.press('Minus')
-  await sized(50)
-  await expect(sample).toBeHidden({ timeout: 3_000 })
-  await page.keyboard.press('Minus')
-  await page.waitForTimeout(300)
+  await settle(page)
+  expect(await cue()).toMatchObject({ size: 50, visibility: 'visible' })
   expect(await sample.count()).toBe(0)
   expect(await stored(page)).toBe(50)
 
-  // with captions off the keys still size them, and the sample shows what they will look like
+  // with captions off the keys still size them, and a sample shows what they will look like, except at a limit
   await page.keyboard.press('c')
   await expect(page.getByRole('button', { name: 'Turn on captions' })).toBeVisible()
+  await page.keyboard.press('Minus')
+  await settle(page)
+  expect(await sample.count()).toBe(0)
   await page.keyboard.press('Shift+Equal')
   await expect(sample).toBeVisible()
   await page.keyboard.press('Shift+Equal')
-  await expect.poll(() => stored(page)).toBe(150)
+  expect(await sample.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) / base).toBeCloseTo(1.5, 1)
+  await expect(sample).toBeHidden({ timeout: 3_000 })
+  expect(await stored(page)).toBe(150)
 
   await page.keyboard.press('Shift+Slash')
   const shortcuts = page.getByRole('dialog', { name: 'Keyboard shortcuts' })

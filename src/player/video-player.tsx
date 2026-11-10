@@ -122,7 +122,7 @@ const playerStyle = css`
     background: rgba(0, 0, 0, 0.8);
   }
 
-  /* youtube.com's sample after + or -, drawn where and as Chrome draws the cue it stands in for */
+  /* youtube.com's sample after + or - while no cue is on screen, drawn where and as Chrome draws a cue */
   .caption-sample {
     position: absolute;
     left: 50%;
@@ -133,10 +133,6 @@ const playerStyle = css`
     font-family: sans-serif;
     white-space: nowrap;
     pointer-events: none;
-  }
-
-  &.sampling video::cue {
-    visibility: hidden;
   }
 
   @container player (max-width: 600px) {
@@ -550,14 +546,16 @@ const VideoPlayer = (
     setMenu({ x: event.clientX - box.left, y: event.clientY - box.top })
   }
 
-  // at a limit youtube.com changes nothing and shows no sample; captions on or off, the size changes and the sample shows
+  // at a limit youtube.com changes nothing and shows no sample; otherwise the size changes, captions on or off, and a
+  // sample of it shows unless a cue on screen already does
   const resizeCaptions = (direction: 1 | -1) => {
     const video = videoRef.current
     const size = CAPTION_SIZES[CAPTION_SIZES.indexOf(getSettings().captionSize) + direction]
     if (!video || size === undefined) return
     updateSettings({ captionSize: size })
     setCaptionSize(size)
-    setSample(captionBase(video) * size / 100)
+    const cueShown = [...video.textTracks].some(track => track.mode === 'showing' && (track.activeCues?.length ?? 0) > 0)
+    setSample(cueShown ? undefined : captionBase(video) * size / 100)
     clearTimeout(sampleTimer.current)
     sampleTimer.current = setTimeout(() => setSample(undefined), CAPTION_SAMPLE_MS)
   }
@@ -702,7 +700,7 @@ const VideoPlayer = (
     <div
       css={[playerStyle, captionSizeStyle(captionSize)]}
       data-player-surface
-      className={[!active && !state.paused && !menu && !grid && 'idle', sample !== undefined && 'sampling'].filter(Boolean).join(' ') || undefined}
+      className={!active && !state.paused && !menu && !grid ? 'idle' : undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
