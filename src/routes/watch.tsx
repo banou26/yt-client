@@ -651,6 +651,8 @@ const WatchPage = () => {
                 currentChapter={chapter}
                 onViewChapters={() => setPanel('chapters')}
                 onShowTranscript={transcript ? () => setPanel('transcript') : undefined}
+                music={watch.music}
+                channelCard={watch.channelCard}
               />
             )
             : undefined}

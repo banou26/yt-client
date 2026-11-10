@@ -1,14 +1,22 @@
+import type { WatchMetaQuery } from '../generated/graphql'
 import type { PlayerChapter } from '../player/chapters'
 import type { RichTextRun } from './rich-text'
 
 import { css } from '@emotion/react'
+import { Music2, SquarePlay, SquareUser } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
 import { seekTo } from '../player/seek'
 import { ChapterCards } from './chapters'
 import { descriptionMeta } from './format'
+import { Rail } from './rail'
 import { RichText } from './rich-text'
+import { Thumbnail } from './thumbnail'
+import { watchHrefFor } from './video-card'
+
+type Watch = NonNullable<WatchMetaQuery['watch']>
+type Song = NonNullable<Watch['music']>['songs'][number]
 
 const LINES = 3
 const MORE_GAP = 4
@@ -84,8 +92,12 @@ const style = css`
     cursor: pointer;
   }
 
-  .chapters {
-    padding-top: 1.6rem;
+  /* youtube.com pads each section 16px above and below */
+  .chapters,
+  .music,
+  .transcript,
+  .channel-card {
+    padding: 1.6rem 0;
   }
 
   .chapters-head {
@@ -119,10 +131,6 @@ const style = css`
     background: var(--bg-hover);
   }
 
-  .transcript {
-    padding-top: 1.6rem;
-  }
-
   .show-transcript {
     display: block;
     margin-top: 1.6rem;
@@ -131,6 +139,117 @@ const style = css`
 
   .show-transcript:hover {
     background: var(--accent-hover);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .music-count,
+  .song-line,
+  .channel-subs {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
+  .songs {
+    margin-top: 0.4rem;
+    --rail-gap: 1.2rem;
+    --rail-arrow-top: 6.2rem;
+  }
+
+  .song {
+    display: block;
+    width: 16.4rem;
+    color: var(--text-primary);
+  }
+
+  .song-thumb,
+  .channel-avatar {
+    display: block;
+    flex: none;
+    overflow: hidden;
+    background: var(--bg-chip);
+  }
+
+  .song-thumb {
+    width: 16.4rem;
+    height: 16.4rem;
+    border-radius: 0.8rem;
+  }
+
+  .song-thumb img,
+  .channel-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .song-details {
+    display: block;
+    min-width: 0;
+    padding-top: 0.4rem;
+  }
+
+  .song-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .song-line {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* youtube.com lays a lone song beside its cover, and several under theirs in a row */
+  .songs.single .song {
+    display: flex;
+    gap: 1.6rem;
+    width: auto;
+  }
+
+  .songs.single .song-details {
+    padding-top: 0;
+  }
+
+  .music-channel {
+    justify-content: center;
+    width: 32.8rem;
+    max-width: 100%;
+    margin-top: 2rem;
+  }
+
+  .channel-head {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .channel-avatar {
+    width: 3.6rem;
+    height: 3.6rem;
+    border-radius: 50%;
+  }
+
+  .channel-name {
+    display: block;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 2.6rem;
+  }
+
+  .channel-links {
+    --rail-gap: 0.8rem;
+    --rail-arrow-top: 0;
   }
 
   .less {
@@ -169,7 +288,7 @@ const placeMore = (snippet: HTMLElement) => {
 export const DescriptionBox = (
   {
     viewCountText, publishedDateText, shortViewCountText, relativeDateText, hashtags = [],
-    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters, onShowTranscript,
+    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters, onShowTranscript, music, channelCard,
   }: {
     viewCountText?: string | null
     publishedDateText?: string | null
@@ -184,6 +303,8 @@ export const DescriptionBox = (
     onViewChapters?: () => void
     // set for a video with a transcript, which youtube.com's expanded description offers under the chapters
     onShowTranscript?: () => void
+    music?: Watch['music']
+    channelCard?: Watch['channelCard']
   },
 ) => {
   const [expanded, setExpanded] = useState(false)
@@ -258,6 +379,31 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
+      {expanded && music
+        ? (
+          <section className='music' aria-label='Music'>
+            <h2 className='chapters-heading'>Music</h2>
+            {music.countText ? <span className='music-count'>{music.countText}</span> : undefined}
+            {music.songs.length === 1
+              ? <div className='songs single'><SongCard song={music.songs[0]!} /></div>
+              : (
+                <div className='songs'>
+                  <Rail label='songs' count={music.songs.length}>
+                    {music.songs.map((song, index) => <SongCard key={`${index}:${song.title}`} song={song} />)}
+                  </Rail>
+                </div>
+              )}
+            {music.channelId
+              ? (
+                <Link className='view-all pill music-channel' href={`/channel/${music.channelId}`}>
+                  <Music2 size={24} strokeWidth={1.5} />
+                  Music
+                </Link>
+              )
+              : undefined}
+          </section>
+        )
+        : undefined}
       {expanded && onShowTranscript
         ? (
           <section className='transcript' aria-label='Transcript'>
@@ -275,11 +421,53 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
+      {expanded && channelCard
+        ? (
+          <section className='channel-card' aria-label='Channel'>
+            <Link className='channel-head' href={`/channel/${channelCard.id}`}>
+              <span className='channel-avatar'>{channelCard.avatar ? <Thumbnail src={channelCard.avatar} /> : undefined}</span>
+              <span>
+                <span className='channel-name'>{channelCard.name}</span>
+                {channelCard.subscriberCountText ? <span className='channel-subs'>{channelCard.subscriberCountText}</span> : undefined}
+              </span>
+            </Link>
+            <div className='channel-links'>
+              <Rail label='links' count={channelCard.links.length}>
+                {channelCard.videosUrl
+                  ? <Link className='view-all pill' href={channelCard.videosUrl}><SquarePlay size={24} strokeWidth={1.5} />Videos</Link>
+                  : undefined}
+                {channelCard.aboutUrl
+                  ? <Link className='view-all pill' href={channelCard.aboutUrl}><SquareUser size={24} strokeWidth={1.5} />About</Link>
+                  : undefined}
+                {channelCard.links.map(link => (
+                  <a key={link.url} className='view-all pill' href={link.url} target='_blank' rel='noreferrer noopener'>{link.title}</a>
+                ))}
+              </Rail>
+            </div>
+          </section>
+        )
+        : undefined}
       {description && expanded
         ? <button type='button' className='less' onClick={() => setExpanded(false)}>Show less</button>
         : undefined}
     </div>
   )
+}
+
+const SongCard = ({ song }: { song: Song }) => {
+  const body = (
+    <>
+      <span className='song-thumb'>{song.thumbnail ? <Thumbnail src={song.thumbnail} /> : undefined}</span>
+      <span className='song-details'>
+        <span className='song-title'>{song.title}</span>
+        {song.artist ? <span className='song-line'>{song.artist}</span> : undefined}
+        {song.album ? <span className='song-line'>{song.album}</span> : undefined}
+      </span>
+    </>
+  )
+  return song.videoId
+    ? <Link className='song' href={watchHrefFor(song.videoId)}>{body}</Link>
+    : <div className='song'>{body}</div>
 }
 
 export default DescriptionBox

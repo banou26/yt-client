@@ -34,6 +34,8 @@ export const WATCH_META_QUERY = gql(`
       autoplayId
       chapters { title startSeconds thumbnail }
       transcriptPanel { panelId params }
+      music { countText channelId songs { title artist album thumbnail videoId } }
+      channelCard { id name avatar subscriberCountText videosUrl aboutUrl links { title url } }
       related {
         id
         title
