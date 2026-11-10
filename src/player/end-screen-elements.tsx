@@ -13,7 +13,7 @@ import { showToast } from '../components/ui/toast'
 import { useSession } from '../session'
 import { signIn } from '../sign-in'
 import { openOnClick, upNextHref } from './end-screen'
-import { pictureOf, placeElement } from './end-screen-layout'
+import { pictureOf, placeElement, showsAt } from './end-screen-layout'
 
 // the elements and their images load this long before they are due rather than with the video, which most never play to
 const PRELOAD_MS = 10_000
@@ -615,8 +615,8 @@ export const EndScreenElements = (
   const picture = usePicture(video)
   const [hidden, setHidden] = useState(false)
   const ms = time * 1_000
-  const due = elements.map(element => !ended && ms >= element.startMs && ms < element.endMs)
-  const near = !ended && elements.some(element => ms >= element.startMs - PRELOAD_MS && ms < element.endMs)
+  const due = elements.map(element => showsAt(element, ms, ended))
+  const near = elements.some(element => showsAt(element, ms, ended, PRELOAD_MS))
   return (
     <div css={style} data-end-screen='elements'>
       {near

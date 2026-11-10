@@ -30,3 +30,10 @@ export const placeElement = (element: EndScreenElement, picture: Pick<Picture, '
     opensLeft: element.left + element.width / 2 > 0.5,
   }
 }
+
+/**
+ * Whether an element is on screen `ms` into the video, or within `lead` ms of it: from its start until its end, and
+ * never once the video has ended, whatever its end says.
+ */
+export const showsAt = (element: EndScreenElement, ms: number, ended: boolean, lead = 0) =>
+  !ended && ms >= element.startMs - lead && ms < element.endMs

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
 import { parseEndScreen } from '../../../src/frame/end-screen'
-import { placeElement } from '../../../src/player/end-screen-layout'
+import { placeElement, showsAt } from '../../../src/player/end-screen-layout'
 import fixture from '../fixtures/end-screens.json'
 
 const [channel, video] = parseEndScreen(fixture.g6Die8gVFn0)
@@ -23,5 +23,21 @@ describe('placeElement', () => {
   // youtube.com on a picture of 900 by 450 draws the video 291x163: 290.53 px wide before rounding, so 163.42 px high
   it('takes the height from the width before rounding', () => {
     expect(placeElement(video!, { width: 900, height: 450 })).toMatchObject({ left: 21, top: 238, width: 291, height: 163 })
+  })
+})
+
+describe('showsAt', () => {
+  it('shows an element from its start until its end, or from the lead before its start', () => {
+    expect(showsAt(channel!, 774_110, false)).toBe(false)
+    expect(showsAt(channel!, 774_111, false)).toBe(true)
+    expect(showsAt(channel!, 779_111, false)).toBe(false)
+    expect(showsAt(channel!, 764_111, false, 10_000)).toBe(true)
+  })
+
+  it('shows none once the video has ended, even one whose end is past the video\'s', () => {
+    const late = { ...channel!, endMs: 790_000 }
+    expect(showsAt(late, 779_141, false)).toBe(true)
+    expect(showsAt(late, 779_141, true)).toBe(false)
+    expect(showsAt(late, 779_141, true, 10_000)).toBe(false)
   })
 })
