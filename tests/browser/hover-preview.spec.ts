@@ -195,8 +195,22 @@ plain('a click on a preview in its first 10 s opens the video from its start', a
   await expect(page).toHaveURL(new RegExp(`/watch\\?v=${COURSE}$`))
 })
 
-plain('a click on a preview moved past its start opens the video where the preview is', async ({ page }) => {
+// what the app asks the engine for, `{ id, method, args }`, each passed on
+const recordAsked = () => {
+  if (window.top !== window) return
+  const state = window as unknown as Asked
+  state.asked = []
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    const request = message as { method?: string, args?: unknown[] } | null
+    if (request?.method) state.asked.push({ method: request.method, args: request.args ?? [] })
+    return post.call(this, message, ...rest)
+  } as typeof MessagePort.prototype.postMessage
+}
+
+plain('a click on a preview moved past its start opens the video where the preview is, with the card\'s params', async ({ page }) => {
   plain.setTimeout(240_000)
+  await page.addInitScript(recordAsked)
   const card = await hoverCourse(page)
   const preview = card.locator('[data-painted]')
   const bar = (await card.locator('.scrubber').boundingBox())!
@@ -214,6 +228,14 @@ plain('a click on a preview moved past its start opens the video where the previ
   await expect.poll(() => watch.evaluate((element: HTMLVideoElement) => element.currentTime), { timeout: 120_000 })
     .toBeGreaterThan(asked - 1)
   expect(await watch.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeLessThan(asked + 60)
+  const requests = (method: string) => page.evaluate((method) =>
+    (window as unknown as Asked).asked.filter((request) => request.method === method).map(({ args }) => args), method)
+  const opens = (await requests('openPlayback')).filter(([videoId]) => videoId === COURSE).map((args) => args[2])
+  expect(opens.length, 'the preview and the watch page did not both open the video').toBeGreaterThan(1)
+  expect(typeof opens[0], 'the preview opened without params').toBe('string')
+  expect(opens.filter((params) => params !== opens[0]), 'the watch page did not open with the card\'s params').toHaveLength(0)
+  // the answer to the params leaves the end screen out, so the watch page asks for the plain page's
+  await expect.poll(async () => (await requests('endScreen')).map(([videoId]) => videoId)).toContain(COURSE)
 })
 
 // youtube.com's "lofi" search has kept several 24/7 streams among its first rows (6 or 7 of 20 on 2026-11-11)
