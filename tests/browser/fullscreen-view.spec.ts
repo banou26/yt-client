@@ -202,6 +202,9 @@ test('the chapters and the comments take turns in one slot beside the video', as
   const more = player.getByRole('button', { name: 'More videos' })
   await expect(more).toBeVisible()
   expect(await more.boundingBox()).toEqual({ x: 444, y: 752, width: 40, height: 40 })
+  // and the chapter title, which takes more room here than on youtube.com, gives way 8 px short of it
+  const title = (await player.locator('.chapter').boundingBox())!
+  expect(title.x + title.width).toBeLessThanOrEqual(436)
 
   await press(page, player.locator('.chapter'))
   await expect(chapters).toBeVisible()

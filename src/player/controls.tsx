@@ -177,6 +177,13 @@ const style = css`
     height: 5.6rem;
   }
 
+  /* the groups left of the spacer, which the player's frame can hold short of the middle */
+  .left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
   .spacer {
     flex: 1;
   }
@@ -664,40 +671,42 @@ export const PlayerControls = (
           : undefined}
       </div>
       <div className='bar'>
-        <button type='button' className='control group play' aria-label={state.ended ? 'Replay' : state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
-          {state.ended
-            ? <RotateCcw size={22} strokeWidth={2} />
-            : state.paused ? <Play size={22} fill='currentColor' strokeWidth={0} /> : <Pause size={22} fill='currentColor' strokeWidth={0} />}
-        </button>
-        {onNext ? <button type='button' className='control group next' aria-label='Next' onClick={onNext}><SkipForward size={22} fill='currentColor' strokeWidth={2} /></button> : undefined}
-        <div className='group volume'>
-          <button type='button' className='control' aria-label={state.muted ? 'Unmute' : 'Mute'} onClick={toggleMute}>
-            <VolumeIcon size={24} strokeWidth={1.8} />
+        <div className='left'>
+          <button type='button' className='control group play' aria-label={state.ended ? 'Replay' : state.paused ? 'Play' : 'Pause'} onClick={() => (state.paused ? void video.play().catch(() => {}) : video.pause())}>
+            {state.ended
+              ? <RotateCcw size={22} strokeWidth={2} />
+              : state.paused ? <Play size={22} fill='currentColor' strokeWidth={0} /> : <Pause size={22} fill='currentColor' strokeWidth={0} />}
           </button>
-          <div className='volume-slider'>
-            <input
-              type='range'
-              min={0}
-              max={1}
-              step={0.05}
-              value={state.muted ? 0 : state.volume}
-              aria-label='Volume'
-              onInput={onVolume}
-            />
-          </div>
-        </div>
-        {/* a live presentation timeline is the stream's own clock: the position reads like 3348:05:43 and the duration is 0 */}
-        {isLive
-          ? <span className='group live-badge'>LIVE</span>
-          : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
-        {chapter && !isLive
-          ? (
-            <button type='button' className='group chapter' aria-label={chapter.title} onClick={onChapters}>
-              <span className='chapter-title'>{chapter.title}</span>
-              <ChevronRight size={20} strokeWidth={2} />
+          {onNext ? <button type='button' className='control group next' aria-label='Next' onClick={onNext}><SkipForward size={22} fill='currentColor' strokeWidth={2} /></button> : undefined}
+          <div className='group volume'>
+            <button type='button' className='control' aria-label={state.muted ? 'Unmute' : 'Mute'} onClick={toggleMute}>
+              <VolumeIcon size={24} strokeWidth={1.8} />
             </button>
-          )
-          : undefined}
+            <div className='volume-slider'>
+              <input
+                type='range'
+                min={0}
+                max={1}
+                step={0.05}
+                value={state.muted ? 0 : state.volume}
+                aria-label='Volume'
+                onInput={onVolume}
+              />
+            </div>
+          </div>
+          {/* a live presentation timeline is the stream's own clock: the position reads like 3348:05:43 and the duration is 0 */}
+          {isLive
+            ? <span className='group live-badge'>LIVE</span>
+            : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
+          {chapter && !isLive
+            ? (
+              <button type='button' className='group chapter' aria-label={chapter.title} onClick={onChapters}>
+                <span className='chapter-title'>{chapter.title}</span>
+                <ChevronRight size={20} strokeWidth={2} />
+              </button>
+            )
+            : undefined}
+        </div>
         <span className='spacer' />
         <div className='group right'>
           {onAutoplay && !isLive

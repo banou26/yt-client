@@ -78,6 +78,11 @@ const frameStyle = css`
     bottom: 13.2rem;
   }
 
+  /* the controls' left groups stop 8 px short of the grid's arrow in the middle, the chapter title giving way first */
+  &:fullscreen .bar > .left {
+    max-width: calc(50% - 2.8rem);
+  }
+
   /* youtube.com draws the chapters, the transcript and the comments in one slot beside the video, one at a time: 320 px
      wide and 16 px in from the edges, with the video narrowed to the rest (measured 2026-11-10 at 1280 px) */
   &.panel-open > [data-player-surface] {
