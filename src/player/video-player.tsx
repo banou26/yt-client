@@ -1,6 +1,6 @@
 import type shaka from 'shaka-player'
 
-import type { CaptionTrack, PlaybackRefusal, Storyboard } from '../frame/protocol'
+import type { CaptionTrack, EndScreenElement, PlaybackRefusal, Storyboard } from '../frame/protocol'
 import type { Point } from '../components/ui/popup'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './chapters'
@@ -29,6 +29,7 @@ import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
+import { EndScreenElements } from './end-screen-elements'
 import { MiniplayerControls } from './miniplayer'
 import { useFrame } from './player-frame'
 import { RefusalScreen } from './refusal-screen'
@@ -259,6 +260,7 @@ const VideoPlayer = (
   const [player, setPlayer] = useState<shaka.Player | undefined>(undefined)
   const [heights, setHeights] = useState<number[]>([])
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
+  const [endScreen, setEndScreen] = useState<EndScreenElement[]>([])
   const [isLive, setIsLive] = useState(false)
   const [quality, setQuality] = useState<'auto' | number>(() => getSettings().quality)
   const selectQualityRef = useRef<((height: number | 'auto') => Promise<void>) | undefined>(undefined)
@@ -459,6 +461,7 @@ const VideoPlayer = (
       setPlayer(controller.player)
       setHeights(controller.heights)
       setStoryboards(controller.storyboards)
+      setEndScreen(controller.endScreen)
       setIsLive(controller.isLive)
       selectQualityRef.current = controller.selectQuality
       setCaptionTracks(controller.captionTracks)
@@ -486,6 +489,7 @@ const VideoPlayer = (
       setPlayer(undefined)
       setHeights([])
       setStoryboards([])
+      setEndScreen([])
       setIsLive(false)
       setCaptionTracks([])
       void controller?.destroy()
@@ -762,6 +766,9 @@ const VideoPlayer = (
         )
         : undefined}
       {refusal ? <RefusalScreen refusal={refusal} /> : undefined}
+      {video && !status && !refusal && endScreen.length > 0
+        ? <EndScreenElements elements={endScreen} video={video} time={time} ended={state.ended} docked={docked} onOpen={upNext?.onOpen} />
+        : undefined}
       {upNext && ending === 'countdown' && upNext.pick
         ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />
         : upNext && ending === 'suggestions' && upNext.suggestions.length > 0

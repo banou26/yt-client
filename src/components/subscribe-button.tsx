@@ -12,7 +12,7 @@ import { showToast } from './ui/toast'
 import { signIn } from '../sign-in'
 
 // The mutation does not refetch the channel, so anything else would come back null
-const SET_SUBSCRIBED = gql(`
+export const SET_SUBSCRIBED = gql(`
   mutation SetSubscribed($channelId: ID!, $subscribed: Boolean!) {
     setSubscribed(channelId: $channelId, subscribed: $subscribed) {
       id

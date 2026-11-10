@@ -470,6 +470,7 @@ export const startShakaPlayback = async ({
       selectQuality,
       storyboards: session.storyboards,
       captionTracks: session.captionTracks,
+      endScreen: session.endScreen,
       selectCaption,
       // REPORTED rather than hardcoded false: the live branch falls through to this same return, and returning false is what left a live stream showing a 3348:27:07 / 0:00 clock instead of a LIVE badge
       isLive: session.isLive,
