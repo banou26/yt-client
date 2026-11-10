@@ -10,6 +10,7 @@ import type { PlaylistPrivacy, SavePlaylistsQuery } from '../generated/graphql'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
+import { MenuDataFailure } from './data-failure'
 import { readable } from './format'
 import { privacyIcon, WATCH_LATER_ID } from './playlist'
 import Dialog from './ui/dialog'
@@ -189,7 +190,7 @@ export const SaveMenu = (
   },
 ) => {
   const { ready, signedIn } = useSession()
-  const [opened, setOpened] = useState(false)
+  const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState<PlaylistsPage[]>([])
   const [saved, setSaved] = useState<string[]>([])
   const [pending, setPending] = useState<string | undefined>(undefined)
@@ -198,10 +199,10 @@ export const SaveMenu = (
   const [name, setName] = useState('')
   const [privacy, setPrivacy] = useState<PlaylistPrivacy>('PRIVATE')
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: SAVE_PLAYLISTS_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
-    pause: !opened || !ready || !signedIn,
+    pause: !open || !ready || !signedIn,
   })
   const [, addToPlaylist] = useMutation(ADD_TO_PLAYLIST)
   const [createState, createPlaylist] = useMutation(CREATE_PLAYLIST)
@@ -289,7 +290,7 @@ export const SaveMenu = (
         label='Save to playlist'
         align={align}
         class={className}
-        onOpenChange={(open: boolean) => { if (open) setOpened(true) }}
+        onOpenChange={setOpen}
         trigger={trigger ?? <button type='button' css={triggerStyle}>{triggerBody()}</button>}
       >
         <div css={panelStyle} role='presentation'>
@@ -316,17 +317,15 @@ export const SaveMenu = (
             {fetching && rows.length === 0
               ? <MenuItem label='Loading…' disabled />
               : undefined}
-            {error && rows.length === 0
-              ? <MenuItem label={readable(error.message)} disabled />
-              : undefined}
             {!fetching && !error && rows.length === 0
               ? <MenuItem label='No playlists yet' disabled />
               : undefined}
-            {cursor
+            {error && !fetching ? <MenuDataFailure error={error} reexecute={reexecute} /> : undefined}
+            {cursor && !error
               ? (
                 <MenuItem
                   label={fetching ? 'Loading more…' : 'Show more'}
-                  disabled={fetching || Boolean(error)}
+                  disabled={fetching}
                   closeOnSelect={false}
                   onSelect={onMore}
                 />

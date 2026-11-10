@@ -9,7 +9,7 @@ import { useQuery } from 'urql'
 import { gql } from '../generated'
 import { DEFAULT_EMOJI, groupStore, NAME_LIMIT } from '../groups/store'
 import { useSession } from '../session'
-import { readable } from './format'
+import { DataFailure } from './data-failure'
 import Dialog from './ui/dialog'
 
 // `all` pages the whole list, so it is asked only here and never by the guide, which keeps the first page
@@ -161,6 +161,10 @@ const style = css`
     color: var(--text-secondary);
   }
 
+  [role='alert'] {
+    margin: 0;
+  }
+
   .row {
     display: flex;
     justify-content: flex-end;
@@ -213,7 +217,7 @@ const SubscriptionPicker = (
   { chosen, onToggle }: { chosen: GroupChannel[], onToggle: (channel: GroupChannel, included: boolean) => void },
 ) => {
   const [filter, setFilter] = useState('')
-  const [{ data, error, fetching }] = useQuery({ query: GROUP_SUBSCRIPTIONS_QUERY })
+  const [{ data, error, fetching }, reexecute] = useQuery({ query: GROUP_SUBSCRIPTIONS_QUERY })
   const query = filter.trim().toLowerCase()
   const channels = (data?.subscribedChannels ?? [])
     .filter(channel => channel.name.toLowerCase().includes(query))
@@ -230,7 +234,7 @@ const SubscriptionPicker = (
         onInput={(event: Event) => setFilter((event.currentTarget as HTMLInputElement).value)}
       />
       {fetching ? <p className='status'>Loading…</p> : undefined}
-      {error ? <p className='status'>{readable(error.message)}</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <div className='channels'>
         {channels.map(channel => {
           const entry = { id: channel.id, name: channel.name, avatar: channel.avatar ?? undefined }

@@ -8,6 +8,7 @@ import { useLocation } from 'wouter'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
+import { MenuDataFailure } from './data-failure'
 import { readable } from './format'
 import { Menu, MenuItem } from './ui/menu'
 import { showToast } from './ui/toast'
@@ -176,7 +177,7 @@ export const NotificationsMenu = () => {
     }
   }, [ready, signedIn, refetchCount])
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: NOTIFICATIONS_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
     pause: !open || !ready || !signedIn,
@@ -213,7 +214,6 @@ export const NotificationsMenu = () => {
         }
       >
         {fetching && items.length === 0 ? <MenuItem label='Loading…' disabled /> : undefined}
-        {error && items.length === 0 ? <MenuItem label={readable(error.message)} disabled /> : undefined}
         {!fetching && !error && items.length === 0
           ? <MenuItem label='No notifications' disabled />
           : undefined}
@@ -238,7 +238,8 @@ export const NotificationsMenu = () => {
             }
           />
         ))}
-        {cursor && !fetching
+        {error && !fetching ? <MenuDataFailure error={error} reexecute={reexecute} /> : undefined}
+        {cursor && !fetching && !error
           ? (
             <MenuItem
               label='Show more'

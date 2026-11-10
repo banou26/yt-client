@@ -16,6 +16,7 @@ import { shortsHrefFor, shortsLink } from '../player/links'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
+import { MenuDataFailure } from './data-failure'
 import { formatDuration, readable, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
 import { CornerBadge, MembersOnly, MusicNote, RowMeta, ShortsMark } from './row-marks'
@@ -124,7 +125,7 @@ const CardMenuPanel = (
     panelRef.current?.querySelector<HTMLElement>('[role="menuitem"], [role="menuitemcheckbox"]')?.focus()
   }, [view])
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: SavePlaylistsDocument,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
     pause: !wanted || !ready || !signedIn,
@@ -224,15 +225,15 @@ const CardMenuPanel = (
               />
             ))}
             {fetching && rows.length === 0 ? <MenuItem label='Loading…' disabled /> : undefined}
-            {error && rows.length === 0 ? <MenuItem label={readable(error.message)} disabled /> : undefined}
             {!fetching && !error && rows.length === 0
               ? <MenuItem label='No playlists yet' disabled />
               : undefined}
-            {cursor
+            {error && !fetching ? <MenuDataFailure error={error} reexecute={reexecute} /> : undefined}
+            {cursor && !error
               ? (
                 <MenuItem
                   label={fetching ? 'Loading more…' : 'Show more'}
-                  disabled={fetching || Boolean(error)}
+                  disabled={fetching}
                   closeOnSelect={false}
                   onSelect={onMore}
                 />
