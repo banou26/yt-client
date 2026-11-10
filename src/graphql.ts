@@ -53,6 +53,7 @@ export const createCache = () => cacheExchange({
     SearchCard: () => null,
     SearchShelf: () => null,
     SearchSuggestion: () => null,
+    SearchTopic: () => null,
     CommentPage: () => null,
     PostPage: () => null,
     // deliberately NOT an entity: one playlist can hold the same video twice under different setVideoIds

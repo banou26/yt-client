@@ -21,6 +21,7 @@ import { chosen, FILTER_GROUPS, filterSearch, removable, searchFilters, searchPa
 import { ShortsShelf } from '../components/shorts-shelf'
 import SubscribeButton from '../components/subscribe-button'
 import { Thumbnail } from '../components/thumbnail'
+import { TopicCard } from '../components/topic-card'
 import Dialog from '../components/ui/dialog'
 import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
@@ -86,6 +87,13 @@ const SEARCH_RESULTS_QUERY = gql(`
           shorts { id title thumbnail viewCount }
         }
       }
+      topic {
+        title
+        subtitle
+        channelId
+        hero { id title thumbnail subtitle }
+        videos { id title thumbnail durationSeconds subtitle scheduledAt channel { id name } }
+      }
       refinements
       cursor
       unwatchedChip
@@ -118,6 +126,36 @@ const SEARCH_RESULTS_QUERY = gql(`
 const style = css`
   max-width: 109.6rem;
   padding: 2.4rem 1.6rem;
+
+  /* the topic card's column is added beside the results rather than taken from them */
+  &.with-topic {
+    max-width: 152.1rem;
+  }
+
+  .columns {
+    display: flex;
+    align-items: flex-start;
+    gap: 4rem;
+  }
+
+  .columns > .results {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topic {
+    flex: none;
+    width: 38.5rem;
+    margin-top: 1.6rem;
+  }
+
+  /* youtube.com drops the right column below 1091px rather than moving it
+     into the results: measured signed out on 2026-11-10. */
+  @media (max-width: 1090px) {
+    .topic {
+      display: none;
+    }
+  }
 
   .sr-only {
     position: absolute;
@@ -773,6 +811,7 @@ const SearchPage = () => {
 
   // shown until the first page says upstream has none, so the row does not shift on most searches
   const unwatchedChip = (pages[0] ?? page)?.unwatchedChip ?? true
+  const topic = (pages[0] ?? page)?.topic
 
   const onMore = () => {
     if (!page?.cursor || fetching || error) return
@@ -784,7 +823,7 @@ const SearchPage = () => {
   }
 
   return (
-    <main css={style}>
+    <main css={style} className={topic ? 'with-topic' : undefined}>
       <h1 className='sr-only'>Results for {query}</h1>
       <div className='toolbar'>
         <div className='filter-chips'>
@@ -850,70 +889,73 @@ const SearchPage = () => {
         )
         : undefined}
       {error ? <p className='status'>{error.message}</p> : undefined}
-      <div className='results'>
-        {items.map(row => {
-          if (row.__typename === 'SearchCard') return <SearchCard key={rowKey(row)} card={row} />
-          if (row.__typename === 'SearchShelf') return <ResultShelf key={rowKey(row)} shelf={row} />
-          if (row.__typename === 'Channel') {
-            return (
-              <article className='result channel-row' key={rowKey(row)}>
-                <Link href={`/channel/${row.id}`} className='channel-avatar' tabIndex={-1} aria-hidden='true'>
-                  {row.avatar
-                    ? <Thumbnail src={row.avatar} />
-                    : row.name.slice(0, 1).toUpperCase()}
-                </Link>
-                <div>
-                  <h2 className='channel-name'>
-                    <Link href={`/channel/${row.id}`}>{row.name}<VerifiedBadge channel={row} /></Link>
-                  </h2>
-                  <div className='meta'>
-                    {[row.handle, row.subscriberCountText, row.videoCountText].filter(Boolean).join(' • ')}
+      <div className='columns'>
+        <div className='results'>
+          {items.map(row => {
+            if (row.__typename === 'SearchCard') return <SearchCard key={rowKey(row)} card={row} />
+            if (row.__typename === 'SearchShelf') return <ResultShelf key={rowKey(row)} shelf={row} />
+            if (row.__typename === 'Channel') {
+              return (
+                <article className='result channel-row' key={rowKey(row)}>
+                  <Link href={`/channel/${row.id}`} className='channel-avatar' tabIndex={-1} aria-hidden='true'>
+                    {row.avatar
+                      ? <Thumbnail src={row.avatar} />
+                      : row.name.slice(0, 1).toUpperCase()}
+                  </Link>
+                  <div>
+                    <h2 className='channel-name'>
+                      <Link href={`/channel/${row.id}`}>{row.name}<VerifiedBadge channel={row} /></Link>
+                    </h2>
+                    <div className='meta'>
+                      {[row.handle, row.subscriberCountText, row.videoCountText].filter(Boolean).join(' • ')}
+                    </div>
+                    {row.description ? <p className='description'>{row.description}</p> : undefined}
+                    <div className='channel-actions'>
+                      <SubscribeButton
+                        channelId={row.id}
+                        subscribed={row.isSubscribed}
+                        notificationLevel={row.notificationLevel}
+                      />
+                    </div>
                   </div>
-                  {row.description ? <p className='description'>{row.description}</p> : undefined}
-                  <div className='channel-actions'>
-                    <SubscribeButton
-                      channelId={row.id}
-                      subscribed={row.isSubscribed}
-                      notificationLevel={row.notificationLevel}
-                    />
+                </article>
+              )
+            }
+
+            if (row.__typename === 'Playlist') {
+              const href = playlistHrefFor(row.id)
+              return (
+                <article className='result' key={rowKey(row)}>
+                  <Link href={href} className='playlist-thumb' tabIndex={-1} aria-hidden='true'>
+                    {row.thumbnail ? <Thumbnail src={row.thumbnail} /> : undefined}
+                    <span className='playlist-overlay'>
+                      <ListVideo size={24} strokeWidth={1.5} />
+                      {row.videoCountText ?? ''}
+                    </span>
+                  </Link>
+                  <div className='info'>
+                    <h2 className='title'>
+                      <Link href={href}>{row.title}</Link>
+                    </h2>
+                    {row.channel
+                      ? (
+                        <Link href={`/channel/${row.channel.id}`} className='channel'>
+                          <span>{row.channel.name}</span>
+                        </Link>
+                      )
+                      : undefined}
                   </div>
-                </div>
-              </article>
-            )
-          }
+                </article>
+              )
+            }
 
-          if (row.__typename === 'Playlist') {
-            const href = playlistHrefFor(row.id)
-            return (
-              <article className='result' key={rowKey(row)}>
-                <Link href={href} className='playlist-thumb' tabIndex={-1} aria-hidden='true'>
-                  {row.thumbnail ? <Thumbnail src={row.thumbnail} /> : undefined}
-                  <span className='playlist-overlay'>
-                    <ListVideo size={24} strokeWidth={1.5} />
-                    {row.videoCountText ?? ''}
-                  </span>
-                </Link>
-                <div className='info'>
-                  <h2 className='title'>
-                    <Link href={href}>{row.title}</Link>
-                  </h2>
-                  {row.channel
-                    ? (
-                      <Link href={`/channel/${row.channel.id}`} className='channel'>
-                        <span>{row.channel.name}</span>
-                      </Link>
-                    )
-                    : undefined}
-                </div>
-              </article>
-            )
-          }
-
-          return <VideoRow key={rowKey(row)} row={row} />
-        })}
-        {fetching && items.length === 0
-          ? Array.from({ length: PLACEHOLDER_ROWS }, (_, index) => <ResultPlaceholder key={index} />)
-          : undefined}
+            return <VideoRow key={rowKey(row)} row={row} />
+          })}
+          {fetching && items.length === 0
+            ? Array.from({ length: PLACEHOLDER_ROWS }, (_, index) => <ResultPlaceholder key={index} />)
+            : undefined}
+        </div>
+        {topic ? <div className='topic'><TopicCard topic={topic} /></div> : undefined}
       </div>
       {query.length > 0 && !fetching && !error && items.length === 0
         ? <p className='status'>No results found.</p>

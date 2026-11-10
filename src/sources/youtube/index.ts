@@ -5,7 +5,7 @@ import { Innertube, Utils } from 'youtubei.js/web'
 
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeStoreShelf, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSearchTopic, normalizeSession, normalizeShortsLockup, normalizeStoreShelf, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 import { base64Bytes, protoField } from './protobuf'
 import { readSearchSuggestions, searchSuggestionsUrl } from './suggestions'
 
@@ -56,6 +56,7 @@ type SearchFeed = Feed & {
   results?: Iterable<unknown>
   refinements?: string[]
   estimated_results?: number
+  watch_card?: unknown
   page?: { entity_mutations?: EntityMutation[] }
   header?: { chip_bar?: { chips?: SearchChip[] } }
   applyRefinement?: (chip: SearchChip) => Promise<SearchFeed>
@@ -905,6 +906,7 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     }
     const result: SourceSearchPage = {
       results,
+      topic: normalizeSearchTopic(feed.watch_card),
       refinements: feed.refinements ?? [],
       estimatedResults: feed.estimated_results,
       unwatchedChip,

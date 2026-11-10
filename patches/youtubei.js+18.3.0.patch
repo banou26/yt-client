@@ -136,6 +136,74 @@ index f310e85..c97f807 100644
  }
  //# sourceMappingURL=VideoAttributeView.js.map
 \ No newline at end of file
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/WatchCardCompactVideo.js b/node_modules/youtubei.js/dist/src/parser/classes/WatchCardCompactVideo.js
+index 70fff10..370bc13 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/WatchCardCompactVideo.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/WatchCardCompactVideo.js
+@@ -1,21 +1,32 @@
+ import { timeToSeconds } from '../../utils/Utils.js';
+ import { YTNode } from '../helpers.js';
++import NavigationEndpoint from './NavigationEndpoint.js';
+ import Text from './misc/Text.js';
++import Thumbnail from './misc/Thumbnail.js';
+ export default class WatchCardCompactVideo extends YTNode {
+     static type = 'WatchCardCompactVideo';
+     title;
+     subtitle;
+     duration;
+     style;
++    endpoint;
++    thumbnails;
++    byline;
++    upcoming;
+     constructor(data) {
+         super();
+         this.title = new Text(data.title);
+         this.subtitle = new Text(data.subtitle);
+         this.duration = {
+             text: new Text(data.lengthText).toString(),
+-            seconds: timeToSeconds(data.lengthText.simpleText)
++            seconds: data.lengthText ? timeToSeconds(data.lengthText.simpleText) : 0
+         };
+         this.style = data.style;
++        this.endpoint = new NavigationEndpoint(data.navigationEndpoint);
++        this.thumbnails = Thumbnail.fromResponse(data.thumbnail);
++        this.byline = new Text(data.byline);
++        if (data.upcomingEventData)
++            this.upcoming = new Date(Number(`${data.upcomingEventData.startTime}000`));
+     }
+ }
+ //# sourceMappingURL=WatchCardCompactVideo.js.map
+\ No newline at end of file
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/WatchCardHeroVideo.js b/node_modules/youtubei.js/dist/src/parser/classes/WatchCardHeroVideo.js
+index 4cd6a65..c5f213e 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/WatchCardHeroVideo.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/WatchCardHeroVideo.js
+@@ -1,18 +1,23 @@
+ import { YTNode } from '../helpers.js';
+ import { Parser } from '../index.js';
+ import NavigationEndpoint from './NavigationEndpoint.js';
++import Text from './misc/Text.js';
+ export default class WatchCardHeroVideo extends YTNode {
+     static type = 'WatchCardHeroVideo';
+     endpoint;
+     call_to_action_button;
+     hero_image;
+     label;
++    title;
++    subtitle;
+     constructor(data) {
+         super();
+         this.endpoint = new NavigationEndpoint(data.navigationEndpoint);
+         this.call_to_action_button = Parser.parseItem(data.callToActionButton);
+         this.hero_image = Parser.parseItem(data.heroImage);
+         this.label = data.lengthText?.accessibility.accessibilityData.label || '';
++        this.title = new Text(data.title);
++        this.subtitle = new Text(data.subtitle);
+     }
+ }
+ //# sourceMappingURL=WatchCardHeroVideo.js.map
+\ No newline at end of file
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
 index 996db9d..0219751 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js

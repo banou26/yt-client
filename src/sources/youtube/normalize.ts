@@ -1,4 +1,4 @@
-import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceStoreShelf, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSearchTopic, SourceSession, SourceStoreShelf, SourceTopicVideo, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -1172,6 +1172,57 @@ export const normalizeSearchShelf = (input: unknown): SourceSearchShelf | undefi
   return horizontal
     ? { title, subtitle: presentText(node.subtitle), videos, horizontal, shorts: [] }
     : { title, videos, collapsedCount: node.content.collapsed_item_count, shorts: [] }
+}
+
+type TopicVideoNode = {
+  endpoint?: { payload?: { videoId?: string } }
+  title?: Text
+  subtitle?: Text
+  thumbnails?: Thumbnail[]
+  hero_image?: { thumbnails?: Thumbnail[] }
+  duration?: { seconds?: number }
+  byline?: Text
+  upcoming?: Date
+}
+
+const normalizeTopicVideo = (node: TopicVideoNode | undefined): SourceTopicVideo | undefined => {
+  const id = node?.endpoint?.payload?.videoId
+  const title = presentText(node?.title)
+  if (!id || !title) return undefined
+  return {
+    id,
+    title,
+    thumbnail: thumbnail(node.hero_image?.thumbnails ?? node.thumbnails, STILL_WIDTH),
+    durationSeconds: node.duration?.seconds || undefined,
+    // a scheduled video's subtitle is 'Scheduled for DATE_PLACEHOLDER', the date left for the page to print
+    subtitle: node.upcoming ? undefined : presentText(node.subtitle),
+    channel: bylineChannel(node.byline),
+    scheduledAt: node.upcoming?.toISOString(),
+  }
+}
+
+// youtubei.js's UniversalWatchCard, whose newest video and list rows only this repo's patch of it (patches/) reads in full
+export const normalizeSearchTopic = (input: unknown): SourceSearchTopic | undefined => {
+  const card = input as {
+    type?: string
+    header?: { title?: Text, subtitle?: Text, title_endpoint?: { payload?: { browseId?: string } } }
+    call_to_action?: TopicVideoNode
+    sections?: { lists?: { items?: TopicVideoNode[] }[] }[]
+  } | undefined
+  if (card?.type !== 'UniversalWatchCard') return undefined
+  const title = presentText(card.header?.title)
+  const channelId = card.header?.title_endpoint?.payload?.browseId
+  if (!title || !channelId) return undefined
+  return {
+    title,
+    subtitle: presentText(card.header?.subtitle),
+    channelId,
+    hero: normalizeTopicVideo(card.call_to_action),
+    videos: (card.sections ?? [])
+      .flatMap((section) => section.lists ?? [])
+      .flatMap((list) => list.items ?? [])
+      .flatMap((item) => normalizeTopicVideo(item) ?? []),
+  }
 }
 
 // the playlist id is nowhere in `info` on any renderer, so the caller carries the id it browsed with

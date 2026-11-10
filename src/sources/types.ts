@@ -165,6 +165,29 @@ export type SourceSearchShelf = {
   shorts: SourceVideo[]
 }
 
+export type SourceTopicVideo = {
+  id: string
+  title: string
+  thumbnail?: string
+  durationSeconds?: number
+  // as upstream prints it: 'Minecraft • 172K • 11h ago' under the newest video, '301K • 3d ago' in the list
+  subtitle?: string
+  channel?: SourceChannel
+  // ISO 8601, on a video not yet out, whose date upstream leaves for the page to print
+  scheduledAt?: string
+}
+
+// The card youtube.com puts in the right column of a broad search, a game for one: the topic, its newest video and more
+export type SourceSearchTopic = {
+  title: string
+  // 'Video game • Released: 2009'
+  subtitle?: string
+  // the topic's own channel, which the title and View all open
+  channelId: string
+  hero?: SourceTopicVideo
+  videos: SourceTopicVideo[]
+}
+
 // The tag sits ALONGSIDE the entity's own fields rather than wrapping them, and `kind` is not in the schema
 export type SourceSearchResult =
   | (SourceVideo & { kind: 'video' })
@@ -175,6 +198,8 @@ export type SourceSearchResult =
 
 export type SourceSearchPage = {
   results: SourceSearchResult[]
+  // only on a search's first page
+  topic?: SourceSearchTopic
   refinements: string[]
   estimatedResults?: number
   cursor?: string

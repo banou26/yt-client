@@ -194,6 +194,32 @@ type SearchShelf {
   shorts: [Video!]!
 }
 
+# A video on a search's topic card.
+type TopicVideo {
+  id: ID!
+  title: String!
+  thumbnail: String
+  durationSeconds: Int
+  # As upstream prints it: 'Minecraft • 172K • 11h ago' under the newest video,
+  # '301K • 3d ago' in the list. Null on a scheduled video.
+  subtitle: String
+  channel: Channel
+  # An ISO 8601 time, on a video not yet out.
+  scheduledAt: String
+}
+
+# The card youtube.com puts in the right column of a broad search, a game for
+# one: the topic, its newest video and a few more.
+type SearchTopic {
+  title: String!
+  # 'Video game • Released: 2009'.
+  subtitle: String
+  # The topic's own channel, which the title and View all open.
+  channelId: ID!
+  hero: TopicVideo
+  videos: [TopicVideo!]!
+}
+
 # Search ranks channels and playlists above videos for a name query, so a
 # video-only page silently drops the best answer. The source tags every row with
 # its kind, which keeps __resolveType a pure field switch in the worker rather
@@ -202,6 +228,8 @@ union SearchResult = Video | Channel | Playlist | SearchCard | SearchShelf
 
 type SearchPage {
   results: [SearchResult!]!
+  # Only on a search's first page.
+  topic: SearchTopic
   # Upstream's "did you mean" and related-query chips, as plain query strings.
   refinements: [String!]!
   estimatedResults: Float
