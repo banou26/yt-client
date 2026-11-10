@@ -12,6 +12,7 @@ import { Link } from 'wouter'
 // reuses save-menu.tsx's documents rather than a second gql() copy: two operations cannot share a name
 import { AddToPlaylistDocument, SavePlaylistsDocument } from '../generated/graphql'
 import { HoverPreview } from '../player/hover-preview'
+import { shortsLink } from '../player/links'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
@@ -100,8 +101,9 @@ type CardMenuView = 'root' | 'playlists'
  * video has already been put into, so that state sits with the trigger.
  */
 const CardMenuPanel = (
-  { videoId, saved, onSaved }: {
+  { videoId, short, saved, onSaved }: {
     videoId: string
+    short: boolean
     saved: string[]
     onSaved: (playlistId: string) => void
   },
@@ -156,7 +158,7 @@ const CardMenuPanel = (
 
   const onShare = () => {
     // deliberately without the playlist context: a shared link opens the video, not a queue
-    const url = `${location.origin}${watchHrefFor(videoId)}`
+    const url = short ? shortsLink(location.origin, videoId) : `${location.origin}${watchHrefFor(videoId)}`
     const clipboard = navigator.clipboard
     if (!clipboard) {
       showToast('Could not copy the link')
@@ -246,13 +248,14 @@ const CardMenuPanel = (
  *
  * `iconSize` is the only thing that differs between them: the compact card's
  * button is 2.4rem where the grid card's is 3.6rem, and an icon sized for one
- * looks wrong in the other.
+ * looks wrong in the other. A Shorts tile sets `short`, so Share copies a /shorts/ link as youtube.com's does.
  */
 export const VideoCardMenu = (
-  { videoId, title, iconSize = 20, class: className }: {
+  { videoId, title, iconSize = 20, short = false, class: className }: {
     videoId: string
     title: string
     iconSize?: number
+    short?: boolean
     class?: string
   },
 ) => {
@@ -272,6 +275,7 @@ export const VideoCardMenu = (
     >
       <CardMenuPanel
         videoId={videoId}
+        short={short}
         saved={saved}
         onSaved={(playlistId: string) => setSaved(ids => ids.includes(playlistId) ? ids : [...ids, playlistId])}
       />

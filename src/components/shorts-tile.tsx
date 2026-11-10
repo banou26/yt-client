@@ -99,7 +99,7 @@ export const ShortsTile = ({ short }: { short: VideoCardData }) => {
           <Link href={href}>{short.title}</Link>
         </h3>
         {views ? <div className='views'>{views}</div> : undefined}
-        <VideoCardMenu videoId={short.id} title={short.title} iconSize={24} class='more-menu' />
+        <VideoCardMenu videoId={short.id} title={short.title} iconSize={24} short class='more-menu' />
       </div>
     </article>
   )

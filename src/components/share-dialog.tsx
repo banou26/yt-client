@@ -4,7 +4,7 @@ import { css } from '@emotion/react'
 import { useLayoutEffect, useState } from 'preact/hooks'
 
 import { formatDuration } from './format'
-import { watchLink } from '../player/links'
+import { shortsLink, watchLink } from '../player/links'
 import { playheadOf } from '../player/seek'
 import { Dialog } from './ui/dialog'
 import { Rail } from './rail'
@@ -130,13 +130,14 @@ const Mark = ({ children }: { children: ComponentChildren }) => (
   <svg viewBox='0 0 60 60' aria-hidden='true'>{children}</svg>
 )
 
-type Target = { name: string, mark: ComponentChildren, address: (link: string, title: string | undefined, videoId: string) => string }
+type Target = { name: string, mark: ComponentChildren, address: (link: string, title: string | undefined, still: string | undefined) => string }
 
 /*
  * youtube.com's targets after Embed, in its order, with the address each opens in a new tab, measured signed out on
  * 2026-11-10: the same nine in JP, US, KR, RU, GB and DE. What names YouTube is left out: Facebook's dialog/share
  * carries youtube.com's own app id (sharer.php needs none), X's via=YouTube, LinkedIn's source=Youtube and Messages'
- * source=yt. youtube.com leaves its start out of these links even with Start at checked; this keeps it in.
+ * source=yt. youtube.com leaves its start out of these links even with Start at checked; this keeps it in. Its Shorts
+ * player's sheet has the same eight with no Embed before them, and gives Pinterest no image.
  */
 const TARGETS: readonly Target[] = [
   {
@@ -217,12 +218,7 @@ const TARGETS: readonly Target[] = [
         <path d='M26 46l4.6-19.5M28.8 35c1 1.4 2.6 2.1 4.4 2.1 4.6 0 7.8-3.7 7.8-8.8 0-4.8-3.9-8.3-9.8-8.3-6.6 0-10.7 4.5-10.7 9.4 0 2.3.9 4.1 2.4 4.9' fill='none' stroke='#fff' strokeWidth='3' strokeLinecap='round' strokeLinejoin='round' />
       </>
     ),
-    address: (link, title, videoId) => `https://pinterest.com/pin/create/button/?${query({
-      url: link,
-      description: title,
-      is_video: 'true',
-      media: `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/maxresdefault.jpg`,
-    })}`,
+    address: (link, title, still) => `https://pinterest.com/pin/create/button/?${query({ url: link, description: title, is_video: 'true', media: still })}`,
   },
   {
     name: 'LinkedIn',
@@ -254,16 +250,18 @@ const deviceSheet = () => typeof navigator.share === 'function' && matchMedia('(
  *
  * The start-at offset is read ONCE, when the dialog opens, rather than tracked:
  * a checkbox that kept moving with playback would mean the link copied is not
- * the one the reader saw.
+ * the one the reader saw. A Short's sheet shares its /shorts/ link, with no
+ * Embed and no Start at, as youtube.com's Shorts player's does.
  */
 export const ShareDialog = (
-  { videoId, title, list, onClose }: { videoId: string, title?: string, list?: string, onClose: () => void },
+  { videoId, title, list, short = false, onClose }: { videoId: string, title?: string, list?: string, short?: boolean, onClose: () => void },
 ) => {
-  const [startAt] = useState(() => playheadOf(videoId))
+  const [startAt] = useState(() => short ? undefined : playheadOf(videoId))
   const [useStart, setUseStart] = useState(false)
   const [view, setView] = useState<'device' | 'share' | 'embed'>(() => deviceSheet() ? 'device' : 'share')
 
-  const url = watchLink(location.origin, videoId, { list, t: useStart ? startAt : undefined })
+  const url = short ? shortsLink(location.origin, videoId) : watchLink(location.origin, videoId, { list, t: useStart ? startAt : undefined })
+  const still = short ? undefined : `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/maxresdefault.jpg`
 
   // a layout effect, so the sheet is asked for as soon as the dialog opens: a browser opens it only shortly after a press
   useLayoutEffect(() => {
@@ -292,13 +290,17 @@ export const ShareDialog = (
     <Dialog key='share' title='Share' onClose={onClose}>
       <div css={style}>
         <div className='targets'>
-          <Rail label='share targets' count={TARGETS.length + 1}>
-            <button type='button' className='target' onClick={() => setView('embed')}>
-              <Mark>{EMBED_MARK}</Mark>
-              Embed
-            </button>
+          <Rail label='share targets' count={TARGETS.length + (short ? 0 : 1)}>
+            {short
+              ? undefined
+              : (
+                <button type='button' className='target' onClick={() => setView('embed')}>
+                  <Mark>{EMBED_MARK}</Mark>
+                  Embed
+                </button>
+              )}
             {TARGETS.map(target => (
-              <a key={target.name} className='target' href={target.address(url, title, videoId)} target='_blank' rel='noopener noreferrer'>
+              <a key={target.name} className='target' href={target.address(url, title, still)} target='_blank' rel='noopener noreferrer'>
                 <Mark>{target.mark}</Mark>
                 {target.name}
               </a>

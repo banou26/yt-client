@@ -168,3 +168,26 @@ test('a channel Home\'s and a search\'s Shorts shelves draw youtube.com\'s 2:3 t
   const { width, height } = await sizeOf(searchTile)
   expect(height / width).toBeCloseTo(3 / 2, 2)
 })
+
+test('Share on a Shorts tile and in the Shorts player gives the Short\'s /shorts/ link', async ({ page, context, baseURL }) => {
+  test.setTimeout(240_000)
+  const origin = new URL(baseURL!).origin
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  await page.addInitScript(holdPlayback)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/@MKBHD/shorts')
+  const tile = page.locator('main article').filter({ has: page.locator('a.thumb[href^="/shorts/"]') }).first()
+  await expect(tile).toBeVisible({ timeout: 120_000 })
+  const id = (await tile.locator('a.thumb').getAttribute('href'))!.slice('/shorts/'.length)
+  await tile.getByRole('button', { name: /^More actions for / }).click()
+  await page.getByRole('menu', { name: /^More actions for / }).getByRole('menuitem', { name: 'Share', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(`${origin}/shorts/${id}`)
+
+  await page.goto(`/shorts/${NAMED_SHORT}`)
+  await page.locator(`[data-short-id="${NAMED_SHORT}"]`).getByRole('button', { name: 'Share', exact: true }).click({ timeout: 120_000 })
+  const dialog = page.getByRole('dialog', { name: 'Share' })
+  await expect(dialog.getByRole('textbox', { name: 'Share link' })).toHaveValue(`${origin}/shorts/${NAMED_SHORT}`)
+  // youtube.com's Shorts player's sheet has no Embed and no Start at (measured signed out at 1280 px, 2026-11-10)
+  await expect(dialog.locator('.target')).toHaveText(['Messages', 'WhatsApp', 'Facebook', 'X', 'Email', 'Reddit', 'Pinterest', 'LinkedIn'])
+  await expect(dialog.getByRole('checkbox')).toHaveCount(0)
+})

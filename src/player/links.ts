@@ -10,6 +10,9 @@ export const watchLink = (origin: string, videoId: string, { list, t }: { list?:
   return `${origin}/watch?${params}`
 }
 
+/** This app's link to a Short, in the /shorts form youtube.com's Share copies for one, so it opens in the Shorts player. */
+export const shortsLink = (origin: string, videoId: string) => `${origin}/shorts/${encodeURIComponent(videoId)}`
+
 const attribute = (value: string) =>
   value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 

@@ -1,6 +1,7 @@
 import { expect, test } from './test'
 
 const VIDEO_ID = 'dQw4w9WgXcQ'
+const SHORT_ID = 'y2Vqj-59Hqc'
 
 // youtube.com's targets in its order, measured signed out at 1280 and 412 px on 2026-11-10
 const TARGETS = ['Embed', 'Messages', 'WhatsApp', 'Facebook', 'X', 'Email', 'Reddit', 'Pinterest', 'LinkedIn']
@@ -59,6 +60,28 @@ test('offers youtube.com\'s share targets, each opening its share address with t
   await expect(dialog).toHaveCount(0)
 })
 
+test('a Short\'s targets carry its /shorts/ link and title, as youtube.com\'s Shorts player\'s do', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.context().route(/^https:\/\/twitter\.com\//, route => route.fulfill({ contentType: 'text/html', body: '' }))
+  await page.goto(`/shorts/${SHORT_ID}`)
+  const slide = page.locator(`[data-short-id="${SHORT_ID}"]`)
+  await slide.getByRole('button', { name: 'Share', exact: true }).click({ timeout: 120_000 })
+  const dialog = page.getByRole('dialog', { name: 'Share' })
+  const link = `${new URL(page.url()).origin}/shorts/${SHORT_ID}`
+  await expect(dialog.getByRole('textbox', { name: 'Share link' })).toHaveValue(link)
+  const title = (await slide.locator('.short-title').textContent())!.trim()
+  expect(title).not.toBe('')
+
+  const opened = page.waitForEvent('popup')
+  await dialog.getByRole('link', { name: 'X', exact: true }).click()
+  const x = await opened
+  await expect(x).toHaveURL(`https://twitter.com/intent/tweet?url=${encodeURIComponent(link)}&text=${encodeURIComponent(title)}`)
+  await x.close()
+  // youtube.com gives Pinterest no image for a Short
+  await expect(dialog.getByRole('link', { name: 'Pinterest', exact: true }))
+    .toHaveAttribute('href', `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(link)}&description=${encodeURIComponent(title)}&is_video=true`)
+})
+
 test.describe('on a touch phone', () => {
   test.use({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true })
 
@@ -96,5 +119,11 @@ test.describe('on a touch phone', () => {
     await share.tap()
     await expect(dialog.getByRole('link', { name: 'WhatsApp', exact: true })).toBeVisible()
     await expect(dialog).toBeInViewport({ ratio: 1 })
+
+    // a Short hands over its /shorts/ link, as m.youtube.com's Shorts player does
+    await page.goto(`/shorts/${SHORT_ID}`)
+    await page.locator(`[data-short-id="${SHORT_ID}"]`).getByRole('button', { name: 'Share', exact: true }).tap({ timeout: 120_000 })
+    await expect.poll(shared).toEqual([{ url: `${new URL(page.url()).origin}/shorts/${SHORT_ID}` }])
+    await expect(dialog).toHaveCount(0)
   })
 })

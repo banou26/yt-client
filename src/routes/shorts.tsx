@@ -618,7 +618,7 @@ const ShortsPage = () => {
             : undefined}
         </section>
       ))}
-      {sharing ? <ShareDialog videoId={sharing} title={items.find(short => short.id === sharing)?.title ?? undefined} onClose={() => setSharing(undefined)} /> : undefined}
+      {sharing ? <ShareDialog videoId={sharing} title={items.find(short => short.id === sharing)?.title ?? undefined} short onClose={() => setSharing(undefined)} /> : undefined}
       {active === undefined && fetching ? <p className='notice'>Loading more…</p> : undefined}
       <div className='pager'>
         <button type='button' aria-label='Previous short' disabled={activeIndex <= 0} onClick={() => step(-1)}>
