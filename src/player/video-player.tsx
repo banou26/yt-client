@@ -21,7 +21,7 @@ import { resetEngine, startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
 import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
-import { setPanel, setPlayingChapter } from './session'
+import { closePlayer, setPanel, setPlayingChapter } from './session'
 import { CAPTION_SIZES, getSettings, updateSettings } from '../settings'
 import { Dialog } from '../components/ui/dialog'
 import { showToast } from '../components/ui/toast'
@@ -562,8 +562,8 @@ const VideoPlayer = (
   }
 
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList }
+  const latest = useRef({ docked, onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList })
+  latest.current = { docked, onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -649,13 +649,21 @@ const VideoPlayer = (
           handled()
           stepFrame(key === '.' ? 1 : -1)
           return
+        // youtube.com's miniplayer has no full screen or theater, and Escape closes it
         case 'f':
+          if (actions.docked) return
           handled()
           requestPlayerFullscreen(video)
           return
         case 't':
+          if (actions.docked) return
           handled()
           actions.onTheater?.()
+          return
+        case 'Escape':
+          if (!actions.docked) return
+          handled()
+          closePlayer()
           return
         case 'i':
           if (!actions.onMiniplayer) return
@@ -727,7 +735,7 @@ const VideoPlayer = (
             flash('pause')
           }
         }}
-        onDblClick={() => requestPlayerFullscreen(videoRef.current)}
+        onDblClick={docked ? undefined : () => requestPlayerFullscreen(videoRef.current)}
       />
       {showSpinner ? <div className='spinner' /> : undefined}
       {sample !== undefined ? <span className='caption-sample' style={{ fontSize: `${sample}px` }}>Captions look like this</span> : undefined}

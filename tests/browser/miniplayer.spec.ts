@@ -111,6 +111,38 @@ test('draws youtube.com\'s box, title and channel, and Expand, Close, Play and t
   await expect.poll(() => video.evaluate(element => (element as HTMLVideoElement).currentTime)).toBeGreaterThan(before)
 })
 
+test('f, t and a double click leave the miniplayer as it is, and Escape closes it', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  const video = await startPlayback(page)
+  const theater = page.getByRole('button', { name: 'Theater mode' })
+  await expect(theater).toHaveAttribute('aria-pressed', 'false')
+  await leaveForSettings(page)
+
+  const fullscreen = () => page.evaluate(() => document.fullscreenElement !== null)
+  await page.keyboard.press('f')
+  await page.keyboard.press('t')
+  await page.waitForTimeout(1_000)
+  expect(await fullscreen()).toBe(false)
+  // away from the buttons, where the click reaches the video
+  await video.dblclick({ position: { x: 100, y: 60 } })
+  await page.waitForTimeout(1_000)
+  expect(await fullscreen()).toBe(false)
+  await expect(dock(page)).toBeVisible()
+
+  await page.keyboard.press('i')
+  await expect(dock(page)).toHaveCount(0)
+  await expect(theater).toHaveAttribute('aria-pressed', 'false')
+  await page.locator('main h1').click()
+  await page.keyboard.press('i')
+  await expect(dock(page)).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(dock(page)).toHaveCount(0)
+  await expect(page.locator('video')).toHaveCount(0)
+  expect(new URL(page.url()).pathname).toBe('/settings')
+})
+
 test('in a playlist it names the playlist and the place in it, Shift+P plays the entry before, and Close stops it', async ({ page }) => {
   test.setTimeout(300_000)
   await page.goto(`/playlist?list=${FIXED_LIST}`)
