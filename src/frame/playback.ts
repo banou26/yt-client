@@ -10,7 +10,7 @@ type SabrSession = ReturnType<typeof createSabrSession>
 export type PlaybackEntry = {
   videoId: string
   maxHeight?: number
-  // a hover preview's card params, which every watch page read of this playback carries, its refreshes' included
+  // the card params it was opened with, which every watch page read of this playback carries, its refreshes' included
   playerParams?: string
   player: SabrSession
   chain: Promise<unknown>
@@ -36,7 +36,7 @@ const SEGMENT_CANCELLED = 'youtube: segment request cancelled'
 export const isCancellation = (error: unknown) =>
   (error instanceof Error && error.message === SEGMENT_CANCELLED) || (error instanceof DOMException && error.name === 'AbortError')
 
-/** Reads the video's watch page, with a hover preview's card params when given, and opens a SABR session on it. */
+/** Reads the video's watch page, with a card's inline playback params when given, and opens a SABR session on it. */
 export const openPlaybackEntry = async (videoId: string, maxHeight?: number, playerParams?: string) => {
   const source = await getSabrSource(videoId, playerParams)
   const entry: PlaybackEntry = {

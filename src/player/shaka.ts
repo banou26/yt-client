@@ -211,7 +211,7 @@ export const startShakaPlayback = async ({
   api: FrameApi
   video: HTMLVideoElement
   videoId: string
-  // a hover preview's card params, which the frame reads the watch page with
+  // the inline playback params of the card previewed or clicked, which the frame reads the watch page with
   playerParams?: string
   startTime: number
   signal: AbortSignal

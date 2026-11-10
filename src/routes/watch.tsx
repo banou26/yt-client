@@ -29,6 +29,7 @@ import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-
 import { watchPanel } from '../components/watch-panel'
 import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
+import { cardParamsIn } from '../player/card-params'
 import { prefetchPlayback } from '../player/prefetch'
 import {
   claimPlayer, closePlayer, getPlayerSession, openPlayer, setPanel, setTheater as setPlayerTheater, usePlayerSession,
@@ -458,6 +459,8 @@ const WatchPage = () => {
   const startAt = parseStartSeconds(params.get('t'))
   const indexParam = Number(params.get('index'))
   const playlistIndex = Number.isInteger(indexParam) && indexParam > 0 ? indexParam - 1 : undefined
+  // each video's page mounts anew, and a card's link carries its params in the history entry it opens
+  const [playerParams] = useState(() => cardParamsIn(history.state))
   const [{ data: watchData, error: watchError, fetching: watchFetching }, reexecuteWatch] = useQuery({
     query: WATCH_META_QUERY,
     variables: { id: videoId, playlistId: listId, playlistIndex },
@@ -490,8 +493,8 @@ const WatchPage = () => {
       if (getPlayerSession().videoId === videoId) closePlayer()
       return
     }
-    openPlayer({ videoId, startAt, title: watch?.title ?? undefined, list: listId, index: playlistIndex })
-  }, [videoId, startAt, watch?.title, listId, playlistIndex, unavailable])
+    openPlayer({ videoId, startAt, title: watch?.title ?? undefined, list: listId, index: playlistIndex, playerParams })
+  }, [videoId, startAt, watch?.title, listId, playlistIndex, unavailable, playerParams])
   // the sidebar pages from its own cursor: re-running /next would restart the whole watch
   const [wantMoreRelated, setWantMoreRelated] = useState(false)
   const [relatedPages, setRelatedPages] = useState<RelatedPage[]>([])

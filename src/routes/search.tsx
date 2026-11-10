@@ -28,6 +28,7 @@ import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VideoCard, VideoCardMenu, watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
+import { cardState } from '../player/card-params'
 import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { withPage } from './feed-pages'
@@ -688,6 +689,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
     ?? row.description
   // youtube.com mounts a player only on a row that carries its inline playback params
   const playerParams = row.isUpcoming !== true ? row.inlinePlayerParams ?? undefined : undefined
+  const state = cardState(playerParams)
   return (
     <article
       className='result'
@@ -701,7 +703,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
       }}
       onPointerDown={prefetch.onPointerDown}
     >
-      <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
+      <Link href={watchHref} state={state} className='thumb' tabIndex={-1} aria-hidden='true'>
         {row.thumbnail ? <Thumbnail src={row.thumbnail} srcSet={row.thumbnailSrcset} sizes='50rem' /> : undefined}
         {hovered && playerParams ? <HoverPreview videoId={row.id} href={watchHref} playerParams={playerParams} /> : undefined}
         {row.isLive
@@ -711,7 +713,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
       <div className='info'>
         <div className='title-row'>
           <h2 className='title'>
-            <Link href={watchHref}>{row.title}</Link>
+            <Link href={watchHref} state={state}>{row.title}</Link>
           </h2>
           <VideoCardMenu videoId={row.id} title={row.title} iconSize={24} />
         </div>
@@ -734,7 +736,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
                   </CollaboratorsButton>
                 )
                 : undefined}
-              <Link href={watchHref} className='names' tabIndex={-1}><BylineNames parts={row.byline} badgeSize={12} /></Link>
+              <Link href={watchHref} state={state} className='names' tabIndex={-1}><BylineNames parts={row.byline} badgeSize={12} /></Link>
             </div>
           )
           : row.channel

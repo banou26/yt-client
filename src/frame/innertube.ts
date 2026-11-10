@@ -277,9 +277,16 @@ export type SabrSource = {
   recoverMint(): Promise<void>
 }
 
+// a card's params work for their own video only: on another, the answer was unplayable with no formats (2026-11-10)
+const playsWithParams = (raw: Record<string, unknown>) => {
+  const answer = raw as { playabilityStatus?: { status?: string }, streamingData?: { serverAbrStreamingUrl?: string } }
+  return answer.playabilityStatus?.status === 'OK' && Boolean(answer.streamingData?.serverAbrStreamingUrl)
+}
+
 /**
- * A SABR session's source, off the video's watch page. A hover preview passes its card's inline playback params, and
- * the page is read afresh with them; the plain page an intent prefetch read for the click is neither used nor dropped.
+ * A SABR session's source, off the video's watch page. A card's hover preview, or a click on the card, passes its
+ * inline playback params, and the page is read afresh with them; an answer to them that does not play is read again
+ * as the plain page. The plain page an intent prefetch read for the click is neither used nor dropped.
  */
 export const getSabrSource = async (videoId: string, playerParams?: string): Promise<SabrSource> => {
   // The /player API alternative is NOT an option: anonymous /player calls yield preview-tier (~60s) SABR sessions.
@@ -299,10 +306,14 @@ export const getSabrSource = async (videoId: string, playerParams?: string): Pro
   const catalogContext = catalogClient.session.context as unknown as InnertubeContext
   warmPoTokenSession(catalogContext.client.visitorData)
   const nonce = Utils.generateRandomString(16)
-  void rawPromise.then((raw) => registerPlayback(raw, nonce, beaconFormats(raw), catalogContext.client.visitorData)).catch(() => {})
+  void rawPromise.then((raw) => {
+    if (playerParams && !playsWithParams(raw)) return
+    return registerPlayback(raw, nonce, beaconFormats(raw), catalogContext.client.visitorData)
+  }).catch(() => {})
   const client = await innertube()
   const context = client.session.context as unknown as InnertubeContext
   const raw = await rawPromise
+  if (playerParams && !playsWithParams(raw)) return getSabrSource(videoId)
   const info = new YT.VideoInfo([{ data: raw } as never], client.actions, Utils.generateRandomString(16))
   if (info.playability_status?.status !== 'OK') throw new Error(`${PLAYBACK_REFUSED}${JSON.stringify(readRefusal(raw))}`)
   const streaming = info.streaming_data

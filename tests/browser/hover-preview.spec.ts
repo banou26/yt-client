@@ -339,6 +339,58 @@ test('a row or card with inline params opens its preview with them, and one with
   expect(await opened(), 'a card without params asked for a playback').toHaveLength(2)
 })
 
+// the harness's videos are made up: their details are never answered, so the watch page cannot close the player as unavailable
+const holdWatchDetails = () => {
+  if (window.top !== window) return
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    if ((message as { method?: string } | null)?.method === 'watch') return
+    return post.call(this, message, ...rest)
+  } as typeof MessagePort.prototype.postMessage
+}
+
+test('a click on a row or card with inline params opens its video with them, and a reload or a shared link without', async ({ page }) => {
+  test.setTimeout(240_000)
+  await hideFknNotice(page)
+  await page.addInitScript(answerPlaybackHere)
+  await page.addInitScript(holdWatchDetails)
+  await page.setViewportSize({ width: 1280, height: 1200 })
+  await page.goto('/privacy?search_query=guitar+lesson')
+  const known = await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/preview-harness.tsx'
+    const module = await import(harness) as { mountPreviews: () => void, ROW_PARAMS: string, CARD_PARAMS: string }
+    module.mountPreviews()
+    return { rowParams: module.ROW_PARAMS, cardParams: module.CARD_PARAMS }
+  })
+  const harness = page.locator('[data-preview-harness]')
+  const home = harness.locator('[data-previews="cards"] article').nth(0)
+  const row = harness.locator('article.result')
+  // every open the player asks for, its retries included; the links are followed by keyboard, so no preview opens
+  const opened = (videoId: string) => page.evaluate((videoId) =>
+    (window as unknown as Asked).asked
+      .filter(({ method, args }) => method === 'openPlayback' && args[0] === videoId)
+      .map(({ args }) => args[2] ?? null), videoId)
+
+  await expect(row.locator('h2.title a')).toBeVisible({ timeout: 60_000 })
+  await row.locator('h2.title a').press('Enter')
+  await expect(page).toHaveURL(/\/watch\?v=search-0$/)
+  await expect.poll(() => opened('search-0'), { timeout: 60_000 }).not.toEqual([])
+  expect(new Set(await opened('search-0'))).toEqual(new Set([known.rowParams]))
+
+  await home.locator('h3.title a').press('Enter')
+  await expect(page).toHaveURL(/\/watch\?v=home-0$/)
+  await expect.poll(() => opened('home-0'), { timeout: 60_000 }).not.toEqual([])
+  expect(new Set(await opened('home-0'))).toEqual(new Set([known.cardParams]))
+
+  await page.reload()
+  await expect.poll(() => opened('home-0'), { timeout: 90_000 }).not.toEqual([])
+  expect(new Set(await opened('home-0'))).toEqual(new Set([null]))
+
+  await page.goto('/watch?v=search-0')
+  await expect.poll(() => opened('search-0'), { timeout: 90_000 }).not.toEqual([])
+  expect(new Set(await opened('search-0'))).toEqual(new Set([null]))
+})
+
 test('a live row or card opens its preview with its inline params', async ({ page }) => {
   test.setTimeout(240_000)
   await hideFknNotice(page)

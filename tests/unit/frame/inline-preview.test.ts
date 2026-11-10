@@ -38,7 +38,10 @@ const playerResponse = {
   playerConfig: { mediaCommonConfig: { mediaUstreamerRequestConfig: { videoPlaybackUstreamerConfig: 'config' } } },
 }
 
+const page = (answer: object) => new Response(`<script>var ytInitialPlayerResponse = ${JSON.stringify(answer)};</script>`)
+
 let fetched: string[]
+let respond: (url: string) => Response | Promise<Response>
 
 beforeEach(() => {
   vi.resetModules()
@@ -49,9 +52,10 @@ beforeEach(() => {
     setItem: (key: string, value: string) => { storage.set(key, value) },
     removeItem: (key: string) => { storage.delete(key) },
   })
-  vi.stubGlobal('fetch', async (url: string) => {
-    fetched.push(url)
-    return new Response(`<script>var ytInitialPlayerResponse = ${JSON.stringify(playerResponse)};</script>`)
+  respond = () => page(playerResponse)
+  vi.stubGlobal('fetch', async (url: string | URL) => {
+    fetched.push(String(url))
+    return respond(String(url))
   })
 })
 
@@ -80,4 +84,35 @@ it('reads the page afresh when a session opened on it is refreshed, with params 
   const preview = `https://www.youtube.com/watch?v=${VIDEO}&pp=${encodeURIComponent(PARAMS)}`
   const plain = `https://www.youtube.com/watch?v=${VIDEO}`
   expect(fetched).toEqual([preview, preview, plain, plain])
+})
+
+const card = `https://www.youtube.com/watch?v=${VIDEO}&pp=${encodeURIComponent(PARAMS)}`
+const plain = `https://www.youtube.com/watch?v=${VIDEO}`
+
+it('a card\'s link opens its video with the card\'s params, and a shared link or a reload reads the page plain', async () => {
+  const { cardParamsIn, cardState } = await import('../../../src/player/card-params')
+  const { getSabrSource } = await import('../../../src/frame/innertube')
+  // the browser keeps a history entry's state as a structured clone, across a reload too
+  const entry = structuredClone(cardState(PARAMS))
+  await getSabrSource(VIDEO, cardParamsIn(entry))
+  await getSabrSource(VIDEO, cardParamsIn(null))
+  vi.resetModules()
+  const reloaded = await import('../../../src/player/card-params')
+  await getSabrSource(VIDEO, reloaded.cardParamsIn(entry))
+  expect(fetched).toEqual([card, plain, plain])
+})
+
+it('reads the plain page when the answer to a card\'s params does not play, and registers that playback only', async () => {
+  const tracking = (docid: string) => ({
+    videostatsPlaybackUrl: { baseUrl: `https://s.youtube.com/api/stats/playback?docid=${docid}` },
+    videostatsWatchtimeUrl: { baseUrl: `https://s.youtube.com/api/stats/watchtime?docid=${docid}` },
+  })
+  respond = (url) => url.includes('&pp=')
+    ? page({ playabilityStatus: { status: 'UNPLAYABLE' }, playbackTracking: tracking('card') })
+    : page({ ...playerResponse, playbackTracking: tracking('plain') })
+  const { getSabrSource } = await import('../../../src/frame/innertube')
+  const source = await getSabrSource(VIDEO, PARAMS)
+  expect(source.streamingUrl).toMatch(/^https:\/\/rr1\.googlevideo\.com\/videoplayback\?id=1&/)
+  expect(fetched.filter((url) => !url.includes('/api/stats/'))).toEqual([card, plain])
+  expect(fetched.filter((url) => url.includes('/api/stats/')).map((url) => new URL(url).searchParams.get('docid'))).toEqual(['plain'])
 })

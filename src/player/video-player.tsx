@@ -242,10 +242,11 @@ const captionBase = (video: HTMLVideoElement) => {
 
 const VideoPlayer = (
   {
-    videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [],
-    teasers = [], cardsAvatar,
+    videoId, playerParams, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext,
+    chapters, segments = [], teasers = [], cardsAvatar,
   }: {
     videoId: string
+    playerParams?: string
     list?: string
     title?: string
     startAt?: number
@@ -487,6 +488,7 @@ const VideoPlayer = (
         api,
         video,
         videoId,
+        playerParams,
         startTime: resumeAt.current,
         signal: abort.signal,
         onError: restart,
@@ -534,7 +536,7 @@ const VideoPlayer = (
       setCaptionTracks([])
       void controller?.destroy()
     }
-  }, [attempt, videoId])
+  }, [attempt, videoId, playerParams])
 
   const applyQuality = useCallback((value: 'auto' | number) => {
     setQuality(value)

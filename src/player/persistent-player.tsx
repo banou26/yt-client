@@ -280,6 +280,7 @@ const PersistentPlayer = () => {
               <VideoPlayer
                 key={`player:${session.videoId}`}
                 videoId={session.videoId}
+                playerParams={session.playerParams}
                 list={session.list}
                 title={session.title}
                 startAt={session.startAt}

@@ -127,7 +127,10 @@ export type SegmentEnvelope = SegmentMetadata & ({
 
 export type FrameApi = SourceApi & {
   prefetchPlayback(videoId: string): Promise<void>
-  /** Opens a playback of the video; a hover preview passes its card's inline playback params as `playerParams`. */
+  /**
+   * Opens a playback of the video; a card's hover preview, or a click on the card, passes its inline playback params
+   * as `playerParams`.
+   */
   openPlayback(videoId: string, maxHeight?: number, playerParams?: string): Promise<PlaybackSession>
   requestSegment(request: SegmentRequest): Promise<SegmentEnvelope>
   liveManifest(sessionId: string): Promise<string>

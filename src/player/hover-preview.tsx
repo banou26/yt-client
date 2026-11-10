@@ -10,6 +10,7 @@ import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { startEngine } from '../scramjet/client'
 import { getSettings } from '../settings'
+import { cardState } from './card-params'
 import { clock } from './controls'
 import { warmShaka } from './prefetch'
 
@@ -397,7 +398,7 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
     event.preventDefault()
     const url = new URL(href, location.origin)
     url.searchParams.set('t', `${at}s`)
-    navigate(url.pathname + url.search)
+    navigate(url.pathname + url.search, { state: cardState(playerParams) })
   }
 
   const toggleCaption = () => {

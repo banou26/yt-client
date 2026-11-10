@@ -10,6 +10,8 @@ export type PlayerSession = {
   // the playlist the video is playing from, with its 0-based position, so the end of the video can move along the queue
   list?: string
   index?: number
+  // the inline playback params of the card the video was opened from, which its playback reads the watch page with
+  playerParams?: string
   theater: boolean
   claimed: boolean
   // the index of the chapter playing, which the player publishes for the watch page's list and cards
@@ -43,13 +45,14 @@ const update = (next: Partial<PlayerSession>) => {
  * whenever the page re-rendered for an unrelated reason.
  */
 export const openPlayer = (
-  { videoId, startAt, title, poster, list, index }: {
+  { videoId, startAt, title, poster, list, index, playerParams }: {
     videoId: string
     startAt?: number
     title?: string
     poster?: string
     list?: string
     index?: number
+    playerParams?: string
   },
 ) => {
   if (session.videoId === videoId) {
@@ -59,7 +62,9 @@ export const openPlayer = (
     }
     return
   }
-  update({ videoId, startAt, title, poster, list, index, theater: getSettings().theater, chapter: -1, panel: undefined })
+  update({
+    videoId, startAt, title, poster, list, index, playerParams, theater: getSettings().theater, chapter: -1, panel: undefined,
+  })
 }
 
 // the ONLY thing that closes the frame's SABR session: route unmount deliberately does not
@@ -71,7 +76,8 @@ export const openPlayer = (
  */
 export const closePlayer = () => {
   update({
-    videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined, theater: false,
+    videoId: undefined, startAt: undefined, title: undefined, poster: undefined, list: undefined, index: undefined,
+    playerParams: undefined, theater: false,
     chapter: -1, panel: undefined,
   })
 }

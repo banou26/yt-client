@@ -11,6 +11,7 @@ import { Link } from 'wouter'
 
 // reuses save-menu.tsx's documents rather than a second gql() copy: two operations cannot share a name
 import { AddToPlaylistDocument, SavePlaylistsDocument } from '../generated/graphql'
+import { cardState } from '../player/card-params'
 import { HoverPreview } from '../player/hover-preview'
 import { shortsHrefFor, shortsLink } from '../player/links'
 import { usePrefetchOnIntent } from '../player/prefetch'
@@ -535,6 +536,7 @@ export const VideoCard = (
   // moving thumbnail on the rest (a channel's Home rows and Videos tab), measured signed out on 2026-11-10
   const playerParams = video.isUpcoming !== true ? video.inlinePlayerParams ?? undefined : undefined
   const moving = hovered && !playerParams ? video.animatedThumbnail ?? undefined : undefined
+  const state = carouselShort ? undefined : cardState(playerParams)
   const avatar = variant === undefined || variant === 'carousel'
   return (
     <article
@@ -551,7 +553,7 @@ export const VideoCard = (
       }}
       onPointerDown={prefetch.onPointerDown}
     >
-      <Link href={watchHref} className='thumb' tabIndex={-1} aria-hidden='true'>
+      <Link href={watchHref} state={state} className='thumb' tabIndex={-1} aria-hidden='true'>
         {video.thumbnail
           ? <Thumbnail src={video.thumbnail} srcSet={video.thumbnailSrcset} sizes='(max-width: 500px) 100vw, 38rem' />
           : undefined}
@@ -597,11 +599,11 @@ export const VideoCard = (
           : undefined}
         <div className='text'>
           <h3 className='title'>
-            <Link href={watchHref}>{video.title}</Link>
+            <Link href={watchHref} state={state}>{video.title}</Link>
           </h3>
           {/* youtube.com opens the video from a collaboration's names, and the choice of its channels from the avatars */}
           {byline === 'names'
-            ? <Link href={watchHref} className='channel-name names' tabIndex={-1}><BylineNames parts={video.byline} /></Link>
+            ? <Link href={watchHref} state={state} className='channel-name names' tabIndex={-1}><BylineNames parts={video.byline} /></Link>
             : byline === 'channel' && video.channel && channelHref
             ? <Link href={channelHref} className='channel-name'>{video.channel.name}<VerifiedBadge channel={video.channel} /></Link>
             : undefined}
