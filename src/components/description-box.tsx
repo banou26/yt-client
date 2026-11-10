@@ -21,6 +21,8 @@ type Song = NonNullable<Watch['music']>['songs'][number]
 type InfoCard = NonNullable<Watch['channelCard']>['cards'][number]
 
 const LINES = 3
+// youtube.com's description panel in full screen cuts the text at 400 px, and puts Show less 20 px under it (measured 2026-11-10)
+const PANEL_LINES = 20
 const MORE_GAP = 4
 const FADE = 24
 
@@ -68,12 +70,12 @@ const style = css`
     word-break: break-word;
   }
 
-  /* Three lines, cut by height rather than a line clamp: a clamp draws its own
+  /* Cut by height rather than a line clamp: a clamp draws its own
      ellipsis on the last kept line, which is a lone one when that line is blank.
      The mask hides the last line from where the inline button starts, fading
      the text it cuts, so it reads on the translucent box in either theme. */
-  &.collapsed .text {
-    max-height: 6rem;
+  .clamped .text {
+    max-height: ${LINES * 2}rem;
     overflow: hidden;
     mask-image:
       linear-gradient(to top, transparent 2rem, #000 2rem),
@@ -346,14 +348,27 @@ const style = css`
   }
 `
 
-// youtube.com's inline ...more: right after the text of the last line shown, or at the end of that line, over its faded text, when the line is full
-const placeMore = (snippet: HTMLElement) => {
+const panelStyle = css`
+  .clamped .text {
+    max-height: ${PANEL_LINES * 2}rem;
+  }
+
+  .less {
+    margin-top: 2rem;
+  }
+`
+
+/* youtube.com's inline ...more: right after the text of the last line shown, or at the end of that line, over its
+   faded text, when the line is full. Returns whether the text runs past `limit` lines. */
+const placeMore = (snippet: HTMLElement, limit: number) => {
   const text = snippet.querySelector<HTMLElement>('.text')
-  const more = snippet.querySelector<HTMLElement>('.more')
-  if (!text || !more) return
-  const box = text.getBoundingClientRect()
+  if (!text) return false
   const lineHeight = Number.parseFloat(getComputedStyle(text).lineHeight)
-  const lines = Math.max(1, Math.min(LINES, Math.round(text.scrollHeight / lineHeight)))
+  const total = Math.round(text.scrollHeight / lineHeight)
+  const more = snippet.querySelector<HTMLElement>('.more')
+  if (!more) return total > limit
+  const box = text.getBoundingClientRect()
+  const lines = Math.max(1, Math.min(limit, total))
   const lineTop = box.top + (lines - 1) * lineHeight
   const range = document.createRange()
   range.selectNodeContents(text)
@@ -364,6 +379,7 @@ const placeMore = (snippet: HTMLElement) => {
   const left = Math.min(end + MORE_GAP, last)
   snippet.style.setProperty('--more-left', `${left}px`)
   snippet.style.setProperty('--fade-from', `${left < end + MORE_GAP ? left - FADE : left}px`)
+  return total > limit
 }
 
 export const DescriptionBox = (
@@ -386,11 +402,16 @@ export const DescriptionBox = (
     onShowTranscript?: () => void
     music?: Watch['music']
     channelCard?: Watch['channelCard']
-    // expanded with no Show less, as youtube.com's description panel in full screen lists every section
+    /* youtube.com's description panel in full screen: every section listed, and the text cut at 20 lines, with ...more
+       only when it runs longer and Show less right under it */
     open?: boolean
   },
 ) => {
-  const [expanded, setExpanded] = useState(open)
+  const [expanded, setExpanded] = useState(false)
+  // the panel's text fits its 20 lines, so it offers no ...more
+  const [fits, setFits] = useState(false)
+  const full = expanded || open
+  const clamped = !expanded && !(open && fits)
   const snippetRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLElement>(null)
   const [revealed, setRevealed] = useState(0)
@@ -407,20 +428,25 @@ export const DescriptionBox = (
   useLayoutEffect(() => {
     const snippet = snippetRef.current
     if (expanded || !snippet) return
-    const place = () => placeMore(snippet)
+    const place = () => {
+      const long = placeMore(snippet, open ? PANEL_LINES : LINES)
+      if (open) setFits(!long)
+    }
     place()
     // a box of fixed height and width does not resize when the web font swaps in and the lines rewrap
     void document.fonts.ready.then(place)
     const observer = new ResizeObserver(place)
     observer.observe(snippet)
     return () => observer.disconnect()
-  }, [expanded, description, runs])
-  const counts = descriptionMeta({ expanded, viewCountText, shortViewCountText, publishedDateText, relativeDateText })
+  }, [expanded, description, runs, open])
+  const expand = () => setExpanded(true)
+  const less = <button type='button' className='less' onClick={() => setExpanded(false)}>Show less</button>
+  const counts = descriptionMeta({ expanded: full, viewCountText, shortViewCountText, publishedDateText, relativeDateText })
   return (
     <div
-      css={style}
-      className={expanded ? undefined : 'collapsed'}
-      onClick={expanded ? undefined : () => setExpanded(true)}
+      css={open ? [style, panelStyle] : style}
+      className={full ? undefined : 'collapsed'}
+      onClick={full ? undefined : expand}
     >
       {counts || hashtags.length > 0
         ? (
@@ -434,15 +460,16 @@ export const DescriptionBox = (
         : undefined}
       {description
         ? (
-          <div className='snippet' ref={snippetRef}>
+          <div className={clamped ? 'snippet clamped' : 'snippet'} ref={snippetRef} onClick={open && clamped ? expand : undefined}>
             {runs && runs.length > 0
               ? <RichText className='text' runs={runs} videoId={videoId} />
               : <div className='text'>{description}</div>}
-            {expanded ? undefined : <button type='button' className='more'>...more</button>}
+            {clamped ? <button type='button' className='more'>...more</button> : undefined}
           </div>
         )
         : undefined}
-      {expanded && videoId && chapters.length > 0
+      {description && expanded && open ? less : undefined}
+      {full && videoId && chapters.length > 0
         ? (
           <section className='chapters' aria-label='Chapters'>
             <div className='chapters-head'>
@@ -474,7 +501,7 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
-      {expanded && music
+      {full && music
         ? (
           <section className='music' aria-label='Music'>
             <h2 className='chapters-heading'>Music</h2>
@@ -499,7 +526,7 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
-      {expanded && onShowTranscript
+      {full && onShowTranscript
         ? (
           <section className='transcript' aria-label='Transcript'>
             <h2 className='chapters-heading'>Transcript</h2>
@@ -516,7 +543,7 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
-      {expanded && channelCard
+      {full && channelCard
         ? (
           <section className='channel-card' aria-label='Channel' ref={cardRef}>
             <Link className='channel-head' href={`/channel/${channelCard.id}`}>
@@ -545,9 +572,7 @@ export const DescriptionBox = (
           </section>
         )
         : undefined}
-      {description && expanded && !open
-        ? <button type='button' className='less' onClick={() => setExpanded(false)}>Show less</button>
-        : undefined}
+      {description && expanded && !open ? less : undefined}
     </div>
   )
 }

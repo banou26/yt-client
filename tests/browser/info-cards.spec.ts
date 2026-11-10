@@ -5,9 +5,10 @@ import { expect, plainTest as test } from './test'
 /* `kJQP7kiw5Fk` carries three info cards, whose teasers slide in at 15, 30 and 45 s and stay 6 s, or while the
    pointer is on them (measured on youtube.com signed out, 2026-11-10). youtube.com draws a teaser 12 px from the
    player's right and 16.5 px from its top, 31 px tall, and the "i" that opens the cards 36 px square, 8 px from the
-   top, with the controls; the cards are the ones its expanded description lists under the channel card, and in full
-   screen the "i" opens that description beside the video, which on the page it glides to 24 px above the bottom. Its
-   miniplayer shows neither, and its end screen's Hide toggle sits 48 px from the top, under the "i". */
+   top, with the controls. The cards are the ones its expanded description lists under the channel card, which on
+   the page it glides to 24 px above the bottom, and in full screen the "i" opens that description beside the video,
+   its text cut at 20 lines (400 px) behind ...more. Its miniplayer shows neither, and its end screen's Hide toggle
+   sits 48 px from the top, under the "i". */
 
 const VIDEO_ID = 'kJQP7kiw5Fk'
 const FIRST = 'Listen to Luis\' new single'
@@ -16,6 +17,10 @@ const SECOND = 'Becky G - Glitch | Official Live Performance'
 const video = (page: Page) => page.locator('[data-player-root] video')
 
 const currentTime = (page: Page) => video(page).evaluate(element => (element as HTMLVideoElement).currentTime)
+
+const seek = (page: Page, seconds: number) => video(page).evaluate((element, seconds) => {
+  (element as HTMLVideoElement).currentTime = seconds
+}, seconds)
 
 const playFrom = async (page: Page, seconds: number) => {
   await page.goto(`/watch?v=${VIDEO_ID}&t=${seconds}`)
@@ -96,15 +101,22 @@ test('holds a teaser under the pointer and closes it, opens the description besi
   const panel = page.getByRole('complementary', { name: 'Description', exact: true })
   await expect(panel.getByRole('link', { name: `2:02 ${SECOND} by BeckyGVEVO`, exact: true })).toBeAttached()
   expect(Math.round((await panel.boundingBox())!.width)).toBe(320)
-  await expect(panel.getByRole('button', { name: 'Show less', exact: true })).toHaveCount(0)
+  const more = panel.getByRole('button', { name: '...more', exact: true })
+  const less = panel.getByRole('button', { name: 'Show less', exact: true })
+  await expect(more).toBeVisible()
+  expect(Math.round((await more.locator('..').boundingBox())!.height)).toBe(400)
+  await expect(less).toHaveCount(0)
+  await more.click()
+  await expect(more).toHaveCount(0)
+  expect((await less.locator('xpath=preceding-sibling::*[1]').boundingBox())!.height).toBeGreaterThan(420)
+  await less.click()
+  await expect(more).toBeVisible()
   await panel.getByRole('button', { name: 'Close description', exact: true }).click()
   await expect(panel).toBeHidden()
 
   await page.keyboard.press('f')
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === null)).toBe(true)
-  await video(page).evaluate((element) => {
-    (element as HTMLVideoElement).currentTime = 43
-  })
+  await seek(page, 43)
   await page.keyboard.press('i')
   await expect(page.getByRole('complementary', { name: 'Miniplayer', exact: true })).toBeVisible()
   await expect.poll(() => currentTime(page), { timeout: 30_000 }).toBeGreaterThan(46)
@@ -124,4 +136,21 @@ test('moves the end screen\'s Hide toggle under the "i"', async ({ page }) => {
   }).toPass({ timeout: 5_000 })
   expect(await corner(page, showCards(page))).toEqual({ right: 12, top: 8, width: 36, height: 36 })
   expect(await corner(page, hide)).toMatchObject({ right: 12, top: 48 })
+})
+
+test('offers ...more in the full screen description only on a text longer than its 20 lines', async ({ page }) => {
+  await page.goto('/settings')
+  await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/description-harness.tsx'
+    const { mountPanelDescription } = await import(harness) as { mountPanelDescription: (lines: number) => void }
+    mountPanelDescription(20)
+    mountPanelDescription(21)
+  })
+  const fits = page.locator('[data-description-harness]').first()
+  const runs = page.locator('[data-description-harness]').last()
+  await expect(runs.getByRole('button', { name: '...more', exact: true })).toBeVisible()
+  await expect(fits.getByRole('button', { name: '...more', exact: true })).toHaveCount(0)
+  for (const box of [fits, runs]) {
+    expect(Math.round((await box.getByText(/^Line 1\s+Line 2\s/).boundingBox())!.height)).toBe(400)
+  }
 })
