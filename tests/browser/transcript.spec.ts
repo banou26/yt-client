@@ -70,8 +70,19 @@ plainTest('opens from the description beside the player, follows the line playin
     return state.active > first && state.active === state.playing && atTenth(state)
   }, { timeout: 60_000, message: 'the next line takes over as the video plays, and the list follows it' }).toBe(true)
 
-  await video(page).evaluate(element => (element as HTMLVideoElement).pause())
-  const target = panel.locator('.transcript-line').nth(state.active + 3)
+  // the highlight is the line started last, neither behind the video nor ahead of it: half a second into a line, into
+  // the next, then half a second before that one starts, each a different line from the one before, within a tick or
+  // two of the seek
+  const lines = panel.locator('.transcript-line')
+  const starts = (await lines.locator('.transcript-time').allTextContents()).map(seconds)
+  const gap = (index: number) => starts[index + 1]! - starts[index]!
+  const line = starts.findIndex((_, index) => index >= state.active + 3 && gap(index) >= 2 && gap(index + 1) >= 2)
+  for (const [at, playing] of [[starts[line]! + 0.5, line], [starts[line + 1]! + 0.5, line + 1], [starts[line + 1]! - 0.5, line]] as const) {
+    await seek(page, at, false)
+    await expect(lines.nth(playing), `the line playing at ${at} s`).toHaveAttribute('aria-current', 'true', { timeout: 1_000 })
+  }
+
+  const target = lines.nth(state.active + 3)
   const start = seconds((await target.locator('.transcript-time').textContent())!)
   await target.click()
   await expect.poll(() => currentTime(page)).toBeCloseTo(start, 0)
