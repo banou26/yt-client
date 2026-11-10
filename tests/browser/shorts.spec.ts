@@ -1,8 +1,37 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, hideFknNotice, test } from './test'
+import { PLAYBACK_REFUSED } from '../../src/frame/protocol'
+import { expect, hideFknNotice, plainTest, test } from './test'
+
+// the refusal yt-client was given for the Short aOAe17zPggA on 2026-11-10
+const REFUSAL = `${PLAYBACK_REFUSED}${JSON.stringify({ title: 'Video unavailable', description: 'The uploader has not made this video available in your country', final: true })}`
+
+// a Short with a long life and a title, which stays up as youtube.com's feed changes
+const NAMED_SHORT = 'y2Vqj-59Hqc'
+
+type Refused = { refusedShort?: string }
+
+// answers the first video's openPlayback, and every later ask for it, with the refusal instead of asking the frame
+const refuseFirstShort = (reply: string) => {
+  if (window.top !== window) return
+  const state = window as unknown as Refused
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    const request = message as { id?: number, method?: string, args?: unknown[] } | null
+    if (request?.method !== 'openPlayback') return post.call(this, message, ...rest)
+    state.refusedShort ??= String(request.args?.[0])
+    if (request.args?.[0] !== state.refusedShort) return post.call(this, message, ...rest)
+    setTimeout(() => this.dispatchEvent(new MessageEvent('message', { data: { id: request.id, error: reply } })), 0)
+  } as typeof MessagePort.prototype.postMessage
+}
 
 const shownShort = (page: Page) => new URL(page.url()).pathname.replace('/shorts/', '')
+
+const playing = (slide: Locator) =>
+  expect.poll(() => slide.locator('video').evaluate(video => {
+    const element = video as HTMLVideoElement
+    return element.paused ? 0 : element.currentTime
+  }, undefined, { timeout: 1_000 }).catch(() => 0), { timeout: 120_000 }).toBeGreaterThan(0.3)
 
 const center = async (locator: Locator) => {
   const box = (await locator.boundingBox())!
@@ -50,4 +79,32 @@ test('at phone width each Short\'s buttons sit on it, and Comments opens a sheet
   await page.mouse.click(206, Math.round(box.y / 2))
   await expect(sheet).toBeHidden()
   expect(shownShort(page)).toBe(await slide.getAttribute('data-short-id'))
+})
+
+plainTest('a Short YouTube refuses is passed over for the next one', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.addInitScript(refuseFirstShort, REFUSAL)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/shorts')
+  await expect.poll(() => page.evaluate(() => (window as unknown as Refused).refusedShort), { timeout: 120_000 }).toBeTruthy()
+  const refused = (await page.evaluate(() => (window as unknown as Refused).refusedShort))!
+
+  await expect(page.locator(`[data-short-id="${refused}"]`)).toHaveCount(0, { timeout: 30_000 })
+  await expect.poll(() => shownShort(page)).not.toBe(refused)
+  await playing(page.locator(`[data-short-id="${shownShort(page)}"]`))
+  await expect(page.getByText('Video unavailable')).toHaveCount(0)
+})
+
+test('a refused Short the address names says so in the middle, off its title', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.addInitScript(refuseFirstShort, REFUSAL)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto(`/shorts/${NAMED_SHORT}`)
+  const slide = page.locator(`[data-short-id="${NAMED_SHORT}"]`)
+  const status = slide.locator('.status')
+  await expect(status).toHaveText('Video unavailable', { timeout: 120_000 })
+  await expect(slide.locator('.views')).toBeVisible({ timeout: 60_000 })
+  const [line, title] = await Promise.all([status.boundingBox(), slide.locator('.short-title').boundingBox()])
+  expect(line!.y + line!.height, 'the refusal runs into the title').toBeLessThanOrEqual(title!.y)
+  expect(shownShort(page)).toBe(NAMED_SHORT)
 })

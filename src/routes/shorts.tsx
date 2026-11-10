@@ -368,13 +368,14 @@ const style = css`
  * visited slide's data alive for the life of the route.
  */
 const Slide = (
-  { id, poster, fallbackTitle, active, onComments, onShare }: {
+  { id, poster, fallbackTitle, active, onComments, onShare, onRefused }: {
     id: string
     poster?: string | null
     fallbackTitle?: string | null
     active: boolean
     onComments: () => void
     onShare: () => void
+    onRefused?: () => void
   },
 ) => {
   const [, navigate] = useLocation()
@@ -397,7 +398,7 @@ const Slide = (
   return (
     <div className='reel'>
       <div className='stage'>
-        <ShortsPlayer videoId={id} poster={poster ?? undefined} active={active} />
+        <ShortsPlayer videoId={id} poster={poster ?? undefined} active={active} onRefused={onRefused} />
         <div className='meta'>
           <div className='byline'>
             {meta?.channel?.avatar
@@ -477,6 +478,7 @@ const ShortsPage = () => {
   const [activeId, setActiveId] = useState<string | undefined>(seed)
   const [showComments, setShowComments] = useState(false)
   const [sharing, setSharing] = useState<string | undefined>(undefined)
+  const [refused, setRefused] = useState<ReadonlySet<string>>(() => new Set())
 
   const [{ data, error, fetching }] = useQuery({
     query: SHORTS_FEED_QUERY,
@@ -484,10 +486,12 @@ const ShortsPage = () => {
     pause: !ready,
   })
   const page = data?.shorts
-  const { items } = useInfiniteFeed({
+  const { items: feed } = useInfiniteFeed({
     pages: page ? [...loaded, page] : loaded,
     key: short => short.id,
   })
+  // a Short the address named stays to say why it does not play; any other YouTube refuses is passed over
+  const items = feed.filter(short => short.id === seed || !refused.has(short.id))
 
   useDocumentTitle('Shorts')
 
@@ -570,6 +574,7 @@ const ShortsPage = () => {
             active={short.id === activeId}
             onComments={() => setShowComments(value => !value)}
             onShare={() => setSharing(short.id)}
+            onRefused={short.id === seed ? undefined : () => setRefused(previous => new Set(previous).add(short.id))}
           />
           {showComments && short.id === activeId
             ? (

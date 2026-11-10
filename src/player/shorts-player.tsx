@@ -56,9 +56,11 @@ const playerStyle = css`
     }
   }
 
+  /* In the middle like the spinner, since the title overlay owns the bottom edge. */
   .status {
     position: absolute;
-    inset: auto 1.2rem 4.4rem;
+    inset: 50% 1.2rem auto;
+    transform: translateY(-50%);
     color: var(--text-on-media);
     font: 500 1.3rem/1.4 system-ui, sans-serif;
     text-shadow: 0 1px 4px #000;
@@ -152,9 +154,12 @@ const MuteIcon = ({ muted }: { muted: boolean }) => (
  * `active` is what gates playback. Only the visible slide is allowed to hold a
  * SABR session, because each open session pins a per-session media cache in the
  * frame and a pager that left them open would multiply them per swipe.
+ *
+ * `onRefused`, when given, takes a refusal that will not clear in place of
+ * showing it.
  */
 const ShortsPlayer = (
-  { videoId, poster, active }: { videoId: string, poster?: string, active: boolean },
+  { videoId, poster, active, onRefused }: { videoId: string, poster?: string, active: boolean, onRefused?: () => void },
 ) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [ready, setReady] = useState(false)
@@ -186,6 +191,10 @@ const ShortsPlayer = (
       if (abort.signal.aborted || retryTimer !== undefined) return
       const message = error instanceof Error ? error.message : String(error)
       const refused = playbackRefusal(error)
+      if (refused?.final === true && onRefused) {
+        onRefused()
+        return
+      }
       if (attempt >= 2 || message === LIVE_UNSUPPORTED || refused?.final === true) {
         setStatus(refused?.title ?? message)
         return
