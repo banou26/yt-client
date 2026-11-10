@@ -55,6 +55,19 @@ test('names both channels on a collaboration\'s watch page, whose Subscribe open
   await expect(dialog.getByRole('link')).toHaveCount(2)
 })
 
+// a comment names its author by @handle, under the id of the channel the choice lists
+test('a collaboration\'s choice keeps its channels\' names once a comment by one of them loads', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.goto(VIDEO)
+  const comments = page.locator('main section').filter({ has: page.locator('.heading') })
+  await expect(comments.locator(`a.author[href="${MKBHD}"]`).first()).toHaveText('@mkbhd', { timeout: 120_000 })
+  await expect(comments.locator(`a.avatar[href="${MKBHD}"] img`).first()).toHaveAttribute('src', /^https?:\/\//)
+
+  await page.locator('.owner-row').getByRole('button', { name: 'Subscribe', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Collaborators' })
+  await expect(dialog.locator('.name')).toHaveText(['Cleo Abram', 'Marques Brownlee'])
+})
+
 // channel-home-mkbhd.json's Videos row holds a video that its First Impressions row holds too, which the cache keeps
 // as one video with the channel First Impressions gave it
 test('a channel\'s own Home uploads name no channel, and a collaboration\'s names open the video', async ({ page }) => {

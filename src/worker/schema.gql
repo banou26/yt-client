@@ -536,9 +536,21 @@ type TextRun {
   browseId: String
 }
 
+# Who wrote a comment or a chat line, as that line names them: by @handle where
+# a Channel carries its name. Its own type rather than a Channel, so the cache
+# never writes the handle over the name of the channel with the same id.
+type Author {
+  id: ID!
+  name: String!
+  avatar: String
+  handle: String
+  isVerified: Boolean
+  isVerifiedArtist: Boolean
+}
+
 type Comment {
   id: ID!
-  author: Channel
+  author: Author
   text: String!
   # The same body as `text`, segmented. `text` stays for the collapsed clamp and
   # for anything that only needs a plain string.
@@ -564,7 +576,7 @@ type Comment {
 # and their own colours; everything else leaves those absent.
 type LiveChatMessage {
   id: ID!
-  author: Channel
+  author: Author
   text: String!
   # Segmented, because a chat line is mostly custom emoji: those arrive as runs
   # with an image and no meaningful text.

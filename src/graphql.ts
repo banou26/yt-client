@@ -66,6 +66,7 @@ export const createCache = () => cacheExchange({
     Transcript: () => null,
     TranscriptSection: () => null,
     TranscriptLine: () => null,
+    Author: () => null,
     Session: () => null,
   },
   updates: {
