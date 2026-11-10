@@ -36,5 +36,5 @@ export const mountChannelHome = () => {
     exchanges: [createCache(), fetchExchange],
     fetch: async (input, init) => yoga.handleRequest(new Request(input, init), { source }),
   })
-  render(<Provider value={client}><ChannelPage params={{ channelId: MKBHD }} /></Provider>, host)
+  render(<Provider value={client}><ChannelPage id={MKBHD} base={`/channel/${MKBHD}`} /></Provider>, host)
 }
