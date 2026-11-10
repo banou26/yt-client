@@ -3,7 +3,7 @@ import type { Page, Request } from '@playwright/test'
 import { chromium, firefox } from '@playwright/test'
 
 import { extensionBuild } from './extension-build'
-import { dismissFknNotice, expect, laneOrigin, test } from './test'
+import { dismissFknNotice, expect, laneOrigin, startCaptionsOff, test } from './test'
 
 // both arms run on laneOrigin, so the flag is the only difference
 const turnOff = (page: Page) => page.addInitScript(() => localStorage.setItem('yt-client:step:direct', '0'))
@@ -114,6 +114,7 @@ test('with the direct lane, a watch page plays and seeks', async ({ page, baseUR
 
 test('signed out, captions are read from the page and drawn', async ({ page, baseURL }) => {
   test.setTimeout(240_000)
+  await startCaptionsOff(page)
   const captions = watchYoutube(page, '/api/timedtext')
   await page.goto(`${laneOrigin(baseURL)}/watch?v=dQw4w9WgXcQ`)
   await page.getByRole('button', { name: 'Turn on captions', exact: true }).click({ timeout: 120_000 })

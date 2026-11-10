@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { cueReader, holdOnCue } from './cues'
-import { expect, test } from './test'
+import { expect, startCaptionsOff, test } from './test'
 
 // the Subtitles menu's Options against the live source: `dQw4w9WgXcQ` publishes an authored English track
 
@@ -11,6 +11,8 @@ const startPlayback = async (page: Page) => {
   await page.goto(VIDEO)
   await page.waitForFunction(() => performance.getEntriesByName('yt:first-frame', 'mark').length > 0, null, { timeout: 120_000 })
 }
+
+test.beforeEach(({ page }) => startCaptionsOff(page))
 
 const rows = (page: Page) => page.getByRole('menu').getByRole('menuitem')
 

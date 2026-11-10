@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { expect, startCaptionsOff, test } from './test'
 
 /* The watch page's player against the live source: `dQw4w9WgXcQ` is a 213 s static video with a related list. */
 
@@ -213,6 +213,7 @@ test('the miniplayer keeps its end screen inside the dock', async ({ page }) => 
 
 test('answers youtube.com keyboard shortcuts, with a bezel for each change', async ({ page }) => {
   test.setTimeout(300_000)
+  await startCaptionsOff(page)
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const video = await startPlayback(page)
   const media = () => video.evaluate((element) => {

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { cueReader, holdOnCue } from './cues'
-import { expect, plainTest as test } from './test'
+import { expect, plainTest as test, startCaptionsOff } from './test'
 
 /* The caption size keys against the live source: `dQw4w9WgXcQ` publishes an authored English track. */
 
@@ -11,6 +11,8 @@ const startPlayback = async (page: Page) => {
   await page.goto(VIDEO)
   await page.waitForFunction(() => performance.getEntriesByName('yt:first-frame', 'mark').length > 0, null, { timeout: 120_000 })
 }
+
+test.beforeEach(({ page }) => startCaptionsOff(page))
 
 const stored = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('yt-client:settings') ?? '{}').captionSize)
 

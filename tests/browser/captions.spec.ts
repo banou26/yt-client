@@ -1,4 +1,4 @@
-import { expect, test } from './test'
+import { expect, startCaptionsOff, test } from './test'
 
 /* Captions end to end, against the live source: `dQw4w9WgXcQ` publishes an authored English track. */
 
@@ -27,6 +27,7 @@ const shownCues = (page: import('@playwright/test').Page) =>
 
 test('offers a caption track, renders its cues, and takes them away again', async ({ page }) => {
   test.setTimeout(240_000)
+  await startCaptionsOff(page)
   await page.goto(VIDEO)
   await firstFrame(page)
 
@@ -51,6 +52,7 @@ test('offers a caption track, renders its cues, and takes them away again', asyn
 
 test('lists the published tracks in the settings menu', async ({ page }) => {
   test.setTimeout(240_000)
+  await startCaptionsOff(page)
   await page.goto(VIDEO)
   await firstFrame(page)
   await expect(page.getByRole('button', { name: 'Turn on captions' })).toBeVisible({ timeout: 30_000 })

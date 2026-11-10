@@ -26,6 +26,16 @@ export const hideFknNotice = async (page: Page) => {
 }
 
 /**
+ * Opens the page as a viewer who turned captions off, for a spec that turns them on itself: YouTube now and then
+ * recommends captions on to an English browser too (dQw4w9WgXcQ, 1 visit in 12 on youtube.com, measured 2026-11-10),
+ * and the player follows it. Only a page with no settings stored yet is seeded, so a reload keeps what the spec changed.
+ */
+export const startCaptionsOff = (page: Page) => page.addInitScript(() => {
+  if (window !== top || localStorage.getItem('yt-client:settings')) return
+  localStorage.setItem('yt-client:settings', JSON.stringify({ captionsEnabled: false, captionsChosen: true }))
+})
+
+/**
  * Answers the watch page's third-party lookups with nothing, so no spec depends on their live data. Every fixture
  * context gets it; a spec that makes its own context calls it too. A page route still wins over these.
  */

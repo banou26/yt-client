@@ -87,7 +87,7 @@ const expectLabelled = async (page: Page) => {
 
 test('every control keeps its label, and the bar fits a 1920, 1280, 640 and 400 px player', async ({ page }) => {
   test.setTimeout(300_000)
-  await page.addInitScript(() => localStorage.setItem('yt-client:settings', JSON.stringify({ theater: true })))
+  await page.addInitScript(() => localStorage.setItem('yt-client:settings', JSON.stringify({ theater: true, captionsEnabled: false, captionsChosen: true })))
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto(`/watch?v=${VIDEO_ID}`)
   const video = await startPlayback(page)
