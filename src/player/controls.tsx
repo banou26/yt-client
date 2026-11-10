@@ -5,6 +5,7 @@ import { Captions, CaptionsOff, Check, ChevronLeft, ChevronRight, Maximize, Mini
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
+import type { CaptionOption } from './caption-style'
 import type { PlayerChapter } from './chapters'
 import type { SleepTimer } from './sleep-timer'
 import type { SkipSegment } from './sponsorblock'
@@ -13,7 +14,8 @@ import type { PlayerState } from './use-player-state'
 import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { MenuItem, Popup, useDismiss } from '../components/ui/popup'
-import { getSettings, updateSettings } from '../settings'
+import { DEFAULT_SETTINGS, getSettings, subscribeSettings, updateSettings } from '../settings'
+import { CAPTION_OPTIONS } from './caption-style'
 import { barFill, barOffset, barParts, barWidth, chapterIndexAt, timeAtOffset } from './chapters'
 import { rateDetail } from './rates'
 import { setSleepTimer, SLEEP_MINUTES, sleepDetail, sleepDuration } from './sleep-timer'
@@ -396,9 +398,14 @@ const style = css`
     transform: translateX(1.2rem);
   }
 
+  /* youtube.com keeps its menu inside the player, 62 px over its bottom and 83 px under its top, as wide as its longest
+     row (measured 2026-11-10) */
   .settings-menu {
     bottom: calc(100% + 0.8rem);
     top: auto;
+    width: max-content;
+    max-width: calc(100cqi - 2.4rem);
+    max-height: min(70vh, var(--player-height, 100vh) - 14.5rem);
   }
 
   /* youtube.com's Playback speed panel, measured 2026-11-10: a 57 px header of a 48 px back button and the title in
@@ -524,7 +531,9 @@ export const PlayerControls = (
   const [preview, setPreview] = useState<number | undefined>(undefined)
   const [hover, setHover] = useState<{ time: number, ratio: number } | undefined>(undefined)
   const [pip, setPip] = useState(false)
-  const [menu, setMenu] = useState<'root' | 'quality' | 'speed' | 'captions' | 'sleep' | undefined>(undefined)
+  const [menu, setMenu] = useState<'root' | 'quality' | 'speed' | 'captions' | 'caption-options' | CaptionOption | 'sleep' | undefined>(undefined)
+  const [settings, setSettings] = useState(getSettings)
+  useEffect(() => subscribeSettings(setSettings), [])
   const railRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
@@ -670,7 +679,11 @@ export const PlayerControls = (
   }
 
   return (
-    <div css={style} className={visible || scrubbing || menuOpen ? 'visible' : undefined}>
+    <div
+      css={style}
+      className={visible || scrubbing || menuOpen ? 'visible' : undefined}
+      style={{ '--player-height': `${video.clientHeight}px` }}
+    >
       <div
         className={`${scrubbing ? 'scrubber scrubbing' : 'scrubber'}${isLive ? ' live' : ''}`}
         role='slider'
@@ -878,6 +891,7 @@ export const PlayerControls = (
                           {track.label}
                         </MenuItem>
                       ))}
+                      <MenuItem onSelect={() => setMenu('caption-options')}>Options</MenuItem>
                     </Popup>
                   )
                   : menu === 'quality'
@@ -931,7 +945,40 @@ export const PlayerControls = (
                             : undefined}
                         </Popup>
                       )
-                      : undefined}
+                      : menu === 'caption-options'
+                        ? (
+                          <Popup label='Options' class='settings-menu'>
+                            <MenuItem icon={ChevronLeft} onSelect={() => setMenu('captions')}>Options</MenuItem>
+                            {CAPTION_OPTIONS.map(option => (
+                              <MenuItem
+                                key={option.key}
+                                detail={option.choices.find(choice => choice.value === settings[option.key])?.label}
+                                onSelect={() => setMenu(option)}
+                              >
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                            <MenuItem onSelect={() => updateSettings(Object.fromEntries(CAPTION_OPTIONS.map(({ key }) => [key, DEFAULT_SETTINGS[key]])))}>
+                              Reset
+                            </MenuItem>
+                          </Popup>
+                        )
+                        : typeof menu === 'object'
+                          ? (
+                            <Popup label={menu.label} class='settings-menu'>
+                              <MenuItem icon={ChevronLeft} onSelect={() => setMenu('caption-options')}>{menu.label}</MenuItem>
+                              {menu.choices.map(choice => (
+                                <MenuItem
+                                  key={choice.value}
+                                  icon={settings[menu.key] === choice.value ? Check : undefined}
+                                  onSelect={() => updateSettings({ [menu.key]: choice.value })}
+                                >
+                                  {choice.label}
+                                </MenuItem>
+                              ))}
+                            </Popup>
+                          )
+                          : undefined}
           </div>
           {pipSupported
             ? (

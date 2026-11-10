@@ -22,10 +22,11 @@ import { warmShaka } from './prefetch'
 import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { closePlayer, setPanel, setPlayingChapter } from './session'
-import { CAPTION_SIZES, getSettings, updateSettings } from '../settings'
+import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { Dialog } from '../components/ui/dialog'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
+import { captionDeclarations, stepCaptionSize } from './caption-style'
 import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
@@ -125,15 +126,12 @@ const playerStyle = css`
     background: rgba(0, 0, 0, 0.8);
   }
 
-  /* youtube.com's sample after + or - while no cue is on screen, drawn where and as Chrome draws a cue */
+  /* youtube.com's sample after + or - while no cue is on screen, drawn where Chrome draws a cue and in the cue's look */
   .caption-sample {
     position: absolute;
     left: 50%;
     bottom: 0;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #ffffff;
-    font-family: sans-serif;
     white-space: nowrap;
     pointer-events: none;
   }
@@ -187,9 +185,13 @@ export type PlayerUpNext = {
 
 const FALLBACK_FPS = 30
 
-const captionSizeStyle = (size: number) => css`
+const captionStyle = (declarations: string) => css`
   video::cue {
-    font-size: ${size}%;
+    ${declarations};
+  }
+
+  .caption-sample {
+    ${declarations};
   }
 `
 
@@ -273,7 +275,7 @@ const VideoPlayer = (
   const [shortcuts, setShortcuts] = useState(false)
   const closeShortcuts = useCallback(() => setShortcuts(false), [])
   const [loop, setLoop] = useState(false)
-  const [captionSize, setCaptionSize] = useState(() => getSettings().captionSize)
+  const [cueStyle, setCueStyle] = useState(() => captionDeclarations(getSettings()))
   const [sample, setSample] = useState<number | undefined>(undefined)
   const sampleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [timesUp, setTimesUp] = useState(false)
@@ -330,6 +332,8 @@ const VideoPlayer = (
   }, [state.ended])
 
   useEffect(() => () => clearTimeout(sampleTimer.current), [])
+
+  useEffect(() => subscribeSettings(settings => setCueStyle(captionDeclarations(settings))), [])
 
   const sponsors = useRef(segments)
   sponsors.current = segments
@@ -562,10 +566,10 @@ const VideoPlayer = (
   // sample of it shows unless a cue on screen already does
   const resizeCaptions = (direction: 1 | -1) => {
     const video = videoRef.current
-    const size = CAPTION_SIZES[CAPTION_SIZES.indexOf(getSettings().captionSize) + direction]
-    if (!video || size === undefined) return
+    const current = getSettings().captionSize
+    const size = stepCaptionSize(current, direction)
+    if (!video || size === current) return
     updateSettings({ captionSize: size })
-    setCaptionSize(size)
     const cueShown = [...video.textTracks].some(track => track.mode === 'showing' && (track.activeCues?.length ?? 0) > 0)
     setSample(cueShown ? undefined : captionBase(video) * size / 100)
     clearTimeout(sampleTimer.current)
@@ -718,7 +722,7 @@ const VideoPlayer = (
 
   return (
     <div
-      css={[playerStyle, captionSizeStyle(captionSize)]}
+      css={[playerStyle, captionStyle(cueStyle)]}
       data-player-surface
       className={!active && !state.paused && !menu && !grid ? 'idle' : undefined}
       onPointerMove={wake}

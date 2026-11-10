@@ -1,11 +1,11 @@
+import type { CaptionLook } from './player/caption-style'
+
+import { CAPTION_OPTIONS } from './player/caption-style'
 import { toRate } from './player/rates'
 
 export type ThemePreference = 'device' | 'light' | 'dark'
 
 export type QualityPreference = 'auto' | number
-
-/** youtube.com's + and - caption sizes, in percent of the default (measured 2026-11-10). */
-export const CAPTION_SIZES = [50, 100, 150, 200]
 
 export type Settings = {
   theme: ThemePreference
@@ -17,7 +17,14 @@ export type Settings = {
   quality: QualityPreference
   captionsEnabled: boolean
   captionsLanguage?: string
+  // the Subtitles Options panel's rows: fonts, colors and edges by name, opacities as fractions, the size in percent
+  captionFont: string
+  captionColor: string
   captionSize: number
+  captionBackground: string
+  captionBackgroundOpacity: number
+  captionEdge: string
+  captionOpacity: number
   theater: boolean
   showDislikes: boolean
   skipSponsors: boolean
@@ -38,7 +45,13 @@ export const DEFAULT_SETTINGS: Settings = {
   playbackRate: 1,
   quality: 'auto',
   captionsEnabled: false,
+  captionFont: 'Proportional Sans-Serif',
+  captionColor: 'White',
   captionSize: 100,
+  captionBackground: 'Black',
+  captionBackgroundOpacity: 0.75,
+  captionEdge: 'None',
+  captionOpacity: 1,
   theater: false,
   showDislikes: true,
   skipSponsors: true,
@@ -68,7 +81,10 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
       : DEFAULT_SETTINGS.quality,
     captionsEnabled: typeof stored.captionsEnabled === 'boolean' ? stored.captionsEnabled : DEFAULT_SETTINGS.captionsEnabled,
     captionsLanguage: typeof captionsLanguage === 'string' ? captionsLanguage : undefined,
-    captionSize: CAPTION_SIZES.includes(stored.captionSize as number) ? stored.captionSize as number : DEFAULT_SETTINGS.captionSize,
+    ...Object.fromEntries(CAPTION_OPTIONS.map(({ key, choices }) => [
+      key,
+      choices.some(choice => choice.value === stored[key]) ? stored[key] : DEFAULT_SETTINGS[key],
+    ])) as CaptionLook,
     theater: typeof stored.theater === 'boolean' ? stored.theater : DEFAULT_SETTINGS.theater,
     showDislikes: typeof stored.showDislikes === 'boolean' ? stored.showDislikes : DEFAULT_SETTINGS.showDislikes,
     skipSponsors: typeof stored.skipSponsors === 'boolean' ? stored.skipSponsors : DEFAULT_SETTINGS.skipSponsors,

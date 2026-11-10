@@ -93,8 +93,13 @@ describe('the caption size setting', () => {
     expect((await load({ captionSize: 50 })).getSettings().captionSize).toBe(50)
   })
 
-  it('is the default size when the stored value is not one of the steps', async () => {
-    expect((await load({ captionSize: 75 })).getSettings().captionSize).toBe(100)
+  it('keeps a size the Options panel picks between the steps of + and -', async () => {
+    expect((await load({ captionSize: 75 })).getSettings().captionSize).toBe(75)
+    expect((await load({ captionSize: 175 })).getSettings().captionSize).toBe(175)
+  })
+
+  it('is the default size when the stored value is not one of the sizes', async () => {
+    expect((await load({ captionSize: 60 })).getSettings().captionSize).toBe(100)
     expect((await load({ captionSize: 400 })).getSettings().captionSize).toBe(100)
     expect((await load({ captionSize: '150' })).getSettings().captionSize).toBe(100)
   })
@@ -117,5 +122,47 @@ describe('the speed setting', () => {
     expect((await load({ playbackRate: 3 })).getSettings().playbackRate).toBe(2)
     expect((await load({ playbackRate: 0.1 })).getSettings().playbackRate).toBe(0.25)
     expect((await load({ playbackRate: '1.5' })).getSettings().playbackRate).toBe(1)
+  })
+})
+
+describe('the caption look settings', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('start at youtube.com\'s defaults', async () => {
+    expect((await load()).getSettings()).toMatchObject({
+      captionFont: 'Proportional Sans-Serif',
+      captionColor: 'White',
+      captionSize: 100,
+      captionBackground: 'Black',
+      captionBackgroundOpacity: 0.75,
+      captionEdge: 'None',
+      captionOpacity: 1,
+    })
+  })
+
+  it('keep what the Options panel picked for the next visit', async () => {
+    const written: string[] = []
+    vi.resetModules()
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: (_key: string, value: string) => written.push(value) })
+    const { updateSettings } = await import('../../src/settings')
+    updateSettings({ captionColor: 'Yellow', captionBackgroundOpacity: 0.25, captionEdge: 'Outline', captionFont: 'Casual', captionOpacity: 0.5 })
+    expect((await load(JSON.parse(written.at(-1)!))).getSettings()).toMatchObject({
+      captionColor: 'Yellow',
+      captionBackgroundOpacity: 0.25,
+      captionEdge: 'Outline',
+      captionFont: 'Casual',
+      captionOpacity: 0.5,
+    })
+  })
+
+  it('fall back one at a time when a stored value is not a choice', async () => {
+    expect((await load({ captionColor: 'Orange', captionBackground: 'Blue', captionOpacity: 0.3, captionEdge: 'Raised' })).getSettings()).toMatchObject({
+      captionColor: 'White',
+      captionBackground: 'Blue',
+      captionOpacity: 1,
+      captionEdge: 'Raised',
+    })
   })
 })
