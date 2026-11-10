@@ -51,8 +51,14 @@ test('collapses the description to the rounded counts and three lines, with an i
 // youtube.com on this video, signed out, 2026-11-10: the player, the sidebar and its first thumbnail
 const YOUTUBE_SIZES = [
   { width: 1280, height: 800, player: { x: 16, y: 68, width: 880, height: 495 }, aside: { x: 912, width: 352 }, thumb: { width: 220, height: 123.75 } },
+  { width: 1010, height: 800, player: { x: 16, y: 68, width: 642, height: 361.1 }, aside: { x: 674, width: 320 }, thumb: { width: 200, height: 112.5 } },
   { width: 1024, height: 768, player: { x: 16, y: 68, width: 656, height: 369 }, aside: { x: 688, width: 320 }, thumb: { width: 200, height: 112.5 } },
   { width: 1440, height: 900, player: { x: 16, y: 68, width: 996, height: 560.25 }, aside: { x: 1028, width: 396 }, thumb: { width: 247.5, height: 139.22 } },
+  { width: 1920, height: 1080, player: { x: 16, y: 68, width: 1344, height: 756 }, aside: { x: 1376, width: 528 }, thumb: { width: 330, height: 185.6 } },
+  // a short window holds the player to the 16:9 frame under the header, gives the sidebar the rest up to 35% of the window, and centers what is left
+  { width: 1920, height: 800, player: { x: 16, y: 68, width: 1216, height: 684 }, aside: { x: 1248, width: 656 }, thumb: { width: 410, height: 230.6 } },
+  { width: 1920, height: 600, player: { x: 185.8, y: 68, width: 860.4, height: 484 }, aside: { x: 1062.2, width: 672 }, thumb: { width: 420, height: 236.25 } },
+  { width: 1280, height: 450, player: { x: 88, y: 68, width: 640, height: 360 }, aside: { x: 744, width: 448 }, thumb: { width: 280, height: 157.5 } },
 ] as const
 
 const expectClose = (actual: Record<string, number>, expected: Record<string, number>, what: string) => {
@@ -73,7 +79,7 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     const title = box('main h1.title')
     return {
       player: { x: player.x, y: player.y, width: player.width, height: player.height },
-      aside: { x: aside.x, width: aside.width },
+      aside: { x: aside.x, width: aside.width, below: aside.y - player.bottom },
       thumb: { width: thumb.width, height: thumb.height },
       title: { x: title.x, below: title.y - player.bottom },
     }
@@ -81,13 +87,18 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
 
   for (const size of YOUTUBE_SIZES) {
     await page.setViewportSize({ width: size.width, height: size.height })
-    await expect.poll(async () => (await measure()).player.width, { message: `the player's width at ${size.width}` }).toBeCloseTo(size.player.width, 0)
+    await expect.poll(async () => (await measure()).player.width, { message: `the player's width at ${size.width}x${size.height}` }).toBeCloseTo(size.player.width, 0)
     const layout = await measure()
-    expectClose(layout.player, size.player, `the player at ${size.width}`)
-    expectClose(layout.aside, size.aside, `the sidebar at ${size.width}`)
-    expectClose(layout.thumb, size.thumb, `a related thumbnail at ${size.width}`)
-    expectClose(layout.title, { x: 16, below: 12 }, `the title at ${size.width}`)
+    const at = `${size.width}x${size.height}`
+    expectClose(layout.player, size.player, `the player at ${at}`)
+    expectClose(layout.aside, size.aside, `the sidebar at ${at}`)
+    expectClose(layout.thumb, size.thumb, `a related thumbnail at ${at}`)
+    expectClose(layout.title, { x: layout.player.x, below: 12 }, `the title at ${at}`)
   }
+
+  // one column from 999 px down, the sidebar under the player
+  await page.setViewportSize({ width: 999, height: 800 })
+  await expect.poll(async () => (await measure()).aside.below, { message: 'the sidebar under the player at 999' }).toBeGreaterThan(0)
 
   // theater keeps the same columns under its edge to edge player
   const [narrow] = YOUTUBE_SIZES
@@ -100,49 +111,11 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
   expectClose(theater.aside, narrow.aside, 'the theater sidebar')
   expectClose(theater.thumb, narrow.thumb, 'a related thumbnail in theater')
   expect(theater.title.x, 'the theater title\'s left edge').toBeCloseTo(16, 0)
-})
 
-test('grows the sidebar and its thumbnails on a wide window, like youtube.com', async ({ page }) => {
-  test.setTimeout(240_000)
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.goto(VIDEO)
-  await expect(page.locator('main aside article').first()).toBeVisible({ timeout: 90_000 })
-  const measure = () => page.evaluate(() => {
-    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect()
-    return {
-      viewport: document.documentElement.clientWidth,
-      player: box('main .stage').width,
-      playerLeft: box('main .stage').left,
-      playerRight: box('main .stage').right,
-      aside: box('main aside').width,
-      asideRight: box('main aside').right,
-      thumb: box('main aside article .thumb').width,
-    }
-  })
-
-  // youtube.com at 1920: a 1344 px player beside a 528 px sidebar of 330 px thumbnails, reaching the window's edge
-  const wide = await measure()
-  expect(wide.aside).toBeCloseTo(528, 0)
-  expect(wide.player).toBeGreaterThan(1300)
-  expect(wide.viewport - wide.asideRight).toBeLessThanOrEqual(24)
-  expect(wide.thumb).toBeGreaterThan(320)
-
-  // a short window holds the player to the 16:9 frame under the header, 1216 px here, and gives the sidebar the rest rather than centering the two
-  await page.setViewportSize({ width: 1920, height: 800 })
-  await expect.poll(async () => (await measure()).player).toBeCloseTo(1216, 0)
-  const short = await measure()
-  expect(short.playerLeft).toBeCloseTo(16, 0)
-  expect(short.viewport - short.asideRight).toBeCloseTo(16, 0)
-  expect(short.aside).toBeCloseTo(656, 0)
-
-  // theater runs edge to edge, even on an ultrawide window where the two columns center
+  // and stays edge to edge on an ultrawide window, where the default columns center
   await page.setViewportSize({ width: 2560, height: 1080 })
-  await page.locator('main h1').click()
-  await page.keyboard.press('t')
-  await expect(page.locator('main.theater')).toBeAttached()
-  await expect.poll(async () => (await measure()).playerLeft).toBeLessThanOrEqual(0.5)
-  const theater = await measure()
-  expect(theater.viewport - theater.playerRight).toBeLessThanOrEqual(0.5)
+  await expect.poll(async () => (await measure()).player.width).toBeCloseTo(2560, 0)
+  expect((await measure()).player.x).toBeCloseTo(0, 0)
 })
 
 test('heads the comments with the full count and Sort by, and threads them like youtube.com', async ({ page }) => {
