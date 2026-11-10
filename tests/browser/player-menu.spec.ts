@@ -27,7 +27,8 @@ const paused = (video: Locator) => video.evaluate(element => (element as HTMLVid
 
 const rightClick = async (page: Page, x: number, y: number) => {
   const box = (await player(page).boundingBox())!
-  const point = { x: box.x + box.width * x, y: box.y + box.height * y }
+  // whole pixels: a mouse event carries whole ones, so a fractional point would put the menu a fraction short of + 1
+  const point = { x: Math.round(box.x + box.width * x), y: Math.round(box.y + box.height * y) }
   await page.mouse.click(point.x, point.y, { button: 'right' })
   return point
 }
