@@ -12,9 +12,14 @@ vi.mock('../../../src/scramjet/platform', () => ({
   abortPlatformEgress: () => {},
 }))
 
+const bridges = vi.hoisted(() => [] as MessagePort[])
 vi.mock('../../../src/engine/agent-host', () => ({
   startAgentHost: () => {},
-  openAgentBridge: () => new MessageChannel().port2,
+  openAgentBridge: () => {
+    const port = new MessageChannel().port2
+    bridges.push(port)
+    return port
+  },
 }))
 
 // enough of Scramjet for the host to reach its frame's init hook, and to count the frame's navigations
@@ -138,8 +143,9 @@ describe('an engine started again in the app realm', () => {
     expect(realm.frames[0]!.removed).toBe(false)
     const [restart] = sent(realm.frames[0]!, HOST_RESTART)
     expect(restart?.message).toEqual({ type: HOST_RESTART, direct: true })
-    // the new engine's agent bridge and direct lane; the host keeps the bootstrap's egress and extension ports
+    // the new engine's agent bridge, then its direct lane; the host keeps the bootstrap's egress and extension ports
     expect(restart?.transfer).toHaveLength(2)
+    expect(restart?.transfer[0]).toBe(bridges.at(-1))
     expect(sent(realm.frames[0]!, HOST_BOOTSTRAP)).toHaveLength(1)
     realm.ready(realm.frames[0]!)
     expect(await settled(next)).toHaveProperty('value')
@@ -159,7 +165,7 @@ describe('an engine started again in the app realm', () => {
     expect(realm.reload).not.toHaveBeenCalled()
   })
 
-  it('loads a new host when the one it has never started an engine', async () => {
+  it('loads a new host in place of one that never started an engine', async () => {
     const { startEngine } = await import('../../../src/scramjet/client')
     const first = startEngine()
     realm.fromFrame(realm.frames[0]!, { type: HOST_HELLO, build: BUILD })

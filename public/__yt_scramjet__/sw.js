@@ -2,7 +2,7 @@ importScripts('/__yt_scramjet__/controller/controller.sw.js')
 
 // the controller calls skipWaiting on install, but an open page's controllers stay registered with the worker they
 // started on and never reach a new one, so every proxied request would wait out CONTROLLER_WAIT_MS: a new worker
-// waits instead until no page uses the old one, which the next load or engine reset reaches
+// waits instead until no page uses the old one, which the next load reaches
 self.skipWaiting = async () => {}
 
 const PROXY_PREFIX = '/__yt_scramjet__/proxy/'

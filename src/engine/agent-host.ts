@@ -45,13 +45,13 @@ const isCancel = (message: unknown): message is AgentCancel =>
   (message as AgentCancel | null)?.type === 'cancel'
 
 /**
- * The app realm's side of the engine page. One attachment per app realm, kept across engine
- * resets; each engine generation gets a bridge, whose frame end goes in `HOST_BOOTSTRAP`, and the
- * host relays it to whichever agent port is current. A `document` event installs the agent again
- * on the same attachment, and a ping (sent every 5000 ms) that 15000 ms bring nothing back for
- * attaches again. While the page is attaching a call waits, unless the frame cancels it; once an
- * attach or install has failed every call is answered `AGENT_UNAVAILABLE`, for the frame to fall
- * back to its own VM.
+ * The app realm's side of the engine page. One attachment per app realm, kept across engine resets;
+ * each engine generation gets a bridge, whose frame end goes in `HOST_BOOTSTRAP` (or in
+ * `HOST_RESTART` for an engine started again in the kept host), and the host relays it to whichever
+ * agent port is current. A `document` event installs the agent again on the same attachment, and a
+ * ping (sent every 5000 ms) that 15000 ms bring nothing back for attaches again. While the page is
+ * attaching a call waits, unless the frame cancels it; once an attach or install has failed every
+ * call is answered `AGENT_UNAVAILABLE`, for the frame to fall back to its own VM.
  */
 export const createAgentHost = ({ attach, source, publish }: AgentHostOptions) => {
   let state: 'attaching' | 'ready' | 'failed' = 'attaching'
