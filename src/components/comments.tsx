@@ -10,8 +10,7 @@ import { Link } from 'wouter'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
-import { DataFailure } from './data-failure'
-import { readable } from './format'
+import { DataFailure, lineFor } from './data-failure'
 import { showToast } from './ui/toast'
 import { ReadMore } from './read-more'
 import { RichText } from './rich-text'
@@ -437,7 +436,7 @@ const Composer = ({ videoId }: { videoId?: string }) => {
     void postComment({ videoId, text: body }).then((result) => {
       setSending(false)
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       setDraft('')
@@ -508,7 +507,7 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
       ? 'INDIFFERENT'
       : status
     void rateComment({ actionsToken: token, status: next }).then((result) => {
-      if (result.error) showToast(readable(result.error.message))
+      if (result.error) showToast(lineFor(result.error))
     })
   }
 
@@ -527,7 +526,7 @@ const CommentActions = ({ comment }: { comment: CommentRow }) => {
     void replyToComment({ actionsToken: token, text: body }).then((result) => {
       setSending(false)
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       setDraft('')

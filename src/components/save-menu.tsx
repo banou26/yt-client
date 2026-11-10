@@ -10,8 +10,7 @@ import type { PlaylistPrivacy, SavePlaylistsQuery } from '../generated/graphql'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
-import { MenuDataFailure } from './data-failure'
-import { readable } from './format'
+import { lineFor, MenuDataFailure } from './data-failure'
 import { privacyIcon, WATCH_LATER_ID } from './playlist'
 import Dialog from './ui/dialog'
 import { Menu, MenuItem, MenuSection, MenuSeparator } from './ui/menu'
@@ -231,7 +230,7 @@ export const SaveMenu = (
     void addToPlaylist({ playlistId, videoIds: [videoId] }).then((result) => {
       setPending(undefined)
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       setSaved(ids => [...ids, playlistId])
@@ -249,7 +248,7 @@ export const SaveMenu = (
     if (title.length === 0 || createState.fetching) return
     void createPlaylist({ title, videoIds: [videoId], privacy }).then((result) => {
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       const playlist = result.data?.createPlaylist

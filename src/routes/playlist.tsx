@@ -7,8 +7,7 @@ import { useMutation, useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
-import { DataFailure } from '../components/data-failure'
-import { readable } from '../components/format'
+import { DataFailure, lineFor } from '../components/data-failure'
 import { LIKED_VIDEOS_ID, playlistHrefFor, WATCH_LATER_ID } from '../components/playlist'
 import { setQueueShuffle } from '../components/playlist-panel'
 import { useSession } from '../session'
@@ -410,7 +409,7 @@ const PlaylistPage = () => {
     void removeFromPlaylist({ playlistId: listId, setVideoIds: [setVideoId] }).then((result) => {
       setRemoving(previous => previous.filter(value => value !== setVideoId))
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       setRemoved(previous => new Set(previous).add(setVideoId))

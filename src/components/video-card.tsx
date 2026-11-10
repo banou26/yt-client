@@ -17,8 +17,8 @@ import { shortsHrefFor, shortsLink } from '../player/links'
 import { usePrefetchOnIntent } from '../player/prefetch'
 import { useSession } from '../session'
 import { AvatarStack, BylineNames, CollaboratorsButton } from './byline'
-import { MenuDataFailure } from './data-failure'
-import { formatDuration, readable, rowByline } from './format'
+import { lineFor, MenuDataFailure } from './data-failure'
+import { formatDuration, rowByline } from './format'
 import { WATCH_LATER_ID } from './playlist'
 import { CornerBadge, MembersOnly, MusicNote, RowMeta, ShortsMark } from './row-marks'
 import { Thumbnail } from './thumbnail'
@@ -151,7 +151,7 @@ const CardMenuPanel = (
     void addToPlaylist({ playlistId, videoIds: [videoId] }).then((result) => {
       setPending(undefined)
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       onSaved(playlistId)

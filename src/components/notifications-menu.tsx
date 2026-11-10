@@ -8,8 +8,7 @@ import { useLocation } from 'wouter'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
-import { MenuDataFailure } from './data-failure'
-import { readable } from './format'
+import { lineFor, MenuDataFailure } from './data-failure'
 import { Menu, MenuItem } from './ui/menu'
 import { showToast } from './ui/toast'
 import { useInfiniteFeed } from './use-infinite-feed'
@@ -194,7 +193,7 @@ export const NotificationsMenu = () => {
 
   const onSelect = (id: string, videoId?: string | null) => {
     void markRead({ id }).then((result) => {
-      if (result.error) showToast(readable(result.error.message))
+      if (result.error) showToast(lineFor(result.error))
     })
     if (videoId) navigate(watchHrefFor(videoId))
   }

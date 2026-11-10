@@ -182,3 +182,66 @@ test('the group dialog whose subscriptions failed loads them once the browser is
   await expect(dialog.getByRole('checkbox', { name: 'Channel 1' })).toBeVisible()
   await expect(dialog).not.toContainText(OFFLINE_LINE)
 })
+
+// the toasts are the app's own, which the harness's components share
+const toastShown = (page: Page) => lineShown(page.getByRole('status'))
+
+test('saving to a playlist that failed says so in one line', async ({ page }) => {
+  await open(page)
+  const host = await mount(page, 'save')
+  await host.getByRole('button', { name: 'Save' }).click()
+  const playlist = page.getByRole('menu', { name: 'Save to playlist' }).getByRole('menuitemcheckbox', { name: /Playlist 1/ })
+  await expect(playlist).toBeVisible()
+
+  await drop(page)
+  await playlist.click()
+  await toastShown(page)
+})
+
+test('creating a playlist that failed says so in one line', async ({ page }) => {
+  await open(page)
+  const host = await mount(page, 'save')
+  await host.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('menu', { name: 'Save to playlist' }).getByRole('menuitem', { name: 'Create new playlist' }).click()
+  const dialog = page.getByRole('dialog', { name: 'New playlist' })
+  await dialog.getByRole('textbox', { name: 'Name' }).fill('Playlist 3')
+
+  await drop(page)
+  await dialog.getByRole('button', { name: 'Create' }).click()
+  await toastShown(page)
+})
+
+test('saving from a video row menu that failed says so in one line', async ({ page }) => {
+  await open(page)
+  const host = await mount(page, 'row')
+  await host.getByRole('button', { name: 'More actions for Video 0' }).click()
+  const menu = page.getByRole('menu', { name: 'More actions for Video 0' })
+  await menu.getByRole('menuitem', { name: 'Save to playlist' }).click()
+  const playlist = menu.getByRole('menuitemcheckbox', { name: /Playlist 1/ })
+  await expect(playlist).toBeVisible()
+
+  await drop(page)
+  await playlist.click()
+  await toastShown(page)
+})
+
+test('marking a notification read that failed says so in one line', async ({ page }) => {
+  await open(page)
+  const host = await mount(page, 'notifications')
+  await host.getByRole('button', { name: 'Notifications' }).click()
+  const notification = page.getByRole('menu', { name: 'Notifications' }).getByRole('menuitem', { name: 'Channel 1 uploaded: Video 1' })
+  await expect(notification).toBeVisible()
+
+  await drop(page)
+  await notification.click()
+  await toastShown(page)
+})
+
+test('subscribing that failed says so in one line', async ({ page }) => {
+  await open(page)
+  const host = await mount(page, 'subscribe')
+
+  await drop(page)
+  await host.getByRole('button', { name: 'Subscribe' }).click()
+  await toastShown(page)
+})

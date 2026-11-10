@@ -8,7 +8,11 @@ import { MenuItem } from './ui/menu'
 // ..."); Safari's "Load failed" is its known message for no answer, not measured
 const CONNECTION_FAILED = /status code 5\d\d|fetch|network|load failed|JSON/i
 
-const lineFor = (error: CombinedError) => !navigator.onLine || CONNECTION_FAILED.test(error.message) ? OFFLINE_LINE : FAILED_LINE
+/**
+ * The one line a failed request shows, never the request's own text: youtube.com's offline line when the connection
+ * failed it, a plain line otherwise. What DataFailure says, and what a failed action says in its toast.
+ */
+export const lineFor = (error: CombinedError) => !navigator.onLine || CONNECTION_FAILED.test(error.message) ? OFFLINE_LINE : FAILED_LINE
 
 /**
  * What a page shows in place of its data when the query failed: youtube.com's offline line when the request did (it

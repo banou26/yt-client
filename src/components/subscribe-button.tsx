@@ -6,7 +6,7 @@ import { useMutation } from 'urql'
 import type { NotificationLevel } from '../generated/graphql'
 
 import { gql } from '../generated'
-import { readable } from './format'
+import { lineFor } from './data-failure'
 import { MenuItem, Popup, useDismiss } from './ui/popup'
 import { showToast } from './ui/toast'
 import { signIn } from '../sign-in'
@@ -85,7 +85,7 @@ export const useToggleSubscription = () => {
   const toggle = async (channelId: string, subscribed: boolean) => {
     const result = await setSubscribed({ channelId, subscribed: !subscribed })
     if (result.error) {
-      showToast(readable(result.error.message))
+      showToast(lineFor(result.error))
       return undefined
     }
     showToast(subscribed ? 'Unsubscribed' : 'Subscribed')
@@ -133,7 +133,7 @@ export const SubscribeButton = (
     setOpen(false)
     if (!channelId || next === notificationLevel) return
     void setLevel({ channelId, level: next }).then((result) => {
-      if (result.error) showToast(readable(result.error.message))
+      if (result.error) showToast(lineFor(result.error))
     })
   }
 

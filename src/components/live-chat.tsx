@@ -8,6 +8,7 @@ import { useMutation, useQuery } from 'urql'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
+import { lineFor } from './data-failure'
 import { showToast } from './ui/toast'
 import { RichText } from './rich-text'
 
@@ -319,7 +320,7 @@ export const LiveChat = ({ videoId }: { videoId: string }) => {
     setDraft('')
     const result = await send({ videoId, text })
     if (result.error) {
-      showToast(result.error.graphQLErrors[0]?.message ?? 'Could not send that message')
+      showToast(lineFor(result.error))
       setDraft(text)
     }
   }

@@ -5,7 +5,7 @@ import { useMutation } from 'urql'
 import { gql } from '../generated'
 import { useSession } from '../session'
 import { signIn } from '../sign-in'
-import { readable } from './format'
+import { lineFor } from './data-failure'
 import { showToast } from './ui/toast'
 
 const RATE_VIDEO = gql(`
@@ -34,7 +34,7 @@ export const useRateVideo = (videoId: string, likeStatus: LikeStatus | null | un
     }
     const next = likeStatus === status ? 'INDIFFERENT' : status
     void rateVideo({ id: videoId, status: next }).then((result) => {
-      if (result.error) showToast(readable(result.error.message))
+      if (result.error) showToast(lineFor(result.error))
     })
   }
 

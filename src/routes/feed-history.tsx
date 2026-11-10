@@ -7,9 +7,8 @@ import { useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
-import { DataFailure } from '../components/data-failure'
+import { DataFailure, lineFor } from '../components/data-failure'
 import { useExtensionExposed } from '../components/extension-notice'
-import { readable } from '../components/format'
 import { showToast } from '../components/ui/toast'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
@@ -253,7 +252,7 @@ const HistoryFeedPage = () => {
     void removeFromHistory({ videoId }).then((result) => {
       setRemoving(previous => previous.filter(id => id !== videoId))
       if (result.error) {
-        showToast(readable(result.error.message))
+        showToast(lineFor(result.error))
         return
       }
       setRemoved(previous => new Set(previous).add(videoId))
