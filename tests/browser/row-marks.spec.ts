@@ -121,6 +121,7 @@ test('the related column and a search draw the marks youtube.com answers with', 
   await expect(related.first()).toBeVisible({ timeout: 120_000 })
   await expect(related.locator('.meta [data-mark="views"]').first()).toBeVisible()
   await expect(related.locator('.badge [data-mark="music"]').first()).toBeAttached()
+  await expect(related.locator('.meta').filter({ hasText: '•' })).toHaveCount(0)
 
   await page.goto('/results?search_query=never+gonna+give+you+up')
   const rows = page.locator('article.result').filter({ has: page.locator('a.thumb') })

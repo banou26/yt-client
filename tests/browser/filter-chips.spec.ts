@@ -44,6 +44,7 @@ test('the Live tab sorts from its Latest dropdown and filters by Members only an
     const now = await opening()
     return now.length > 0 && now.join('\n') !== everyone.join('\n')
   }, { timeout: 120_000 }).toBe(true)
+  await expect(page.locator('main .videos article').filter({ hasNot: page.locator('.members-only') })).toHaveCount(0)
 
   await sort.click()
   const menu = page.getByRole('menu', { name: 'Sort by' })
