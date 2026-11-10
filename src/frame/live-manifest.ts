@@ -2,8 +2,9 @@ import type { PlaybackFormat } from './protocol'
 
 import { codecsOf } from './protocol'
 
-/* segments are addressed by SEQUENCE, not by byte range, and sequence maps onto time exactly (sequence 4717 * 5000 = startMs 23585000).
-   This generator describes only segments that have ALREADY ARRIVED, at the times their media headers give. */
+/* segments are addressed by SEQUENCE, not by byte range, and sequence maps onto time on a fixed grid (rFZHOHl-L8A,
+   measured 2026-11-11: startMs = sequence * 5000 - 16867, within 15 ms). The timeline ends with segments that have
+   ALREADY ARRIVED, at the times their media headers give, and the server's DVR window before them is laid on that grid. */
 
 const seconds = (value: number) => `PT${(value / 1_000).toFixed(3)}S`
 
@@ -26,30 +27,30 @@ export const contiguousTail = (segments: LiveSegment[]) => {
   return ordered.slice(Math.max(0, start))
 }
 
+// the timeline's S entries: one per delivered segment, after one repeated entry for the window's earlier segments
+type Timeline = { startNumber: number, entries: string }
+
 // the app's request filter adds the session, generation and start time on the way out, and forwards `n` back as the sequence the session must resolve
-const segmentTemplate = (format: PlaybackFormat, track: 'audio' | 'video', segments: LiveSegment[]) => {
+const segmentTemplate = (format: PlaybackFormat, track: 'audio' | 'video', { startNumber, entries }: Timeline) => {
   const uri = escapeAttribute(`sabr://${track}?key=${encodeURIComponent(format.key)}`)
-  const entries = segments
-    .map((segment) => `<S t="${segment.startMs}" d="${segment.durationMs}"/>`)
-    .join('')
-  return `<SegmentTemplate timescale="1000" startNumber="${segments[0]!.sequenceNumber}" `
+  return `<SegmentTemplate timescale="1000" startNumber="${startNumber}" `
     + `initialization="${uri}" media="${uri}&amp;n=$Number$">`
     + `<SegmentTimeline>${entries}</SegmentTimeline>`
     + '</SegmentTemplate>'
 }
 
-const representation = (format: PlaybackFormat, track: 'audio' | 'video', segments: LiveSegment[]) => {
+const representation = (format: PlaybackFormat, track: 'audio' | 'video', timeline: Timeline) => {
   const codecs = escapeAttribute(codecsOf(format.mimeType))
   const size = track === 'video' && format.width && format.height
     ? ` width="${format.width}" height="${format.height}"`
     : ''
   const audio = track === 'audio' ? '<AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2"/>' : ''
   return `<Representation id="${escapeAttribute(format.key)}" codecs="${codecs}" bandwidth="${format.bitrate}"${size}>`
-    + `${audio}${segmentTemplate(format, track, segments)}</Representation>`
+    + `${audio}${segmentTemplate(format, track, timeline)}</Representation>`
 }
 
 // one AdaptationSet PER CONTAINER, not one per track: DASH does not allow mixing containers inside an AdaptationSet
-const adaptationSets = (formats: PlaybackFormat[], track: 'audio' | 'video', segments: LiveSegment[]) => {
+const adaptationSets = (formats: PlaybackFormat[], track: 'audio' | 'video', timeline: Timeline) => {
   const groups = new Map<string, PlaybackFormat[]>()
   for (const format of formats) {
     const container = containerOf(format.mimeType)
@@ -58,7 +59,7 @@ const adaptationSets = (formats: PlaybackFormat[], track: 'audio' | 'video', seg
   return [...groups].map(([container, group], index) =>
     `<AdaptationSet id="${track}-${index}" contentType="${track}" mimeType="${escapeAttribute(container)}" `
     + 'segmentAlignment="true" startWithSAP="1">'
-    + group.map((format) => representation(format, track, segments)).join('')
+    + group.map((format) => representation(format, track, timeline)).join('')
     + '</AdaptationSet>').join('')
 }
 
@@ -69,6 +70,8 @@ export type LiveManifestInput = {
   segments: LiveSegment[]
   nowMs: number
   anchorMs?: number
+  // where the server's DVR window starts (LIVE_METADATA), which the timeline reaches back to
+  windowStartMs?: number
 }
 
 // availabilityStartTime is held FIXED across refreshes and only ever moves EARLIER: later would drop the newest delivered segment out of availability
@@ -80,25 +83,36 @@ export const timelineEndMs = (segments: LiveSegment[]) => {
   return last && last.startMs + last.durationMs
 }
 
+/** How many of the window's segments come before the first delivered one, whole segments from the window's start. */
+export const earlierSegments = (firstStartMs: number, targetMs: number, windowStartMs: number | undefined) =>
+  windowStartMs === undefined ? 0 : Math.max(0, Math.floor((firstStartMs - windowStartMs) / targetMs))
+
 export const buildLiveManifest = (
-  { videoFormats, audioFormats, targetMs, segments, nowMs, anchorMs }: LiveManifestInput,
+  { videoFormats, audioFormats, targetMs, segments, nowMs, anchorMs, windowStartMs }: LiveManifestInput,
 ) => {
-  const timeline = contiguousTail(segments)
-  if (!timeline.length) throw new Error('youtube: live manifest needs at least one delivered segment')
-  const first = timeline[0]!
-  const last = timeline[timeline.length - 1]!
+  const delivered = contiguousTail(segments)
+  if (!delivered.length) throw new Error('youtube: live manifest needs at least one delivered segment')
+  const first = delivered[0]!
+  const last = delivered[delivered.length - 1]!
   const endMs = last.startMs + last.durationMs
-  const windowMs = endMs - first.startMs
+  const deliveredMs = endMs - first.startMs
+  const earlier = earlierSegments(first.startMs, targetMs, windowStartMs)
+  const timelineStartMs = first.startMs - earlier * targetMs
+  const timeline = {
+    startNumber: first.sequenceNumber - earlier,
+    entries: (earlier ? `<S t="${timelineStartMs}" d="${targetMs}" r="${earlier - 1}"/>` : '')
+      + delivered.map((segment) => `<S t="${segment.startMs}" d="${segment.durationMs}"/>`).join(''),
+  }
 
   // presentation time IS media time: an S entry's `t` is the stream's own clock, which is also the `startMs` the SABR session reports
   const availabilityStart = new Date(liveAnchor(anchorMs, nowMs, endMs)).toISOString()
   const publishTime = new Date(nowMs).toISOString()
 
-  const shiftDepth = Math.max(windowMs, targetMs)
+  const shiftDepth = Math.max(endMs - timelineStartMs, targetMs)
 
   // Shaka keeps the first manifest's delay for the whole session (shaka-player 4.16, outside low-latency mode), and a live
   // open lists 1 to 3 segments, so the live start is the first listed segment and the buffer grows from there
-  const presentationDelay = Math.min(targetMs * 3, windowMs)
+  const presentationDelay = Math.min(targetMs * 3, deliveredMs)
 
   const updatePeriod = Math.max(1_000, Math.round(targetMs / 2))
 

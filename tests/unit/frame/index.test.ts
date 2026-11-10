@@ -145,3 +145,38 @@ it('opens a hover preview on a watch page read with its card\'s params, and a cl
   await call('openPlayback', 'video-2')
   expect(vi.mocked(getSabrSource).mock.calls).toEqual([['video-1', 'params-1'], ['video-2', undefined]])
 })
+
+it('keeps a live manifest\'s DVR window across a session refresh, before the new session names one', async () => {
+  vi.mocked(getSabrSource).mockReset().mockResolvedValue({ isLive: true, captions: [], storyboards: [] } as unknown as SabrSource)
+  const delivered = (from: number) => Array.from({ length: 4 }, (_, index) => ({ sequenceNumber: from + index, startMs: (from + index) * 5_000, durationMs: 5_000 }))
+  const videoFormat = { ...video, mimeType: 'video/mp4; codecs="avc1.4d401f"', bitrate: 1, width: 640, height: 360 }
+  const audioFormat = { ...audio, mimeType: 'audio/webm; codecs="opus"', bitrate: 1 }
+  const liveSession = (fetch: Fetch, segments: ReturnType<typeof delivered>, liveWindowStartMs?: number) => ({
+    ...sessionOf(fetch),
+    videoFormats: [videoFormat],
+    audioFormats: [audioFormat],
+    videoFormat,
+    audioFormat,
+    targetDurationMs: 5_000,
+    liveSegments: segments,
+    liveEndMs: segments.at(-1)!.startMs + 5_000,
+    liveWindowStartMs,
+  }) as unknown as Session
+  const first = liveSession(async (request) => {
+    if (request.requestId.endsWith(':live-probe')) return {} as never
+    throw refreshError()
+  }, delivered(1_000), 100 * 5_000)
+  // the session a refresh opens has delivered its first segments but been told nothing of the window yet
+  const next = liveSession(async () => ({}) as never, delivered(1_010))
+  vi.mocked(createSabrSession).mockReset().mockReturnValueOnce(first).mockReturnValueOnce(next)
+  const id = ((await call('openPlayback', 'live-1')).result as PlaybackSession).id
+  const manifest = async () => (await call('liveManifest', id)).result as string
+  const startNumber = (text: string) => text.match(/startNumber="(\d+)"/)?.[1]
+  expect(startNumber(await manifest())).toBe('100')
+  await call('requestSegment', { ...segment('a', id), sequenceNumber: 1_003 })
+  expect(vi.mocked(createSabrSession)).toHaveBeenCalledTimes(2)
+  const refreshed = await manifest()
+  // the refreshed session's own newest segment, on the window the first session named
+  expect(refreshed).toContain(`<S t="${1_013 * 5_000}" d="5000"/>`)
+  expect(startNumber(refreshed)).toBe('100')
+})

@@ -49,7 +49,9 @@ const cueSourceFor = async (entry: PlaybackEntry, track: CaptionSource) => {
   return match
 }
 
-// the anchor is carried on the entry rather than recomputed, so every refresh hangs off the same presentation zero
+/* the anchor is carried on the entry rather than recomputed, so every refresh hangs off the same presentation zero, and
+   so is the window's start: a refreshed session knows none until it is answered, and a narrower window drops the
+   playhead of a viewer watching behind the edge to the window's new start */
 const liveManifestFor = (entry: PlaybackEntry) => {
   const player = entry.player
   const segments = player.liveSegments
@@ -57,6 +59,7 @@ const liveManifestFor = (entry: PlaybackEntry) => {
   const endMs = timelineEndMs(segments)
   if (endMs === undefined) return undefined
   entry.liveAnchorMs = liveAnchor(entry.liveAnchorMs, nowMs, endMs)
+  entry.liveWindowStartMs = player.liveWindowStartMs ?? entry.liveWindowStartMs
   return buildLiveManifest({
     videoFormats: player.videoFormats,
     audioFormats: player.audioFormats,
@@ -64,6 +67,7 @@ const liveManifestFor = (entry: PlaybackEntry) => {
     segments,
     nowMs,
     anchorMs: entry.liveAnchorMs,
+    windowStartMs: entry.liveWindowStartMs,
   })
 }
 

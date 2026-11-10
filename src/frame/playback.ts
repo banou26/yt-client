@@ -27,6 +27,7 @@ export type PlaybackEntry = {
 
   lastLiveManifest?: string
   liveAnchorMs?: number
+  liveWindowStartMs?: number
 }
 
 const SEGMENT_CANCELLED = 'youtube: segment request cancelled'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { buildLiveManifest, contiguousTail, liveAnchor, timelineEndMs } from '../../../src/frame/live-manifest'
+import { buildLiveManifest, contiguousTail, earlierSegments, liveAnchor, timelineEndMs } from '../../../src/frame/live-manifest'
 
 const video = (key: string, mimeType: string, height: number) => ({
   key,
@@ -51,7 +51,7 @@ describe('live manifest', () => {
   })
 
   it('describes only segments that were actually delivered', () => {
-    // the server ignores the address on a request and answers with its current edge, so an extrapolated segment names something that would never arrive
+    // a segment past the newest one delivered may not exist yet
     const manifest = build({ segments: delivered(4_717, 3) })
     const entries = [...manifest.matchAll(/<S t="(\d+)" d="(\d+)"\/>/g)].map((match) => match[1])
     expect(entries).toEqual(['23575000', '23580000', '23585000', '23575000', '23580000', '23585000'])
@@ -80,8 +80,33 @@ describe('live manifest', () => {
     expect(manifest).toContain('availabilityStartTime="2026-07-28T05:26:50.000Z"')
   })
 
-  it('advertises a seek range no wider than the session can serve', () => {
+  it('advertises only the delivered run while the server has named no window', () => {
     expect(build({ segments: delivered(4_717, 4) })).toContain('timeShiftBufferDepth="PT20.000S"')
+  })
+
+  it('reaches back to the start of the server\'s DVR window, on the grid of the delivered segments', () => {
+    // segment n starts at n * 5000 - 16867 on rFZHOHl-L8A, and the window starts between two of them
+    const segments = delivered(1_440_816, 4).map((segment) => ({ ...segment, startMs: segment.startMs - 16_867 }))
+    const manifest = build({ segments, windowStartMs: segments[0]!.startMs - 8_636 * 5_000 - 1_234.5 })
+    expect(manifest).toContain('startNumber="1432177"')
+    const entries = [...manifest.matchAll(/<S [^>]*\/>/g)].map((match) => match[0]).slice(0, 5)
+    expect(entries).toEqual([
+      `<S t="${segments[0]!.startMs - 8_636 * 5_000}" d="5000" r="8635"/>`,
+      ...segments.map((segment) => `<S t="${segment.startMs}" d="5000"/>`),
+    ])
+    // the 12 h youtube.com's bar spans on this stream
+    expect(manifest).toContain('timeShiftBufferDepth="PT43200.000S"')
+    // and still opens behind the newest delivered segment, not anywhere in the window
+    expect(manifest).toContain('suggestedPresentationDelay="PT15.000S"')
+  })
+
+  it('counts the window\'s whole segments before the first delivered one', () => {
+    expect(earlierSegments(100_000, 5_000, 50_000)).toBe(10)
+    expect(earlierSegments(100_000, 5_000, 50_001)).toBe(9)
+    expect(earlierSegments(100_000, 5_000, 100_000)).toBe(0)
+    // a window that starts after the delivered run, or none named
+    expect(earlierSegments(100_000, 5_000, 120_000)).toBe(0)
+    expect(earlierSegments(100_000, 5_000, undefined)).toBe(0)
   })
 
   it('starts the playhead behind the edge, never at it', () => {
