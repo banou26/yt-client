@@ -14,6 +14,7 @@ import SubscribeButton from '../components/subscribe-button'
 import { Menu, MenuItem } from '../components/ui/menu'
 import useInfiniteFeed from '../components/use-infinite-feed'
 import { gql } from '../generated'
+import { isTypingTarget } from '../player/controls'
 import ShortsPlayer from '../player/shorts-player'
 import { closePlayer } from '../player/session'
 import { useSession } from '../session'
@@ -538,6 +539,29 @@ const ShortsPage = () => {
 
   const active = useMemo(() => items.find(short => short.id === activeId), [items, activeId])
 
+  const activeIndex = items.findIndex(short => short.id === activeId)
+  const step = (by: 1 | -1) => {
+    const target = items[activeIndex + by]
+    if (!target) return
+    scrollerRef.current?.querySelector(`[data-short-id="${CSS.escape(target.id)}"]`)?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const latest = useRef({ step, sharing })
+  latest.current = { step, sharing }
+
+  // on the document, so the keys work before anything on the page has been clicked
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return
+      if (isTypingTarget(event.target) || latest.current.sharing) return
+      event.preventDefault()
+      latest.current.step(event.key === 'ArrowDown' ? 1 : -1)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   if (!ready || (fetching && items.length === 0)) {
     return <main css={style}><p className='notice'>Loading Shorts…</p></main>
   }
@@ -554,13 +578,6 @@ const ShortsPage = () => {
         </div>
       </main>
     )
-  }
-
-  const activeIndex = items.findIndex(short => short.id === activeId)
-  const step = (by: 1 | -1) => {
-    const target = items[activeIndex + by]
-    if (!target) return
-    scrollerRef.current?.querySelector(`[data-short-id="${CSS.escape(target.id)}"]`)?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (

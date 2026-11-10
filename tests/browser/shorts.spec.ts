@@ -108,3 +108,26 @@ test('a refused Short the address names says so in the middle, off its title', a
   expect(line!.y + line!.height, 'the refusal runs into the title').toBeLessThanOrEqual(title!.y)
   expect(shownShort(page)).toBe(NAMED_SHORT)
 })
+
+plainTest('the arrow keys move between Shorts as soon as one plays, without a click', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/shorts')
+  await expect(page).toHaveURL(/\/shorts\/[\w-]{11}$/, { timeout: 120_000 })
+  // whichever Short is up once one plays, since a refused one is passed over
+  await expect.poll(() => page.locator(`[data-short-id="${shownShort(page)}"] video`).evaluate(video => {
+    const element = video as HTMLVideoElement
+    return !element.paused && element.currentTime > 0.3
+  }, undefined, { timeout: 1_000 }).catch(() => false), { timeout: 120_000 }).toBe(true)
+  const firstId = shownShort(page)
+  const first = page.locator(`[data-short-id="${firstId}"]`)
+  const nextId = (await page.locator(`[data-short-id="${firstId}"] + [data-short-id]`).getAttribute('data-short-id'))!
+
+  await page.keyboard.press('ArrowDown')
+  await expect.poll(() => shownShort(page), { timeout: 10_000 }).toBe(nextId)
+  await playing(page.locator(`[data-short-id="${nextId}"]`))
+
+  await page.keyboard.press('ArrowUp')
+  await expect.poll(() => shownShort(page), { timeout: 10_000 }).toBe(firstId)
+  await playing(first)
+})
