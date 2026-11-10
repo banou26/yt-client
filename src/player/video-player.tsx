@@ -12,7 +12,7 @@ import type { UpNext } from './up-next'
 import type { startShakaPlayback } from './shaka'
 
 import { LIVE_UNSUPPORTED, playbackRefusal } from '../frame/protocol'
-import { preferredTrack, startingTrack } from '../frame/captions'
+import { defaultTrack, startingTrack } from '../frame/captions'
 
 import { css } from '@emotion/react'
 import { createPortal } from 'preact/compat'
@@ -507,7 +507,7 @@ const VideoPlayer = (
       selectCaptionRef.current = controller.selectCaption
       const stored = getSettings().quality
       if (stored !== 'auto') void controller.selectQuality(stored).catch(() => {})
-      const wanted = startingTrack(controller.captionTracks, getSettings())
+      const wanted = startingTrack(controller.captionTracks, getSettings(), navigator.language)
       setCaption(wanted?.id)
       if (wanted) {
         void controller.selectCaption(wanted.id).catch(() => {
@@ -559,7 +559,7 @@ const VideoPlayer = (
     if (caption) return applyCaption(undefined)
     const restored = lastCaption.current && captionTracks.some((track) => track.id === lastCaption.current)
       ? lastCaption.current
-      : (captionTracks.find((track) => track.recommended) ?? preferredTrack(captionTracks, undefined))?.id
+      : defaultTrack(captionTracks, navigator.language)?.id
     if (restored) applyCaption(restored)
   }
 

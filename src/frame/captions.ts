@@ -70,12 +70,17 @@ export const preferredTrack = (tracks: CaptionTrack[], language: string | undefi
   return [...tracks].sort(byRank)[0]
 }
 
+/** The track captions turn on with when no language was picked: the one YouTube recommends, else one in the browser's language, else the first listed. */
+export const defaultTrack = (tracks: CaptionTrack[], browserLanguage: string | undefined) =>
+  tracks.find((track) => track.recommended) ?? preferredTrack(tracks, browserLanguage) ?? preferredTrack(tracks, undefined)
+
 type CaptionChoice = { captionsChosen?: boolean, captionsEnabled: boolean, captionsLanguage?: string }
 
 /** The track a video starts with: the person's own choice once they turned captions on or off, else the one YouTube recommends, if any. */
-export const startingTrack = (tracks: CaptionTrack[], choice: CaptionChoice) => {
+export const startingTrack = (tracks: CaptionTrack[], choice: CaptionChoice, browserLanguage: string | undefined) => {
   if (!choice.captionsChosen) return tracks.find((track) => track.recommended)
-  return choice.captionsEnabled ? preferredTrack(tracks, choice.captionsLanguage) : undefined
+  if (!choice.captionsEnabled) return undefined
+  return choice.captionsLanguage ? preferredTrack(tracks, choice.captionsLanguage) : defaultTrack(tracks, browserLanguage)
 }
 
 // one `fmt=json3` event: every field is optional, and `aAppend` marks an event that re-states the line before it so a rolling caption can grow a word at a time

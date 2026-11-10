@@ -1,7 +1,7 @@
 import { YTNodes } from 'youtubei.js'
 import { describe, expect, it } from 'vite-plus/test'
 
-import { json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, startingTrack, timedTextUrl } from '../../../src/frame/captions'
+import { defaultTrack, json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, startingTrack, timedTextUrl } from '../../../src/frame/captions'
 import answers from '../fixtures/caption-advice.json'
 
 // youtubei.js parses `name` into a Text node, so the label arrives as an object
@@ -123,18 +123,45 @@ describe('the track YouTube recommends', () => {
   })
 
   it('starts a video with nothing chosen on the recommended track', () => {
-    expect(startingTrack(recorded('japaneseViewer'), { captionsEnabled: false })?.id).toBe('.ja')
-    expect(startingTrack(recorded('englishViewer'), { captionsEnabled: false })).toBeUndefined()
+    expect(startingTrack(recorded('japaneseViewer'), { captionsEnabled: false }, 'ja-JP')?.id).toBe('.ja')
+    expect(startingTrack(recorded('englishViewer'), { captionsEnabled: false }, 'en-US')).toBeUndefined()
   })
 
   it('keeps captions off once a person turned them off', () => {
-    expect(startingTrack(recorded('japaneseViewer'), { captionsChosen: true, captionsEnabled: false })).toBeUndefined()
+    expect(startingTrack(recorded('japaneseViewer'), { captionsChosen: true, captionsEnabled: false }, 'ja-JP')).toBeUndefined()
   })
 
   it('shows the language a person turned on, whatever YouTube recommends', () => {
     const choice = { captionsChosen: true, captionsEnabled: true, captionsLanguage: 'en' }
-    expect(startingTrack(recorded('japaneseViewer'), choice)?.id).toBe('.en')
-    expect(startingTrack(recorded('englishViewer'), choice)?.id).toBe('.en')
+    expect(startingTrack(recorded('japaneseViewer'), choice, 'ja-JP')?.id).toBe('.en')
+    expect(startingTrack(recorded('englishViewer'), choice, 'en-US')?.id).toBe('.en')
+  })
+
+  it('shows the recommended track when captions were turned on with no language picked', () => {
+    const choice = { captionsChosen: true, captionsEnabled: true }
+    expect(startingTrack(recorded('japaneseViewer'), choice, 'ja-JP')?.id).toBe('.ja')
+    expect(startingTrack(recorded('japaneseViewer'), choice, 'en-US')?.id).toBe('.ja')
+  })
+})
+
+describe('the track captions turn on with', () => {
+  // the Japanese answer as it would come recommending captions off: no track is recommended, and the first listed is Spanish
+  const adviceOff = structuredClone(answers.japaneseViewer)
+  adviceOff.playerCaptionsTracklistRenderer.audioTracks[0]!.captionsInitialState = 'CAPTIONS_INITIAL_STATE_OFF_RECOMMENDED'
+  const tracks = parseCaptionTracks(new YTNodes.PlayerCaptionsTracklist(adviceOff.playerCaptionsTracklistRenderer))
+
+  it('is the recommended one when there is one', () => {
+    expect(defaultTrack(recorded('japaneseViewer'), 'en-US')?.id).toBe('.ja')
+  })
+
+  it("is one in the browser's language when none is recommended", () => {
+    expect(defaultTrack(tracks, 'ja-JP')?.id).toBe('.ja')
+    expect(defaultTrack(recorded('englishViewer'), 'en-US')?.id).toBe('.en')
+  })
+
+  it("is the first listed when the video has none in the browser's language", () => {
+    expect(defaultTrack(tracks, 'fr-FR')?.id).toBe('.es-419')
+    expect(defaultTrack(tracks, undefined)?.id).toBe('.es-419')
   })
 })
 
