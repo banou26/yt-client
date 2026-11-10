@@ -69,3 +69,10 @@ plainTest('a signed-out Home fills once two videos were watched, and going back 
   await expect.poll(firstVideos).toEqual(shown)
   await expect(clicked).toBeInViewport()
 })
+
+plainTest('through the relay too, a signed-out Home fills once two videos were watched', async ({ page, baseURL }) => {
+  plainTest.setTimeout(300_000)
+  await page.addInitScript(() => localStorage.setItem('yt-client:step:direct', '0'))
+  await watchTwoThenOpenHome(page, laneOrigin(baseURL))
+  await expect(page.locator('html')).toHaveAttribute('data-yt-direct', 'off')
+})

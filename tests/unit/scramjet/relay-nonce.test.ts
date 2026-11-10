@@ -41,6 +41,7 @@ const FRESH: [string, string, TransportRequest][] = [
   ['the watch page read', 'https://www.youtube.com/watch?v=FAlMdord_Fg', { method: 'GET', headers: {} }],
   ['a live chat poll', 'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ continuation: 'same' }) }],
   ['a live chat replay poll', 'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat_replay', { method: 'POST', headers: {}, body: json({ continuation: 'same' }) }],
+  ['a signed-out Home read', 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ context: { client: { visitorData: 'visitor' } }, browseId: 'FEwhat_to_watch' }) }],
   ['a player read with an empty authorization', 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false&alt=json', { method: 'POST', headers: { authorization: '', 'content-type': 'application/json' }, body: json({ videoId: 'FAlMdord_Fg' }) }],
 ]
 
@@ -53,6 +54,7 @@ const SIGNED: [string, string, TransportRequest][] = [
   ['a watch page read with the signed-in jar', 'https://www.youtube.com/watch?v=FAlMdord_Fg', { method: 'GET', headers: signedInJar }],
   ['a session bootstrap with the signed-in jar', 'https://www.youtube.com/sw.js_data', { method: 'GET', headers: { 'user-agent': 'Mozilla/5.0', Cookie: signedInJar.cookie } }],
   ['a write', 'https://www.youtube.com/youtubei/v1/like/like?prettyPrint=false', { method: 'POST', headers: signedIn, body: json({ target: { videoId: 'FAlMdord_Fg' } }) }],
+  ['a signed-in Home read', 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', { method: 'POST', headers: signedIn, body: json({ browseId: 'FEwhat_to_watch' }) }],
   ['a signed-in read, as after a write', 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', { method: 'POST', headers: signedIn, body: json({ browseId: 'FEsubscriptions' }) }],
 ]
 
@@ -61,6 +63,8 @@ const SHARED: [string, string, TransportRequest][] = [
   ['iframe_api', 'https://www.youtube.com/iframe_api', { method: 'GET', headers: {} }],
   ['timedtext', 'https://www.youtube.com/api/timedtext?v=FAlMdord_Fg&lang=en&fmt=json3', { method: 'GET', headers: {} }],
   ['a signed-out search', 'https://www.youtube.com/youtubei/v1/search?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ query: 'lofi' }) }],
+  ['a signed-out channel read', 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ context: {}, browseId: 'UCBJycsmduvYEL83R_U4JriQ' }) }],
+  ['a signed-out Home page past the first', 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({ context: {}, continuation: 'next' }) }],
   ['a signed-out guide', 'https://www.youtube.com/youtubei/v1/guide?prettyPrint=false', { method: 'POST', headers: { 'content-type': 'application/json' }, body: json({}) }],
   ['a playback registration, unique by its cpn', 'https://s.youtube.com/api/stats/playback?ver=2&cpn=abcdefghijklmnop', { method: 'POST', headers: {} }],
 ]

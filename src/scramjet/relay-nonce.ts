@@ -25,6 +25,18 @@ const FRESH_PATHS = new Set([
 
 const YOUTUBE_HOST = /(^|\.)(youtube\.com|youtubei\.googleapis\.com)$/
 
+/* a signed-out Home read goes out byte for byte the same each time as one visitor, while its answer follows what that
+   visitor watched since: without an answer of its own, Home opened after two watches through the relay was still the
+   relay's first, empty answer (measured 2026-11-10, 2 of 2) */
+const isHomeRead = (pathname: string, body: TransportRequest['body']) => {
+  if (pathname !== '/youtubei/v1/browse' || !body) return false
+  try {
+    return (JSON.parse(new TextDecoder().decode(body)) as { browseId?: unknown }).browseId === 'FEwhat_to_watch'
+  } catch {
+    return false
+  }
+}
+
 /**
  * Whether a call goes out as the signed-in Google account: a non-empty authorization, or the jar's SAPISID. The
  * headers are Scramjet's raw ones, so its jar arrives as `cookie`.
@@ -45,7 +57,7 @@ export const needsFreshAnswer = (url: string, options: TransportRequest) => {
   } catch {
     return false
   }
-  return YOUTUBE_HOST.test(parsed.hostname) && FRESH_PATHS.has(parsed.pathname)
+  return YOUTUBE_HOST.test(parsed.hostname) && (FRESH_PATHS.has(parsed.pathname) || isHomeRead(parsed.pathname, options.body))
 }
 
 /** The headers a relayed call goes out with: the caller's own, plus a new nonce when its answer must be fresh. */
