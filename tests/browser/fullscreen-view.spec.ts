@@ -217,3 +217,28 @@ test('the chapters and the comments take turns in one slot beside the video', as
   await expect(comments).toHaveCount(0)
   expect(await videoWidth()).toBe(1280)
 })
+
+test('the transcript takes the same slot, and the comments replace it', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  // six chapters and a transcript, so the chapter title's list carries a chip for each
+  await page.goto('/watch?v=g6Die8gVFn0')
+  await startPlayback(page)
+  await enterFullscreen(page)
+  const player = page.locator('[data-player-root]')
+  const transcript = player.locator('section[aria-label="Transcript"]')
+  const comments = player.getByRole('complementary', { name: 'Comments' })
+  const slot = { x: 944, y: 16, width: 320, height: 768 }
+
+  await press(page, player.locator('.chapter'))
+  await player.locator('section[aria-label="Chapters"]').getByRole('tab', { name: 'Transcript' }).click()
+  await expect(transcript).toBeVisible()
+  await expect(transcript.getByRole('heading', { name: 'In this video' })).toBeVisible()
+  expect(await transcript.boundingBox()).toEqual(slot)
+
+  await press(page, player.getByRole('button', { name: 'Comments' }))
+  await expect(comments).toBeVisible()
+  await expect(transcript).toHaveCount(0)
+  expect(await comments.boundingBox()).toEqual(slot)
+  expect((await player.locator('video').boundingBox())!.width).toBe(928)
+})
