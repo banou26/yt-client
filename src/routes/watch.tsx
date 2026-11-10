@@ -13,6 +13,7 @@ import { useDocumentTitle, useMediaQuery } from '../app'
 import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byline'
 import { ChatReplay, ChatReplayTeaser } from '../components/chat-replay'
 import Comments from '../components/comments'
+import { DataFailure } from '../components/data-failure'
 import DescriptionBox from '../components/description-box'
 import { formatCompact, parseStartSeconds } from '../components/format'
 import LiveChat from '../components/live-chat'
@@ -330,11 +331,6 @@ const style = css`
     background: var(--bg-chip-hover);
   }
 
-  .error {
-    margin-top: 1.2rem;
-    color: var(--text-secondary);
-  }
-
   @media ${ONE_COLUMN} {
     --margin: 1.6rem;
     padding: 2.4rem var(--margin);
@@ -459,7 +455,7 @@ const WatchPage = () => {
   const startAt = parseStartSeconds(params.get('t'))
   const indexParam = Number(params.get('index'))
   const playlistIndex = Number.isInteger(indexParam) && indexParam > 0 ? indexParam - 1 : undefined
-  const [{ data: watchData, error: watchError, fetching: watchFetching }] = useQuery({
+  const [{ data: watchData, error: watchError, fetching: watchFetching }, reexecuteWatch] = useQuery({
     query: WATCH_META_QUERY,
     variables: { id: videoId, playlistId: listId, playlistIndex },
     // load-bearing: WatchMeta is keyed by video id and WatchPlaylist is embedded in it, so every argument set for one video shares a single `playlist` slot (a plain ?v= read writes null over it, a read from another queue writes that queue's panel), and cache-first would serve the stale slot straight back
@@ -559,7 +555,7 @@ const WatchPage = () => {
           {oneColumn ? replay : undefined}
           {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
           {watch?.isMembersOnly ? <MembersOnly /> : undefined}
-          {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
+          {watchError && !watch && !watchFetching ? <DataFailure error={watchError} reexecute={reexecuteWatch} /> : undefined}
           {watch
             ? (
               <div className='owner-row'>

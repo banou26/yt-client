@@ -7,6 +7,7 @@ import { useMutation, useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { DataFailure } from '../components/data-failure'
 import { readable } from '../components/format'
 import { LIKED_VIDEOS_ID, playlistHrefFor, WATCH_LATER_ID } from '../components/playlist'
 import { setQueueShuffle } from '../components/playlist-panel'
@@ -18,6 +19,7 @@ import { watchHrefFor } from '../components/video-card'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
 import { gql } from '../generated'
 import { signIn } from '../sign-in'
+import { PLAYLIST_UNAVAILABLE } from '../sources/types'
 
 const PLAYLIST_VIEW_QUERY = gql(`
   query PlaylistView($id: ID!, $cursor: String) {
@@ -375,7 +377,7 @@ const PlaylistPage = () => {
   const accountScoped = listId === WATCH_LATER_ID || listId === LIKED_VIDEOS_ID
   const { ready, signedIn } = useSession()
   const signedOutOfOwnList = accountScoped && ready && !signedIn
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: PLAYLIST_VIEW_QUERY,
     variables: { id: listId, cursor: pages[pages.length - 1]?.cursor },
     pause: listId.length === 0 || (accountScoped && (!ready || !signedIn))
@@ -384,6 +386,7 @@ const PlaylistPage = () => {
   const [removed, setRemoved] = useState<Set<string>>(() => new Set())
   const [removing, setRemoving] = useState<string[]>([])
 
+  const unavailable = error?.graphQLErrors.find(entry => entry.message.startsWith(PLAYLIST_UNAVAILABLE))
   const page = data?.playlist
   // urql keeps the previous result while the next page is in flight, so the live page can repeat one already consumed
   const { items, cursor } = useInfiniteFeed({
@@ -526,7 +529,7 @@ const PlaylistPage = () => {
           </div>
         </aside>
         <div>
-          {error && rows.length === 0 ? <p className='notice'>{readable(error.message)}</p> : undefined}
+          {unavailable ? <p className='notice'>{unavailable.message.slice(PLAYLIST_UNAVAILABLE.length)}</p> : undefined}
           <div className='rows'>
             {rows.map((item, position) => {
               // the number on screen counts the rows rendered; the one in the href is upstream's slot, which is what ?index= addresses
@@ -570,8 +573,8 @@ const PlaylistPage = () => {
               </div>
             )
             : undefined}
-          {error && rows.length > 0 ? <p className='notice'>Could not load more of this playlist.</p> : undefined}
           {fetching && rows.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
+          {error && !unavailable && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
           <FeedSentinel onVisible={onMore} disabled={fetching || Boolean(error) || !cursor} />
         </div>
       </div>

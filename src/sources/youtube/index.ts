@@ -1,9 +1,9 @@
 import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceCommentSort, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
 import type { EntityMutation } from './normalize'
 
-import { Innertube, Utils } from 'youtubei.js/web'
+import { Innertube, Utils, YTNodes } from 'youtubei.js/web'
 
-import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
+import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE, PLAYLIST_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
 import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSearchTopic, normalizeSession, normalizeShortsLockup, normalizeStoreShelf, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 import { base64Bytes, protoField } from './protobuf'
@@ -1391,7 +1391,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     // Deliberately not sign-in gated: a public playlist opens signed out.
     playlist: async (id, cursor) => {
       if (cursor) return playlistContinuations.resolve(`playlist:${id}`, cursor)
-      const feed = await (await client).getPlaylist(id)
+      // youtubei.js throws upstream's alert as an InnertubeError carrying it
+      const feed = await (await client).getPlaylist(id).catch((error: unknown) => {
+        throw error instanceof Utils.InnertubeError && error.info instanceof YTNodes.Alert
+          ? new Error(`${PLAYLIST_UNAVAILABLE}${error.message}`, { cause: error })
+          : error
+      })
       const items = playlistItems(id, feed)
       const details = normalizePlaylistDetails(feed, id)
       // The cover has to be resolved before the continuation closure captures the playlist: page two would otherwise hand back the same entity with its cover cleared.

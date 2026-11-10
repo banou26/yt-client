@@ -6,7 +6,7 @@ import { useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
-import { readable } from '../components/format'
+import { DataFailure } from '../components/data-failure'
 import { LIKED_VIDEOS_ID, WATCH_LATER_ID } from '../components/playlist'
 import { PlaylistCard } from '../components/playlist-card'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
@@ -232,7 +232,7 @@ const PlaylistsFeedPage = () => {
   useDocumentTitle('Playlists')
   const { ready, signedIn } = useSession()
   const [loaded, setLoaded] = useState<LibraryPage[]>([])
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: LIBRARY_PLAYLISTS_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
     pause: !ready || !signedIn
@@ -280,7 +280,6 @@ const PlaylistsFeedPage = () => {
   return (
     <main css={style}>
       <h1 className='heading'>Playlists</h1>
-      {error && playlists.length === 0 ? <p className='notice'>{readable(error.message)}</p> : undefined}
       {/* the two pinned cards are known ids rather than results, so no fetch state can remove them */}
       <div className='grid'>
         {PINNED.map(pinned => (
@@ -310,8 +309,8 @@ const PlaylistsFeedPage = () => {
           </div>
         )
         : undefined}
-      {error && playlists.length > 0 ? <p className='notice'>Could not load more playlists.</p> : undefined}
       {fetching && playlists.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <FeedSentinel onVisible={onMore} disabled={fetching || Boolean(error) || !cursor} />
     </main>
   )

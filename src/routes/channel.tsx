@@ -9,6 +9,7 @@ import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
+import { DataFailure } from '../components/data-failure'
 import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
 import { PostCard } from '../components/post-card'
@@ -554,7 +555,7 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
   const feedKey = `${id}|${tab ?? ''}|${sort ?? ''}|${filter ?? ''}|${channelQuery ?? ''}`
   const [loaded, setLoaded] = useState<{ id: string, pages: VideosPage[] }>({ id: feedKey, pages: [] })
   const pages = loaded.id === feedKey ? loaded.pages : []
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: CHANNEL_VIEW_QUERY,
     variables: { id, tab, sort, filter, query: channelQuery, cursor: pages[pages.length - 1]?.cursor }
   })
@@ -705,13 +706,8 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
           </div>
         )
         : undefined}
-      {error && !missing
-        ? (
-          <p className='status'>
-            {unavailable ? unavailable.message.slice(CHANNEL_UNAVAILABLE.length) : 'Couldn\'t load this channel. Try again later.'}
-          </p>
-        )
-        : undefined}
+      {unavailable ? <p className='status'>{unavailable.message.slice(CHANNEL_UNAVAILABLE.length)}</p> : undefined}
+      {error && !missing && !unavailable && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <nav className='tabs' aria-label='Channel sections'>
         {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab

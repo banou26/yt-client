@@ -109,7 +109,9 @@ test('says in one line that a channel did not load, never the raw error', async 
   test.setTimeout(180_000)
   await page.addInitScript(failChannelCalls)
   await page.goto(`/channel/${CHANNEL_ID}`)
-  await expect(page.locator('main .status')).toHaveText('Couldn\'t load this channel. Try again later.', { timeout: 120_000 })
+  const alert = page.locator('main').getByRole('alert')
+  await expect(alert.locator('p')).toHaveText('Something went wrong.', { timeout: 120_000 })
+  await expect(alert.getByRole('button', { name: 'Try again' })).toBeVisible()
   await expect(page.locator('main')).not.toContainText('featured')
 })
 

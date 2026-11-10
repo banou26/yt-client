@@ -5,7 +5,7 @@ import { Innertube, Parser, YT, YTNodes } from 'youtubei.js'
 import type { YoutubeClient } from '../../../../src/sources/youtube'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
-import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
+import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE, PLAYLIST_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
 import { accountsListAnswer, BRAND_PAGE_ID, twoChannels } from '../../fixtures/accounts-list'
 
 type FakeFeed = {
@@ -532,6 +532,19 @@ describe('youtube channel tabs', () => {
     await expect(resolving(failed(404)).channel('@thischanneldoesnotexist9876543')).rejects.toThrow(new Error(CHANNEL_NOT_FOUND))
     await expect(resolving(failed(500)).channel('@someone')).rejects.toThrow(failed(500))
     await expect(resolving(new TypeError('Failed to fetch')).channel('@someone')).rejects.toThrow(new TypeError('Failed to fetch'))
+  })
+
+  // youtubei.js's words for a playlist id nobody holds, read 2026-11-11: an InnertubeError carrying upstream's alert
+  it('rejects with upstream\'s own line for a playlist that does not exist, and any other failure as it came', async () => {
+    const answer = { alerts: [{ alertRenderer: { type: 'ERROR', text: { simpleText: 'The playlist does not exist.' } } }] }
+    const playlist = (getPlaylist: () => Promise<unknown>) => createYoutubeSource({
+      fetch: globalThis.fetch,
+      createClient: async () => ({ getPlaylist }) as never,
+    }).playlist('PLzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
+    await expect(playlist(async () => new YT.Playlist(undefined as never, Parser.parseResponse(answer as never), true)))
+      .rejects.toThrow(new Error(`${PLAYLIST_UNAVAILABLE}The playlist does not exist.`))
+    const failed = new Error('Request to https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json failed with status code 500')
+    await expect(playlist(async () => { throw failed })).rejects.toThrow(failed)
   })
 })
 

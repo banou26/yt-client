@@ -7,6 +7,7 @@ import { useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
 import { cameBack } from '../back-navigation'
+import { DataFailure } from '../components/data-failure'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { ShortsShelf } from '../components/shorts-shelf'
 import { VideoGrid } from '../components/video-grid'
@@ -180,7 +181,7 @@ const HomePage = () => {
   // youtube.com reads Home anew when a logo or link click opens it, which is where a video watched since shows up, and
   // going back to it keeps the feed it showed
   const [requestPolicy] = useState(() => cameBack() ? 'cache-first' as const : 'network-only' as const)
-  const [{ data, error, fetching, operation }] = useQuery({
+  const [{ data, error, fetching, operation }, reexecute] = useQuery({
     query: HOME_FEED_QUERY,
     variables: { chip, cursor: pages[pages.length - 1]?.cursor },
     requestPolicy
@@ -285,7 +286,6 @@ const HomePage = () => {
           )
           : undefined}
       </div>
-      {error && items.length === 0 ? <p className='notice'>{error.message}</p> : undefined}
       {empty
         ? chip === undefined
           ? (
@@ -295,7 +295,7 @@ const HomePage = () => {
           )
           : <p className='notice'>No videos under this filter.</p>
         : <VideoGrid videos={items} shelf={<ShortsShelf shorts={shorts} />} fetching={fetching && items.length === 0} />}
-      {error && items.length > 0 ? <p className='notice'>Couldn’t load more videos.</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       {fetching && items.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
       <FeedSentinel onVisible={onMore} disabled={fetching || !cursor || Boolean(error)} />
     </main>

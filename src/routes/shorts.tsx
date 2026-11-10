@@ -8,7 +8,8 @@ import { Link, useLocation, useRoute } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { Comments } from '../components/comments'
-import { readable, safeDecode } from '../components/format'
+import { DataFailure } from '../components/data-failure'
+import { safeDecode } from '../components/format'
 import ShareDialog from '../components/share-dialog'
 import { shortsSequenceIn } from '../components/shorts-tile'
 import SubscribeButton from '../components/subscribe-button'
@@ -489,7 +490,7 @@ const ShortsPage = () => {
   const [sharing, setSharing] = useState<string | undefined>(undefined)
   const [refused, setRefused] = useState<ReadonlySet<string>>(() => new Set())
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: SHORTS_FEED_QUERY,
     variables: { seed, sequence, cursor: loaded[loaded.length - 1]?.cursor },
     pause: !ready,
@@ -575,7 +576,7 @@ const ShortsPage = () => {
   }
 
   if (error && items.length === 0) {
-    return <main css={style}><p className='notice'>{readable(error.message)}</p></main>
+    return <main css={style}><DataFailure error={error} reexecute={reexecute} /></main>
   }
 
   if (items.length === 0) {

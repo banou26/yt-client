@@ -7,7 +7,7 @@ import { useQuery } from 'urql'
 import { Link } from 'wouter'
 
 import { useDocumentTitle } from '../app'
-import { readable } from '../components/format'
+import { DataFailure } from '../components/data-failure'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
 import { VideoGrid } from '../components/video-grid'
 import { gql } from '../generated'
@@ -191,7 +191,7 @@ const SubscriptionsFeedPage = () => {
   const [hideLive, setHideLive] = useState(false)
   const [hideWatched, setHideWatched] = useState(false)
   const [loaded, setLoaded] = useState<SubscriptionsPage[]>([])
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: SUBSCRIPTIONS_FEED_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
     pause: !ready || !signedIn
@@ -263,7 +263,6 @@ const SubscriptionsFeedPage = () => {
           Hide watched
         </label>
       </div>
-      {error && shown.length === 0 ? <p className='notice'>{readable(error.message)}</p> : undefined}
       {data && !fetching && !error && shown.length === 0 && (stalled || !cursor)
         ? (
           <div className='card'>
@@ -271,8 +270,8 @@ const SubscriptionsFeedPage = () => {
           </div>
         )
         : <VideoGrid videos={shown} fetching={fetching && shown.length === 0} />}
-      {error && shown.length > 0 ? <p className='notice'>Could not load more videos.</p> : undefined}
       {fetching && shown.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       {/* paging on its own stops after pages that held nothing to show, and goes on from here one page at a time */}
       {stalled && cursor && !fetching && !error
         ? <button type='button' className='more' onClick={onMore}>Load more</button>

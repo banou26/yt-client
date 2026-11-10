@@ -3,6 +3,7 @@ import { useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
 import { Comments } from '../components/comments'
+import { DataFailure } from '../components/data-failure'
 import { safeDecode } from '../components/format'
 import { PostCard } from '../components/post-card'
 import { gql } from '../generated'
@@ -52,7 +53,7 @@ const style = css`
 `
 
 export const PostPage = ({ params }: { params: { postId: string } }) => {
-  const [{ data, error }] = useQuery({ query: POST_QUERY, variables: { id: safeDecode(params.postId) } })
+  const [{ data, error, fetching }, reexecute] = useQuery({ query: POST_QUERY, variables: { id: safeDecode(params.postId) } })
   const post = data?.post
   useDocumentTitle(post?.text.split('\n')[0] || 'Post')
   return (
@@ -66,7 +67,7 @@ export const PostPage = ({ params }: { params: { postId: string } }) => {
         )
         : undefined}
       {data && !post ? <p className='status'>This post isn't available.</p> : undefined}
-      {error ? <p className='status'>Couldn't load this post. Try again later.</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
     </main>
   )
 }

@@ -11,6 +11,7 @@ import { Link, useLocation, useSearch } from 'wouter'
 import { useDocumentTitle } from '../app'
 import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byline'
 import { ChapterStrip } from '../components/chapters'
+import { DataFailure } from '../components/data-failure'
 import { formatDuration, formatMeta, rowByline } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
 import { Rail } from '../components/rail'
@@ -806,7 +807,7 @@ const SearchPage = () => {
   const [loaded, setLoaded] = useState<{ key: string, pages: ResultsPage[] }>({ key: feedKey, pages: [] })
   const pages = loaded.key === feedKey ? loaded.pages : []
 
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: SEARCH_RESULTS_QUERY,
     variables: { query, filters, cursor: pages[pages.length - 1]?.cursor },
     pause: query.length === 0
@@ -896,7 +897,6 @@ const SearchPage = () => {
           </div>
         )
         : undefined}
-      {error ? <p className='status'>{error.message}</p> : undefined}
       <div className='columns'>
         <div className='results'>
           {items.map(row => {
@@ -969,6 +969,7 @@ const SearchPage = () => {
         ? <p className='status'>No results found.</p>
         : undefined}
       {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
     </main>
   )

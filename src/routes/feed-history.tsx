@@ -7,6 +7,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
+import { DataFailure } from '../components/data-failure'
 import { useExtensionExposed } from '../components/extension-notice'
 import { readable } from '../components/format'
 import { showToast } from '../components/ui/toast'
@@ -208,7 +209,7 @@ const HistoryFeedPage = () => {
   useDocumentTitle('History')
   const { ready, signedIn } = useSession()
   const [loaded, setLoaded] = useState<HistoryPage[]>([])
-  const [{ data, error, fetching }] = useQuery({
+  const [{ data, error, fetching }, reexecute] = useQuery({
     query: WATCH_HISTORY_QUERY,
     variables: { cursor: loaded[loaded.length - 1]?.cursor },
     // the source refuses this feed when signed out and errors are unmasked, so the refusal would land in the UI verbatim
@@ -267,7 +268,6 @@ const HistoryFeedPage = () => {
   return (
     <main css={style}>
       <h1 className='heading'>Watch history</h1>
-      {error && items.length === 0 ? <p className='notice'>{readable(error.message)}</p> : undefined}
       {fetching && items.length === 0
         ? (
           <div className='entries'>
@@ -305,8 +305,8 @@ const HistoryFeedPage = () => {
           </div>
         )
         : undefined}
-      {error && items.length > 0 ? <p className='notice'>Could not load more of your history.</p> : undefined}
       {fetching && items.length > 0 ? <p className='notice'>Loading more…</p> : undefined}
+      {error && !fetching ? <DataFailure error={error} reexecute={reexecute} /> : undefined}
       <FeedSentinel onVisible={onMore} disabled={fetching || Boolean(error) || !cursor} />
     </main>
   )

@@ -358,6 +358,12 @@ export const CHANNEL_UNAVAILABLE = 'youtube: channel unavailable: '
 /** The message `channel` rejects with when a handle names no channel, where youtube.com answers with its 404 page. */
 export const CHANNEL_NOT_FOUND = 'youtube: no channel has this handle'
 
+/**
+ * Leads the message `playlist` rejects with when upstream answers with its own line in place of the playlist, such as
+ * "The playlist does not exist.", which follows it word for word.
+ */
+export const PLAYLIST_UNAVAILABLE = 'youtube: playlist unavailable: '
+
 export type SourceWatchPlaylist = {
   id: string
   title?: string

@@ -10,6 +10,7 @@ import { Link } from 'wouter'
 
 import { gql } from '../generated'
 import { useSession } from '../session'
+import { DataFailure } from './data-failure'
 import { readable } from './format'
 import { showToast } from './ui/toast'
 import { ReadMore } from './read-more'
@@ -715,12 +716,12 @@ export const Comments = ({ videoId, post, commentCountText }: {
   const [loaded, setLoaded] = useState<{ sort: CommentSort, pages: CommentPage[] }>({ sort, pages: [] })
   const loadedPages = loaded.sort === sort ? loaded.pages : []
   const cursor = loadedPages[loadedPages.length - 1]?.cursor ?? null
-  const [videoComments] = useQuery({
+  const [videoComments, reexecuteVideoComments] = useQuery({
     query: COMMENTS_QUERY,
     variables: { videoId: videoId ?? '', sort, cursor },
     pause: post !== undefined,
   })
-  const [postComments] = useQuery({
+  const [postComments, reexecutePostComments] = useQuery({
     query: POST_COMMENTS_QUERY,
     variables: { postId: post?.id ?? '', channelId: post?.channelId ?? '', sort, cursor },
     pause: post === undefined,
@@ -739,10 +740,10 @@ export const Comments = ({ videoId, post, commentCountText }: {
     setLoaded({ sort, pages: loadedPages[loadedPages.length - 1] === page ? loadedPages : [...loadedPages, page] })
   }
   // a first-page failure REPORTS rather than unmounting: returning null reads as "no comments"
-  if (error && items.length === 0) {
+  if (error && items.length === 0 && !fetching) {
     return (
       <section css={style}>
-        <p className='disabled-notice'>{readable(error.message)}</p>
+        <DataFailure error={error} reexecute={post ? reexecutePostComments : reexecuteVideoComments} />
       </section>
     )
   }
