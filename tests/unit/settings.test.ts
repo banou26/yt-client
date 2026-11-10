@@ -81,3 +81,21 @@ describe('the Skip sponsors setting', () => {
     expect((await load({ skipSponsors: false })).getSettings().skipSponsors).toBe(false)
   })
 })
+
+describe('the caption size setting', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('is the default size until + or - picks one of their steps', async () => {
+    expect((await load()).getSettings().captionSize).toBe(100)
+    expect((await load({ captionSize: 150 })).getSettings().captionSize).toBe(150)
+    expect((await load({ captionSize: 50 })).getSettings().captionSize).toBe(50)
+  })
+
+  it('is the default size when the stored value is not one of the steps', async () => {
+    expect((await load({ captionSize: 75 })).getSettings().captionSize).toBe(100)
+    expect((await load({ captionSize: 400 })).getSettings().captionSize).toBe(100)
+    expect((await load({ captionSize: '150' })).getSettings().captionSize).toBe(100)
+  })
+})

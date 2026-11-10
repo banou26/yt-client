@@ -2,6 +2,9 @@ export type ThemePreference = 'device' | 'light' | 'dark'
 
 export type QualityPreference = 'auto' | number
 
+/** youtube.com's + and - caption sizes, in percent of the default (measured 2026-11-10). */
+export const CAPTION_SIZES = [50, 100, 150, 200]
+
 export type Settings = {
   theme: ThemePreference
   autoplay: boolean
@@ -12,6 +15,7 @@ export type Settings = {
   quality: QualityPreference
   captionsEnabled: boolean
   captionsLanguage?: string
+  captionSize: number
   theater: boolean
   showDislikes: boolean
   skipSponsors: boolean
@@ -32,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   playbackRate: 1,
   quality: 'auto',
   captionsEnabled: false,
+  captionSize: 100,
   theater: false,
   showDislikes: true,
   skipSponsors: true,
@@ -63,6 +68,7 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
       : DEFAULT_SETTINGS.quality,
     captionsEnabled: typeof stored.captionsEnabled === 'boolean' ? stored.captionsEnabled : DEFAULT_SETTINGS.captionsEnabled,
     captionsLanguage: typeof captionsLanguage === 'string' ? captionsLanguage : undefined,
+    captionSize: CAPTION_SIZES.includes(stored.captionSize as number) ? stored.captionSize as number : DEFAULT_SETTINGS.captionSize,
     theater: typeof stored.theater === 'boolean' ? stored.theater : DEFAULT_SETTINGS.theater,
     showDislikes: typeof stored.showDislikes === 'boolean' ? stored.showDislikes : DEFAULT_SETTINGS.showDislikes,
     skipSponsors: typeof stored.skipSponsors === 'boolean' ? stored.skipSponsors : DEFAULT_SETTINGS.skipSponsors,

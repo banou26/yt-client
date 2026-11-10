@@ -22,7 +22,7 @@ import { warmShaka } from './prefetch'
 import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { setPanel, setPlayingChapter } from './session'
-import { getSettings, updateSettings } from '../settings'
+import { CAPTION_SIZES, getSettings, updateSettings } from '../settings'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
@@ -120,6 +120,23 @@ const playerStyle = css`
     background: rgba(0, 0, 0, 0.8);
   }
 
+  /* youtube.com's sample after + or -, drawn where and as Chrome draws the cue it stands in for */
+  .caption-sample {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    font-family: sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  &.sampling video::cue {
+    visibility: hidden;
+  }
+
   @container player (max-width: 600px) {
     .sponsor-skip {
       right: 0.8rem;
@@ -132,6 +149,8 @@ const playerStyle = css`
 `
 
 const IDLE_MS = 2_500
+// how long youtube.com shows its caption sample after + or - (measured 2026-11-10)
+const CAPTION_SAMPLE_MS = 1_000
 // how long before a sponsor part Skip sponsor shows, and after a skip Undo does, in seconds of the video
 const SPONSOR_NOTICE = 5
 const SEEK_STEP = 5
@@ -166,6 +185,20 @@ export type PlayerUpNext = {
 }
 
 const FALLBACK_FPS = 30
+
+const captionSizeStyle = (size: number) => css`
+  video::cue {
+    font-size: ${size}%;
+  }
+`
+
+// Chrome sizes cues to 5% of the smaller side of the picture drawn, not of the element
+const captionBase = (video: HTMLVideoElement) => {
+  const fit = video.videoWidth > 0 && video.videoHeight > 0
+    ? Math.min(video.clientWidth / video.videoWidth, video.clientHeight / video.videoHeight)
+    : 0
+  return 0.05 * (fit > 0 ? Math.min(video.videoWidth * fit, video.videoHeight * fit) : video.clientHeight)
+}
 
 const VideoPlayer = (
   {
@@ -207,6 +240,9 @@ const VideoPlayer = (
   const [shortcuts, setShortcuts] = useState(false)
   const closeShortcuts = useCallback(() => setShortcuts(false), [])
   const [loop, setLoop] = useState(false)
+  const [captionSize, setCaptionSize] = useState(() => getSettings().captionSize)
+  const [sample, setSample] = useState<number | undefined>(undefined)
+  const sampleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   // from the player's corner, so the menu follows the player as the page scrolls
   const [menu, setMenu] = useState<Point | undefined>(undefined)
   const closeMenu = useCallback(() => setMenu(undefined), [])
@@ -231,6 +267,8 @@ const VideoPlayer = (
   useEffect(() => {
     if (ending === 'advance') onNext?.()
   }, [ending])
+
+  useEffect(() => () => clearTimeout(sampleTimer.current), [])
 
   const sponsors = useRef(segments)
   sponsors.current = segments
@@ -455,9 +493,21 @@ const VideoPlayer = (
     setMenu({ x: event.clientX - box.left, y: event.clientY - box.top })
   }
 
+  // at a limit youtube.com changes nothing and shows no sample; captions on or off, the size changes and the sample shows
+  const resizeCaptions = (direction: 1 | -1) => {
+    const video = videoRef.current
+    const size = CAPTION_SIZES[CAPTION_SIZES.indexOf(getSettings().captionSize) + direction]
+    if (!video || size === undefined) return
+    updateSettings({ captionSize: size })
+    setCaptionSize(size)
+    setSample(captionBase(video) * size / 100)
+    clearTimeout(sampleTimer.current)
+    sampleTimer.current = setTimeout(() => setSample(undefined), CAPTION_SAMPLE_MS)
+  }
+
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, chapterList })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, player, shortcuts, chapterList }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, chapterList })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, chapterList }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -518,6 +568,15 @@ const VideoPlayer = (
         case 'c':
           handled()
           actions.toggleCaption()
+          return
+        case '+':
+        case '=':
+        case '-':
+        case '_':
+          // the numpad's + and - zoom a 360 video on youtube.com rather than size the captions
+          if (event.code.startsWith('Numpad')) return
+          handled()
+          actions.resizeCaptions(key === '+' || key === '=' ? 1 : -1)
           return
         case '<':
         case '>': {
@@ -584,9 +643,9 @@ const VideoPlayer = (
 
   return (
     <div
-      css={playerStyle}
+      css={[playerStyle, captionSizeStyle(captionSize)]}
       data-player-surface
-      className={!active && !state.paused && !menu && !grid ? 'idle' : undefined}
+      className={[!active && !state.paused && !menu && !grid && 'idle', sample !== undefined && 'sampling'].filter(Boolean).join(' ') || undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
@@ -615,6 +674,7 @@ const VideoPlayer = (
         onDblClick={() => requestPlayerFullscreen(videoRef.current)}
       />
       {showSpinner ? <div className='spinner' /> : undefined}
+      {sample !== undefined ? <span className='caption-sample' style={{ fontSize: `${sample}px` }}>Captions look like this</span> : undefined}
       {bezel ? <Bezel key={bezel.id} cue={bezel} /> : undefined}
       {status
         ? (

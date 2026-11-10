@@ -37,7 +37,11 @@ const SECTIONS: { title: string, rows: [string, string][] }[] = [
   },
   {
     title: 'Subtitles and closed captions',
-    rows: [['Toggle subtitles', 'c']],
+    rows: [
+      ['Toggle subtitles', 'c'],
+      ['Rotate through font sizes (increasing)', '+'],
+      ['Rotate through font sizes (decreasing)', '-'],
+    ],
   },
 ]
 
