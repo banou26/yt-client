@@ -1,7 +1,7 @@
 import type shaka from 'shaka-player'
 
 import { css } from '@emotion/react'
-import { Captions, CaptionsOff, Check, ChevronRight, Maximize, Minimize, Pause, PictureInPicture2, Play, RotateCcw, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
+import { Captions, CaptionsOff, Check, ChevronLeft, ChevronRight, Maximize, Minimize, Pause, PictureInPicture2, Play, RotateCcw, Settings, SkipForward, Volume1, Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
@@ -13,10 +13,11 @@ import type { PlayerState } from './use-player-state'
 import { bestStoryboard, storyboardFrame } from '../frame/storyboard'
 
 import { MenuItem, Popup, useDismiss } from '../components/ui/popup'
-import { updateSettings } from '../settings'
+import { getSettings, updateSettings } from '../settings'
 import { barFill, barOffset, barParts, barWidth, chapterIndexAt, timeAtOffset } from './chapters'
-import { RATES } from './rates'
+import { rateDetail } from './rates'
 import { setSleepTimer, SLEEP_MINUTES, sleepDetail, sleepDuration } from './sleep-timer'
+import { SpeedPicker } from './speed-picker'
 
 export const clock = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
@@ -400,6 +401,39 @@ const style = css`
     top: auto;
   }
 
+  /* youtube.com's Playback speed panel, measured 2026-11-10: a 57 px header of a 48 px back button and the title in
+     12 px medium over a rule, then the picker 24 px below it and 16 px from the other sides, 269 px wide in all with
+     these four chips */
+  .speed-menu {
+    padding: 0;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+
+  .panel-back {
+    display: grid;
+    place-items: center;
+    width: 4.8rem;
+    height: 4.8rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .speed-picker {
+    padding: 2.4rem 1.6rem 1.6rem;
+  }
+
   /* below these player widths the clock would clip, so the chapter goes first, then the volume slider and 8 px of each
      right-hand button (yt-client draws Next and PiP, which youtube.com's bar does not) */
   @container player (max-width: 760px) {
@@ -589,10 +623,18 @@ export const PlayerControls = (
     updateSettings({ muted, volume: video.volume })
   }
 
-  const onRate = (rate: number) => {
-    video.playbackRate = rate
-    updateSettings({ playbackRate: rate })
-    setMenu(undefined)
+  // Shaka holds the video at rate 0 while it buffers, when the speed chosen is the stored one
+  const rate = state.playbackRate || getSettings().playbackRate
+  const onRate = (value: number) => {
+    video.playbackRate = value
+    updateSettings({ playbackRate: value })
+  }
+
+  // as on youtube.com, the left arrow goes back to the settings rather than seeking, and the right one does nothing
+  const onSpeedKey = (event: KeyboardEvent) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    if (event.key === 'ArrowLeft') setMenu('root')
   }
 
   const toggleFullscreen = () => {
@@ -785,7 +827,7 @@ export const PlayerControls = (
                   <MenuItem detail={sleepDetail(sleepTimer, videoLeft)} onSelect={() => setMenu('sleep')}>
                     Sleep timer
                   </MenuItem>
-                  <MenuItem detail={state.playbackRate === 1 ? 'Normal' : `${state.playbackRate}x`} onSelect={() => setMenu('speed')}>
+                  <MenuItem detail={rateDetail(rate)} onSelect={() => setMenu('speed')}>
                     Playback speed
                   </MenuItem>
                   <MenuItem
@@ -799,12 +841,16 @@ export const PlayerControls = (
               )
               : menu === 'speed'
                 ? (
-                  <Popup label='Playback speed' class='settings-menu'>
-                    {RATES.map(rate => (
-                      <MenuItem key={rate} icon={rate === state.playbackRate ? Check : undefined} onSelect={() => onRate(rate)}>
-                        {rate === 1 ? 'Normal' : `${rate}x`}
-                      </MenuItem>
-                    ))}
+                  <Popup label='Playback speed' class='settings-menu speed-menu' onKeyDown={onSpeedKey}>
+                    <div className='panel-header'>
+                      <button type='button' className='panel-back' aria-label='Back to previous menu' onClick={() => setMenu('root')}>
+                        <ChevronLeft size={24} strokeWidth={2} />
+                      </button>
+                      <span role='heading' aria-level={2}>Playback speed</span>
+                    </div>
+                    <div className='speed-picker'>
+                      <SpeedPicker rate={rate} onRate={onRate} />
+                    </div>
                   </Popup>
                 )
                 : menu === 'captions'

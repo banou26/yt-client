@@ -99,3 +99,23 @@ describe('the caption size setting', () => {
     expect((await load({ captionSize: '150' })).getSettings().captionSize).toBe(100)
   })
 })
+
+describe('the speed setting', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('keeps every speed the fixed list stored before the slider', async () => {
+    for (const rate of [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]) {
+      expect((await load({ playbackRate: rate })).getSettings().playbackRate).toBe(rate)
+    }
+  })
+
+  it('reads a speed off the slider\'s range or steps as the nearest one on it', async () => {
+    expect((await load({ playbackRate: 1.1 })).getSettings().playbackRate).toBe(1.1)
+    expect((await load({ playbackRate: 1.1 + 0.05 })).getSettings().playbackRate).toBe(1.15)
+    expect((await load({ playbackRate: 3 })).getSettings().playbackRate).toBe(2)
+    expect((await load({ playbackRate: 0.1 })).getSettings().playbackRate).toBe(0.25)
+    expect((await load({ playbackRate: '1.5' })).getSettings().playbackRate).toBe(1)
+  })
+})

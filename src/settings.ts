@@ -1,3 +1,5 @@
+import { toRate } from './player/rates'
+
 export type ThemePreference = 'device' | 'light' | 'dark'
 
 export type QualityPreference = 'auto' | number
@@ -60,9 +62,7 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
     autoplay: typeof stored.autoplay === 'boolean' ? stored.autoplay : DEFAULT_SETTINGS.autoplay,
     volume: typeof volume === 'number' && Number.isFinite(volume) ? clamp(volume, 0, 1) : DEFAULT_SETTINGS.volume,
     muted: typeof stored.muted === 'boolean' ? stored.muted : DEFAULT_SETTINGS.muted,
-    playbackRate: typeof playbackRate === 'number' && Number.isFinite(playbackRate)
-      ? clamp(playbackRate, 0.25, 4)
-      : DEFAULT_SETTINGS.playbackRate,
+    playbackRate: typeof playbackRate === 'number' && Number.isFinite(playbackRate) ? toRate(playbackRate) : DEFAULT_SETTINGS.playbackRate,
     quality: quality === 'auto' || (typeof quality === 'number' && Number.isFinite(quality))
       ? quality
       : DEFAULT_SETTINGS.quality,
