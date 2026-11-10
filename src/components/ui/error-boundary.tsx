@@ -1,8 +1,9 @@
 import type { ComponentChildren } from 'preact'
 
 import { css } from '@emotion/react'
-import { useEffect, useErrorBoundary, useLayoutEffect, useRef } from 'preact/hooks'
+import { useEffect, useErrorBoundary, useLayoutEffect, useRef, useState } from 'preact/hooks'
 
+import { reloadPage } from '../../warm-code'
 import { RouteLoadError } from '../lazy-route'
 
 const style = css`
@@ -73,27 +74,41 @@ export const useRetryWhenOnline = (retry: () => void, enabled = true) => {
 }
 
 /**
- * A failed page or failed data: `line` and a Try again button that calls `retry`. With `whenOnline`, `retry` also runs
- * by itself as useRetryWhenOnline says.
+ * A failed page or failed data: `line` and a Try again button that calls `retry`, or a Reload button with `reload`.
+ * With `whenOnline`, `retry` also runs by itself as useRetryWhenOnline says.
  */
-export const Failure = ({ line, retry, whenOnline = false }: { line: string, retry: () => void, whenOnline?: boolean }) => {
+export const Failure = ({ line, retry, whenOnline = false, reload = false }: { line: string, retry: () => void, whenOnline?: boolean, reload?: boolean }) => {
   useRetryWhenOnline(retry, whenOnline)
 
   return (
     <div css={style} role='alert'>
       <p>{line}</p>
-      <button type='button' onClick={retry}>Try again</button>
+      {reload
+        ? <button type='button' onClick={() => void reloadPage()}>Reload</button>
+        : <button type='button' onClick={retry}>Try again</button>}
     </div>
   )
 }
 
+// any answer from the app's own address, even an error, means the connection is back
+const appAnswers = () => fetch('/', { method: 'HEAD', cache: 'no-store' }).then(() => true, () => false)
+
 export const ErrorBoundary = ({ children }: { children: ComponentChildren }) => {
-  const [error, reset] = useErrorBoundary(caught => console.error('yt-client: the page failed', caught))
+  const failedBefore = useRef(false)
+  // Firefox and WebKit never download a module again once it failed in this document, so once a retry has failed with
+  // the connection back, only a reload can load the page
+  const [stuck, setStuck] = useState(false)
+  const [error, reset] = useErrorBoundary((caught) => {
+    console.error('yt-client: the page failed', caught)
+    if (!(caught instanceof RouteLoadError)) return
+    if (failedBefore.current) void appAnswers().then(setStuck)
+    failedBefore.current = true
+  })
 
   if (!error) return <>{children}</>
 
   const loadFailed = error instanceof RouteLoadError
-  return <Failure line={loadFailed && !navigator.onLine ? OFFLINE_LINE : FAILED_LINE} retry={reset} whenOnline={loadFailed} />
+  return <Failure line={loadFailed && !navigator.onLine ? OFFLINE_LINE : FAILED_LINE} retry={reset} whenOnline={loadFailed} reload={loadFailed && stuck} />
 }
 
 export default ErrorBoundary

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
-import { warmLazyCode } from '../../src/warm-code'
+import { reloadPage, warmLazyCode } from '../../src/warm-code'
 
 type Link = { rel?: string, crossOrigin?: string, href?: string }
 
@@ -17,6 +17,7 @@ const deferred = <T>() => {
 const settle = () => new Promise(resolve => setImmediate(resolve))
 
 let links: Link[]
+let reloads: number
 let online: (() => void) | undefined
 let requests: { href: string, init: RequestInit | undefined, answer: ReturnType<typeof deferred<Response>>, done: boolean }[]
 
@@ -41,9 +42,11 @@ const failAll = () => {
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
   links = []
+  reloads = 0
   online = undefined
   requests = []
   vi.stubGlobal('document', { createElement: () => ({}), head: { append: (link: Link) => links.push(link) } })
+  vi.stubGlobal('location', { reload: () => reloads++ })
   vi.stubGlobal('addEventListener', (type: string, listener: () => void) => {
     if (type === 'online') online = listener
   })
@@ -120,5 +123,24 @@ describe('warmLazyCode', () => {
     await settle()
     vi.advanceTimersByTime(5_000)
     expect(fetched()).toEqual(['/assets/search-a.js', '/assets/watch-b.js', '/assets/watch-b.js', '/assets/watch-b.js'])
+  })
+})
+
+describe('reloadPage', () => {
+  it('fetches every file still waiting again, and reloads only once each fetch settled', async () => {
+    warmLazyCode(['/assets/search-a.js', '/assets/watch-b.js', '/assets/privacy-c.js'])
+    answer('/assets/search-a.js', 200)
+    answer('/assets/privacy-c.js', 404)
+    failAll()
+    await settle()
+
+    const reloaded = reloadPage()
+    expect(fetched().slice(3)).toEqual(['/assets/watch-b.js'])
+    await settle()
+    expect(reloads).toBe(0)
+
+    answer('/assets/watch-b.js', 200)
+    await reloaded
+    expect(reloads).toBe(1)
   })
 })

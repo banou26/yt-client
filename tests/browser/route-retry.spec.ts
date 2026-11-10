@@ -21,11 +21,14 @@ const search = async (page: Page) => {
   await expect(page).toHaveURL(/\/results\?search_query=rick(%20|\+)astley$/)
 }
 
-const expectSearchPage = async (page: Page) => {
+const expectSearchPage = async (page: Page, sameDocument = true) => {
   await expect(page.getByRole('heading', { name: 'Results for rick astley' })).toBeAttached({ timeout: 30_000 })
   await expect(page.locator('.filter-chip').first()).toHaveText('All')
-  expect(await page.evaluate(() => 'sameDocument' in window), 'the page reloaded').toBe(true)
+  expect(await page.evaluate(() => 'sameDocument' in window), sameDocument ? 'the page reloaded' : 'the page did not reload').toBe(sameDocument)
 }
+
+// the app asks its own address whether the connection is back once a retry failed
+const isProbe = (url: URL) => url.pathname === '/'
 
 test('a page whose code failed to download says so in one line and loads on Try again', async ({ page }) => {
   await page.route(SEARCH_CODE, route => route.abort('internetdisconnected'), { times: 1 })
@@ -77,4 +80,40 @@ test('the line stops saying offline once the browser is back online while the do
 
   await context.setOffline(false)
   await expect(line).toHaveText(FAILED_LINE)
+})
+
+// Chrome downloads a failed page again on Try again, so these keep the download failing as Firefox and WebKit do
+test('once Try again failed while the app\'s address answers, the button reloads the page', async ({ page }) => {
+  await page.route(SEARCH_CODE, route => route.abort('internetdisconnected'))
+  await openSettings(page)
+  await search(page)
+  const alert = page.getByRole('alert')
+  await alert.getByRole('button', { name: 'Try again' }).click({ timeout: 30_000 })
+
+  await expect(alert.getByRole('button', { name: 'Reload' })).toBeVisible()
+  await expect(alert.getByRole('button', { name: 'Try again' })).toHaveCount(0)
+  await page.unroute(SEARCH_CODE)
+  await alert.getByRole('button', { name: 'Reload' }).click()
+  await expectSearchPage(page, false)
+})
+
+test('a Try again that fails while the app\'s address does not answer keeps Try again', async ({ page }) => {
+  await page.route(SEARCH_CODE, route => route.abort('internetdisconnected'))
+  await openSettings(page)
+  await page.route(isProbe, route => route.request().method() === 'HEAD' ? route.abort('internetdisconnected') : route.fallback())
+  await search(page)
+  const alert = page.getByRole('alert')
+  const tryAgain = alert.getByRole('button', { name: 'Try again' })
+  const probeFailed = page.waitForEvent('requestfailed', request => request.method() === 'HEAD')
+  await tryAgain.click({ timeout: 30_000 })
+  await probeFailed
+  // long enough for an answer to have turned the button
+  await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 500)))
+  await expect(tryAgain).toBeVisible()
+  await expect(alert.getByRole('button', { name: 'Reload' })).toHaveCount(0)
+
+  // the control: the same retry once the app's address answers
+  await page.unroute(isProbe)
+  await tryAgain.click()
+  await expect(alert.getByRole('button', { name: 'Reload' })).toBeVisible()
 })

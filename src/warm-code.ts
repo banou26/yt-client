@@ -35,5 +35,15 @@ export const warmLazyCode = (hrefs: readonly string[], retryMs = 30_000) => {
   void warm()
 }
 
+/**
+ * Reloads the page once every file `warmLazyCode` still waits for was fetched again. WebKit hands a module whose
+ * modulepreload link failed (Vite adds one with each import) on to the next document from its memory cache, so a plain
+ * reload fails that page once more; a fetch of the file that works replaces it (measured 2026-11-11, WebKit 26.5).
+ */
+export const reloadPage = async () => {
+  await warm()
+  location.reload()
+}
+
 /** The files the build listed in the app's `index.html` for `warmLazyCode`; none under the dev server. */
 export const lazyCodeList = (): string[] => JSON.parse(document.getElementById('lazy-code')?.textContent ?? '[]')
