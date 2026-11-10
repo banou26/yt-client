@@ -62,7 +62,7 @@ const frameStyle = css`
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #000;
   position: relative;
 

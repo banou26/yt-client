@@ -48,19 +48,20 @@ test('collapses the description to the rounded counts and three lines, with an i
   expect(await box.locator('.text').evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThan(layout.lineHeight * 3 + 1)
 })
 
-// youtube.com on this video, signed out, 2026-11-10: the player, the sidebar and its first thumbnail
+// youtube.com on this video, signed out, 2026-11-10: the player, the sidebar and its first thumbnail, with 12 px corners
+// on the player (2026-11-11)
 const YOUTUBE_SIZES = [
-  { width: 1280, height: 800, player: { x: 16, y: 68, width: 880, height: 495 }, aside: { x: 912, width: 352 }, thumb: { width: 220, height: 123.75 } },
-  { width: 1010, height: 800, player: { x: 16, y: 68, width: 642, height: 361.1 }, aside: { x: 674, width: 320 }, thumb: { width: 200, height: 112.5 } },
-  { width: 1024, height: 768, player: { x: 16, y: 68, width: 656, height: 369 }, aside: { x: 688, width: 320 }, thumb: { width: 200, height: 112.5 } },
-  { width: 1440, height: 900, player: { x: 16, y: 68, width: 996, height: 560.25 }, aside: { x: 1028, width: 396 }, thumb: { width: 247.5, height: 139.22 } },
-  { width: 1920, height: 1080, player: { x: 16, y: 68, width: 1344, height: 756 }, aside: { x: 1376, width: 528 }, thumb: { width: 330, height: 185.6 } },
+  { width: 1280, height: 800, player: { x: 16, y: 68, width: 880, height: 495, radius: 12 }, aside: { x: 912, width: 352 }, thumb: { width: 220, height: 123.75 } },
+  { width: 1010, height: 800, player: { x: 16, y: 68, width: 642, height: 361.1, radius: 12 }, aside: { x: 674, width: 320 }, thumb: { width: 200, height: 112.5 } },
+  { width: 1024, height: 768, player: { x: 16, y: 68, width: 656, height: 369, radius: 12 }, aside: { x: 688, width: 320 }, thumb: { width: 200, height: 112.5 } },
+  { width: 1440, height: 900, player: { x: 16, y: 68, width: 996, height: 560.25, radius: 12 }, aside: { x: 1028, width: 396 }, thumb: { width: 247.5, height: 139.22 } },
+  { width: 1920, height: 1080, player: { x: 16, y: 68, width: 1344, height: 756, radius: 12 }, aside: { x: 1376, width: 528 }, thumb: { width: 330, height: 185.6 } },
   // a short window holds the player to the 16:9 frame under the header, gives the sidebar the rest up to 35% of the window, and centers what is left
-  { width: 1920, height: 800, player: { x: 16, y: 68, width: 1216, height: 684 }, aside: { x: 1248, width: 656 }, thumb: { width: 410, height: 230.6 } },
-  { width: 1920, height: 600, player: { x: 185.8, y: 68, width: 860.4, height: 484 }, aside: { x: 1062.2, width: 672 }, thumb: { width: 420, height: 236.25 } },
-  { width: 1280, height: 450, player: { x: 88, y: 68, width: 640, height: 360 }, aside: { x: 744, width: 448 }, thumb: { width: 280, height: 157.5 } },
+  { width: 1920, height: 800, player: { x: 16, y: 68, width: 1216, height: 684, radius: 12 }, aside: { x: 1248, width: 656 }, thumb: { width: 410, height: 230.6 } },
+  { width: 1920, height: 600, player: { x: 185.8, y: 68, width: 860.4, height: 484, radius: 12 }, aside: { x: 1062.2, width: 672 }, thumb: { width: 420, height: 236.25 } },
+  { width: 1280, height: 450, player: { x: 88, y: 68, width: 640, height: 360, radius: 12 }, aside: { x: 744, width: 448 }, thumb: { width: 280, height: 157.5 } },
   // the title column holds 640 px and keeps the left margin, so the sidebar runs into the right one
-  { width: 1000, height: 800, player: { x: 16, y: 68, width: 640, height: 360 }, aside: { x: 672, width: 320 }, thumb: { width: 200, height: 112.5 } },
+  { width: 1000, height: 800, player: { x: 16, y: 68, width: 640, height: 360, radius: 12 }, aside: { x: 672, width: 320 }, thumb: { width: 200, height: 112.5 } },
 ] as const
 
 // youtube.com's default view in one column, from 999 px down, signed out, 2026-11-11: the player edge to edge under the
