@@ -23,23 +23,23 @@ test('opens a playlist\'s embed on the playlist, and an embed inside a playlist 
   await expect(page).toHaveURL('/watch?v=MhKiMPiZOdE&list=PLBsP89CPrMeNIuvr9j3_EQaMwaNJ6rhuQ&t=30')
 })
 
-test('opens /c/<name> on the channel, and its tabs under the same address', async ({ page }) => {
+test('opens /c/<name> on the channel, and its tabs under the channel\'s handle', async ({ page }) => {
   test.setTimeout(180_000)
   await page.goto('/c/mkbhd')
   await expect(page.locator('main h1')).toHaveText('Marques Brownlee', { timeout: 120_000 })
   await expect(page).toHaveURL('/c/mkbhd')
-  await page.getByRole('navigation', { name: 'Channel sections' }).getByRole('button', { name: 'Videos', exact: true }).click()
-  await expect(page).toHaveURL('/c/mkbhd?tab=VIDEOS')
+  await page.getByRole('navigation', { name: 'Channel sections' }).getByRole('link', { name: 'Videos', exact: true }).click()
+  await expect(page).toHaveURL('/@mkbhd/videos')
   await expect(page.locator('main article a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
 })
 
 test('opens /user/<name> on the channel, and /user/<name>/<tab> on that tab', async ({ page }) => {
   test.setTimeout(180_000)
   await page.goto('/user/marquesbrownlee/videos')
-  await expect(page).toHaveURL('/user/marquesbrownlee?tab=VIDEOS')
   await expect(page.locator('main h1')).toHaveText('Marques Brownlee', { timeout: 120_000 })
+  await expect(page).toHaveURL('/user/marquesbrownlee/videos')
   const tabs = page.getByRole('navigation', { name: 'Channel sections' })
-  await expect(tabs.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page')
+  await expect(tabs.getByRole('link', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page')
 })
 
 test('opens /gaming on the Gaming topic channel', async ({ page }) => {

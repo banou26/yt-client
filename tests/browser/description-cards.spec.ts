@@ -49,7 +49,7 @@ test('ends a music video\'s description with its song and its channel, the trans
   expect(await sections(box)).toEqual(['Music', 'Transcript', 'Channel'])
 
   await card.getByRole('link', { name: 'About' }).click()
-  await expect(page).toHaveURL('/channel/UCuAXFkgsw1L7xaCfnd5JJOw?tab=ABOUT')
+  await expect(page).toHaveURL('/channel/UCuAXFkgsw1L7xaCfnd5JJOw/about')
   await expect(page.getByRole('dialog', { name: 'Rick Astley' }).getByRole('heading', { name: 'Links' })).toBeVisible({ timeout: 120_000 })
 })
 

@@ -8,7 +8,7 @@ import { expect, test } from './test'
 
 test('opens a post from the Posts tab by its comment count, on the post and then its comments', async ({ page }) => {
   test.setTimeout(240_000)
-  await page.goto('/@mkbhd?tab=COMMUNITY')
+  await page.goto('/@mkbhd/posts')
   const posts = page.locator('main article.post')
   const link = posts.first().getByRole('link', { name: /^[\d.,]+[KMB]? comments$/ })
   await expect(link).toHaveAttribute('href', /^\/post\/[\w-]+$/, { timeout: 120_000 })

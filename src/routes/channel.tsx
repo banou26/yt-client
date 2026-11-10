@@ -6,7 +6,7 @@ import { css } from '@emotion/react'
 import { ChevronDown, Link2, Search } from 'lucide-react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
-import { useLocation, useSearch } from 'wouter'
+import { Link, useLocation, useSearch } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { GroupsButton } from '../components/groups-button'
@@ -22,6 +22,7 @@ import { gql } from '../generated'
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../sources/types'
 import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
 import { ChannelHome } from './channel-home'
+import { CHANNEL_TAB_PATHS } from './channel-tabs'
 
 type VideosPage = ChannelViewQuery['channel']['videos']
 type PostsPage = CommunityPostsQuery['communityPosts']
@@ -522,13 +523,15 @@ const style = css`
   }
 `
 
-export const ChannelPage = ({ params }: { params: { channelId?: string, handle?: string } }) => {
-  const id = params.channelId ?? `@${params.handle ?? ''}`
+/**
+ * A channel at one of youtube.com's addresses for it. `id` is what the source resolves (a UC id, `@handle`, `c/<name>` or
+ * `user/<name>`), `base` the address without a tab, and `tab` the one the address names.
+ */
+export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base: string, tab?: ChannelTab }) => {
   const search = useSearch()
   const urlParams = new URLSearchParams(search)
   const [location, navigate] = useLocation()
-  const requestedTab = (urlParams.get('tab') ?? undefined) as ChannelTab | undefined
-  // youtube.com's /about opens the channel with its About dialog over it, which is what /about redirects here to
+  // youtube.com's /about opens the channel with its About dialog over it
   const aboutRequested = requestedTab === 'ABOUT'
   const tab = aboutRequested ? undefined : requestedTab
   const sort = urlParams.get('sort') ?? undefined
@@ -561,15 +564,11 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   const metaParts = [handle, channel?.subscriberCountText, channel?.videoCountText]
     .filter(part => part != null && part.length > 0)
   const meta = metaParts.length > 0 ? metaParts.join(' • ') : undefined
+  // youtube.com's tabs open under the channel's handle whichever address it was opened at
+  const channelPath = channel ? handle ? `/${handle}` : `/channel/${channel.id}` : base
 
-  // a tab switch MUST clear sort, filter and query: upstream's labels differ per tab and the new tab rejects the old ones
-  const setView = (param: 'tab' | 'sort' | 'filter', value: string) => {
+  const setView = (param: 'sort' | 'filter', value: string) => {
     const next = new URLSearchParams(search)
-    if (param === 'tab') {
-      next.delete('sort')
-      next.delete('filter')
-      next.delete('query')
-    }
     if (next.get(param) === value) next.delete(param)
     else next.set(param, value)
     const rest = next.toString()
@@ -598,7 +597,7 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
     const value = searchRef.current?.value.trim()
     if (!value) return
     setSearching(false)
-    navigate(`${location}?${new URLSearchParams({ tab: 'SEARCH', query: value })}`)
+    navigate(`${channelPath}/${CHANNEL_TAB_PATHS.SEARCH}?${new URLSearchParams({ query: value })}`)
   }
 
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -606,8 +605,8 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
   // stable, since the dialog re-runs its focus effect whenever onClose changes
   const closeAbout = useCallback(() => {
     setAboutOpen(false)
-    if (aboutRequested) navigate(location, { replace: true })
-  }, [aboutRequested, location, navigate])
+    if (aboutRequested) navigate(base, { replace: true })
+  }, [aboutRequested, base, navigate])
 
   const [postPages, setPostPages] = useState<PostsPage[]>([])
   const [{ data: postsData, fetching: postsFetching }] = useQuery({
@@ -704,15 +703,14 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
         {(data?.channel.availableTabs ?? []).filter(available => available !== 'ABOUT' && available !== 'SEARCH').map(available => {
           const active = available === data?.channel.tab
           return (
-            <button
+            <Link
               key={available}
-              type='button'
+              href={`${channelPath}/${CHANNEL_TAB_PATHS[available]}`}
               className={active ? 'tab active' : 'tab'}
               aria-current={active ? 'page' : undefined}
-              onClick={() => setView('tab', available)}
             >
               {TAB_LABELS[available]}
-            </button>
+            </Link>
           )
         })}
         {hasSearch && (searching || channelQuery !== undefined)

@@ -1,36 +1,6 @@
 import { expect, test } from './test'
 
-/* This client keeps a channel's tab in the query string, so every path form
-   upstream uses has to bounce to that canonical shape. */
-
 const CHANNEL_ID = 'UCSMOQeBJ2RAnuFungnQOxLg'
-
-test('bounces the tab paths a channel page links to', async ({ page }) => {
-  for (const [path, expected] of [
-    ['/@Blender/videos', '/@Blender?tab=VIDEOS'],
-    ['/@Blender/shorts', '/@Blender?tab=SHORTS'],
-    // Upstream calls the live tab `streams`, and the enum calls it LIVE.
-    ['/@Blender/streams', '/@Blender?tab=LIVE'],
-    ['/@Blender/playlists', '/@Blender?tab=PLAYLISTS'],
-    ['/@Blender/community', '/@Blender?tab=COMMUNITY'],
-    // youtube.com's own word for the tab now
-    ['/@Blender/posts', '/@Blender?tab=COMMUNITY'],
-    ['/@Blender/about', '/@Blender?tab=ABOUT'],
-    ['/@Blender/featured', '/@Blender'],
-    [`/channel/${CHANNEL_ID}/videos`, `/channel/${CHANNEL_ID}?tab=VIDEOS`],
-  ] as const) {
-    await page.goto(path)
-    await expect(page, `${path} should land on ${expected}`).toHaveURL(expected)
-  }
-})
-
-test('replaces the tab path rather than stacking it in history', async ({ page }) => {
-  await page.goto('/settings')
-  await page.goto('/@Blender/videos')
-  await expect(page).toHaveURL('/@Blender?tab=VIDEOS')
-  await page.goBack()
-  await expect(page).toHaveURL('/settings')
-})
 
 test('refuses a segment that is not a tab', async ({ page }) => {
   await page.goto('/@Blender/nonsense')
@@ -45,7 +15,7 @@ test('lands a channel handle on its Home tab, with the featured video and the sh
   test.setTimeout(180_000)
   await page.goto('/@RickAstleyYT')
   const tabs = page.getByRole('navigation', { name: 'Channel sections' })
-  await expect(tabs.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  await expect(tabs.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
   await expect(page).toHaveURL('/@RickAstleyYT')
   const featured = page.getByRole('region', { name: 'Featured video' })
   await expect(featured.getByRole('link', { name: /\S/ })).toHaveAttribute('href', /^\/watch\?v=/)
@@ -63,10 +33,10 @@ test('lands a channel handle on its Home tab, with the featured video and the sh
 
 test('names the tabs like youtube.com, sorts Videos by chips and searches from an icon', async ({ page }) => {
   test.setTimeout(240_000)
-  await page.goto('/@RickAstleyYT?tab=VIDEOS')
+  await page.goto('/@RickAstleyYT/videos')
   const tabs = page.getByRole('navigation', { name: 'Channel sections' })
-  await expect(tabs.getByRole('button', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
-  await expect(tabs.getByRole('button', { name: 'Posts', exact: true })).toBeVisible()
+  await expect(tabs.getByRole('link', { name: 'Videos', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  await expect(tabs.getByRole('link', { name: 'Posts', exact: true })).toBeVisible()
   await expect(tabs.getByText('Community')).toHaveCount(0)
 
   await expect(page.getByRole('button', { name: 'Latest', exact: true })).toHaveAttribute('aria-pressed', 'true')
@@ -81,7 +51,7 @@ test('names the tabs like youtube.com, sorts Videos by chips and searches from a
   await expect(box).toBeFocused()
   await page.keyboard.type('never gonna')
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/tab=SEARCH&query=never\+gonna/)
+  await expect(page).toHaveURL('/@RickAstleyYT/search?query=never+gonna')
   await expect(box).toHaveValue('never gonna')
   await expect(page.locator('main article a[href^="/watch?v="]').first()).toBeVisible({ timeout: 120_000 })
 })
@@ -89,10 +59,10 @@ test('names the tabs like youtube.com, sorts Videos by chips and searches from a
 test('opens a channel\'s Shows tab, and keeps the shows on its Playlists tab', async ({ page }) => {
   test.setTimeout(240_000)
   await page.goto('/@mkbhd/shows')
-  await expect(page).toHaveURL('/@mkbhd?tab=SHOWS')
   const tabs = page.getByRole('navigation', { name: 'Channel sections' })
-  await expect(tabs.getByRole('button', { name: 'Shows', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
-  const labels = await tabs.getByRole('button').allTextContents()
+  await expect(tabs.getByRole('link', { name: 'Shows', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  await expect(page).toHaveURL('/@mkbhd/shows')
+  const labels = await tabs.getByRole('link').allTextContents()
   expect(labels.indexOf('Shows')).toBe(labels.indexOf('Live') + 1)
   expect(labels.indexOf('Playlists')).toBe(labels.indexOf('Shows') + 1)
   // youtube.com's show cards: the episode count over the still, the channel's name under the title
@@ -101,8 +71,8 @@ test('opens a channel\'s Shows tab, and keeps the shows on its Playlists tab', a
   await expect(cards.first()).toContainText(/\d+ episodes/)
   await expect(cards.first()).toContainText('Marques Brownlee')
 
-  await tabs.getByRole('button', { name: 'Playlists', exact: true }).click()
-  await expect(page).toHaveURL('/@mkbhd?tab=PLAYLISTS')
+  await tabs.getByRole('link', { name: 'Playlists', exact: true }).click()
+  await expect(page).toHaveURL('/@mkbhd/playlists')
   await expect(cards.filter({ hasText: /\d+ episodes/ }).first()).toBeVisible({ timeout: 120_000 })
   await expect(cards.filter({ hasText: /\d+ videos?/ }).first()).toBeVisible()
 })
@@ -153,9 +123,9 @@ test('fits a channel\'s Home shelves in a phone\'s width', async ({ page }) => {
 test('draws a channel\'s Shorts tab like youtube.com and opens a Short in the Shorts player', async ({ page }) => {
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/@MKBHD?tab=SHORTS')
+  await page.goto('/@MKBHD/shorts')
   const tabs = page.getByRole('navigation', { name: 'Channel sections' })
-  await expect(tabs.getByRole('button', { name: 'Shorts', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  await expect(tabs.getByRole('link', { name: 'Shorts', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
   const thumbs = page.locator('main article a.thumb')
   await expect(thumbs.first()).toBeVisible({ timeout: 60_000 })
   const layout = () => thumbs.evaluateAll(links => {

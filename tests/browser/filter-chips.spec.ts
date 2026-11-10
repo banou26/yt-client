@@ -24,7 +24,7 @@ for (const query of ['never gonna give you up', 'python tutorial']) {
 test('the Live tab sorts from its Latest dropdown and filters by Members only and Public', async ({ page }) => {
   test.setTimeout(300_000)
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/@mkbhd?tab=LIVE')
+  await page.goto('/@mkbhd/streams')
   const bar = page.locator('main .sorts')
   const titles = page.locator('main .videos article h3')
   await expect(titles.first()).toBeVisible({ timeout: 120_000 })

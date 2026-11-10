@@ -12,6 +12,7 @@ import Header from './components/header'
 import { lazyRoute } from './components/lazy-route'
 import ErrorBoundary from './components/ui/error-boundary'
 import PersistentPlayer from './player/persistent-player'
+import { CHANNEL_TAB_PATHS, channelTabFor } from './routes/channel-tabs'
 import HomePage from './routes/home'
 import { getSettings, updateSettings } from './settings'
 
@@ -109,31 +110,23 @@ const WatchRedirect = ({ videoId }: { videoId: string }) => {
   return <Redirect to={`/watch?${watch}`} replace />
 }
 
-// keyed by upstream's OWN path words, which do not all match the enum: `live` is `/streams`, home is `/featured`
-const CHANNEL_TAB_PATHS: Record<string, ChannelTab> = {
-  featured: 'HOME',
-  videos: 'VIDEOS',
-  shorts: 'SHORTS',
-  streams: 'LIVE',
-  releases: 'RELEASES',
-  podcasts: 'PODCASTS',
-  courses: 'COURSES',
-  shows: 'SHOWS',
-  playlists: 'PLAYLISTS',
-  community: 'COMMUNITY',
-  posts: 'COMMUNITY',
-  about: 'ABOUT',
+// `base` is the channel's address as given (`/@handle`, `/channel/<id>`, `/c/<name>` or `/user/<name>`) and `word` the
+// tab's word after it. `?tab=<TAB>` is how this client addressed a tab before it took youtube.com's addresses.
+const ChannelRoute = ({ id, base, word }: { id: string, base: string, word?: string }) => {
+  const query = new URLSearchParams(useSearch())
+  const legacy = query.get('tab')
+  query.delete('tab')
+  const rest = query.size > 0 ? `?${query}` : ''
+  if (legacy !== null) {
+    const path = Object.hasOwn(CHANNEL_TAB_PATHS, legacy) ? `/${CHANNEL_TAB_PATHS[legacy as ChannelTab]}` : ''
+    return <Redirect to={`${base}${path}${rest}`} replace />
+  }
+  if (word === undefined) return <ChannelPage id={id} base={base} />
+  const tab = channelTabFor(safeDecode(word))
+  if (!tab) return <p className='not-found'>Not found</p>
+  if (word !== CHANNEL_TAB_PATHS[tab]) return <Redirect to={`${base}/${CHANNEL_TAB_PATHS[tab]}${rest}`} replace />
+  return <ChannelPage id={id} base={base} tab={tab} />
 }
-
-const ChannelTabRedirect = ({ base, tab }: { base: string, tab?: string }) => {
-  const mapped = CHANNEL_TAB_PATHS[safeDecode(tab ?? '').toLowerCase()]
-  if (!mapped) return <p className='not-found'>Not found</p>
-  return <Redirect to={mapped === 'HOME' ? base : `${base}?${new URLSearchParams({ tab: mapped })}`} replace />
-}
-
-// `path` is youtube.com's channel address without its slash, `c/<name>` or `user/<name>`, which the source resolves as it does an @handle
-const ChannelPathRoute = ({ path, tab }: { path: string, tab?: string }) =>
-  tab === undefined ? <ChannelPage params={{ channelId: path }} /> : <ChannelTabRedirect base={`/${path}`} tab={tab} />
 
 /** Whether a CSS media query matches, kept current as the window changes. */
 export const useMediaQuery = (query: string) => {
@@ -208,7 +201,9 @@ export const App = () => {
               {/* before the generic two-segment route below, which would answer /feed/groups with Not found */}
               <Route path='/feed/groups' component={FeedGroupsPage} />
               <Route path='/feed/groups/:id' component={GroupPage} />
-              <Route path='/channel/:channelId' component={ChannelPage} />
+              <Route path='/channel/:channelId/:tab?'>
+                {(params: { channelId: string, tab?: string }) => <ChannelRoute id={params.channelId} base={`/channel/${params.channelId}`} word={params.tab} />}
+              </Route>
               <Route path='/settings' component={SettingsPage} />
               <Route path='/privacy' component={PrivacyPage} />
               <Route path='/account' component={AccountPage} />
@@ -225,29 +220,18 @@ export const App = () => {
               <Route path='/live/:videoId'>{(params: { videoId: string }) => <WatchRedirect videoId={params.videoId} />}</Route>
               <Route path='/embed/:videoId'>{(params: { videoId: string }) => <WatchRedirect videoId={params.videoId} />}</Route>
               <Route path='/c/:name/:tab?'>
-                {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`c/${params.name}`} tab={params.tab} />}
+                {(params: { name: string, tab?: string }) => <ChannelRoute id={`c/${params.name}`} base={`/c/${params.name}`} word={params.tab} />}
               </Route>
               <Route path='/user/:name/:tab?'>
-                {(params: { name: string, tab?: string }) => <ChannelPathRoute path={`user/${params.name}`} tab={params.tab} />}
+                {(params: { name: string, tab?: string }) => <ChannelRoute id={`user/${params.name}`} base={`/user/${params.name}`} word={params.tab} />}
               </Route>
               {/* youtube.com's Gaming topic channel, as the guide's Explore links it */}
               <Route path='/gaming'><Redirect to='/channel/UCOpNcN46UbXVtpKMrmU4Abg' replace /></Route>
               <Route path='/post/:postId' component={PostPage} />
-              {/* claims the whole segment because wouter's parser never matches `/@:handle`, so it MUST stay declared after every real single-segment route: Switch takes the first match, and this can then only see paths nothing else wanted */}
-              <Route path='/:segment'>
-                {(params: { segment?: string }) => params.segment?.startsWith('@')
-                  ? <ChannelPage params={{ handle: params.segment.slice(1) }} />
-                  : <p className='not-found'>Not found</p>}
-              </Route>
-              {/* MUST stay before the generic two-segment route below, which would answer with Not found */}
-              <Route path='/channel/:channelId/:tab'>
-                {(params: { channelId?: string, tab?: string }) => (
-                  <ChannelTabRedirect base={`/channel/${params.channelId ?? ''}`} tab={params.tab} />
-                )}
-              </Route>
-              <Route path='/:segment/:tab'>
+              {/* claims the first segment because wouter's parser never matches `/@:handle`, so it MUST stay declared after every real single- and two-segment route: Switch takes the first match, and this can then only see paths nothing else wanted */}
+              <Route path='/:segment/:tab?'>
                 {(params: { segment?: string, tab?: string }) => params.segment?.startsWith('@')
-                  ? <ChannelTabRedirect base={`/${params.segment}`} tab={params.tab} />
+                  ? <ChannelRoute id={params.segment} base={`/${params.segment}`} word={params.tab} />
                   : <p className='not-found'>Not found</p>}
               </Route>
               <Route>
