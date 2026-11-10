@@ -177,7 +177,9 @@ const HomePage = () => {
   const pages = loaded.chip === chip ? loaded.pages : []
   const [{ data, error, fetching, operation }] = useQuery({
     query: HOME_FEED_QUERY,
-    variables: { chip, cursor: pages[pages.length - 1]?.cursor }
+    variables: { chip, cursor: pages[pages.length - 1]?.cursor },
+    // youtube.com reads Home anew when it is opened again, and that read is where a video watched since shows up
+    requestPolicy: 'network-only'
   })
 
   // urql holds the previous result while the next request is in flight, so a page is only usable once it is known to come from the selected chip
