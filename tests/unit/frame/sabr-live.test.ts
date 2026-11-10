@@ -390,6 +390,16 @@ describe('a live SABR session on a stream with a DVR window', () => {
     session.close()
   })
 
+  it('ignores a cuepoint whose length is not a number, and keeps playing', async () => {
+    cuepointSeconds = Number.NaN
+    cuepoints.set(HEAD + 1, 'cue-1')
+    const session = await open()
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(Math.max(...listed(session))).toBeGreaterThanOrEqual(HEAD + 4)
+    expect(asked.every(request => request.cuepoints.length === 0)).toBe(true)
+    session.close()
+  })
+
   it('moves past a position the server refuses for good once the head is past it', async () => {
     refused.add(HEAD + 1)
     const session = await open()

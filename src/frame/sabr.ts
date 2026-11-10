@@ -239,7 +239,10 @@ const readCuepoints = (payload: Uint8Array) => {
         else inner.skip(innerType)
       }
     }
-    if (id) cuepoints.push({ id, startMs: Math.floor((startTicks / timescale - playheadSec) * 1_000), durationMs: Math.round(durationSec * 1_000) })
+    const startMs = Math.floor((startTicks / timescale - playheadSec) * 1_000)
+    const durationMs = Math.round(durationSec * 1_000)
+    // a time that is not finite would make every later request fail to encode, for the rest of the session
+    if (id && Number.isFinite(startMs) && Number.isFinite(durationMs)) cuepoints.push({ id, startMs, durationMs })
   }
   return cuepoints
 }
