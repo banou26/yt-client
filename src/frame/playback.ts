@@ -10,7 +10,7 @@ type SabrSession = ReturnType<typeof createSabrSession>
 export type PlaybackEntry = {
   videoId: string
   maxHeight?: number
-  // the card params it was opened with, which every watch page read of this playback carries, its refreshes' included
+  // the card params its watch page was read with, which every refresh's read of the page carries too
   playerParams?: string
   player: SabrSession
   chain: Promise<unknown>
@@ -42,7 +42,7 @@ export const openPlaybackEntry = async (videoId: string, maxHeight?: number, pla
   const entry: PlaybackEntry = {
     videoId,
     maxHeight,
-    playerParams,
+    playerParams: source.playerParams,
     player: createSabrSession(source, maxHeight),
     chain: Promise.resolve(),
     serial: Promise.resolve(),

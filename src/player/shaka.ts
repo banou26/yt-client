@@ -1,4 +1,4 @@
-import type { FrameApi, PlaybackSession } from '../frame/protocol'
+import type { EndScreenElement, FrameApi, PlaybackSession } from '../frame/protocol'
 
 import shaka from 'shaka-player'
 
@@ -207,6 +207,7 @@ export const startShakaPlayback = async ({
   startTime,
   signal,
   onError,
+  onEndScreen,
 }: {
   api: FrameApi
   video: HTMLVideoElement
@@ -216,6 +217,8 @@ export const startShakaPlayback = async ({
   startTime: number
   signal: AbortSignal
   onError(error: unknown): void
+  // the video's end screen; for a page read with a card's params, whose answer carries none, the plain page's
+  onEndScreen?: (elements: EndScreenElement[]) => void
 }) => {
   if (signal.aborted) throw signal.reason
   shaka.polyfill.installAll()
@@ -466,6 +469,12 @@ export const startShakaPlayback = async ({
       return run
     }
 
+    const showEndScreen = (elements: EndScreenElement[]) => {
+      if (!destroyed) onEndScreen?.(elements)
+    }
+    if (!session.playerParams) showEndScreen(session.endScreen)
+    else if (onEndScreen) void api.endScreen(videoId).then(showEndScreen, () => {})
+
     return {
       player: activePlayer,
       destroy,
@@ -473,7 +482,6 @@ export const startShakaPlayback = async ({
       selectQuality,
       storyboards: session.storyboards,
       captionTracks: session.captionTracks,
-      endScreen: session.endScreen,
       selectCaption,
       // REPORTED rather than hardcoded false: the live branch falls through to this same return, and returning false is what left a live stream showing a 3348:27:07 / 0:00 clock instead of a LIVE badge
       isLive: session.isLive,

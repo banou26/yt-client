@@ -272,6 +272,8 @@ export type SabrSource = {
   storyboards: Storyboard[]
   captions: CaptionSource[]
   endScreen: EndScreenElement[]
+  // the card params the page was read with; unset for a plain read, including the one after params whose answer did not play
+  playerParams?: string
   clientInfo: Record<string, unknown>
   mint(): Promise<string>
   recoverMint(): Promise<void>
@@ -358,6 +360,7 @@ export const getSabrSource = async (videoId: string, playerParams?: string): Pro
     }).storyboards?.playerStoryboardSpecRenderer?.spec),
     captions: parseCaptionTracks(info.captions),
     endScreen: parseEndScreen(raw),
+    playerParams,
     clientInfo: {
       clientName: Number((Constants.CLIENT_NAME_IDS as Record<string, string>)[context.client.clientName]),
       clientVersion: context.client.clientVersion,

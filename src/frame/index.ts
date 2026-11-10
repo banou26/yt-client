@@ -97,6 +97,7 @@ const api = {
       storyboards: source.storyboards,
       captionTracks: entry.captions.map(({ url: _url, ...track }) => track),
       endScreen: source.endScreen,
+      playerParams: source.playerParams,
       isLive: source.isLive,
     }
   },

@@ -94,8 +94,8 @@ it('a card\'s link opens its video with the card\'s params, and a shared link or
   const { getSabrSource } = await import('../../../src/frame/innertube')
   // the browser keeps a history entry's state as a structured clone, across a reload too
   const entry = structuredClone(cardState(PARAMS))
-  await getSabrSource(VIDEO, cardParamsIn(entry))
-  await getSabrSource(VIDEO, cardParamsIn(null))
+  expect((await getSabrSource(VIDEO, cardParamsIn(entry))).playerParams).toBe(PARAMS)
+  expect((await getSabrSource(VIDEO, cardParamsIn(null))).playerParams).toBeUndefined()
   vi.resetModules()
   const reloaded = await import('../../../src/player/card-params')
   await getSabrSource(VIDEO, reloaded.cardParamsIn(entry))
@@ -113,6 +113,7 @@ it('reads the plain page when the answer to a card\'s params does not play, and 
   const { getSabrSource } = await import('../../../src/frame/innertube')
   const source = await getSabrSource(VIDEO, PARAMS)
   expect(source.streamingUrl).toMatch(/^https:\/\/rr1\.googlevideo\.com\/videoplayback\?id=1&/)
+  expect(source.playerParams).toBeUndefined()
   expect(fetched.filter((url) => !url.includes('/api/stats/'))).toEqual([card, plain])
   expect(fetched.filter((url) => url.includes('/api/stats/')).map((url) => new URL(url).searchParams.get('docid'))).toEqual(['plain'])
 })

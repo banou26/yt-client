@@ -190,3 +190,16 @@ it('answers the end screen of the plain page an intent prefetch read, which a ca
   expect(response.result).toHaveLength(3)
   expect(vi.mocked(prefetchInitialPlayerResponse).mock.calls).toEqual([['video-1']])
 })
+
+it('reads a card\'s playback again with the params its open read played with, and plain after params that did not play', async () => {
+  const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.mocked(createSabrSession).mockImplementation(() => sessionOf(failing(refreshError)))
+  for (const played of ['params-1', undefined]) {
+    vi.mocked(getSabrSource).mockReset().mockResolvedValue({ isLive: false, captions: [], storyboards: [], playerParams: played } as unknown as SabrSource)
+    const session = (await call('openPlayback', 'video-1', 360, 'params-1')).result as PlaybackSession
+    expect(session.playerParams).toBe(played)
+    await call('requestSegment', segment('a', session.id))
+    expect(vi.mocked(getSabrSource).mock.calls).toEqual([['video-1', 'params-1'], ['video-1', played]])
+  }
+  errors.mockRestore()
+})

@@ -107,9 +107,10 @@ describe('a playback YouTube keeps refusing', () => {
     reads.length = 0
     recoverMint.mockClear()
     vi.mocked(egressFetch).mockReset()
-    vi.mocked(getSabrSource).mockReset().mockImplementation(async () => {
+    // a read with params that play reports them, as getSabrSource's does
+    vi.mocked(getSabrSource).mockReset().mockImplementation(async (_videoId, playerParams) => {
       reads.push(Date.now())
-      return source
+      return { ...source, playerParams }
     })
     refuseEverySession()
   })

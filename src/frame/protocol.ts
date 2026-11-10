@@ -88,6 +88,8 @@ export type PlaybackSession = {
   // always empty for live: Shaka refuses a side-loaded text track when the presentation duration is infinite (CANNOT_ADD_EXTERNAL_TEXT_TO_LIVE_STREAM)
   captionTracks: CaptionTrack[]
   endScreen: EndScreenElement[]
+  /** The card params the watch page was read with, whose answer carries no end screen; unset for a plain read. */
+  playerParams?: string
   isLive: boolean
 }
 
