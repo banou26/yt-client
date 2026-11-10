@@ -205,3 +205,59 @@ test('in a playlist it names the playlist and the place in it, Shift+P plays the
   await expect(dock(page)).toHaveCount(0)
   await expect(page.locator('video')).toHaveCount(0)
 })
+
+type EngineFailure = { armed: boolean, port?: MessagePort }
+
+declare global {
+  interface Window { engineFailure?: EngineFailure, sameDocument?: true }
+}
+
+// the app asks the engine over a MessagePort, `{ id, method, args }`: once armed, every segment the running engine is
+// asked for is answered with the error of a failed playback request, which makes the player replace the engine, and the
+// next engine's port is let through
+const failRunningEngine = () => {
+  if (window.top !== window) return
+  const failure: EngineFailure = { armed: false }
+  window.engineFailure = failure
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    const call = message as { id?: number, method?: string } | null
+    if (failure.armed && call?.method === 'requestSegment') {
+      failure.port ??= this
+      if (failure.port === this) {
+        setTimeout(() => this.dispatchEvent(new MessageEvent('message', { data: { id: call.id, error: 'youtube: segment returned 503' } })), 0)
+        return
+      }
+      failure.armed = false
+    }
+    return post.call(this, message, ...rest)
+  } as typeof MessagePort.prototype.postMessage
+}
+
+test('plays on after its engine is replaced, with a new release deployed since the page opened', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.addInitScript(failRunningEngine)
+  await page.goto(`/watch?v=${VIDEO_ID}`)
+  const video = await startPlayback(page)
+  await leaveForSettings(page)
+  await page.evaluate(() => { window.sameDocument = true })
+  // the deploy: the engine host's fixed address now serves the page of another build
+  let hostLoads = 0
+  await page.route('**/__yt_scramjet__/host.html', async (route) => {
+    hostLoads += 1
+    const response = await route.fetch()
+    await route.fulfill({ response, body: (await response.text()).replace(/(name="yt-build" content=")[^"]*/, '$1a-later-build') })
+  })
+  const before = await video.evaluate(element => (element as HTMLVideoElement).currentTime)
+  await page.evaluate(() => { window.engineFailure!.armed = true })
+  await expect.poll(() => page.evaluate(() => window.engineFailure?.armed), { timeout: 60_000, message: 'the engine was not replaced' }).toBe(false)
+  expect(await page.evaluate(() => window.sameDocument), 'the page reloaded').toBe(true)
+  await expect.poll(
+    () => video.evaluate(element => (element as HTMLVideoElement).currentTime),
+    { timeout: 60_000, message: 'the docked video did not play on' },
+  ).toBeGreaterThan(before + 3)
+  expect(await paused(video)).toBe(false)
+  await expect(dock(page)).toBeVisible()
+  expect(new URL(page.url()).pathname).toBe('/settings')
+  expect(hostLoads, 'the engine host was loaded again').toBe(0)
+})
