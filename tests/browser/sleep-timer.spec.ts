@@ -144,8 +144,11 @@ test('in full screen End of video holds the next video, and Time\'s up shows ove
   expect(await page.locator('video').evaluate(element => (element as HTMLVideoElement).ended)).toBe(true)
   expect(await playerIsFullscreen(page)).toBe(true)
 
+  // v opens the grid, but not behind the dialog
+  await page.keyboard.press('v')
   await timesUp.getByRole('button', { name: 'Close' }).click()
   await expect(timesUp).toBeHidden()
   await expect(countdown(page)).toBeVisible()
+  await expect(page.locator('[data-player-root]').getByRole('list', { name: 'More videos' })).toHaveCount(0)
   expect(await playerIsFullscreen(page)).toBe(true)
 })

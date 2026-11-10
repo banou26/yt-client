@@ -257,7 +257,7 @@ export const FullscreenView = ({ shown, settings }: { shown: boolean, settings: 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'v' || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return
-      if (isTypingTarget(event.target) || latest.current.sharing) return
+      if (isTypingTarget(event.target) || latest.current.sharing || document.fullscreenElement?.querySelector('[role="dialog"]')) return
       event.preventDefault()
       latest.current.setGrid(!latest.current.grid)
     }
