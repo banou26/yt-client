@@ -78,13 +78,9 @@ const style = css`
     color: var(--text-inverse);
   }
 
-  /* in full screen the list is drawn over the right of the player, as youtube.com's */
+  /* in full screen the list fills the slot beside the video that the player's frame keeps */
   &.overlay {
-    position: absolute;
-    top: 1.6rem;
-    right: 1.6rem;
-    bottom: 1.6rem;
-    width: 32rem;
+    height: 100%;
     max-height: none;
     margin: 0;
   }

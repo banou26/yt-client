@@ -783,7 +783,7 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
           trigger={
             <button type='button' className='sort'>
               <ListFilter size={24} strokeWidth={1.5} />
-              Sort by
+              <span className='sort-label'>Sort by</span>
             </button>
           }
         >

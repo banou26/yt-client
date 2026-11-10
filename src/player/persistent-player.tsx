@@ -238,6 +238,10 @@ const PersistentPlayer = () => {
                 commentCountText: watch?.commentCountText,
                 videos: suggestions,
                 onOpen: open,
+                chapters: watch?.chapters ?? [],
+                chapter: session.chapter,
+                panel: session.panel,
+                transcript: watch?.transcriptPanel ?? undefined,
               }}
             >
               <VideoPlayer
@@ -251,8 +255,6 @@ const PersistentPlayer = () => {
                 onTheater={() => setTheater(!session.theater)}
                 onMiniplayer={toggleMiniplayer}
                 chapters={watch?.chapters}
-                panel={session.panel}
-                transcript={watch?.transcriptPanel ?? undefined}
                 segments={segments}
                 upNext={{
                   autoplay,

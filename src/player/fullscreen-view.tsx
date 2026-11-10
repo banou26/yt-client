@@ -120,13 +120,6 @@ const style = css`
     margin-left: -2rem;
   }
 
-  /* narrower, the controls' left groups with a chapter title at its 220 px reach the middle of the bar */
-  @container player (max-width: 1080px) {
-    .fs-more {
-      display: none;
-    }
-  }
-
   .fs-sheet {
     position: absolute;
     inset: 0;
@@ -355,11 +348,8 @@ export const FullscreenView = ({ shown }: { shown: boolean }) => {
 }
 
 const panelStyle = css`
-  position: absolute;
-  top: 1.6rem;
-  right: 1.6rem;
-  bottom: 1.6rem;
-  width: 40rem;
+  position: relative;
+  height: 100%;
   overflow: hidden;
   border-radius: 1.2rem;
   background: var(--bg-menu);
@@ -390,11 +380,39 @@ const panelStyle = css`
     height: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 1.8rem 1.6rem 1.6rem;
+    padding: 1.2rem 1.6rem 1.6rem;
   }
 
   .fs-body > section {
     margin-top: 0;
+  }
+
+  /* youtube.com's 320 px panel heads the list with the title, then a sort icon beside the close button */
+  .heading-row {
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+    padding-right: 4rem;
+  }
+
+  .sort {
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-left: auto;
+    border-radius: 50%;
+  }
+
+  .sort:hover {
+    background: var(--bg-hover);
+  }
+
+  .sort-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 `
 

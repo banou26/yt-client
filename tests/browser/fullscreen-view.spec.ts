@@ -118,6 +118,7 @@ test('its actions open what the watch page opens, signed out', async ({ page }) 
   const room = () => player.evaluate(root => root.getBoundingClientRect().width - root.querySelector('video')!.getBoundingClientRect().width)
   const panel = (await comments.boundingBox())!
   expect(await room()).toBeGreaterThanOrEqual(panel.width)
+  await expect(comments.getByRole('heading', { name: /Comments/ })).toBeVisible()
   await comments.getByRole('button', { name: 'Close comments' }).click()
   await expect(comments).toHaveCount(0)
   await expect.poll(room).toBe(0)
@@ -128,4 +129,49 @@ test('its actions open what the watch page opens, signed out', async ({ page }) 
   const popup = await opened
   await expect(popup).toHaveURL(/\/__yt_scramjet__\/signin(?:\.html)?$/)
   await popup.close()
+})
+
+test('the chapters and the comments take turns in one slot beside the video', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.setViewportSize({ width: 1280, height: 800 })
+  // six chapters, as the chapters spec reads them
+  await page.goto('/watch?v=g6Die8gVFn0')
+  await startPlayback(page)
+  await enterFullscreen(page)
+  const player = page.locator('[data-player-root]')
+  const chapters = player.locator('section[aria-label="Chapters"]')
+  const comments = player.getByRole('complementary', { name: 'Comments' })
+  const videoWidth = async () => (await player.locator('video').boundingBox())!.width
+  // youtube.com's chapter title takes at most a quarter of the player's width
+  const titleRoom = () => player.locator('.chapter').evaluate(element => getComputedStyle(element).maxWidth)
+
+  // youtube.com's one 320 px slot, 16 px in from the edges, with the video narrowed beside it (measured 2026-11-10)
+  const slot = { x: 944, y: 16, width: 320, height: 768 }
+  expect(await titleRoom()).toBe('320px')
+  await press(page, player.locator('.chapter'))
+  await expect(chapters).toBeVisible()
+  expect(await chapters.boundingBox()).toEqual(slot)
+  expect(await videoWidth()).toBe(928)
+
+  await press(page, player.getByRole('button', { name: 'Comments' }))
+  await expect(comments).toBeVisible()
+  await expect(chapters).toHaveCount(0)
+  expect(await comments.boundingBox()).toEqual(slot)
+  expect(await videoWidth()).toBe(928)
+  expect(await titleRoom()).toBe('232px')
+  // the grid's arrow stays, in the middle of the narrowed video, where youtube.com's is
+  const more = player.getByRole('button', { name: 'More videos' })
+  await expect(more).toBeVisible()
+  expect(await more.boundingBox()).toEqual({ x: 444, y: 752, width: 40, height: 40 })
+
+  await press(page, player.locator('.chapter'))
+  await expect(chapters).toBeVisible()
+  await expect(comments).toHaveCount(0)
+  expect(await videoWidth()).toBe(928)
+
+  // and the comments it replaced do not come back when it closes
+  await chapters.getByRole('button', { name: 'Close' }).click()
+  await expect(chapters).toHaveCount(0)
+  await expect(comments).toHaveCount(0)
+  expect(await videoWidth()).toBe(1280)
 })

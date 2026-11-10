@@ -4,8 +4,6 @@ import type { CaptionTrack, PlaybackRefusal, Storyboard } from '../frame/protoco
 import type { Point } from '../components/ui/popup'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './chapters'
-import type { VideoPanel } from './session'
-import type { TranscriptPanel as TranscriptArgs } from '../generated/graphql'
 import type { SkipSegment } from './sponsorblock'
 import type { UpNext } from './up-next'
 
@@ -25,7 +23,6 @@ import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { setPanel, setPlayingChapter } from './session'
 import { getSettings, updateSettings } from '../settings'
-import { watchPanel } from '../components/watch-panel'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
@@ -40,21 +37,12 @@ import { CLOCK_SLACK, skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
 
-// the player's box is its frame's, which stays as the video changes; this fills it, less the comments beside it in full screen
+// the player's box is its frame's, which stays as the video changes; this fills it, less the panel beside it in full screen
 const playerStyle = css`
   position: absolute;
   inset: 0;
   /* the controls and the end screen lay out for the player's own width, which is the miniplayer's 400 px wherever the page is */
   container: player / inline-size;
-
-  /* in full screen the open list takes the right of the player, which the watch page draws outside it */
-  &.panel-open {
-    --panel-room: 35.2rem;
-  }
-
-  &.panel-open video {
-    width: calc(100% - var(--panel-room));
-  }
 
   video {
     display: block;
@@ -115,7 +103,7 @@ const playerStyle = css`
   /* above the 72 px of seek rail and control groups, so it never covers a control */
   .sponsor-skip {
     position: absolute;
-    right: calc(1.2rem + var(--panel-room, 0rem));
+    right: 1.2rem;
     bottom: 8rem;
     height: 3.6rem;
     padding: 0 1.6rem;
@@ -181,8 +169,7 @@ const FALLBACK_FPS = 30
 
 const VideoPlayer = (
   {
-    videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, panel, transcript,
-    segments = [],
+    videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [],
   }: {
     videoId: string
     list?: string
@@ -194,9 +181,6 @@ const VideoPlayer = (
     onMiniplayer?: () => void
     upNext?: PlayerUpNext
     chapters?: readonly PlayerChapter[]
-    // the list open beside the player, which the player draws over itself in full screen
-    panel?: VideoPanel
-    transcript?: TranscriptArgs
     segments?: readonly SkipSegment[]
   },
 ) => {
@@ -235,10 +219,6 @@ const VideoPlayer = (
   const chapterList = chapters ?? []
   const chapterIndex = chapterIndexAt(chapterList, state.currentTime)
   useEffect(() => setPlayingChapter(chapterIndex), [chapterIndex])
-  const [fullscreen, setFullscreen] = useState(false)
-  const panelOver = fullscreen
-    ? watchPanel({ videoId, open: panel, chapters: chapterList, chapter: chapterIndex, transcript, overlay: true })
-    : undefined
   const frame = useFrame()
   const grid = frame?.grid ?? false
   const ending = state.ended && upNext
@@ -458,16 +438,10 @@ const VideoPlayer = (
 
   useEffect(() => () => clearTimeout(idleTimer.current), [])
 
-  // the menu is drawn on the fullscreen element or the body, so a switch between the two would strand it, and youtube.com
-  // closes the chapter list on every switch, in or out
+  // the menu is drawn on the fullscreen element or the body, so a switch between the two would strand it
   useEffect(() => {
-    const onChange = () => {
-      closeMenu()
-      setPanel(undefined)
-      setFullscreen(document.fullscreenElement !== null)
-    }
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
+    document.addEventListener('fullscreenchange', closeMenu)
+    return () => document.removeEventListener('fullscreenchange', closeMenu)
   }, [closeMenu])
 
   const onContextMenu = (event: MouseEvent) => {
@@ -611,7 +585,7 @@ const VideoPlayer = (
     <div
       css={playerStyle}
       data-player-surface
-      className={[!active && !state.paused && !menu && !grid && 'idle', panelOver && 'panel-open'].filter(Boolean).join(' ') || undefined}
+      className={!active && !state.paused && !menu && !grid ? 'idle' : undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
@@ -708,7 +682,6 @@ const VideoPlayer = (
             </button>
           )
           : undefined}
-      {panelOver}
       {frame?.fullscreen && frame.view ? <frame.view.FullscreenView shown={active || state.paused} /> : undefined}
       {video && menu
         ? (

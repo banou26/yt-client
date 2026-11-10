@@ -33,7 +33,7 @@ export const clock = (seconds: number) => {
 const style = css`
   position: absolute;
   left: 0;
-  right: var(--panel-room, 0rem);
+  right: 0;
   bottom: 0;
   padding: 0 1.2rem;
   color: #ffffff;
@@ -297,12 +297,13 @@ const style = css`
     font-weight: 500;
   }
 
-  /* the title and youtube.com's 20 px chevron after it, which opens the chapter list */
+  /* the title and youtube.com's 20 px chevron after it, which opens the chapter list, in at most a quarter of the
+     player's width (measured 2026-11-10 at 704 to 1920 px, in full screen and on the watch page) */
   .chapter {
     flex-shrink: 100;
     display: flex;
     align-items: center;
-    max-width: 24rem;
+    max-width: 25cqi;
     border: none;
     color: inherit;
     font: inherit;
