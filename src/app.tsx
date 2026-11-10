@@ -14,6 +14,7 @@ import ErrorBoundary from './components/ui/error-boundary'
 import PersistentPlayer from './player/persistent-player'
 import { CHANNEL_TAB_PATHS, channelTabFor } from './routes/channel-tabs'
 import HomePage from './routes/home'
+import NotFound from './routes/not-found'
 import { getSettings, updateSettings } from './settings'
 
 // HomePage is deliberately static while every other route is lazy: routing the landing page through Suspense would put a chunk fetch in front of the very first paint, the one navigation with no previous page to keep showing
@@ -51,11 +52,6 @@ const style = css`
 
   .page.guide-mini {
     margin-left: var(--guide-mini-width);
-  }
-
-  .not-found {
-    padding: 2.4rem 1.6rem;
-    color: var(--text-secondary);
   }
 
   /* Deliberately blank rather than a spinner. Chunks are local and resolve in
@@ -123,7 +119,7 @@ const ChannelRoute = ({ id, base, word }: { id: string, base: string, word?: str
   }
   if (word === undefined) return <ChannelPage id={id} base={base} />
   const tab = channelTabFor(safeDecode(word))
-  if (!tab) return <p className='not-found'>Not found</p>
+  if (!tab) return <NotFound />
   if (word !== CHANNEL_TAB_PATHS[tab]) return <Redirect to={`${base}/${CHANNEL_TAB_PATHS[tab]}${rest}`} replace />
   return <ChannelPage id={id} base={base} tab={tab} />
 }
@@ -232,11 +228,9 @@ export const App = () => {
               <Route path='/:segment/:tab?'>
                 {(params: { segment?: string, tab?: string }) => params.segment?.startsWith('@')
                   ? <ChannelRoute id={params.segment} base={`/${params.segment}`} word={params.tab} />
-                  : <p className='not-found'>Not found</p>}
+                  : <NotFound />}
               </Route>
-              <Route>
-                <p className='not-found'>Not found</p>
-              </Route>
+              <Route component={NotFound} />
             </Switch>
             </Suspense>
           </ErrorBoundary>

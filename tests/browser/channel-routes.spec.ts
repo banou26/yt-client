@@ -3,12 +3,13 @@ import { expect, test } from './test'
 const CHANNEL_ID = 'UCSMOQeBJ2RAnuFungnQOxLg'
 
 test('refuses a segment that is not a tab', async ({ page }) => {
+  const notFound = page.getByText('This page isn\'t available. Sorry about that.', { exact: true })
   await page.goto('/@Blender/nonsense')
-  await expect(page.getByText('Not found')).toBeVisible()
+  await expect(notFound).toBeVisible()
   await expect(page).toHaveURL('/@Blender/nonsense')
 
   await page.goto('/nonsense/videos')
-  await expect(page.getByText('Not found')).toBeVisible()
+  await expect(notFound).toBeVisible()
 })
 
 test('lands a channel handle on its Home tab, with the featured video and the shelves', async ({ page }) => {

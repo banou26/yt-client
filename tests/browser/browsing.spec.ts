@@ -223,7 +223,7 @@ test('has a You page', async ({ page }) => {
   const main = page.locator('main')
   await expect(main.getByRole('heading', { name: 'Enjoy your favorite videos' })).toBeVisible({ timeout: 90_000 })
   await expect(main.getByRole('button', { name: 'Sign in' })).toBeVisible()
-  await expect(page.getByText('Not found')).toHaveCount(0)
+  await expect(page.getByText('This page isn\'t available. Sorry about that.', { exact: true })).toHaveCount(0)
 
   const guide = page.getByRole('navigation', { name: 'Guide' })
   await expect(guide.getByRole('link', { name: 'You', exact: true })).toHaveAttribute('href', '/feed/you')
