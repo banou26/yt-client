@@ -54,6 +54,18 @@ for (const [width, shown] of [[1280, 2], [632, 2], [412, 1]] as const) {
   })
 }
 
+// youtube.com's More arrow hangs 16px past the carousel (measured from 800 to 1600px), which keeps it inside the page's
+// 16px gutter where a 20px overhang scrolled the page sideways by 4px
+test('a broad search\'s carousel keeps its More arrow inside the gutter', async ({ page }) => {
+  const search = await mountSearch(page, 1000)
+  const carousel = search.getByRole('region', { name: 'Minecraft Addon', exact: true })
+  const more = carousel.getByRole('button', { name: 'More Minecraft Addon', exact: true })
+  await expect(more).toBeVisible({ timeout: 60_000 })
+  const [row, arrow] = await Promise.all([carousel.locator('.track').boundingBox(), more.boundingBox()])
+  expect(Math.round(arrow!.x + arrow!.width - row!.x - row!.width)).toBe(16)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(1000)
+})
+
 // youtube.com's right column, measured the same way: a 385px card 40px beside the results, its head opening the topic's
 // channel, the newest video large, then the list; the two columns together are 1280px at most, and the column is dropped
 // below 1091px rather than moved into the results

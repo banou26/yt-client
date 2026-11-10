@@ -126,6 +126,9 @@ const SEARCH_RESULTS_QUERY = gql(`
 const style = css`
   max-width: 109.6rem;
   padding: 2.4rem 1.6rem;
+  /* youtube.com's More arrow hangs 16px past a carousel, so it stays inside
+     the 16px gutter: measured from 800 to 1600px on 2026-11-10. */
+  --rail-arrow-right: -1.6rem;
 
   /* youtube.com caps the results and the topic card's column together at
      1280px, the results 855px wide from 1600 to 1920px: measured signed out

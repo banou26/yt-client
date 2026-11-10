@@ -50,7 +50,7 @@ const style = css`
   }
 
   .arrow.right {
-    right: -2rem;
+    right: var(--rail-arrow-right, -2rem);
   }
 
   /* Without the guide a page's gutter can be narrower than the overhang,
