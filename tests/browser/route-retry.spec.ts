@@ -6,6 +6,7 @@ import { expect, test } from './test'
 const SEARCH_CODE = /\/src\/routes\/search\.tsx|\/assets\/search-[\w-]+\.js/
 
 const OFFLINE_LINE = 'You\'re offline. Check your connection.'
+const FAILED_LINE = 'Something went wrong.'
 
 // a full reload would also show the page, so this marker proves the page recovered in place
 const openSettings = async (page: Page) => {
@@ -32,7 +33,7 @@ test('a page whose code failed to download says so in one line and loads on Try 
   await search(page)
 
   const alert = page.getByRole('alert')
-  await expect(alert.locator('p')).toHaveText(OFFLINE_LINE, { timeout: 30_000 })
+  await expect(alert.locator('p')).toHaveText(FAILED_LINE, { timeout: 30_000 })
   await expect(alert).not.toContainText('import')
 
   await alert.getByRole('button', { name: 'Try again' }).click()
@@ -64,4 +65,16 @@ test('a connection that comes back as the line shows still loads the page', asyn
   await search(page)
   await expectSearchPage(page)
   expect(await page.evaluate(() => 'lineShown' in window), 'the download never failed').toBe(true)
+})
+
+test('the line stops saying offline once the browser is back online while the download still fails', async ({ page, context }) => {
+  await page.route(SEARCH_CODE, route => route.abort('internetdisconnected'))
+  await openSettings(page)
+  await context.setOffline(true)
+  await search(page)
+  const line = page.getByRole('alert').locator('p')
+  await expect(line).toHaveText(OFFLINE_LINE, { timeout: 30_000 })
+
+  await context.setOffline(false)
+  await expect(line).toHaveText(FAILED_LINE)
 })

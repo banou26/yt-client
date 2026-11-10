@@ -93,7 +93,7 @@ export const ErrorBoundary = ({ children }: { children: ComponentChildren }) => 
   if (!error) return <>{children}</>
 
   const loadFailed = error instanceof RouteLoadError
-  return <Failure line={loadFailed ? OFFLINE_LINE : FAILED_LINE} retry={reset} whenOnline={loadFailed} />
+  return <Failure line={loadFailed && !navigator.onLine ? OFFLINE_LINE : FAILED_LINE} retry={reset} whenOnline={loadFailed} />
 }
 
 export default ErrorBoundary
