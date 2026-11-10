@@ -147,7 +147,7 @@
                           "watchEndpointSupportedOnesieConfig": {
                             "html5PlaybackOnesieConfig": {
                               "commonConfig": {
-                                "url": "https://rr3---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=c8f619a704a92a60&ip=59.138.72.110&initcwndbps=4041875&mt=1794261199&oweuc="
+                                "url": "https://rr3---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=c8f619a704a92a60&ip=192.0.2.1&initcwndbps=4041875&mt=1794261199&oweuc="
                               }
                             }
                           }
@@ -317,7 +317,7 @@
                           "watchEndpointSupportedOnesieConfig": {
                             "html5PlaybackOnesieConfig": {
                               "commonConfig": {
-                                "url": "https://rr4---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2cee621f261ad173&ip=59.138.72.110&initcwndbps=4041875&mt=1794261199&oweuc="
+                                "url": "https://rr4---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2cee621f261ad173&ip=192.0.2.1&initcwndbps=4041875&mt=1794261199&oweuc="
                               }
                             }
                           }
