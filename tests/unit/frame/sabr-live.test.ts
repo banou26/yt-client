@@ -5,6 +5,7 @@ import { LiveMetadata, MediaHeader, NextRequestPolicy, StreamProtectionStatus, U
 import type { SabrSource } from '../../../src/frame/innertube'
 import type { SegmentRequest } from '../../../src/frame/protocol'
 import { egressFetch } from '../../../src/frame/egress'
+import { LIVE_HEAD_MS } from '../../../src/frame/live-open'
 import { createSabrSession } from '../../../src/frame/sabr'
 
 vi.mock('../../../src/frame/egress', () => ({ egressFetch: vi.fn() }))
@@ -55,15 +56,18 @@ const source: SabrSource = {
 }
 
 const snapshot = { currentTimeMs: 0, playbackRate: 1, bandwidthEstimate: 10_000_000, viewportWidth: 1_280, viewportHeight: 720 }
-const probe: SegmentRequest = { requestId: 'probe', sessionId: 's', generation: 0, track: 'video', kind: 'media', formatKey: '134:', startTimeMs: 0, snapshot }
+const base: SegmentRequest = { requestId: 'base', sessionId: 's', generation: 0, track: 'video', kind: 'media', formatKey: '134:', startTimeMs: 0, snapshot }
+// the frame's first request on a live session
+const opening: SegmentRequest = { ...base, requestId: 'open', startTimeMs: LIVE_HEAD_MS }
 const media = (formatKey: string, sequence: number, track: 'audio' | 'video' = 'video'): SegmentRequest =>
-  ({ ...probe, requestId: `${formatKey}${sequence}`, track, formatKey, sequenceNumber: sequence, startTimeMs: startMsOf(sequence) })
+  ({ ...base, requestId: `${formatKey}${sequence}`, track, formatKey, sequenceNumber: sequence, startTimeMs: startMsOf(sequence) })
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /* The live server as measured: it answers a request at its playerTimeMs clamped into its DVR window, with that one
    segment of the preferred video format and of the audio, plus LIVE_METADATA naming its head. Its head moves on every
-   5 s. A request past the head is held until that segment exists, or answered with status 3. */
+   5 s. A request past the head is held until that segment exists, or answered with status 3, but one at LIVE_HEAD_MS,
+   where youtube.com's live player opens, is answered with the segment two behind the head (measured 2026-11-11). */
 let openedAt = 0
 const head = () => HEAD + Math.floor((Date.now() - openedAt) / 5_000)
 let pastHead: 'hold' | 'status 3' = 'hold'
@@ -131,7 +135,8 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
   const playerTimeMs = Number(request.clientAbrState?.playerTimeMs ?? 0)
   const entry: Asked = { playerTimeMs, video: request.preferredVideoFormatIds[0]?.itag, at: Date.now(), cuepoints: namedCuepoints(body) }
   asked.push(entry)
-  const sequence = Math.max(head() - WINDOW, sequenceAt(playerTimeMs - (startsBehind ? 1 : 0))) - (answerBehind ? 1 : 0)
+  const at = playerTimeMs === LIVE_HEAD_MS ? head() - 2 : Math.max(head() - WINDOW, sequenceAt(playerTimeMs - (startsBehind ? 1 : 0)))
+  const sequence = at - (answerBehind ? 1 : 0)
   answerBehind = false
   if (sequence > head() && pastHead === 'status 3') status = 3
   const once = nextStatus
@@ -190,14 +195,14 @@ describe('a live SABR session on a stream with a DVR window', () => {
     vi.unstubAllGlobals()
   })
 
-  // as the frame opens a live session: a probe at media time 0, then the pump
+  // as the frame opens a live session: a request at the head, then the pump
   const open = async (liveFromMs?: number) => {
     const session = createSabrSession(source, 360, liveFromMs)
     if (liveFromMs === undefined) {
-      const opening = session.requestSegment(probe)
+      let answered: number | string | undefined
+      void session.requestSegment(opening).then((segment) => { answered = segment.sequenceNumber }, (error: Error) => { answered = error.message })
       await vi.advanceTimersByTimeAsync(200)
-      // the server answered the probe with the oldest segment it keeps
-      expect((await opening).sequenceNumber).toBe(HEAD - WINDOW)
+      expect(answered, 'the opening request was not answered at once').toBe(HEAD - 2)
     }
     session.startLivePump()
     await vi.advanceTimersByTimeAsync(1_000)
@@ -205,22 +210,23 @@ describe('a live SABR session on a stream with a DVR window', () => {
   }
   const listed = (session: ReturnType<typeof createSabrSession>) => session.liveSegments.map((segment) => segment.sequenceNumber)
 
-  it('opens a few segments behind the head, not at the oldest segment of the DVR window', async () => {
+  it('opens at the head as youtube.com does, and lists the segment it is answered with', async () => {
     const session = await open()
-    expect(listed(session)).toEqual([HEAD - 3, HEAD - 2, HEAD - 1, HEAD])
-    expect(asked.slice(1).every((request) => request.playerTimeMs >= startMsOf(HEAD - 3))).toBe(true)
+    expect(asked[0]!.playerTimeMs).toBe(Number.MAX_SAFE_INTEGER)
+    expect(listed(session)).toEqual([HEAD - 2, HEAD - 1, HEAD])
+    expect(asked.slice(1).every((request) => request.playerTimeMs >= startMsOf(HEAD - 2))).toBe(true)
     session.close()
   })
 
-  it('opens near the head when the probe is first answered status 3, which names no head', async () => {
+  it('opens near the head when its first answer is status 3, which names no head', async () => {
     nextStatus = 3
     const session = createSabrSession(source, 360)
-    const opening = session.requestSegment(probe)
+    const answer = session.requestSegment(opening)
     await vi.advanceTimersByTimeAsync(1_000)
-    expect((await opening).sequenceNumber).toBe(HEAD - WINDOW)
+    expect((await answer).sequenceNumber).toBe(HEAD - 2)
     session.startLivePump()
     await vi.advanceTimersByTimeAsync(3_000)
-    expect(Math.min(...listed(session))).toBe(HEAD - 3)
+    expect(Math.min(...listed(session))).toBe(HEAD - 2)
     session.close()
   })
 
@@ -238,7 +244,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
   it('answers a listed segment that the playing format never received by its address', async () => {
     const session = await open()
     // what is listed arrived as 134; Shaka then opens on 244, and the session follows it from there
-    const init = session.requestSegment({ ...probe, requestId: 'init', kind: 'init', formatKey: '244:' })
+    const init = session.requestSegment({ ...base, requestId: 'init', kind: 'init', formatKey: '244:' })
     await vi.advanceTimersByTimeAsync(1_000)
     await init
     const wanted = HEAD - 2
@@ -272,7 +278,7 @@ describe('a live SABR session on a stream with a DVR window', () => {
     const session = await open()
     // after the pump reached the head, so only the by-address request can bring this segment in 244
     startsBehind = true
-    const init = session.requestSegment({ ...probe, requestId: 'init', kind: 'init', formatKey: '244:' })
+    const init = session.requestSegment({ ...base, requestId: 'init', kind: 'init', formatKey: '244:' })
     await vi.advanceTimersByTimeAsync(1_000)
     await init
     const wanted = HEAD - 2
@@ -294,18 +300,18 @@ describe('a live SABR session on a stream with a DVR window', () => {
   it('asks a live init at the timeline, not at media time 0', async () => {
     const session = await open()
     const from = asked.length
-    const init = session.requestSegment({ ...probe, requestId: 'init', kind: 'init', formatKey: '244:' })
+    const init = session.requestSegment({ ...base, requestId: 'init', kind: 'init', formatKey: '244:' })
     await vi.advanceTimersByTimeAsync(300)
     await init
     expect(asked.slice(from).map((request) => request.playerTimeMs)).toContain(startMsOf(HEAD))
-    expect(asked.slice(from).every((request) => request.playerTimeMs >= startMsOf(HEAD - 3))).toBe(true)
-    expect(Math.min(...listed(session))).toBe(HEAD - 3)
+    expect(asked.slice(from).every((request) => request.playerTimeMs >= startMsOf(HEAD - 2))).toBe(true)
+    expect(Math.min(...listed(session))).toBe(HEAD - 2)
     session.close()
   })
 
   it('answers a live init for the format the pump streams, though the pump just delivered that segment', async () => {
     const session = await open()
-    const init = session.requestSegment({ ...probe, requestId: 'init', kind: 'init', formatKey: '134:' })
+    const init = session.requestSegment({ ...base, requestId: 'init', kind: 'init', formatKey: '134:' })
       .then((segment) => sequenceOf(segment.data!), (error: Error) => error.message)
     await vi.advanceTimersByTimeAsync(5_000)
     expect(await init).toEqual({ itag: 134, sequence: HEAD })

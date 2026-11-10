@@ -1,21 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import type { LiveOpenSession } from '../../../src/frame/live-open'
-import { openLiveManifest } from '../../../src/frame/live-open'
+import { LIVE_HEAD_MS, openLiveManifest } from '../../../src/frame/live-open'
 
 // a SABR session whose pump asks YouTube for the next segment every second, from startLivePump until close
-const fakeLiveSession = (probe: () => Promise<void> = async () => {}) => {
+const fakeLiveSession = (opening: () => Promise<void> = async () => {}) => {
   let pump: ReturnType<typeof setInterval> | undefined
   const fake = {
     polls: 0,
     requestSegment: vi.fn(async () => {
-      await probe()
+      await opening()
       return { end: true }
     }),
     startLivePump: vi.fn(() => {
       pump ??= setInterval(() => { fake.polls++ }, 1_000)
     }),
-    liveSegments: [],
+    liveSegments: [] as { sequenceNumber: number, startMs: number, durationMs: number }[],
     videoFormat: { key: '134:' },
     close: vi.fn(() => {
       clearInterval(pump)
@@ -50,12 +50,23 @@ describe('opening a live playback', () => {
     expect(fake.polls).toBe(polls)
   })
 
-  it('closes the session when the live probe fails, and rethrows its error', async () => {
+  it('closes the session when its opening request fails, and rethrows its error', async () => {
     const fake = fakeLiveSession(async () => {
-      throw new Error('youtube: probe answered no media')
+      throw new Error('youtube: opening answered no media')
     })
-    await expect(open(fake, () => '<MPD/>')).rejects.toThrow('youtube: probe answered no media')
+    await expect(open(fake, () => '<MPD/>')).rejects.toThrow('youtube: opening answered no media')
     expect(fake.close).toHaveBeenCalledOnce()
+  })
+
+  it('asks at the head and returns the manifest as soon as the answer brings a segment', async () => {
+    const fake = fakeLiveSession(async () => {
+      fake.liveSegments.push({ sequenceNumber: 7, startMs: 35_000, durationMs: 5_000 })
+    })
+    let manifest: string | undefined
+    void open(fake, () => '<MPD/>').then((value) => { manifest = value })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(fake.requestSegment).toHaveBeenCalledWith(expect.objectContaining({ startTimeMs: LIVE_HEAD_MS }), expect.any(Function))
+    expect(manifest, 'the open waited for more than the first segment').toBe('<MPD/>')
   })
 
   it('leaves the session and its pump running when the open gets a manifest', async () => {
