@@ -7,7 +7,7 @@ import { formatViews } from './format'
 import { Rail } from './rail'
 import { Thumbnail } from './thumbnail'
 
-const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
+export const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
 
 const style = css`
   /* A full-width band in the grid's second row. An item placed on both axes is

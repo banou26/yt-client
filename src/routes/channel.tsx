@@ -12,6 +12,7 @@ import { useDocumentTitle } from '../app'
 import { GroupsButton } from '../components/groups-button'
 import { PlaylistCard } from '../components/playlist-card'
 import { PostCard } from '../components/post-card'
+import { ShortsGrid } from '../components/shorts-grid'
 import { SubscribeButton } from '../components/subscribe-button'
 import { Menu, MenuItem } from '../components/ui/menu'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
@@ -820,7 +821,9 @@ export const ChannelPage = ({ params }: { params: { channelId?: string, handle?:
           : (
             <>
               <div className='videos'>
-                <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />
+                {(activeTab ?? tab) === 'SHORTS'
+                  ? <ShortsGrid shorts={items} fetching={fetching} />
+                  : <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />}
                 {playlists.length > 0
                   ? (
                     <div className='playlist-grid'>

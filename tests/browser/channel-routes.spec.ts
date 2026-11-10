@@ -149,3 +149,46 @@ test('fits a channel\'s Home shelves in a phone\'s width', async ({ page }) => {
   await expect(page.locator('main .arrow.right').first()).toBeVisible({ timeout: 120_000 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0)
 })
+
+test('draws a channel\'s Shorts tab like youtube.com and opens a Short in the Shorts player', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/@MKBHD?tab=SHORTS')
+  const tabs = page.getByRole('navigation', { name: 'Channel sections' })
+  await expect(tabs.getByRole('button', { name: 'Shorts', exact: true })).toHaveAttribute('aria-current', 'page', { timeout: 120_000 })
+  const thumbs = page.locator('main article a.thumb')
+  await expect(thumbs.first()).toBeVisible({ timeout: 60_000 })
+  const layout = () => thumbs.evaluateAll(links => {
+    const boxes = links.map(link => link.getBoundingClientRect())
+    return {
+      columns: boxes.filter(box => Math.round(box.top) === Math.round(boxes[0]!.top)).length,
+      x: Math.round(boxes[0]!.left),
+      width: Math.round(boxes[0]!.width),
+      height: Math.round(boxes[0]!.height),
+    }
+  })
+  // youtube.com's first tile on @MKBHD's Shorts tab, measured signed out on 2026-11-10
+  for (const [width, expected] of [
+    [1920, { columns: 6, x: 442, width: 209, height: 313 }],
+    [412, { columns: 1, x: 113, width: 182, height: 273 }],
+    [1280, { columns: 5, x: 147, width: 208, height: 311 }],
+  ] as const) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect.poll(layout, { message: `the tiles at ${width}px` }).toEqual(expected)
+  }
+  // a letterboxed still would show its bars at the tile's sides
+  await expect.poll(() => thumbs.first().locator('img').evaluate((img: HTMLImageElement) => img.naturalHeight > img.naturalWidth), {
+    message: 'the first tile\'s still is portrait',
+  }).toBe(true)
+
+  const hrefs = await page.locator('main article a').evaluateAll(links => links.map(link => link.getAttribute('href')))
+  expect(hrefs.length).toBeGreaterThan(10)
+  for (const href of hrefs) expect(href).toMatch(/^\/shorts\/[\w-]{11}$/)
+
+  const href = (await thumbs.first().getAttribute('href'))!
+  await thumbs.first().click()
+  await expect(page).toHaveURL(href)
+  const slide = page.locator(`[data-short-id="${href.slice('/shorts/'.length)}"]`)
+  await expect(slide).toBeVisible({ timeout: 60_000 })
+  await expect(slide.locator('video')).toBeAttached()
+})
