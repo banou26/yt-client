@@ -541,7 +541,12 @@ const ElementView = (
   const image = element.image ? <img src={element.image} alt='' /> : undefined
 
   if (element.kind === 'video' || element.kind === 'playlist') {
-    const target: UpNext = { id: element.videoId!, title: element.title, thumbnail: element.image, list: element.playlistId }
+    const target: UpNext = {
+      id: element.videoId,
+      title: element.title,
+      thumbnail: element.image,
+      list: element.kind === 'playlist' ? element.playlistId : undefined,
+    }
     return (
       <a
         className={`element tile${shown ? ' shown' : ''}`}
@@ -558,7 +563,7 @@ const ElementView = (
     )
   }
 
-  const href = element.kind === 'channel' ? `/channel/${element.channelId!}` : element.url!
+  const href = element.kind === 'channel' ? `/channel/${element.channelId}` : element.url
   return (
     <div className={`element round ${element.kind}${opensLeft ? ' opens-left' : ''}${shown ? ' shown' : ''}`} style={box}>
       <div className='card'>
@@ -567,7 +572,7 @@ const ElementView = (
             ? (
               <>
                 <a className='card-title' href={href} target='_blank' rel='noopener' tabIndex={-1}>{element.title}</a>
-                <ChannelSubscribe channelId={element.channelId!} subscribed={element.subscribed} />
+                <ChannelSubscribe channelId={element.channelId} subscribed={element.subscribed} />
               </>
             )
             : <span className='card-title'>{element.title}</span>}
