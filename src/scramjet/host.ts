@@ -1,4 +1,4 @@
-import type { EgressApi, ExtFetchRequest, ExtFetchResponse, HostBootstrap, HostControlEvent, HostControlRequest, HostHello, TransportResponse } from './protocol'
+import type { EgressApi, ExtFetchRequest, ExtFetchResponse, HostBootstrap, HostControlEvent, HostControlRequest, HostHello, HostRestart, TransportResponse } from './protocol'
 import type { FrameEgressRequest, FrameEgressResponse } from '../frame/protocol'
 
 import { defaultConfigDev } from '@mercuryworkshop/scramjet'
@@ -6,7 +6,7 @@ import { Tap } from '@mercuryworkshop/scramjet'
 import { Controller } from '@mercuryworkshop/scramjet-controller'
 import { expose } from 'osra'
 
-import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
+import { CLEAR_COOKIES, COOKIES_CLEARED, EGRESS_KEY, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, HOST_RESTART } from './protocol'
 import { FRAME_AGENT_CONNECT, FRAME_CONNECT, FRAME_DIRECT_CONNECT, FRAME_EGRESS_CONNECT } from '../frame/protocol'
 import { readChannel, storeChannel } from './channel'
 import { buildId, ENGINE_BUILD_MISMATCH } from './engine-build'
@@ -112,7 +112,8 @@ const boot = async () => {
     await transport.init()
     return { egress, extFetchPort, remote, transport, extFetch, agent, direct }
   })
-  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch, agent, direct }] = await Promise.all([workerReady, transportReady])
+  const [serviceworker, { egress, extFetchPort, remote, transport, extFetch, ...firstPorts }] = await Promise.all([workerReady, transportReady])
+  let enginePorts: { agent?: MessagePort, direct?: MessagePort } = firstPorts
 
   stage('controller')
   const controller = new Controller({
@@ -160,6 +161,7 @@ const boot = async () => {
   const frameCode = await frameCodePromise
   Tap.tap(proxiedFrame.hooks.init.post, (context) => {
     if (!context.isTopLevel) return
+    const { agent, direct } = enginePorts
     const run = context.client.natives.call('Function', null, frameCode)
     run()
     stage('frame-code')
@@ -223,14 +225,27 @@ const boot = async () => {
     window.parent.postMessage({ type: ENGINE_READY }, location.origin, [apiChannel.port2, controlChannel.port2])
     stage('frame-posted')
   })
+  window.addEventListener('message', (event) => {
+    if (event.origin !== location.origin || event.source !== window.parent) return
+    const message = event.data as Partial<HostRestart> | undefined
+    if (message?.type !== HOST_RESTART) return
+    frameEgressPort?.close()
+    controlPort?.close()
+    enginePorts.agent?.close()
+    enginePorts.direct?.close()
+    const ports = [...event.ports]
+    const direct = message.direct ? ports.pop() : undefined
+    enginePorts = { agent: ports[0], direct }
+    proxiedFrame.go(FRAME_BOOTSTRAP_URL)
+  })
   proxiedFrame.go(FRAME_BOOTSTRAP_URL)
   window.addEventListener('pagehide', () => {
     egress.close()
     extFetchPort.close()
     frameEgressPort?.close()
     controlPort?.close()
-    agent?.close()
-    direct?.close()
+    enginePorts.agent?.close()
+    enginePorts.direct?.close()
   }, { once: true })
 
   return { controller, frame: proxiedFrame }

@@ -1,5 +1,5 @@
 import type { FrameApi, FrameMethod, FrameProgress, FrameRequest, FrameResponse } from '../frame/protocol'
-import type { HostBootstrap, HostControlEvent, HostControlRequest, HostHello } from './protocol'
+import type { HostBootstrap, HostControlEvent, HostControlRequest, HostHello, HostRestart } from './protocol'
 
 import { FRAME_METHODS } from '../frame/protocol'
 import { openAgentBridge, startAgentHost } from '../engine/agent-host'
@@ -7,7 +7,7 @@ import { stepEnabled } from '../engine/step-flag'
 import { buildId, ENGINE_BUILD_MISMATCH, reloadOnceForBuild } from './engine-build'
 import { openDirectLane, reportDirectOff } from './direct-lane'
 import { abortPlatformEgress, startPlatform } from './platform'
-import { CLEAR_COOKIES, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO } from './protocol'
+import { CLEAR_COOKIES, COOKIES_CLEARED, ENGINE_READY, HOST_BOOTSTRAP, HOST_HELLO, HOST_RESTART } from './protocol'
 
 let engine: Promise<FrameApi> | undefined
 let engineFrame: HTMLIFrameElement | undefined
@@ -135,8 +135,12 @@ const invalidateEngine = (generation: number, error: Error) => {
   engineDirect = undefined
   for (const pending of clearPending.values()) pending.reject(error)
   clearPending.clear()
-  engineFrame?.remove()
-  engineFrame = undefined
+  // a host that served an engine is kept, and the next engine starts in it: the host's address serves the latest
+  // build, so after a deploy a new host would be another build, which this realm could only take by reloading the page
+  if (!connection) {
+    engineFrame?.remove()
+    engineFrame = undefined
+  }
   engine = undefined
 }
 
@@ -149,6 +153,7 @@ const fromAnotherBuild = (generation: number, engineBuild: unknown) => {
 export const startEngine = () => {
   if (engine) return engine
   const generation = ++engineGeneration
+  const kept = engineFrame
   engine = new Promise((resolve, reject) => {
     engineReject = reject
     const platformReady = startPlatform()
@@ -159,24 +164,29 @@ export const startEngine = () => {
     const directStep = stepEnabled('direct')
     if (!directStep) reportDirectOff()
 
-    const frame = document.createElement('iframe')
+    const frame = kept ?? document.createElement('iframe')
     engineFrame = frame
-    frame.hidden = true
-    frame.src = '/__yt_scramjet__/host.html'
     let engineBuild: unknown
     const answerHello = async () => {
       try {
         const platform = await platformReady
         if (generation !== engineGeneration) return
-        const egress = platform.openEgressPort()
-        const extFetch = platform.openExtFetchPort()
         const agent = agentStep ? openAgentBridge() : undefined
         engineDirect?.close()
         engineDirect = directStep ? openDirectLane() : undefined
+        const ports = [...(agent ? [agent] : []), ...(engineDirect ? [engineDirect.port] : [])]
+        if (kept) {
+          frame.contentWindow?.postMessage(
+            { type: HOST_RESTART, ...(engineDirect && { direct: true }) } satisfies HostRestart,
+            location.origin,
+            ports,
+          )
+          return
+        }
         frame.contentWindow?.postMessage(
           { type: HOST_BOOTSTRAP, build: buildId(), ...(engineDirect && { direct: true }) } satisfies HostBootstrap,
           location.origin,
-          [egress, extFetch, ...(agent ? [agent] : []), ...(engineDirect ? [engineDirect.port] : [])],
+          [platform.openEgressPort(), platform.openExtFetchPort(), ...ports],
         )
       } catch (error) {
         invalidateEngine(generation, error instanceof Error ? error : new Error(String(error)))
@@ -219,6 +229,13 @@ export const startEngine = () => {
     }
     window.addEventListener('message', onMessage)
     engineCleanup = () => window.removeEventListener('message', onMessage)
+    // a kept host passed its build check when it said hello, and holds the bootstrap's ports
+    if (kept) {
+      void answerHello()
+      return
+    }
+    frame.hidden = true
+    frame.src = '/__yt_scramjet__/host.html'
     document.body.appendChild(frame)
   })
   return engine

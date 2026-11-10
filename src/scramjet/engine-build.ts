@@ -3,10 +3,11 @@
  * writes it into each page's `<meta name="yt-build">` (vite.config.ts), so this reads the document it runs in.
  *
  * The engine host and its frame bundle load from fixed paths (`/__yt_scramjet__/host.html`,
- * `youtube-frame.js`), so a tab opened before a deploy gets the NEW engine on its next reset while
- * its app realm stays OLD. Both ends name their build in `HOST_HELLO` and `HOST_BOOTSTRAP`, and a
- * pair that differs never connects: the app realm reloads instead of calling a protocol the frame no
- * longer serves.
+ * `youtube-frame.js`), so a tab opened before a deploy that has to load its host again gets the NEW
+ * engine while its app realm stays OLD. An engine reset does not load it again (client.ts keeps a host
+ * that served an engine), but a host that never started does. Both ends name their build in
+ * `HOST_HELLO` and `HOST_BOOTSTRAP`, and a pair that differs never connects: the app realm reloads
+ * instead of calling a protocol the frame no longer serves.
  */
 export const buildId = () => document.querySelector<HTMLMetaElement>('meta[name="yt-build"]')?.content ?? ''
 

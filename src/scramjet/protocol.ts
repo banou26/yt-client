@@ -39,6 +39,13 @@ export const HOST_BOOTSTRAP = 'yt-client-host-bootstrap'
 export type HostHello = { type: typeof HOST_HELLO, build: string }
 export type HostBootstrap = { type: typeof HOST_BOOTSTRAP, build: string, direct?: true }
 
+/* HOST_RESTART asks a host that already served an engine for a new engine in place of the old one, and is answered by
+   ENGINE_READY as the bootstrap is. Its ports are the new engine's own, the agent bridge first with yt-client:step:y1 on
+   and the direct lane last with `direct` set; the bootstrap's egress and extension fetch ports stay with the host. */
+export const HOST_RESTART = 'yt-client-host-restart'
+
+export type HostRestart = { type: typeof HOST_RESTART, direct?: true }
+
 export type ExtFetchRequest = {
   type: 'fetch'
   id: number
