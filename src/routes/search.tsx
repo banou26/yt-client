@@ -127,9 +127,11 @@ const style = css`
   max-width: 109.6rem;
   padding: 2.4rem 1.6rem;
 
-  /* the topic card's column is added beside the results rather than taken from them */
+  /* youtube.com caps the results and the topic card's column together at
+     1280px, the results 855px wide from 1600 to 1920px: measured signed out
+     on 2026-11-10. */
   &.with-topic {
-    max-width: 152.1rem;
+    max-width: 131.2rem;
   }
 
   .columns {

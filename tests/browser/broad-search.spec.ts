@@ -55,7 +55,8 @@ for (const [width, shown] of [[1280, 2], [632, 2], [412, 1]] as const) {
 }
 
 // youtube.com's right column, measured the same way: a 385px card 40px beside the results, its head opening the topic's
-// channel, the newest video large, then the list; the column is dropped below 1091px rather than moved into the results
+// channel, the newest video large, then the list; the two columns together are 1280px at most, and the column is dropped
+// below 1091px rather than moved into the results
 test('a broad search shows the topic card in a right column, dropped below 1091px', async ({ page }) => {
   const search = await mountSearch(page, 1280)
   const topic = search.getByRole('complementary', { name: 'Minecraft', exact: true })
@@ -84,6 +85,9 @@ test('a broad search shows the topic card in a right column, dropped below 1091p
   await expect(out.getByText('0:28', { exact: true })).toBeVisible()
   expect(await out.locator('a[aria-hidden="true"]').boundingBox()).toMatchObject({ width: 120, height: 68 })
   await expect(topic.getByRole('link', { name: 'View all', exact: true })).toHaveAttribute('href', '/channel/UCQvWX73GQygcwXOTSf_VDVg')
+
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await expect.poll(async () => (await search.locator('.columns > .results').boundingBox())!.width).toBe(855)
 
   await page.setViewportSize({ width: 1091, height: 900 })
   await expect(topic).toBeVisible()
