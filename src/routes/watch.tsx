@@ -101,8 +101,8 @@ const style = css`
     --compact-thumb-width: 62.5%;
   }
 
-  /* a theater player runs edge to edge, so nothing is left over to center;
-     the columns under it keep the page's margins, as youtube.com's do */
+  /* a theater player runs edge to edge; the columns under it keep the page's 16 px margins, where youtube.com
+     centers them on a short or very wide window */
   &.theater {
     grid-template-columns: minmax(0, 1fr) var(--sidebar);
     padding-top: 0;
@@ -121,19 +121,19 @@ const style = css`
 
      Matched on the player's own attribute rather than on a direct child: the
      player is moved in through a slot and a host node now, so it is two levels
-     down and a child-combinator selector silently stops matching. */
-  &.theater .stage [data-player-root]:not(:fullscreen) {
-    max-height: calc(100vh - var(--header-height) - 8rem);
-    border-radius: 0;
-  }
+     down and a child-combinator selector silently stops matching.
 
-  &.theater .primary,
-  &.theater .secondary {
-    padding-top: 2.4rem;
+     youtube.com's own rule, read 2026-11-10: the window height less 169 px,
+     never under 480 px (240 px in one column). */
+  &.theater .stage [data-player-root]:not(:fullscreen) {
+    max-height: calc(100vh - 169px);
+    min-height: 480px;
+    border-radius: 0;
   }
 
   &.theater .secondary {
     grid-row: 2;
+    padding-top: 2.4rem;
   }
 
   .primary > .chat-replay {
@@ -350,6 +350,10 @@ const style = css`
 
     &.theater .stage {
       margin: 0 -1.2rem;
+    }
+
+    &.theater .stage [data-player-root]:not(:fullscreen) {
+      min-height: 240px;
     }
   }
 
