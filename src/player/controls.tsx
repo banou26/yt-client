@@ -18,6 +18,7 @@ import { DEFAULT_SETTINGS, getSettings, subscribeSettings, updateSettings } from
 import { CAPTION_OPTIONS } from './caption-style'
 import { barFill, barOffset, barParts, barWidth, chapterIndexAt, timeAtOffset } from './chapters'
 import { rateDetail } from './rates'
+import { atLiveEdge } from './seek-window'
 import { setSleepTimer, SLEEP_MINUTES, sleepDetail, sleepDuration } from './sleep-timer'
 import { SpeedPicker } from './speed-picker'
 
@@ -49,17 +50,6 @@ const style = css`
   &.visible {
     opacity: 1;
     pointer-events: auto;
-  }
-
-  /* Live cannot seek: the server answers every request with the edge segment
-     regardless of the position asked for, so a draggable rail would promise
-     something the transport does not do. */
-  .scrubber.live {
-    pointer-events: none;
-  }
-
-  .scrubber.live .knob {
-    display: none;
   }
 
   .scrubber {
@@ -221,7 +211,8 @@ const style = css`
   /* the hover wash: a 32 px band inside the shared group, and the whole shape of a control that is its own group */
   .control::after,
   .volume::after,
-  .chapter::after {
+  .chapter::after,
+  .live-badge::after {
     content: '';
     position: absolute;
     inset: 0.4rem 0;
@@ -234,7 +225,8 @@ const style = css`
 
   .control:hover::after,
   .volume:hover::after,
-  .chapter:hover::after {
+  .chapter:hover::after,
+  .live-badge:enabled:hover::after {
     opacity: 1;
   }
 
@@ -324,7 +316,8 @@ const style = css`
     cursor: pointer;
   }
 
-  .chapter::after {
+  .chapter::after,
+  .live-badge::after {
     inset: 0;
     border-radius: inherit;
   }
@@ -339,11 +332,20 @@ const style = css`
     flex: none;
   }
 
+  /* youtube.com's Live, in 14 px regular: a red dot at the edge, and a grey one on a button back to it while behind
+     (measured 2026-11-11) */
   .live-badge {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    font-weight: 500;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .live-badge:disabled {
+    cursor: default;
   }
 
   .live-badge::before {
@@ -352,7 +354,11 @@ const style = css`
     width: 0.8rem;
     height: 0.8rem;
     border-radius: 50%;
-    background: #f00;
+    background: #757575;
+  }
+
+  .live-badge:disabled::before {
+    background: rgba(225, 0, 45, 0.9);
   }
 
   .right {
@@ -578,8 +584,12 @@ export const PlayerControls = (
     }
   }, [video])
 
-  const duration = state.duration
-  const position = preview ?? state.currentTime
+  // a live stream's bar is its DVR window, so its times are drawn from the window's start
+  const live = isLive ? state.liveWindow : undefined
+  const base = live?.start ?? 0
+  const duration = live ? Math.max(0, live.end - live.start) : state.duration
+  const position = preview ?? state.currentTime - base
+  const behind = live !== undefined && !atLiveEdge(live, state.currentTime)
   const chapter = chapters[chapterIndexAt(chapters, position)]
   const parts = barParts(chapters, duration)
   const offset = (time: number) => barOffset(parts, duration, time)
@@ -619,7 +629,7 @@ export const PlayerControls = (
     if (!scrubbing) return
     const target = event.currentTarget as HTMLElement
     target.releasePointerCapture(event.pointerId)
-    video.currentTime = timeAt(event.clientX)
+    video.currentTime = base + timeAt(event.clientX)
     setScrubbing(false)
     setPreview(undefined)
   }
@@ -678,7 +688,9 @@ export const PlayerControls = (
 
   const activeCaption = captionTracks.find((track) => track.id === caption)
   const activeLabel = video.videoHeight > 0 ? `${video.videoHeight}p` : undefined
-  const videoLeft = Math.max(0, duration - state.currentTime)
+  const videoLeft = Math.max(0, state.duration - state.currentTime)
+  // youtube.com names a point of a live bar by how far behind the edge it is
+  const barClock = (time: number) => (live ? `-${clock(duration - time)}` : clock(time))
 
   // youtube.com goes back to the settings rather than closing them
   const pickSleep = (choice: number | 'end' | undefined) => {
@@ -699,7 +711,7 @@ export const PlayerControls = (
         aria-valuemin={0}
         aria-valuemax={Math.round(duration)}
         aria-valuenow={Math.round(position)}
-        aria-valuetext={clock(position)}
+        aria-valuetext={isLive && !behind ? 'Live' : barClock(position)}
         tabIndex={0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -714,7 +726,7 @@ export const PlayerControls = (
               className={index === hoverPart ? 'part hovered' : 'part'}
               style={{ left: offset(part.start), width: barWidth(parts, duration, part) }}
             >
-              <div className='buffered' style={{ width: barFill(part, state.buffered) }} />
+              <div className='buffered' style={{ width: barFill(part, state.buffered - base) }} />
               <div className='played' style={{ width: barFill(part, position) }} />
             </div>
           ))}
@@ -746,7 +758,7 @@ export const PlayerControls = (
                 )
                 : undefined}
               <div className='preview-time'>
-                <span>{clock(hover.time)}</span>
+                <span>{barClock(hover.time)}</span>
                 {hoverChapter ? <span className='preview-chapter'>{hoverChapter.title}</span> : undefined}
               </div>
             </div>
@@ -779,7 +791,19 @@ export const PlayerControls = (
           </div>
           {/* a live presentation timeline is the stream's own clock: the position reads like 3348:05:43 and the duration is 0 */}
           {isLive
-            ? <span className='group live-badge'>LIVE</span>
+            ? (
+              <button
+                type='button'
+                className='group live-badge'
+                disabled={!behind}
+                aria-label={behind ? 'Skip ahead to live broadcast' : undefined}
+                onClick={() => {
+                  if (live) video.currentTime = live.end
+                }}
+              >
+                Live
+              </button>
+            )
             : <span className='group time'><span className='current'>{clock(position)}</span> / {clock(duration)}</span>}
           {chapter && !isLive
             ? (

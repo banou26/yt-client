@@ -23,6 +23,7 @@ import { warmShaka } from './prefetch'
 import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { revealCards } from './cards'
 import { registerSeek, clearSeek } from './seek'
+import { clampToWindow, liveResumeTime, seekWindow, timeAtShare } from './seek-window'
 import { closePlayer, setPanel, setPlayingChapter } from './session'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 import { Dialog } from '../components/ui/dialog'
@@ -436,7 +437,10 @@ const VideoPlayer = (
     let retryTimer: ReturnType<typeof setTimeout> | undefined
     const restart = (error: unknown) => {
       if (abort.signal.aborted || retryTimer !== undefined) return
-      resumeAt.current = video.currentTime || resumeAt.current
+      // the position a live stream had at its edge is behind the edge once it reopens
+      resumeAt.current = controller?.player.isLive()
+        ? liveResumeTime(controller.player.seekRange(), video.currentTime)
+        : video.currentTime || resumeAt.current
       if (isStreamRefusal(error)) {
         // this try ends now, loaded or not, and nothing it still reports starts another
         abort.abort()
@@ -624,8 +628,10 @@ const VideoPlayer = (
         return
       }
       if (event.ctrlKey || event.metaKey || event.altKey) return
+      // a live stream's keys seek through its DVR window, as youtube.com's do
+      const range = seekWindow(video, actions.player)
       const seekBy = (delta: number) => {
-        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + delta))
+        video.currentTime = clampToWindow(range, video.currentTime + delta)
         flash(delta < 0 ? 'back' : 'forward', String(Math.abs(delta)))
       }
       const setVolume = (volume: number) => {
@@ -724,12 +730,12 @@ const VideoPlayer = (
           handled()
           actions.onPrevious()
           return
-        case 'Home': handled(); video.currentTime = 0; return
-        case 'End': handled(); video.currentTime = video.duration || 0; return
+        case 'Home': handled(); video.currentTime = range.start; return
+        case 'End': handled(); video.currentTime = range.end; return
         default:
-          if (/^[0-9]$/.test(key) && Number.isFinite(video.duration)) {
+          if (/^[0-9]$/.test(key) && range.end > range.start) {
             handled()
-            video.currentTime = (video.duration * Number(key)) / 10
+            video.currentTime = timeAtShare(range, Number(key) / 10)
           }
       }
     }

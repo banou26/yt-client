@@ -1,5 +1,7 @@
 import type shaka from 'shaka-player'
 
+import type { SeekWindow } from './seek-window'
+
 import { useEffect, useState } from 'preact/hooks'
 
 export type PlayerState = {
@@ -13,6 +15,8 @@ export type PlayerState = {
   playbackRate: number
   buffering: boolean
   seeking: boolean
+  // a live stream's DVR window, in the same presentation time as currentTime
+  liveWindow?: SeekWindow
 }
 
 const EMPTY: PlayerState = {
@@ -28,7 +32,7 @@ const EMPTY: PlayerState = {
   seeking: false,
 }
 
-const read = (video: HTMLVideoElement, buffering: boolean): PlayerState => ({
+const read = (video: HTMLVideoElement, player: shaka.Player | undefined, buffering: boolean): PlayerState => ({
   paused: video.paused,
   ended: video.ended,
   currentTime: video.currentTime,
@@ -39,6 +43,7 @@ const read = (video: HTMLVideoElement, buffering: boolean): PlayerState => ({
   playbackRate: video.playbackRate,
   buffering,
   seeking: video.seeking,
+  liveWindow: player?.isLive() ? player.seekRange() : undefined,
 })
 
 // timeupdate fires about four times a second, too coarse to track the playhead smoothly
@@ -51,11 +56,12 @@ export const usePlayerState = (video: HTMLVideoElement | null, player: shaka.Pla
     let frame = 0
     let running = true
 
-    const sync = () => setState(read(video, buffering))
+    const sync = () => setState(read(video, player, buffering))
 
     const tick = () => {
       if (!running) return
-      if (!video.paused || video.seeking) sync()
+      // a paused live stream's edge moves on, so its window is read while paused too
+      if (!video.paused || video.seeking || player?.isLive()) sync()
       frame = requestAnimationFrame(tick)
     }
 

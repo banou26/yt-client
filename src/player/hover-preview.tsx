@@ -481,7 +481,7 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
         : ready && !scrub && !hover
         ? <span className='time'>{clock(duration - time)}</span>
         : undefined}
-      {/* youtube.com's live bar seeks back through the stream, which a live playback here cannot, so it stays full at the edge */}
+      {/* youtube.com's preview bar seeks back through a live stream's window, as the watch page's does; this one stays full at the edge */}
       {ready && live
         ? (
           <div className='scrubber live'>

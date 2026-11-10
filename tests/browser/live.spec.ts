@@ -68,6 +68,12 @@ const sample = (page: Page) => page.evaluate(() => {
 
 const chatRows = (page: Page) => page.locator('.log .row').count()
 
+// the pointer over the player wakes its controls
+const wake = async (page: Page) => {
+  const box = (await page.locator('[data-player-root] video').boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3)
+}
+
 test('a 24/7 live stream plays near its head for 60 s on one engine, with its chat', async ({ page }) => {
   test.setTimeout(300_000)
   let engineLoads = 0
@@ -111,6 +117,43 @@ test('a 24/7 live stream plays near its head for 60 s on one engine, with its ch
   // Shaka asks for the format the frame's session already streams
   expect([...new Set(log.videoKeys)]).toEqual(log.selectedVideoKeys)
   expect(rows).toBeGreaterThan(0)
+})
+
+test('the live bar seeks back through the stream\'s 12 h window, and Live takes it back to the edge', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto(`/watch/${LIVE}`)
+  const time = () => page.locator('[data-player-root] video').evaluate((video) => (video as HTMLVideoElement).currentTime)
+  const seek = page.getByRole('slider', { name: 'Seek' })
+  const live = page.getByRole('button', { name: 'Live', exact: true })
+  const back = page.getByRole('button', { name: 'Skip ahead to live broadcast' })
+  await expect(live).toBeDisabled({ timeout: 120_000 })
+  await expect(seek).toHaveAttribute('aria-valuetext', 'Live')
+  // youtube.com's bar spans the 12 h of the stream its server still serves (measured 2026-11-11)
+  expect(Number(await seek.getAttribute('aria-valuemax'))).toBeGreaterThan(11 * 3_600)
+  const edge = await time()
+
+  await wake(page)
+  const bar = (await seek.boundingBox())!
+  await seek.click({ position: { x: bar.width / 2, y: bar.height - 2 } })
+  await expect(back).toBeEnabled()
+  // the bar names the point by how far behind the edge it is, as youtube.com does
+  await expect(seek).toHaveAttribute('aria-valuetext', /^-[56]:\d\d:\d\d$/)
+  const behind = await time()
+  expect(edge - behind).toBeGreaterThan(5 * 3_600)
+  await expect.poll(time, { timeout: 60_000 }).toBeGreaterThan(behind + 5)
+
+  await wake(page)
+  await back.click()
+  await expect(live).toBeDisabled()
+  const returned = await time()
+  expect(returned).toBeGreaterThan(edge)
+  await expect.poll(time, { timeout: 60_000 }).toBeGreaterThan(returned + 5)
+
+  // the keys step through the window as well: j is 10 s back, past the edge, and End is the edge again
+  await page.keyboard.press('j')
+  await expect(back).toBeEnabled()
+  await page.keyboard.press('End')
+  await expect(live).toBeDisabled()
 })
 
 test('live chat keeps polling across an engine reset', async ({ page }) => {
