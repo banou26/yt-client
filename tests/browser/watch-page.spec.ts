@@ -105,9 +105,12 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     const thumb = box('main aside article .thumb')
     const title = box('main h1.title')
     const radius = Number.parseFloat(getComputedStyle(document.querySelector('main .stage [data-player-root]')!).borderTopLeftRadius)
+    // from the element before the list rather than from the player, since the comments above it load at their own pace
+    const list = document.querySelector('main aside')!
+    const above = list.firstElementChild!.getBoundingClientRect().top - list.previousElementSibling!.getBoundingClientRect().bottom
     return {
       player: { x: player.x, y: player.y, width: player.width, height: player.height, radius },
-      aside: { x: aside.x, width: aside.width, below: aside.y - player.bottom },
+      aside: { x: aside.x, width: aside.width, below: aside.y - player.bottom, above },
       thumb: { width: thumb.width, height: thumb.height, below: thumb.y - player.bottom },
       title: { x: title.x, width: title.width, below: title.y - player.bottom },
     }
@@ -124,6 +127,7 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     expectClose(layout.title, { x: layout.player.x, below: 12 }, `the title at ${at}`)
   }
 
+  const oneColumnAbove = new Map<string, number>()
   for (const size of YOUTUBE_ONE_COLUMN) {
     await page.setViewportSize({ width: size.width, height: size.height })
     const at = `${size.width}x${size.height}`
@@ -132,6 +136,7 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     expectClose(layout.player, size.player, `the player in one column at ${at}`)
     expect(layout.title.below, `the title's gap under the player in one column at ${at}`).toBeCloseTo(12, 0)
     if ('title' in size) expectClose(layout.title, size.title, `the title in one column at ${at}`)
+    oneColumnAbove.set(at, layout.aside.above)
   }
 
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -146,6 +151,8 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     expectClose(layout.player, size.player, `the player in ${at}`)
     expect(layout.title.below, `the title's gap under the player in ${at}`).toBeCloseTo(12, 0)
     expectClose(layout.title, size.title, `the title in ${at}`)
+    const above = oneColumnAbove.get(`${size.width}x${size.height}`)
+    if (above !== undefined) expect(layout.aside.above, `the space above the related list in ${at}, as in the default view`).toBeCloseTo(above, 0)
     if ('aside' in size) {
       expectClose(layout.aside, size.aside, `the sidebar in ${at}`)
       expectClose(layout.thumb, size.thumb, `a related thumbnail in ${at}`)
