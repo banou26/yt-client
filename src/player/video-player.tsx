@@ -210,6 +210,7 @@ const VideoPlayer = (
   // from the player's corner, so the menu follows the player as the page scrolls
   const [menu, setMenu] = useState<Point | undefined>(undefined)
   const closeMenu = useCallback(() => setMenu(undefined), [])
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const menuAtPress = useRef(false)
   const flash = useCallback((icon: BezelCue['icon'], text?: string) => {
     setBezel(previous => ({ id: (previous?.id ?? 0) + 1, icon, text }))
@@ -666,6 +667,7 @@ const VideoPlayer = (
             onChapters={() => setPanel('chapters')}
             segments={segments}
             visible={(active || state.paused) && !grid}
+            onMenu={setSettingsOpen}
           />
         )
         : undefined}
@@ -682,7 +684,9 @@ const VideoPlayer = (
             </button>
           )
           : undefined}
-      {frame?.fullscreen && frame.view ? <frame.view.FullscreenView shown={active || state.paused} /> : undefined}
+      {frame?.fullscreen && frame.view
+        ? <frame.view.FullscreenView shown={active || state.paused || settingsOpen} settings={settingsOpen} />
+        : undefined}
       {video && menu
         ? (
           <PlayerMenu

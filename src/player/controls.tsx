@@ -463,12 +463,14 @@ type ControlsProps = {
   chapters?: readonly PlayerChapter[]
   onChapters?: () => void
   segments?: readonly SkipSegment[]
+  /** Told whether a settings menu is open, which keeps the controls shown while the pointer is still. */
+  onMenu?: (open: boolean) => void
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
-    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], onChapters, segments = [],
+    theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], onChapters, segments = [], onMenu,
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -482,7 +484,12 @@ export const PlayerControls = (
   const [fullscreen, setFullscreen] = useState(false)
 
   const closeMenu = useCallback(() => setMenu(undefined), [])
-  useDismiss({ open: menu !== undefined, onClose: closeMenu, rootRef: menuRef, triggerRef: menuTriggerRef })
+  const menuOpen = menu !== undefined
+  useDismiss({ open: menuOpen, onClose: closeMenu, rootRef: menuRef, triggerRef: menuTriggerRef })
+  useEffect(() => {
+    onMenu?.(menuOpen)
+    return () => onMenu?.(false)
+  }, [menuOpen])
 
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement !== null)
@@ -594,7 +601,7 @@ export const PlayerControls = (
   const activeLabel = video.videoHeight > 0 ? `${video.videoHeight}p` : undefined
 
   return (
-    <div css={style} className={visible || scrubbing || menu !== undefined ? 'visible' : undefined}>
+    <div css={style} className={visible || scrubbing || menuOpen ? 'visible' : undefined}>
       <div
         className={`${scrubbing ? 'scrubber scrubbing' : 'scrubber'}${isLive ? ' live' : ''}`}
         role='slider'

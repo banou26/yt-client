@@ -55,6 +55,11 @@ const style = css`
     pointer-events: none;
   }
 
+  /* youtube.com's settings menu opens where the action pill is, and the pill goes while it is open */
+  &.fs-settings .fs-actions {
+    display: none;
+  }
+
   .fs-top {
     position: absolute;
     top: 0;
@@ -215,9 +220,9 @@ const style = css`
 /**
  * youtube.com's full screen view, drawn over the player while its frame is full screen: the title, like, comments,
  * share and save, and the grid of more videos that the wheel, the arrow or v opens. `shown` is the controls' own
- * visibility, which the title and the buttons share.
+ * visibility, which the title and the buttons share, and `settings` is whether a settings menu is open.
  */
-export const FullscreenView = ({ shown }: { shown: boolean }) => {
+export const FullscreenView = ({ shown, settings }: { shown: boolean, settings: boolean }) => {
   const frame = useFrame()!
   const { details, grid, setGrid, comments, setComments } = frame
   const rootRef = useRef<HTMLDivElement>(null)
@@ -233,7 +238,7 @@ export const FullscreenView = ({ shown }: { shown: boolean }) => {
     if (!surface) return
     let pull = 0
     const onWheel = (event: WheelEvent) => {
-      if ((event.target as Element).closest('[role="dialog"]')) return
+      if ((event.target as Element).closest('[role="dialog"], [role="menu"]')) return
       const { grid: open, setGrid: toggle } = latest.current
       const down = event.deltaY > 0
       // an open grid scrolls its list, and closes on a pull up from the list's top
@@ -264,7 +269,7 @@ export const FullscreenView = ({ shown }: { shown: boolean }) => {
   const disliked = details.likeStatus === 'DISLIKE'
 
   return (
-    <div css={style} ref={rootRef} className={shown && !grid ? 'fs-shown' : undefined}>
+    <div css={style} ref={rootRef} className={[shown && !grid && 'fs-shown', settings && 'fs-settings'].filter(Boolean).join(' ') || undefined}>
       <div className='fs-top'>
         {details.title ? <h2 className='fs-heading'>{details.title}</h2> : undefined}
       </div>

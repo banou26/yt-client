@@ -124,6 +124,22 @@ test('its actions open what the watch page opens, signed out', async ({ page }) 
   await enterFullscreen(page)
   const player = page.locator('[data-player-root]')
 
+  // a settings menu keeps the title up and takes the action pill's place, as youtube.com's does
+  await press(page, player.getByRole('button', { name: 'Settings' }))
+  const settings = player.getByRole('menu', { name: 'Player settings' })
+  await expect(settings).toBeVisible()
+  await expect(player.getByRole('button', { name: 'Share' })).toBeHidden()
+  await idle(page)
+  expect(await opacity(player.locator('.fs-heading'))).toBe(1)
+  // a wheel over it is the menu's, not the grid's
+  await settings.hover()
+  await page.mouse.wheel(0, 300)
+  await expect(settings).toBeVisible()
+  await page.waitForTimeout(1_000)
+  await expect(player.getByRole('list', { name: 'More videos' })).toHaveCount(0)
+  await press(page, player.getByRole('button', { name: 'Settings' }))
+  await expect(settings).toHaveCount(0)
+
   await press(page, player.getByRole('button', { name: 'Share' }))
   const share = player.getByRole('dialog', { name: 'Share' })
   await expect(share).toBeVisible()
