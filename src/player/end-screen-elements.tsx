@@ -82,6 +82,11 @@ const style = css`
     border-color: #ffffff;
   }
 
+  /* youtube.com's miniplayer lays its hover wash over the tiles, so a click there plays or pauses instead */
+  &.docked .element.shown {
+    pointer-events: none;
+  }
+
   .element::after {
     content: '';
     position: absolute;
@@ -598,9 +603,9 @@ const ElementView = (
 
 /**
  * The elements a creator placed over the last seconds of the video, each from its start until its end or the video's,
- * with youtube.com's Hide toggle while any is due, except in the miniplayer (`docked`), where youtube.com shows none.
- * Opening a video or playlist goes through `onOpen`, as the end screen's own suggestions do; a channel or website opens
- * in a new tab, as on youtube.com.
+ * with youtube.com's Hide toggle while any is due. In the miniplayer (`docked`) they show without the toggle and take no
+ * clicks, as on youtube.com. Opening a video or playlist goes through `onOpen`, as the end screen's own suggestions do;
+ * a channel or website opens in a new tab, as on youtube.com.
  */
 export const EndScreenElements = (
   { elements, video, time, ended, docked, onOpen }: {
@@ -618,7 +623,7 @@ export const EndScreenElements = (
   const due = elements.map(element => showsAt(element, ms, ended))
   const near = elements.some(element => showsAt(element, ms, ended, PRELOAD_MS))
   return (
-    <div css={style} data-end-screen='elements'>
+    <div css={style} className={docked ? 'docked' : undefined} data-end-screen='elements'>
       {near
         ? (
           <div
