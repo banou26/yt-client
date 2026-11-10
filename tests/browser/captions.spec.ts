@@ -109,4 +109,16 @@ test.describe('in a Japanese browser', () => {
       expect(await showingLanguages(page)).toStrictEqual(['ja'])
     }).toPass({ timeout: 60_000 })
   })
+
+  test('keeps the recommended track once Settings always shows captions', async ({ page }) => {
+    test.setTimeout(240_000)
+    await page.goto('/settings')
+    await page.getByRole('checkbox', { name: 'Always show captions', exact: true }).check()
+
+    await page.goto(VIDEO)
+    await firstFrame(page)
+    await expect(async () => {
+      expect(await showingLanguages(page)).toStrictEqual(['ja'])
+    }).toPass({ timeout: 60_000 })
+  })
 })
