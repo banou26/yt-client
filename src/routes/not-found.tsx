@@ -5,6 +5,7 @@ import { Search } from 'lucide-react'
 import { useRef } from 'preact/hooks'
 import { useLocation } from 'wouter'
 
+import { useDocumentTitle } from '../app'
 import { Logo } from '../components/header'
 
 /* youtube.com's 404 page, measured at 1280 px on 2026-11-10: a 186 x 174 picture 10 px above two 500 px lines, then the
@@ -115,6 +116,7 @@ const style = css`
 export const NotFound = () => {
   const [, navigate] = useLocation()
   const inputRef = useRef<HTMLInputElement>(null)
+  useDocumentTitle('404 Not Found')
 
   const onSubmit = (event: TargetedSubmitEvent<HTMLFormElement>) => {
     event.preventDefault()

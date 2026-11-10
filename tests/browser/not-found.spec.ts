@@ -18,6 +18,7 @@ test('an unknown address shows youtube.com\'s 404 page, whose box searches', asy
   const main = page.getByRole('main')
   const lines = main.locator('p')
   await expect(lines).toHaveText(LINES, { timeout: 30_000 })
+  await expect(page).toHaveTitle('404 Not Found - yt-client')
 
   const picture = await box(main.locator('svg.illustration'))
   expect([picture.width, picture.height]).toEqual([186, 174])
