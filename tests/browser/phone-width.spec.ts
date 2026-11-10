@@ -89,4 +89,16 @@ test('fits the watch page in a phone\'s width', async ({ page }) => {
       expect(edges.link, `a long name runs past its column at ${width}`).toBeLessThanOrEqual(edges.column + 0.5)
     }
   }
+
+  // yt-client's own phone layout, 12 px margins: youtube.com holds a 426.67 px column here and scrolls sideways
+  const title = page.locator('main h1.title')
+  const titleBox = () => title.evaluate(element => {
+    const box = element.getBoundingClientRect()
+    return { x: box.x, width: box.width }
+  })
+  expect(await titleBox(), 'the title at 412').toEqual({ x: 12, width: 388 })
+  await title.click()
+  await page.keyboard.press('t')
+  await expect(page.locator('main.theater')).toBeAttached()
+  await expect.poll(titleBox, { message: 'the title in theater at 412' }).toEqual({ x: 12, width: 388 })
 })
