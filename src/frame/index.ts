@@ -91,6 +91,7 @@ const api = {
       selectedAudioKey: player.audioFormat.key,
       storyboards: source.storyboards,
       captionTracks: entry.captions.map(({ url: _url, ...track }) => track),
+      endScreen: source.endScreen,
       isLive: source.isLive,
     }
   },

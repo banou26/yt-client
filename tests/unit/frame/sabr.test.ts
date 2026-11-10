@@ -153,6 +153,7 @@ describe('a SABR session answered with no media', () => {
     ],
     storyboards: [],
     captions: [],
+    endScreen: [],
     clientInfo: { clientName: 1, clientVersion: '2.20261008.00.00' },
     mint: async () => 'AAAA',
     recoverMint,

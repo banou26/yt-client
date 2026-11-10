@@ -2,11 +2,13 @@ import type { Exhaustive, SourceApi } from '../sources/types'
 import type { TransportResponse } from '../scramjet/protocol'
 
 import type { CaptionTrack } from './captions'
+import type { EndScreenElement } from './end-screen'
 import type { Storyboard } from './storyboard'
 
 import { SOURCE_METHODS } from '../sources/types'
 
 export type { CaptionTrack } from './captions'
+export type { EndScreenElement } from './end-screen'
 export type { Storyboard, StoryboardFrame } from './storyboard'
 
 // the terminal marker the players match on, declared here because the app realm has to recognize it too
@@ -85,6 +87,7 @@ export type PlaybackSession = {
   storyboards: Storyboard[]
   // always empty for live: Shaka refuses a side-loaded text track when the presentation duration is infinite (CANNOT_ADD_EXTERNAL_TEXT_TO_LIVE_STREAM)
   captionTracks: CaptionTrack[]
+  endScreen: EndScreenElement[]
   isLive: boolean
 }
 

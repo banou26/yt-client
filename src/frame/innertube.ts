@@ -8,11 +8,13 @@ import type { PlaybackFormat } from './protocol'
 import { WEB_CLIENT_VERSION } from '../sources/youtube/client-version'
 import { mintPoToken, recoverPoTokenSession, warmPoTokenSession } from './botguard'
 import type { CaptionSource } from './captions'
+import type { EndScreenElement } from './end-screen'
 import type { Storyboard } from './storyboard'
 
 import { parseCaptionTracks } from './captions'
 import { createYoutubeFetch, directLane, reportDirect } from './direct'
 import { egressFetch } from './egress'
+import { parseEndScreen } from './end-screen'
 import { playableFormats } from './formats'
 import { PLAYBACK_REFUSED } from './protocol'
 import { readRefusal } from './refusal'
@@ -260,6 +262,7 @@ export type SabrSource = {
   playbackFormats: PlaybackFormat[]
   storyboards: Storyboard[]
   captions: CaptionSource[]
+  endScreen: EndScreenElement[]
   clientInfo: Record<string, unknown>
   mint(): Promise<string>
   recoverMint(): Promise<void>
@@ -330,6 +333,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
       storyboards?: { playerStoryboardSpecRenderer?: { spec?: string } }
     }).storyboards?.playerStoryboardSpecRenderer?.spec),
     captions: parseCaptionTracks(info.captions),
+    endScreen: parseEndScreen(raw),
     clientInfo: {
       clientName: Number((Constants.CLIENT_NAME_IDS as Record<string, string>)[context.client.clientName]),
       clientVersion: context.client.clientVersion,

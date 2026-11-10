@@ -587,8 +587,8 @@ export const normalizeSearchChannel = (input: unknown): SourceChannel | undefine
   }
 }
 
-// youtube.com sends every link out through its /redirect page, which carries the destination in `q`
-const outboundUrl = (url: string | undefined) => {
+/** A link's destination: youtube.com sends every link out through its /redirect page, which carries it in `q`. Only http(s). */
+export const outboundUrl = (url: string | undefined) => {
   try {
     const parsed = new URL(url ?? '')
     const target = parsed.hostname === 'www.youtube.com' && parsed.pathname === '/redirect'

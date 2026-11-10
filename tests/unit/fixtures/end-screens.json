@@ -1,0 +1,1525 @@
+{
+ "g6Die8gVFn0": {
+  "endscreen": {
+   "endscreenRenderer": {
+    "elements": [
+     {
+      "endscreenElementRenderer": {
+       "style": "CHANNEL",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://yt3.ggpht.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s250-c-k-c0x00ffffff-no-rj",
+          "width": 250,
+          "height": 250
+         },
+         {
+          "url": "https://yt3.ggpht.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s400-c-k-c0x00ffffff-no-rj",
+          "width": 400,
+          "height": 400
+         }
+        ]
+       },
+       "icon": {
+        "thumbnails": [
+         {
+          "url": "https://www.gstatic.com/youtube/img/annotations/youtube.png"
+         }
+        ]
+       },
+       "left": 0.82280701,
+       "width": 0.15438597,
+       "top": 0.08421053,
+       "aspectRatio": 1,
+       "startMs": "774111",
+       "endMs": "779111",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Marques Brownlee, channel"
+         }
+        },
+        "simpleText": "Marques Brownlee"
+       },
+       "metadata": {
+        "simpleText": "MKBHD: Quality Tech Videos | YouTuber | Geek | Consumer Electronics | Tech Head | Internet Personality!\n\nbusiness@MKBHD.com\n\nNYC"
+       },
+       "callToAction": {
+        "simpleText": "VISIT CHANNEL"
+       },
+       "dismiss": {
+        "simpleText": "CANCEL"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAcQ-N4BGAAiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbkj9rNTAvM-40IMBygEE0Gvqaw==",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/channel/UCBJycsmduvYEL83R_U4JriQ",
+          "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+          "rootVe": 3611,
+          "apiUrl": "/youtubei/v1/browse"
+         }
+        },
+        "browseEndpoint": {
+         "browseId": "UCBJycsmduvYEL83R_U4JriQ"
+        }
+       },
+       "hovercardButton": {
+        "subscribeButtonRenderer": {
+         "buttonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "subscribed": false,
+         "enabled": true,
+         "type": "FREE",
+         "channelId": "UCBJycsmduvYEL83R_U4JriQ",
+         "showPreferences": false,
+         "subscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBED"
+           }
+          ]
+         },
+         "unsubscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "trackingParams": "CAgQmysiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbg==",
+         "unsubscribeButtonText": {
+          "runs": [
+           {
+            "text": "UNSUBSCRIBE"
+           }
+          ]
+         },
+         "serviceEndpoints": [
+          {
+           "clickTrackingParams": "CAgQmysiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbsoBBNBr6ms=",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true,
+             "apiUrl": "/youtubei/v1/subscription/subscribe"
+            }
+           },
+           "subscribeEndpoint": {
+            "channelIds": [
+             "UCBJycsmduvYEL83R_U4JriQ"
+            ],
+            "params": "EgIIBBgAWAE%3D"
+           }
+          },
+          {
+           "clickTrackingParams": "CAgQmysiEwj715HMwvyXAxVrQA8CHXo1PFTKAQTQa-pr",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true
+            }
+           },
+           "signalServiceEndpoint": {
+            "signal": "CLIENT_SIGNAL",
+            "actions": [
+             {
+              "clickTrackingParams": "CAgQmysiEwj715HMwvyXAxVrQA8CHXo1PFTKAQTQa-pr",
+              "openPopupAction": {
+               "popup": {
+                "confirmDialogRenderer": {
+                 "trackingParams": "CAkQxjgiEwj715HMwvyXAxVrQA8CHXo1PFQ=",
+                 "dialogMessages": [
+                  {
+                   "runs": [
+                    {
+                     "text": "Unsubscribe from "
+                    },
+                    {
+                     "text": "Marques Brownlee"
+                    },
+                    {
+                     "text": "?"
+                    }
+                   ]
+                  }
+                 ],
+                 "confirmButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_BLUE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Unsubscribe"
+                     }
+                    ]
+                   },
+                   "serviceEndpoint": {
+                    "clickTrackingParams": "CAsQ8FsiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbsoBBNBr6ms=",
+                    "commandMetadata": {
+                     "webCommandMetadata": {
+                      "sendPost": true,
+                      "apiUrl": "/youtubei/v1/subscription/unsubscribe"
+                     }
+                    },
+                    "unsubscribeEndpoint": {
+                     "channelIds": [
+                      "UCBJycsmduvYEL83R_U4JriQ"
+                     ],
+                     "params": "CgIIBBgAMAE%3D"
+                    }
+                   },
+                   "accessibility": {
+                    "label": "Unsubscribe"
+                   },
+                   "trackingParams": "CAsQ8FsiEwj715HMwvyXAxVrQA8CHXo1PFQ="
+                  }
+                 },
+                 "cancelButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Cancel"
+                     }
+                    ]
+                   },
+                   "accessibility": {
+                    "label": "Cancel"
+                   },
+                   "trackingParams": "CAoQ8FsiEwj715HMwvyXAxVrQA8CHXo1PFQ="
+                  }
+                 },
+                 "primaryIsCancel": false
+                }
+               },
+               "popupType": "DIALOG"
+              }
+             }
+            ]
+           }
+          }
+         ],
+         "subscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Subscribe to Marques Brownlee."
+          }
+         },
+         "unsubscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Unsubscribe from Marques Brownlee."
+          }
+         },
+         "signInEndpoint": {
+          "clickTrackingParams": "CAgQmysiEwj715HMwvyXAxVrQA8CHXo1PFTKAQTQa-pr",
+          "commandMetadata": {
+           "webCommandMetadata": {
+            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=http%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fchannel%252FUCBJycsmduvYEL83R_U4JriQ%26feature%3Div-endscreen%26continue_action%3DQUlxb01IYW1zVFRRMFQ0Nl9rN2tYX1JBVGFEWnxBQnJ0NjluVjk3MXZEbkxoaXlPdlgtdFdLV0VERlA2YkdVT09xaWZ2ZnVINFdpdExGdlNJZmVwRDFXZWZYaVVBdG1Wa1JsQ3d3dl9nNEhrQUpVRGRJRVpjRmo1MEdoSlZDUENidzlHb2FNeG1PQWRyLVo3TXNtYVRuR1VxN1R0S2o3QXl1MFZfUmxSbkw2ekVXQ2JDZDJ0Qy1hbkFpaGxSVm5oVmlSS3EzMXZqTURxVEVPOGN3RU9BRndj&hl=en"
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAcQ-N4BGAAiEwj715HMwvyXAxVrQA8CHXo1PFQ=",
+       "isSubscribe": true,
+       "id": "13764049578324256759"
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "VIDEO",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/_x58r9TBois/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLDR4czgxlcr1g6sxhr1bfKZ2Ez4-A",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/_x58r9TBois/hqdefault.jpg?sqp=-oaymwEmCMQBEG5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLBnq7TY8RKLNXKyyo4cc2lHutf2sA",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/_x58r9TBois/hqdefault.jpg?sqp=-oaymwEnCPYBEIoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLAfDhTA3hpx8TlFBUnkXxCCuzmGNA",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/_x58r9TBois/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBVNjLeU0CIMeQ83Z2enpZ2nH1TUQ",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi/_x58r9TBois/maxresdefault.jpg",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "left": 0.022807017,
+       "width": 0.32280701,
+       "top": 0.52807015,
+       "aspectRatio": 1.7777778,
+       "startMs": "774111",
+       "endMs": "779111",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Meta VR Glasses: What Vision Pro 2 COULD Have Been!, video"
+         }
+        },
+        "simpleText": "Meta VR Glasses: What Vision Pro 2 COULD Have Been!"
+       },
+       "metadata": {
+        "simpleText": "5,878,104 views"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAYQ8t4BGAEiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbkj9rNTAvM-40IMBmgEDELtpygEE0Gvqaw==",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=_x58r9TBois",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         },
+         "interactionLoggingCommandMetadata": {
+          "loggingExpectations": {
+           "screenCreatedLoggingExpectations": {
+            "expectedParentScreens": [
+             {
+              "screenVeType": 3832
+             }
+            ]
+           }
+          }
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "_x58r9TBois",
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr1---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=ff1e7cafd4c1a22b&ip=192.0.2.1&initcwndbps=4011250&mt=1794282823&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAYQ8t4BGAEiEwj715HMwvyXAxVrQA8CHXo1PFQ=",
+       "id": "13764049578324256644",
+       "thumbnailOverlays": [
+        {
+         "thumbnailOverlayTimeStatusRenderer": {
+          "text": {
+           "accessibility": {
+            "accessibilityData": {
+             "label": "8 minutes, 1 second"
+            }
+           },
+           "simpleText": "8:01"
+          },
+          "style": "DEFAULT"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "VIDEO",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/2reQut8WNGc/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLBpSdNTYsIPi2XyDl7lzS3kbdvZBA",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/2reQut8WNGc/hqdefault.jpg?sqp=-oaymwEmCMQBEG5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLBORYADtgdl4XoVgwdf7GC3roHGvA",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/2reQut8WNGc/hqdefault.jpg?sqp=-oaymwEnCPYBEIoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDFbdm7bl47mUjGrKg00IAeBAHSzQ",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/2reQut8WNGc/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLA3ynB8eqZaBkElBK5J4514SOIB6A",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi_webp/2reQut8WNGc/maxresdefault.webp",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "left": 0.022807017,
+       "width": 0.32280701,
+       "top": 0.08421053,
+       "aspectRatio": 1.7777778,
+       "startMs": "774111",
+       "endMs": "779111",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Macbook PROLED XDR Impressions: They Said They Wouldn't!, video"
+         }
+        },
+        "simpleText": "Macbook PROLED XDR Impressions: They Said They Wouldn't!"
+       },
+       "metadata": {
+        "simpleText": "12,367,813 views"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAUQ8N4BGAIiEwj715HMwvyXAxVrQA8CHXo1PFQyDGl2LWVuZHNjcmVlbkj9rNTAvM-40IMBmgEDELtpygEE0Gvqaw==",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=2reQut8WNGc",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         },
+         "interactionLoggingCommandMetadata": {
+          "loggingExpectations": {
+           "screenCreatedLoggingExpectations": {
+            "expectedParentScreens": [
+             {
+              "screenVeType": 3832
+             }
+            ]
+           }
+          }
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "2reQut8WNGc",
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr3---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=dab790badf163467&ip=192.0.2.1&initcwndbps=4011250&mt=1794282823&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAUQ8N4BGAIiEwj715HMwvyXAxVrQA8CHXo1PFQ=",
+       "id": "6988999396400080162",
+       "thumbnailOverlays": [
+        {
+         "thumbnailOverlayTimeStatusRenderer": {
+          "text": {
+           "accessibility": {
+            "accessibilityData": {
+             "label": "10 minutes, 54 seconds"
+            }
+           },
+           "simpleText": "10:54"
+          },
+          "style": "DEFAULT"
+         }
+        }
+       ]
+      }
+     }
+    ],
+    "startMs": "774111",
+    "trackingParams": "CAEQ794BIhMI-9eRzML8lwMVa0APAh16NTxU",
+    "hideButton": {
+     "toggleButtonViewModel": {
+      "defaultButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY_OFF",
+        "title": "Hide",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAQQ088OIhMI-9eRzML8lwMVa0APAh16NTxUygEE0Gvqaw==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": true
+          }
+         }
+        },
+        "accessibilityText": "Hide endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAQQ088OIhMI-9eRzML8lwMVa0APAh16NTxU",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "toggledButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY",
+        "title": "Show",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAMQ1M8OIhMI-9eRzML8lwMVa0APAh16NTxUygEE0Gvqaw==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": false
+          }
+         }
+        },
+        "accessibilityText": "Show endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAMQ1M8OIhMI-9eRzML8lwMVa0APAh16NTxU",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "rendererContext": {
+       "loggingContext": {
+        "loggingDirectives": {
+         "trackingParams": "CAIQ_O4OIhMI-9eRzML8lwMVa0APAh16NTxU",
+         "visibility": {
+          "types": "12"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "dQw4w9WgXcQ": {
+  "endscreen": {
+   "endscreenRenderer": {
+    "elements": [
+     {
+      "endscreenElementRenderer": {
+       "style": "CHANNEL",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s250-c-k-c0x00ffffff-no-rj",
+          "width": 250,
+          "height": 250
+         },
+         {
+          "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s400-c-k-c0x00ffffff-no-rj",
+          "width": 400,
+          "height": 400
+         }
+        ]
+       },
+       "icon": {
+        "thumbnails": [
+         {
+          "url": "https://www.gstatic.com/youtube/img/annotations/youtube.png"
+         }
+        ]
+       },
+       "left": 0.035802968,
+       "width": 0.15438597,
+       "top": 0.14801845,
+       "aspectRatio": 1,
+       "startMs": "201451",
+       "endMs": "212040",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Rick Astley, channel"
+         }
+        },
+        "simpleText": "Rick Astley"
+       },
+       "metadata": {
+        "simpleText": "Rick Astley’s Swinging Christmas 2026 🎄 Dec 9th, Royal Albert Hall. SOLD OUT ❤️\n"
+       },
+       "callToAction": {
+        "simpleText": "VISIT CHANNEL"
+       },
+       "dismiss": {
+        "simpleText": "CANCEL"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAgQ-N4BGAAiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbkjEu4GtvZiOhnXKAQRFZtct",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+          "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+          "rootVe": 3611,
+          "apiUrl": "/youtubei/v1/browse"
+         }
+        },
+        "browseEndpoint": {
+         "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw"
+        }
+       },
+       "hovercardButton": {
+        "subscribeButtonRenderer": {
+         "buttonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "subscribed": false,
+         "enabled": true,
+         "type": "FREE",
+         "channelId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+         "showPreferences": false,
+         "subscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBED"
+           }
+          ]
+         },
+         "unsubscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "trackingParams": "CAkQmysiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbg==",
+         "unsubscribeButtonText": {
+          "runs": [
+           {
+            "text": "UNSUBSCRIBE"
+           }
+          ]
+         },
+         "serviceEndpoints": [
+          {
+           "clickTrackingParams": "CAkQmysiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbsoBBEVm1y0=",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true,
+             "apiUrl": "/youtubei/v1/subscription/subscribe"
+            }
+           },
+           "subscribeEndpoint": {
+            "channelIds": [
+             "UCuAXFkgsw1L7xaCfnd5JJOw"
+            ],
+            "params": "EgIIBBgAWAE%3D"
+           }
+          },
+          {
+           "clickTrackingParams": "CAkQmysiEwjBkdDAxPyXAxXytekFHaTRB23KAQRFZtct",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true
+            }
+           },
+           "signalServiceEndpoint": {
+            "signal": "CLIENT_SIGNAL",
+            "actions": [
+             {
+              "clickTrackingParams": "CAkQmysiEwjBkdDAxPyXAxXytekFHaTRB23KAQRFZtct",
+              "openPopupAction": {
+               "popup": {
+                "confirmDialogRenderer": {
+                 "trackingParams": "CAoQxjgiEwjBkdDAxPyXAxXytekFHaTRB20=",
+                 "dialogMessages": [
+                  {
+                   "runs": [
+                    {
+                     "text": "Unsubscribe from "
+                    },
+                    {
+                     "text": "Rick Astley"
+                    },
+                    {
+                     "text": "?"
+                    }
+                   ]
+                  }
+                 ],
+                 "confirmButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_BLUE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Unsubscribe"
+                     }
+                    ]
+                   },
+                   "serviceEndpoint": {
+                    "clickTrackingParams": "CAwQ8FsiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbsoBBEVm1y0=",
+                    "commandMetadata": {
+                     "webCommandMetadata": {
+                      "sendPost": true,
+                      "apiUrl": "/youtubei/v1/subscription/unsubscribe"
+                     }
+                    },
+                    "unsubscribeEndpoint": {
+                     "channelIds": [
+                      "UCuAXFkgsw1L7xaCfnd5JJOw"
+                     ],
+                     "params": "CgIIBBgAMAE%3D"
+                    }
+                   },
+                   "accessibility": {
+                    "label": "Unsubscribe"
+                   },
+                   "trackingParams": "CAwQ8FsiEwjBkdDAxPyXAxXytekFHaTRB20="
+                  }
+                 },
+                 "cancelButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Cancel"
+                     }
+                    ]
+                   },
+                   "accessibility": {
+                    "label": "Cancel"
+                   },
+                   "trackingParams": "CAsQ8FsiEwjBkdDAxPyXAxXytekFHaTRB20="
+                  }
+                 },
+                 "primaryIsCancel": false
+                }
+               },
+               "popupType": "DIALOG"
+              }
+             }
+            ]
+           }
+          }
+         ],
+         "subscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Subscribe to Rick Astley."
+          }
+         },
+         "unsubscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Unsubscribe from Rick Astley."
+          }
+         },
+         "signInEndpoint": {
+          "clickTrackingParams": "CAkQmysiEwjBkdDAxPyXAxXytekFHaTRB23KAQRFZtct",
+          "commandMetadata": {
+           "webCommandMetadata": {
+            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=http%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fchannel%252FUCuAXFkgsw1L7xaCfnd5JJOw%26feature%3Div-endscreen%26continue_action%3DQUlxb01IYVIzengwVzJYeHFpRGFYTXlNSU5VSnxBQnJ0NjluSmp5SmhQNS1pMlRGTV9fTFZJb3UwLXFtbE1hMVRKN1I5bTV2bXFmbWg5SlRlYndRUmt0bVBHTFJvQ0U0T19wX2MtUmhqVGJfel9jM3pJS1hCcVUzS0pJU01HSDhWSzF4ekN2OUZfenJvem4tdmNEOWdHVFFDTWxOYXFNNTZCaWNCVzJmYUhGbVhWU0tudDRva3lYZ19mM0FvN242S3F2SlN4N2xUSmdHckJqZm4zQ1RUUERZ&hl=en"
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAgQ-N4BGAAiEwjBkdDAxPyXAxXytekFHaTRB20=",
+       "isSubscribe": true,
+       "id": "720b1b77-5167-4d00-a42e-b8e715efaef1"
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "VIDEO",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/qQDrqV5Hw4c/hqdefault.jpg?sqp=-oaymwFACKgBEF5IWvKriqkDMwgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAHwAQH4Af4JgALQBYoCDAgAEAEYWCBfKGUwDw==&rs=AOn4CLCzj6_DcqR21HsLJj7aEx-HD164Sw",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/qQDrqV5Hw4c/hqdefault.jpg?sqp=-oaymwFACMQBEG5IWvKriqkDMwgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAHwAQH4Af4JgALQBYoCDAgAEAEYWCBfKGUwDw==&rs=AOn4CLCgj2QM99y82SV-zdL3zm3WcTYjtw",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/qQDrqV5Hw4c/hqdefault.jpg?sqp=-oaymwFBCPYBEIoBSFryq4qpAzMIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB8AEB-AH-CYAC0AWKAgwIABABGFggXyhlMA8=&rs=AOn4CLBDyyrDLCfbRlIYgQRjDDw3aKgqLA",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/qQDrqV5Hw4c/hqdefault.jpg?sqp=-oaymwFBCNACELwBSFryq4qpAzMIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB8AEB-AH-CYAC0AWKAgwIABABGFggXyhlMA8=&rs=AOn4CLCVs3J9KRWVx3C-ULdqMBgDQrHqQA",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi/qQDrqV5Hw4c/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGFggXyhlMA8=&rs=AOn4CLBDFgN-ehq0DU9qYo5qdDhC4mg_sw",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "left": 0.65438598,
+       "width": 0.32280701,
+       "top": 0.52454501,
+       "aspectRatio": 1.7777778,
+       "startMs": "201451",
+       "endMs": "212040",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Rick Astley - Never : The Autobiography - Listen to the introduction of the Audiobook, video"
+         }
+        },
+        "simpleText": "Rick Astley - Never : The Autobiography - Listen to the introduction of the Audiobook"
+       },
+       "metadata": {
+        "simpleText": "115,260 views"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAcQ8N4BGAEiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbkjEu4GtvZiOhnWaAQMQu2nKAQRFZtct",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=qQDrqV5Hw4c",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         },
+         "interactionLoggingCommandMetadata": {
+          "loggingExpectations": {
+           "screenCreatedLoggingExpectations": {
+            "expectedParentScreens": [
+             {
+              "screenVeType": 3832
+             }
+            ]
+           }
+          }
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "qQDrqV5Hw4c",
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr6---sn-3qqp-ioqse.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=a900eba95e47c387&ip=192.0.2.1&mt=1794282904&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAcQ8N4BGAEiEwjBkdDAxPyXAxXytekFHaTRB20=",
+       "id": "2267387294768269328",
+       "thumbnailOverlays": [
+        {
+         "thumbnailOverlayTimeStatusRenderer": {
+          "text": {
+           "accessibility": {
+            "accessibilityData": {
+             "label": "12 minutes"
+            }
+           },
+           "simpleText": "12:00"
+          },
+          "style": "DEFAULT"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "VIDEO",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/yi6fWPV6qXg/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLDfel1eqM8JfJ_b1cSYDEKuK7w-UQ",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/yi6fWPV6qXg/hqdefault.jpg?sqp=-oaymwEmCMQBEG5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLDsHfHeUnT-h_nSxIx9HiHSH9ibfQ",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/yi6fWPV6qXg/hqdefault.jpg?sqp=-oaymwEnCPYBEIoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCNISWhemmUehEUtNHoUhuJnHq1SA",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/yi6fWPV6qXg/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCrrxLeokkAPpcG_9S6agr4Mu0bSg",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi_webp/yi6fWPV6qXg/maxresdefault.webp",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "left": 0.65438598,
+       "width": 0.32280701,
+       "top": 0.13084112,
+       "aspectRatio": 1.7777778,
+       "startMs": "201451",
+       "endMs": "212040",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Rick Astley - The Reflection Tour 2026 - Trailer, video"
+         }
+        },
+        "simpleText": "Rick Astley - The Reflection Tour 2026 - Trailer"
+       },
+       "metadata": {
+        "simpleText": "122,256 views"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAYQ8N4BGAIiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbkjEu4GtvZiOhnWaAQMQu2nKAQRFZtct",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=yi6fWPV6qXg",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         },
+         "interactionLoggingCommandMetadata": {
+          "loggingExpectations": {
+           "screenCreatedLoggingExpectations": {
+            "expectedParentScreens": [
+             {
+              "screenVeType": 3832
+             }
+            ]
+           }
+          }
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "yi6fWPV6qXg",
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr4---sn-3qqp-ioqsl.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=ca2e9f58f57aa978&ip=192.0.2.1&mt=1794282904&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAYQ8N4BGAIiEwjBkdDAxPyXAxXytekFHaTRB20=",
+       "id": "6974177256580774925",
+       "thumbnailOverlays": [
+        {
+         "thumbnailOverlayTimeStatusRenderer": {
+          "text": {
+           "accessibility": {
+            "accessibilityData": {
+             "label": "40 seconds"
+            }
+           },
+           "simpleText": "0:40"
+          },
+          "style": "DEFAULT"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "PLAYLIST",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hqdefault.jpg?sqp=-oaymwEmCKgBEF5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLC73epeaJ1aPwMh_6z74T3DjioRhQ",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hqdefault.jpg?sqp=-oaymwEmCMQBEG5IWvKriqkDGQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAE=&rs=AOn4CLCXDUMkbSo8gumG3mv9nwx1JdDuFw",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hqdefault.jpg?sqp=-oaymwEnCPYBEIoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLCHM17telHt5giTBbOE-kQewfWM-Q",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/LLFhKaqnWwk/hqdefault.jpg?sqp=-oaymwEnCNACELwBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBawvn5-Gr_WSF-GcvUkDuhilr2Ew",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi_webp/LLFhKaqnWwk/maxresdefault.webp",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "playlistLength": {
+        "simpleText": "43 videos"
+       },
+       "left": 0.035802968,
+       "width": 0.32280701,
+       "top": 0.50776422,
+       "aspectRatio": 1.7777778,
+       "startMs": "201451",
+       "endMs": "212040",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "43 videos, Rick Astley: Official Music Videos"
+         }
+        },
+        "simpleText": "Rick Astley: Official Music Videos"
+       },
+       "metadata": {
+        "simpleText": "by Rick Astley"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAUQ894BGAMiEwjBkdDAxPyXAxXytekFHaTRB20yDGl2LWVuZHNjcmVlbkjEu4GtvZiOhnWaAQMQu2nKAQRFZtct",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=LLFhKaqnWwk&list=PLlaN88a7y2_plecYoJxvRFTLHVbIVAOoc",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "LLFhKaqnWwk",
+         "playlistId": "PLlaN88a7y2_plecYoJxvRFTLHVbIVAOoc",
+         "loggingContext": {
+          "vssLoggingContext": {
+           "serializedContextData": "GiJQTGxhTjg4YTd5Ml9wbGVjWW9KeHZSRlRMSFZiSVZBT29j"
+          }
+         },
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr6---sn-3qqp-ioqsk.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2cb16129aaa75b09&ip=192.0.2.1&mt=1794282904&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAUQ894BGAMiEwjBkdDAxPyXAxXytekFHaTRB20=",
+       "id": "277763988111692989"
+      }
+     }
+    ],
+    "startMs": "201451",
+    "trackingParams": "CAEQ794BIhMIwZHQwMT8lwMV8rXpBR2k0Qdt",
+    "hideButton": {
+     "toggleButtonViewModel": {
+      "defaultButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY_OFF",
+        "title": "Hide",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAQQ088OIhMIwZHQwMT8lwMV8rXpBR2k0QdtygEERWbXLQ==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": true
+          }
+         }
+        },
+        "accessibilityText": "Hide endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAQQ088OIhMIwZHQwMT8lwMV8rXpBR2k0Qdt",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "toggledButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY",
+        "title": "Show",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAMQ1M8OIhMIwZHQwMT8lwMV8rXpBR2k0QdtygEERWbXLQ==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": false
+          }
+         }
+        },
+        "accessibilityText": "Show endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAMQ1M8OIhMIwZHQwMT8lwMV8rXpBR2k0Qdt",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "rendererContext": {
+       "loggingContext": {
+        "loggingDirectives": {
+         "trackingParams": "CAIQ_O4OIhMIwZHQwMT8lwMV8rXpBR2k0Qdt",
+         "visibility": {
+          "types": "12"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "-UlxHPIEVqA": {
+  "endscreen": {
+   "endscreenRenderer": {
+    "elements": [
+     {
+      "endscreenElementRenderer": {
+       "style": "CHANNEL",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://yt3.ggpht.com/EdlGWVpop4RDDxaKeCsQzKmPxWY_XlrClKWTtFRvToGhhUJzjxUIWTpJWt4tXanv-6cX_AuU=s250-c-k-c0x00ffffff-no-rj",
+          "width": 250,
+          "height": 250
+         },
+         {
+          "url": "https://yt3.ggpht.com/EdlGWVpop4RDDxaKeCsQzKmPxWY_XlrClKWTtFRvToGhhUJzjxUIWTpJWt4tXanv-6cX_AuU=s400-c-k-c0x00ffffff-no-rj",
+          "width": 400,
+          "height": 400
+         }
+        ]
+       },
+       "icon": {
+        "thumbnails": [
+         {
+          "url": "https://www.gstatic.com/youtube/img/annotations/youtube.png"
+         }
+        ]
+       },
+       "left": 0.16315527,
+       "width": 0.15438597,
+       "top": 0.36591381,
+       "aspectRatio": 1,
+       "startMs": "1988065",
+       "endMs": "2007808",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Domain of Science, channel"
+         }
+        },
+        "simpleText": "Domain of Science"
+       },
+       "metadata": {
+        "simpleText": "Mapping all human knowledge bit by bit\n\n"
+       },
+       "callToAction": {
+        "simpleText": "VISIT CHANNEL"
+       },
+       "dismiss": {
+        "simpleText": "CANCEL"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAcQ-N4BGAAiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbkigrZGQz6PcpPkBygEEnZvPJA==",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/channel/UCxqAWLTk1CmBvZFPzeZMd9A",
+          "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+          "rootVe": 3611,
+          "apiUrl": "/youtubei/v1/browse"
+         }
+        },
+        "browseEndpoint": {
+         "browseId": "UCxqAWLTk1CmBvZFPzeZMd9A"
+        }
+       },
+       "hovercardButton": {
+        "subscribeButtonRenderer": {
+         "buttonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "subscribed": false,
+         "enabled": true,
+         "type": "FREE",
+         "channelId": "UCxqAWLTk1CmBvZFPzeZMd9A",
+         "showPreferences": false,
+         "subscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBED"
+           }
+          ]
+         },
+         "unsubscribedButtonText": {
+          "runs": [
+           {
+            "text": "SUBSCRIBE"
+           }
+          ]
+         },
+         "trackingParams": "CAgQmysiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbg==",
+         "unsubscribeButtonText": {
+          "runs": [
+           {
+            "text": "UNSUBSCRIBE"
+           }
+          ]
+         },
+         "serviceEndpoints": [
+          {
+           "clickTrackingParams": "CAgQmysiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbsoBBJ2bzyQ=",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true,
+             "apiUrl": "/youtubei/v1/subscription/subscribe"
+            }
+           },
+           "subscribeEndpoint": {
+            "channelIds": [
+             "UCxqAWLTk1CmBvZFPzeZMd9A"
+            ],
+            "params": "EgIIBBgAWAE%3D"
+           }
+          },
+          {
+           "clickTrackingParams": "CAgQmysiEwi_8eSDxfyXAxVutFYBHY9JDuLKAQSdm88k",
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "sendPost": true
+            }
+           },
+           "signalServiceEndpoint": {
+            "signal": "CLIENT_SIGNAL",
+            "actions": [
+             {
+              "clickTrackingParams": "CAgQmysiEwi_8eSDxfyXAxVutFYBHY9JDuLKAQSdm88k",
+              "openPopupAction": {
+               "popup": {
+                "confirmDialogRenderer": {
+                 "trackingParams": "CAkQxjgiEwi_8eSDxfyXAxVutFYBHY9JDuI=",
+                 "dialogMessages": [
+                  {
+                   "runs": [
+                    {
+                     "text": "Unsubscribe from "
+                    },
+                    {
+                     "text": "Domain of Science"
+                    },
+                    {
+                     "text": "?"
+                    }
+                   ]
+                  }
+                 ],
+                 "confirmButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_BLUE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Unsubscribe"
+                     }
+                    ]
+                   },
+                   "serviceEndpoint": {
+                    "clickTrackingParams": "CAsQ8FsiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbsoBBJ2bzyQ=",
+                    "commandMetadata": {
+                     "webCommandMetadata": {
+                      "sendPost": true,
+                      "apiUrl": "/youtubei/v1/subscription/unsubscribe"
+                     }
+                    },
+                    "unsubscribeEndpoint": {
+                     "channelIds": [
+                      "UCxqAWLTk1CmBvZFPzeZMd9A"
+                     ],
+                     "params": "CgIIBBgAMAE%3D"
+                    }
+                   },
+                   "accessibility": {
+                    "label": "Unsubscribe"
+                   },
+                   "trackingParams": "CAsQ8FsiEwi_8eSDxfyXAxVutFYBHY9JDuI="
+                  }
+                 },
+                 "cancelButton": {
+                  "buttonRenderer": {
+                   "style": "STYLE_TEXT",
+                   "size": "SIZE_DEFAULT",
+                   "isDisabled": false,
+                   "text": {
+                    "runs": [
+                     {
+                      "text": "Cancel"
+                     }
+                    ]
+                   },
+                   "accessibility": {
+                    "label": "Cancel"
+                   },
+                   "trackingParams": "CAoQ8FsiEwi_8eSDxfyXAxVutFYBHY9JDuI="
+                  }
+                 },
+                 "primaryIsCancel": false
+                }
+               },
+               "popupType": "DIALOG"
+              }
+             }
+            ]
+           }
+          }
+         ],
+         "subscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Subscribe to Domain of Science."
+          }
+         },
+         "unsubscribeAccessibility": {
+          "accessibilityData": {
+           "label": "Unsubscribe from Domain of Science."
+          }
+         },
+         "signInEndpoint": {
+          "clickTrackingParams": "CAgQmysiEwi_8eSDxfyXAxVutFYBHY9JDuLKAQSdm88k",
+          "commandMetadata": {
+           "webCommandMetadata": {
+            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=http%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fchannel%252FUCxqAWLTk1CmBvZFPzeZMd9A%26feature%3Div-endscreen%26continue_action%3DQUlxb01IYUtMMExIRlZpR015dWxaQnM2TzN3YXxBQnJ0NjlsLTF3SVV2dzR6eXVuRk1DVTBYN0swWFdEenJIZFMxNjNyQjc3VDI2YkQxRXhxNlcwdDhuNDA4RWRBSDd0MGctN21rYlFJYldBUVJUbmptMk55ZEk1YXROSGVqeTJhdGQwc2FVdmJkY3JNUHdCWkdQSmZYY2IzY2pYYjBSMmpnZ3VpUnF2cHYwN3ZIbmNmaWVKLVpUYmhVbXprc2VKUFRwbmhBTXpkd2dhQkZteTA3M3dtZm9v&hl=en"
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAcQ-N4BGAAiEwi_8eSDxfyXAxVutFYBHY9JDuI=",
+       "isSubscribe": true,
+       "id": "b7ad16d9-85ba-4fe3-a3c0-bb3cc7085442"
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "VIDEO",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/vi/K97b2CMjp7M/hqdefault.jpg?sqp=-oaymwEqCKgBEF5IWvKriqkDHQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAG4AvMY&rs=AOn4CLAF0mygirGxpxOHzdPcJ8Lye98HCA",
+          "width": 168,
+          "height": 94
+         },
+         {
+          "url": "https://i.ytimg.com/vi/K97b2CMjp7M/hqdefault.jpg?sqp=-oaymwEqCMQBEG5IWvKriqkDHQgBFQAAiEIYAdgBAeIBCggYEAIYBjgBQAG4AvMY&rs=AOn4CLBfkkMWOOvf4-8VMsYOysjwywuSGw",
+          "width": 196,
+          "height": 110
+         },
+         {
+          "url": "https://i.ytimg.com/vi/K97b2CMjp7M/hqdefault.jpg?sqp=-oaymwErCPYBEIoBSFryq4qpAx0IARUAAIhCGAHYAQHiAQoIGBACGAY4AUABuALzGA==&rs=AOn4CLDooFvgwGvW3a-kgWnaBmsm40ZKjg",
+          "width": 246,
+          "height": 138
+         },
+         {
+          "url": "https://i.ytimg.com/vi/K97b2CMjp7M/hqdefault.jpg?sqp=-oaymwErCNACELwBSFryq4qpAx0IARUAAIhCGAHYAQHiAQoIGBACGAY4AUABuALzGA==&rs=AOn4CLBpgrmfOxKuW6KLoxsas8tZ8-prwA",
+          "width": 336,
+          "height": 188
+         },
+         {
+          "url": "https://i.ytimg.com/vi/K97b2CMjp7M/maxresdefault.jpg",
+          "width": 1920,
+          "height": 1080
+         }
+        ]
+       },
+       "left": 0.45426056,
+       "width": 0.32280701,
+       "top": 0.19047432,
+       "aspectRatio": 1.7777778,
+       "startMs": "1988065",
+       "endMs": "2007808",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "how to draw mitochondria  #cellbiology, video"
+         }
+        },
+        "simpleText": "how to draw mitochondria  #cellbiology"
+       },
+       "metadata": {
+        "simpleText": "11,708 views"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAYQ8t4BGAEiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbkigrZGQz6PcpPkBmgEDELtpygEEnZvPJA==",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "/watch?v=K97b2CMjp7M",
+          "webPageType": "WEB_PAGE_TYPE_WATCH",
+          "rootVe": 3832
+         },
+         "interactionLoggingCommandMetadata": {
+          "loggingExpectations": {
+           "screenCreatedLoggingExpectations": {
+            "expectedParentScreens": [
+             {
+              "screenVeType": 3832
+             }
+            ]
+           }
+          }
+         }
+        },
+        "watchEndpoint": {
+         "videoId": "K97b2CMjp7M",
+         "watchEndpointSupportedOnesieConfig": {
+          "html5PlaybackOnesieConfig": {
+           "commonConfig": {
+            "url": "https://rr6---sn-3qqp-ioqse.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=2bdedbd82323a7b3&ip=192.0.2.1&initcwndbps=4105625&mt=1794283349&oweuc="
+           }
+          }
+         }
+        }
+       },
+       "trackingParams": "CAYQ8t4BGAEiEwi_8eSDxfyXAxVutFYBHY9JDuI=",
+       "id": "a28cb993-7dbd-46c6-9a1a-0f8bcf44481c",
+       "thumbnailOverlays": [
+        {
+         "thumbnailOverlayTimeStatusRenderer": {
+          "text": {
+           "accessibility": {
+            "accessibilityData": {
+             "label": "1 minute, 51 seconds"
+            }
+           },
+           "simpleText": "1:51"
+          },
+          "style": "DEFAULT"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "endscreenElementRenderer": {
+       "style": "WEBSITE",
+       "image": {
+        "thumbnails": [
+         {
+          "url": "https://i.ytimg.com/an/-UlxHPIEVqA/00f637a7-f7a5-457e-a887-2565acc68dfb_mq.jpg?v=61a67fa7",
+          "width": 250,
+          "height": 250
+         },
+         {
+          "url": "https://i.ytimg.com/an/-UlxHPIEVqA/00f637a7-f7a5-457e-a887-2565acc68dfb_mq.jpg?v=61a67fa7",
+          "width": 400,
+          "height": 400
+         }
+        ]
+       },
+       "icon": {
+        "thumbnails": [
+         {
+          "url": "https://www.gstatic.com/youtube/img/annotations/link.png"
+         }
+        ]
+       },
+       "left": 0.45426056,
+       "width": 0.15438597,
+       "top": 0.55429196,
+       "aspectRatio": 1,
+       "startMs": "1988065",
+       "endMs": "2007808",
+       "title": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "Patreon, website. Support. patreon.com"
+         }
+        },
+        "simpleText": "Patreon"
+       },
+       "metadata": {
+        "accessibility": {
+         "accessibilityData": {
+          "label": "patreon.com"
+         }
+        },
+        "simpleText": "patreon.com"
+       },
+       "callToAction": {
+        "simpleText": "Support"
+       },
+       "dismiss": {
+        "simpleText": "CANCEL"
+       },
+       "endpoint": {
+        "clickTrackingParams": "CAUQ9N4BGAIiEwi_8eSDxfyXAxVutFYBHY9JDuIyDGl2LWVuZHNjcmVlbsoBBJ2bzyQ=",
+        "commandMetadata": {
+         "webCommandMetadata": {
+          "url": "https://www.youtube.com/redirect?event=endscreen&redir_token=QUlxb01IYjFERE1PR1ltZFZ5eDVzSEFzY0xKaXxBQnJ0NjlsNmctSUtrVE9jVGdETFlVcmFnUVFmRk9oRVVfX2lTSnJROEFVMm95ZXRQQk45cHNmbjN5VWk3Tk9nOTFyR19vR3pPd1p4MFpGWTVrSG9oeWdhMmpwbnA2RzFSOE1p&q=https%3A%2F%2Fwww.patreon.com%2Fdomainofscience",
+          "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+          "rootVe": 83769
+         }
+        },
+        "urlEndpoint": {
+         "url": "https://www.youtube.com/redirect?event=endscreen&redir_token=QUlxb01IYjFERE1PR1ltZFZ5eDVzSEFzY0xKaXxBQnJ0NjlsNmctSUtrVE9jVGdETFlVcmFnUVFmRk9oRVVfX2lTSnJROEFVMm95ZXRQQk45cHNmbjN5VWk3Tk9nOTFyR19vR3pPd1p4MFpGWTVrSG9oeWdhMmpwbnA2RzFSOE1p&q=https%3A%2F%2Fwww.patreon.com%2Fdomainofscience",
+         "target": "TARGET_NEW_WINDOW"
+        }
+       },
+       "trackingParams": "CAUQ9N4BGAIiEwi_8eSDxfyXAxVutFYBHY9JDuI=",
+       "id": "00f637a7-f7a5-457e-a887-2565acc68dfb"
+      }
+     }
+    ],
+    "startMs": "1988065",
+    "trackingParams": "CAEQ794BIhMIv_Hkg8X8lwMVbrRWAR2PSQ7i",
+    "hideButton": {
+     "toggleButtonViewModel": {
+      "defaultButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY_OFF",
+        "title": "Hide",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAQQ088OIhMIv_Hkg8X8lwMVbrRWAR2PSQ7iygEEnZvPJA==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": true
+          }
+         }
+        },
+        "accessibilityText": "Hide endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAQQ088OIhMIv_Hkg8X8lwMVbrRWAR2PSQ7i",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "toggledButtonViewModel": {
+       "buttonViewModel": {
+        "iconName": "VISIBILITY",
+        "title": "Show",
+        "onTap": {
+         "innertubeCommand": {
+          "clickTrackingParams": "CAMQ1M8OIhMIv_Hkg8X8lwMVbrRWAR2PSQ7iygEEnZvPJA==",
+          "changeCreatorEndscreenVisibilityCommand": {
+           "hide": false
+          }
+         }
+        },
+        "accessibilityText": "Show endscreen cards",
+        "style": "BUTTON_VIEW_MODEL_STYLE_OVERLAY",
+        "trackingParams": "CAMQ1M8OIhMIv_Hkg8X8lwMVbrRWAR2PSQ7i",
+        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_XSMALL"
+       }
+      },
+      "rendererContext": {
+       "loggingContext": {
+        "loggingDirectives": {
+         "trackingParams": "CAIQ_O4OIhMIv_Hkg8X8lwMVbrRWAR2PSQ7i",
+         "visibility": {
+          "types": "12"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
