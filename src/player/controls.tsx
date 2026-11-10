@@ -398,14 +398,14 @@ const style = css`
     transform: translateX(1.2rem);
   }
 
-  /* youtube.com keeps its menu inside the player, 62 px over its bottom and 83 px under its top, as wide as its longest
-     row (measured 2026-11-10) */
+  /* youtube.com's menu, as wide as its longest row and at most 82% of the player's height less its 70 px of controls,
+     and 413 px: 140, 239 and 350 px on 240, 360 and 495 px players (its player code, measured 2026-11-10) */
   .settings-menu {
     bottom: calc(100% + 0.8rem);
     top: auto;
     width: max-content;
     max-width: calc(100cqi - 2.4rem);
-    max-height: min(70vh, var(--player-height, 100vh) - 14.5rem);
+    max-height: min(41.3rem, (var(--player-height, 100vh) - 7rem) * 0.82);
   }
 
   /* youtube.com's Playback speed panel, measured 2026-11-10: a 57 px header of a 48 px back button and the title in

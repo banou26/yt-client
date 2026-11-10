@@ -83,3 +83,33 @@ test('the Options panel restyles the captions, the look stays for the next visit
   expect(await next()).toMatchObject({ size: 100, background: 'rgba(8, 8, 8, 0.75)', shadow: 'none' })
   expect((await next())!.family).toContain('Roboto')
 })
+
+// rows wholly inside the open menu, which scrolls the rest
+const menuFit = (page: Page) => page.evaluate(() => {
+  const menu = document.querySelector('[role="menu"]')!.getBoundingClientRect()
+  const video = document.querySelector('video')!.getBoundingClientRect()
+  const rows = [...document.querySelectorAll('[role="menu"] [role^="menuitem"]')].map(row => row.getBoundingClientRect())
+  return {
+    height: Math.round(menu.height),
+    rows: rows.filter(row => row.top >= menu.top - 1 && row.bottom <= menu.bottom + 1).length,
+    inside: menu.top >= video.top && menu.bottom <= video.bottom,
+    player: video.height,
+  }
+})
+
+test('at a phone\'s width the settings menus keep youtube.com\'s height inside the player', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 412, height: 860 })
+  await startPlayback(page)
+  await page.locator('video').evaluate(video => (video as HTMLVideoElement).pause())
+  await page.getByRole('button', { name: 'Settings' }).click()
+  const root = await menuFit(page)
+  // youtube.com's 240 px player keeps a 140 px menu showing 2 rows (measured 2026-11-10)
+  expect(root.height).toBeGreaterThanOrEqual(Math.round((root.player - 70) * 0.82) - 1)
+  expect(root.inside).toBe(true)
+  expect(root.rows).toBeGreaterThanOrEqual(2)
+  await page.getByRole('menuitem', { name: /^Subtitles/ }).click()
+  const subtitles = await menuFit(page)
+  expect(subtitles.inside).toBe(true)
+  expect(subtitles.rows).toBeGreaterThanOrEqual(2)
+})
