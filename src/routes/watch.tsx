@@ -46,6 +46,9 @@ const RATE_VIDEO = gql(`
   }
 `)
 
+// youtube.com's one column, from 999 px down, which also opens the chat replay and chapters under the player
+const ONE_COLUMN = '(max-width: 999px)'
+
 const style = css`
   display: grid;
   /* youtube.com's own proportions, measured at 1000 to 2560 px wide on
@@ -328,7 +331,7 @@ const style = css`
     color: var(--text-secondary);
   }
 
-  @media (max-width: 999px) {
+  @media ${ONE_COLUMN} {
     padding: 2.4rem;
 
     &,
@@ -510,8 +513,7 @@ const WatchPage = () => {
   // held as the video it was opened on, so the next video starts with the panel closed
   const [replayFor, setReplayFor] = useState<string | undefined>(undefined)
   const replayOpen = watch?.hasChatReplay === true && replayFor === videoId
-  // the same width the layout drops to one column at: youtube.com then opens the panel under the player
-  const oneColumn = useMediaQuery('(max-width: 999px)')
+  const oneColumn = useMediaQuery(ONE_COLUMN)
   const replay = replayOpen
     ? <ChatReplay key={`replay:${videoId}`} videoId={videoId} onClose={() => setReplayFor(undefined)} />
     : undefined
