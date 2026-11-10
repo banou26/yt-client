@@ -6,7 +6,7 @@ export const INTERPRETER_URL = '//www.google.com/js/th/interpreter.js'
  * A watch page as youtube.com writes it: the ytcfg first, the player response, then the att/get
  * answer as a single-quoted JS string with its quotes, slashes and equals signs escaped.
  */
-export const watchPage = ({ eventId = 'event-1', challenge = true, playerJsUrl }: { eventId?: string, challenge?: boolean, playerJsUrl?: string } = {}) => {
+export const watchPage = ({ eventId = 'event-1', challenge = true, playerJsUrl, playbackUrl }: { eventId?: string, challenge?: boolean, playerJsUrl?: string, playbackUrl?: string } = {}) => {
   const answer = JSON.stringify({
     bgChallenge: {
       interpreterHash: 'a+b/c=',
@@ -17,9 +17,10 @@ export const watchPage = ({ eventId = 'event-1', challenge = true, playerJsUrl }
   })
   const literal = answer.replace(/\\/g, '\\\\').replace(/"/g, '\\x22').replace(/\//g, '\\/').replace(/=/g, '\\u003d')
   const player = playerJsUrl === undefined ? '' : `,"PLAYER_JS_URL":"${playerJsUrl}"`
+  const tracking = playbackUrl === undefined ? '' : `,"playbackTracking":{"videostatsPlaybackUrl":{"baseUrl":"${playbackUrl}"}}`
   return `<!DOCTYPE html><html><head><script>ytcfg.set({"EVENT_ID":"${eventId}","INNERTUBE_CONTEXT_CLIENT_VERSION":"2.20261008.00.00"${player}});</script>`
     + '<script>ytcfg.set({"LATER":true});</script></head><body>'
-    + '<script>var ytInitialPlayerResponse = {"videoDetails":{"videoId":"video-1","title":"a {brace} and a \\"quote\\""}};</script>'
+    + `<script>var ytInitialPlayerResponse = {"videoDetails":{"videoId":"video-1","title":"a {brace} and a \\"quote\\""}${tracking}};</script>`
     + (challenge ? `<script>window.ytAtN({'R': '${literal}'});</script>` : '')
     + '</body></html>'
 }

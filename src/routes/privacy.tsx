@@ -166,7 +166,10 @@ export const PrivacyPage = () => {
           extension: it reads your history with this browser's own youtube.com sign-in, through the extension and not
           through FKN.
         </p>
-        <p>When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at that point.</p>
+        <p>
+          When a video or a preview starts, yt-client tells YouTube it started playing, with the report youtube.com sends at
+          that point and your YouTube visitor ID. YouTube suggests videos on Home from these reports.
+        </p>
         <p>
           Skip sponsors: Using <a className='link' href={SPONSORBLOCK_URL} target='_blank' rel='noreferrer'>SponsorBlock</a>
         </p>

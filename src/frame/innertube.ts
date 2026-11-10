@@ -176,12 +176,20 @@ const decipherPlayer = async (session: Innertube['session'], pageId: string | un
   })
 }
 
+// youtubei.js keeps a visitor_data it is given, so a stored visitor is the catalog's and only a first visit waits for its build
+const catalogVisitor = async () =>
+  readVisitorData() ?? ((await catalogInnertube()).session.context as unknown as InnertubeContext).client.visitorData
+
 const playbackResponseCache = new Map<string, Promise<Record<string, unknown>>>()
 
+/* YouTube counts a playback toward the Home of the visitor its watch page was read as, and only when the registration
+   names that visitor too. In fresh youtube.com profiles, registrations sent with both filled Home 3 of 3 times (34 to
+   37 videos) and with either one alone 0 of 4; with the watch-time reports blocked, youtube.com's own player still
+   filled it 2 of 2 (measured 2026-11-10). So both go as the catalog's visitor, the one Home is read as. */
 export const prefetchInitialPlayerResponse = (videoId: string) => {
   const cached = playbackResponseCache.get(videoId)
   if (cached) return cached
-  const promise = fetchPlayerResponse(videoId)
+  const promise = fetchPlayerResponse(videoId, catalogVisitor())
   playbackResponseCache.set(videoId, promise)
   promise.catch(() => {
     if (playbackResponseCache.get(videoId) === promise) playbackResponseCache.delete(videoId)
@@ -195,7 +203,7 @@ export const prefetchInitialPlayerResponse = (videoId: string) => {
 
 type BeaconFormat = Pick<YoutubeFormat, 'itag' | 'has_audio' | 'has_video'>
 
-const registerPlayback = async (raw: Record<string, unknown>, nonce: string, formats: BeaconFormat[]) => {
+const registerPlayback = async (raw: Record<string, unknown>, nonce: string, formats: BeaconFormat[], visitorData: string) => {
   const base = (raw as {
     playbackTracking?: { videostatsPlaybackUrl?: { baseUrl?: string } }
   }).playbackTracking?.videostatsPlaybackUrl?.baseUrl
@@ -208,7 +216,7 @@ const registerPlayback = async (raw: Record<string, unknown>, nonce: string, for
   if (audio) url.searchParams.set('afmt', String(audio.itag))
   if (video) url.searchParams.set('fmt', String(video.itag))
   // as a brand channel, the engine's transport sends it to www.youtube.com with the channel's header (scramjet/channel.ts)
-  const response = await fetch(url, { method: 'POST' })
+  const response = await fetch(url, { method: 'POST', headers: { 'X-Goog-Visitor-Id': visitorData } })
   if (!response.ok) console.warn(`youtube: playback registration returned ${response.status}`)
 }
 
@@ -286,7 +294,7 @@ export const getSabrSource = async (videoId: string): Promise<SabrSource> => {
   const catalogContext = catalogClient.session.context as unknown as InnertubeContext
   warmPoTokenSession(catalogContext.client.visitorData)
   const nonce = Utils.generateRandomString(16)
-  void rawPromise.then((raw) => registerPlayback(raw, nonce, beaconFormats(raw))).catch(() => {})
+  void rawPromise.then((raw) => registerPlayback(raw, nonce, beaconFormats(raw), catalogContext.client.visitorData)).catch(() => {})
   const client = await innertube()
   const context = client.session.context as unknown as InnertubeContext
   const raw = await rawPromise

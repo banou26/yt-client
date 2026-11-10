@@ -110,9 +110,11 @@ const readPagePlayerId = (html: string) => html.match(/"PLAYER_JS_URL"\s*:\s*"([
 export const pagePlayerOf = (raw: object) => pagePlayers.get(raw)
 
 // a signed-in read through the relay carries no nonce, so a retry inside the relay's 60 s error TTL can get the same cached answer
-const fetchWatchPage = async (videoId: string) => {
+const fetchWatchPage = async (videoId: string, visitorData: string | undefined) => {
   const response = await readAgain(
-    () => fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`),
+    () => fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, {
+      headers: visitorData ? { 'X-Goog-Visitor-Id': visitorData } : {},
+    }),
     ({ status }) => status === 429 || status >= 500,
     ({ status }) => console.warn(`youtube: the watch page returned ${status}, reading it again`),
   )
@@ -122,11 +124,11 @@ const fetchWatchPage = async (videoId: string) => {
 }
 
 // the player response is answered as soon as it arrives; the read goes on to the challenge, about 78 KB further on a 1.58 MB page
-const readWatchPage = (videoId: string) => {
+const readWatchPage = (videoId: string, visitorData: Promise<string> | undefined) => {
   const playerResponse = Promise.withResolvers<Record<string, unknown>>()
   const challenge = Promise.withResolvers<PageChallenge>()
   void (async () => {
-    const response = await fetchWatchPage(videoId)
+    const response = await fetchWatchPage(videoId, await visitorData)
     const reader = response.body?.getReader()
     const decoder = new TextDecoder()
     let html = reader ? '' : await response.text()
@@ -159,14 +161,17 @@ const readWatchPage = (videoId: string) => {
   return { playerResponse: playerResponse.promise, challenge: challenge.promise }
 }
 
-let lastVideoId: string | undefined
+let lastRead: { videoId: string, visitorData: Promise<string> | undefined } | undefined
 let unusedChallenge: Promise<PageChallenge> | undefined
 const firstRead = Promise.withResolvers<void>()
 
-/** A watch page's player response. The page's challenge is kept for the next BotGuard session (`takePageChallenge`). */
-export const fetchPlayerResponse = (videoId: string) => {
-  const page = readWatchPage(videoId)
-  lastVideoId = videoId
+/**
+ * A watch page's player response, the page read as the visitor `visitorData` names once it resolves. The page's
+ * challenge is kept for the next BotGuard session (`takePageChallenge`).
+ */
+export const fetchPlayerResponse = (videoId: string, visitorData?: Promise<string>) => {
+  const page = readWatchPage(videoId, visitorData)
+  lastRead = { videoId, visitorData }
   unusedChallenge = page.challenge
   firstRead.resolve()
   return page.playerResponse
@@ -178,7 +183,7 @@ export const fetchPlayerResponse = (videoId: string) => {
  */
 export const takePageChallenge = async () => {
   await firstRead.promise
-  const challenge = unusedChallenge ?? readWatchPage(lastVideoId!).challenge
+  const challenge = unusedChallenge ?? readWatchPage(lastRead!.videoId, lastRead!.visitorData).challenge
   unusedChallenge = undefined
   return challenge
 }

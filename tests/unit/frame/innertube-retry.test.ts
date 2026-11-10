@@ -131,6 +131,25 @@ describe('the frame Innertube sessions', () => {
     expect(fetched).toEqual([`https://www.youtube.com/watch?v=${VIDEO}`])
   })
 
+  it('reads the watch page and registers the playback as the visitor the catalog reads Home as, and sends no other report', async () => {
+    const sent: { url: string, method: string, visitor: string | null }[] = []
+    vi.stubGlobal('fetch', async (input: string | URL, init?: RequestInit) => {
+      const url = String(input)
+      sent.push({ url, method: init?.method ?? 'GET', visitor: new Headers(init?.headers).get('x-goog-visitor-id') })
+      if (url.includes('/api/stats/')) return new Response(null, { status: 204 })
+      return streamed([watchPage({ playbackUrl: `https://s.youtube.com/api/stats/playback?docid=${VIDEO}&ei=event-1` })])
+    })
+    const { getSabrSource } = await loadFrame()
+    await getSabrSource(VIDEO)
+    await settle()
+    expect(sent).toEqual([
+      { url: `https://www.youtube.com/watch?v=${VIDEO}`, method: 'GET', visitor: 'visitor' },
+      { url: expect.stringMatching(/^https:\/\/s\.youtube\.com\/api\/stats\/playback\?/), method: 'POST', visitor: 'visitor' },
+    ])
+    const registration = new URL(sent[1]!.url).searchParams
+    expect(Object.fromEntries(registration)).toEqual({ docid: VIDEO, ei: 'event-1', ver: '2', cpn: 'nonce' })
+  })
+
   describe('deciphering the stream URL', () => {
     const decipheredBy = async (getSabrSource: (videoId: string) => Promise<{ streamingUrl: string }>) =>
       new URL((await getSabrSource(VIDEO)).streamingUrl).searchParams.get('player')

@@ -70,6 +70,7 @@ describe('reading a watch page', () => {
     const player = fetchPlayerResponse('video-1')
     let challenge: unknown
     void takePageChallenge().then((value) => { challenge = value })
+    await immediate()
     send(page.slice(0, split))
     expect(await player).toEqual({ videoDetails: { videoId: 'video-1', title: 'a {brace} and a "quote"' } })
     await immediate()
@@ -103,6 +104,19 @@ describe('reading a watch page', () => {
     expect((await takePageChallenge()).config.EVENT_ID).toBe('event-1')
     expect((await takePageChallenge()).config.EVENT_ID).toBe('event-2')
     expect(fetched).toEqual(['https://www.youtube.com/watch?v=video-1', 'https://www.youtube.com/watch?v=video-1'])
+  })
+
+  it('reads a page as the visitor it is given, the read a later session makes too', async () => {
+    const visitors: (string | null)[] = []
+    vi.stubGlobal('fetch', async (_url: string, init?: RequestInit) => {
+      visitors.push(new Headers(init?.headers).get('x-goog-visitor-id'))
+      return streamed([watchPage()])
+    })
+    const { fetchPlayerResponse, takePageChallenge } = await import('../../../src/frame/watch-page')
+    await fetchPlayerResponse('video-1', Promise.resolve('visitor-1'))
+    await takePageChallenge()
+    await takePageChallenge()
+    expect(visitors).toEqual(['visitor-1', 'visitor-1'])
   })
 
   it('takes the page read last, not an earlier one no session took', async () => {
