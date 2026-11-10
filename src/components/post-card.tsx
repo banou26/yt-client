@@ -112,7 +112,7 @@ export const PostCard = ({ post }: { post: PostCardData }) => (
         : undefined}
       {post.publishedText ? <span className='post-date'>{post.publishedText}</span> : undefined}
     </div>
-    {post.text ? <ReadMore className='post-text'>{post.text}</ReadMore> : undefined}
+    {post.text ? <ReadMore className='post-text' text={post.text}>{post.text}</ReadMore> : undefined}
     {post.attachedImage
       ? <img className='post-image' src={post.attachedImage} alt='' loading='lazy' />
       : undefined}

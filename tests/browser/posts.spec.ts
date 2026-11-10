@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test'
+
 import { expect, test } from './test'
 
 /* youtube.com's Posts tab, signed out (measured 2026-11-10): a post longer than four lines is cut there with a Read
@@ -37,4 +39,38 @@ test('opens a post from the Posts tab by its comment count, on the post and then
   await comments.getByRole('button', { name: 'Sort by' }).click()
   await page.getByRole('menuitemcheckbox', { name: 'Newest first' }).click()
   await expect(comments.locator('.comment').first()).not.toHaveText(top!, { timeout: 120_000 })
+})
+
+const HARNESS = '/tests/browser/fixtures/posts-harness.tsx'
+
+const openHarness = async (page: Page) => {
+  await page.goto('/settings')
+  await expect(page.locator('html')).toHaveAttribute('data-engine', 'ready', { timeout: 90_000 })
+}
+
+test('draws a cut text again without measuring it again when only its parent drew again', async ({ page }) => {
+  test.setTimeout(180_000)
+  await openHarness(page)
+  let observed: { first: number, after: number } | undefined
+  await expect(async () => {
+    observed = await page.evaluate(async (path) => {
+      const harness = await import(path) as { mountReadMore: () => () => void }
+      document.querySelector('[data-posts-harness="read-more"]')?.remove()
+      let count = 0
+      const Native = ResizeObserver
+      window.ResizeObserver = class extends Native {
+        override observe(target: Element, options?: ResizeObserverOptions) {
+          if (target.closest('[data-posts-harness="read-more"]')) count += 1
+          super.observe(target, options)
+        }
+      }
+      const drawAgain = harness.mountReadMore()
+      const first = count
+      drawAgain()
+      await new Promise(resolve => setTimeout(resolve, 200))
+      window.ResizeObserver = Native
+      return { first, after: count }
+    }, HARNESS)
+  }).toPass({ timeout: 120_000 })
+  expect(observed).toEqual({ first: 1, after: 1 })
 })

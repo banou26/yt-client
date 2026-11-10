@@ -26,9 +26,12 @@ const style = css`
 
 /**
  * `children` cut at four lines, as youtube.com cuts a comment and a post, with a Read more under them only when they
- * run past. It opens them in place and turns into Show less. `className` goes on the box that is cut.
+ * run past. It opens them in place and turns into Show less. `className` goes on the box that is cut, and `text` is
+ * the plain text `children` draw, which decides when the cut is measured again.
  */
-export const ReadMore = ({ className, children }: { className?: string, children: ComponentChildren }) => {
+export const ReadMore = (
+  { className, text, children }: { className?: string, text: string, children: ComponentChildren },
+) => {
   const [expanded, setExpanded] = useState(false)
   const [overflowing, setOverflowing] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -42,7 +45,7 @@ export const ReadMore = ({ className, children }: { className?: string, children
     const observer = new ResizeObserver(check)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [expanded, children])
+  }, [expanded, text])
   return (
     <div css={style}>
       <div ref={ref} className={[className, expanded ? undefined : 'clamped'].filter(Boolean).join(' ')}>

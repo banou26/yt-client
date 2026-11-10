@@ -472,9 +472,9 @@ const Composer = ({ videoId }: { videoId: string }) => {
 }
 
 const CommentText = (
-  { runs, text, videoId }: { runs: CommentRow['runs'], text?: string | null, videoId?: string },
+  { runs, text, videoId }: { runs: CommentRow['runs'], text: string, videoId?: string },
 ) => (
-  <ReadMore className='comment-text'>
+  <ReadMore className='comment-text' text={text}>
     {runs.length > 0
       ? <RichText className='text' runs={runs} videoId={videoId} />
       : <span className='text'>{text}</span>}
