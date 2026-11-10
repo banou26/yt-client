@@ -6,6 +6,7 @@ import { Link } from 'wouter'
 
 import { useDocumentTitle } from '../app'
 import { EXTENSION_URL, useExtensionExposed } from '../components/extension-notice'
+import { SpeedPicker } from '../player/speed-picker'
 import { SPONSORBLOCK_URL } from '../player/sponsorblock'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
 
@@ -25,8 +26,6 @@ const QUALITIES: { value: QualityPreference, label: string }[] = [
   { value: 360, label: '360p' },
   { value: 240, label: '240p' },
 ]
-
-const RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
 
 const style = css`
   max-width: 78rem;
@@ -223,19 +222,7 @@ export const SettingsPage = () => {
 
       <section className='section'>
         <h2 className='section-title'>Speed</h2>
-        <div className='choices'>
-          {RATES.map(rate => (
-            <button
-              type='button'
-              key={rate}
-              className={settings.playbackRate === rate ? 'choice active' : 'choice'}
-              aria-pressed={settings.playbackRate === rate}
-              onClick={() => set({ playbackRate: rate })}
-            >
-              {rate === 1 ? 'Normal' : `${rate}x`}
-            </button>
-          ))}
-        </div>
+        <SpeedPicker rate={settings.playbackRate} onRate={(playbackRate: number) => set({ playbackRate })} />
       </section>
 
       <section className='section'>

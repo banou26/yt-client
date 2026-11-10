@@ -390,6 +390,8 @@ const VideoPlayer = (
     const audio = getSettings()
     video.volume = audio.volume
     video.muted = audio.muted
+    // loading a source puts the rate back to defaultPlaybackRate, and so does Shaka as it starts
+    video.defaultPlaybackRate = audio.playbackRate
     video.playbackRate = audio.playbackRate
     const abort = new AbortController()
     let controller: Awaited<ReturnType<typeof startShakaPlayback>> | undefined

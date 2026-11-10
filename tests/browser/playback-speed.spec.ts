@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
-/* The Playback speed panel against the live source: `dQw4w9WgXcQ` is a 213 s video. */
+/* The Playback speed panel and the Settings page's speed against the live source: `dQw4w9WgXcQ` is a 213 s video. */
 
 const VIDEO = '/watch?v=dQw4w9WgXcQ'
 
@@ -71,4 +71,19 @@ test('the speed slider sets 1.1x, which the video and the Settings row follow', 
   await expect.poll(rate).toBe(1)
   await panel.getByRole('button', { name: 'Back to previous menu', exact: true }).click()
   await expect(row).toHaveText('Playback speedNormal')
+})
+
+test('the speed set on the Settings page is the one a video starts at', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto('/settings')
+  const slider = speedSlider(page)
+  await expect(slider).toHaveValue('1')
+  await slider.focus()
+  await page.keyboard.press('ArrowUp')
+  await page.keyboard.press('ArrowUp')
+  await expect(page.getByText('1.10x', { exact: true })).toBeVisible()
+
+  const rate = await startPlayback(page)
+  expect(await rate()).toBe(1.1)
+  await expect(await openSettings(page)).toHaveText('Playback speed1.1')
 })
