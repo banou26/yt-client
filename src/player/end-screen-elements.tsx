@@ -5,11 +5,8 @@ import type { UpNext } from './up-next'
 import { css } from '@emotion/react'
 import { Eye, EyeOff, Link as LinkIcon, ListVideo } from 'lucide-react'
 import { useEffect, useState } from 'preact/hooks'
-import { useMutation } from 'urql'
 
-import { readable } from '../components/format'
-import { SET_SUBSCRIBED } from '../components/subscribe-button'
-import { showToast } from '../components/ui/toast'
+import { useToggleSubscription } from '../components/subscribe-button'
 import { useSession } from '../session'
 import { signIn } from '../sign-in'
 import { openOnClick, upNextHref } from './end-screen'
@@ -510,24 +507,19 @@ const style = css`
 
 const ChannelSubscribe = ({ channelId, subscribed }: { channelId: string, subscribed?: boolean }) => {
   const { signedIn } = useSession()
-  const [state, setSubscribed] = useMutation(SET_SUBSCRIBED)
+  const { fetching, toggle } = useToggleSubscription()
   const [on, setOn] = useState(subscribed === true)
   const onClick = () => {
     if (!signedIn) {
       signIn()
       return
     }
-    void setSubscribed({ channelId, subscribed: !on }).then((result) => {
-      if (result.error) {
-        showToast(readable(result.error.message))
-        return
-      }
-      setOn(result.data?.setSubscribed.isSubscribed === true)
-      showToast(on ? 'Unsubscribed' : 'Subscribed')
+    void toggle(channelId, on).then((next) => {
+      if (next !== undefined) setOn(next)
     })
   }
   return (
-    <button type='button' className='subscribe' aria-pressed={on} disabled={state.fetching} onClick={onClick}>
+    <button type='button' className='subscribe' aria-pressed={on} disabled={fetching} onClick={onClick}>
       {on ? 'Subscribed' : 'Subscribe'}
     </button>
   )

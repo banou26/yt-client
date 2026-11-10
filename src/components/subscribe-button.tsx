@@ -12,7 +12,7 @@ import { showToast } from './ui/toast'
 import { signIn } from '../sign-in'
 
 // The mutation does not refetch the channel, so anything else would come back null
-export const SET_SUBSCRIBED = gql(`
+const SET_SUBSCRIBED = gql(`
   mutation SetSubscribed($channelId: ID!, $subscribed: Boolean!) {
     setSubscribed(channelId: $channelId, subscribed: $subscribed) {
       id
@@ -76,6 +76,24 @@ export const subscribeStyle = css`
   }
 `
 
+/**
+ * Subscribes to a channel or unsubscribes from it and says which in a toast, or the error. `toggle` resolves to whether
+ * the account is now subscribed, or undefined on an error. Signing in first is the caller's.
+ */
+export const useToggleSubscription = () => {
+  const [state, setSubscribed] = useMutation(SET_SUBSCRIBED)
+  const toggle = async (channelId: string, subscribed: boolean) => {
+    const result = await setSubscribed({ channelId, subscribed: !subscribed })
+    if (result.error) {
+      showToast(readable(result.error.message))
+      return undefined
+    }
+    showToast(subscribed ? 'Unsubscribed' : 'Subscribed')
+    return result.data?.setSubscribed.isSubscribed === true
+  }
+  return { fetching: state.fetching, toggle }
+}
+
 const LEVELS: { level: NotificationLevel, label: string, Icon: typeof Bell }[] = [
   { level: 'ALL', label: 'All', Icon: BellRing },
   { level: 'PERSONALIZED', label: 'Personalized', Icon: Bell },
@@ -89,7 +107,7 @@ export const SubscribeButton = (
     notificationLevel?: NotificationLevel | null
   },
 ) => {
-  const [subscribeState, setSubscribed] = useMutation(SET_SUBSCRIBED)
+  const { fetching: subscribing, toggle } = useToggleSubscription()
   const [levelState, setLevel] = useMutation(SET_NOTIFICATION_LEVEL)
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -97,7 +115,7 @@ export const SubscribeButton = (
   const onClose = useCallback(() => setOpen(false), [])
   useDismiss({ open, onClose, rootRef, triggerRef })
 
-  const pending = subscribeState.fetching || levelState.fetching
+  const pending = subscribing || levelState.fetching
   const isSubscribed = subscribed === true
   const level = LEVELS.find(entry => entry.level === notificationLevel) ?? LEVELS[1]!
 
@@ -108,13 +126,7 @@ export const SubscribeButton = (
       signIn()
       return
     }
-    void setSubscribed({ channelId, subscribed: !isSubscribed }).then((result) => {
-      if (result.error) {
-        showToast(readable(result.error.message))
-        return
-      }
-      showToast(isSubscribed ? 'Unsubscribed' : 'Subscribed')
-    })
+    void toggle(channelId, isSubscribed)
   }
 
   const onLevel = (next: NotificationLevel) => {
