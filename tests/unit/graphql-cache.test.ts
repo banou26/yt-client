@@ -31,6 +31,12 @@ const WATCH = gql`
   }
 `
 
+const POSTS = gql`
+  query Posts {
+    communityPosts(channelId: "UC1") { items { id text } cursor }
+  }
+`
+
 const CONTROL = gql`
   query Control {
     control { label }
@@ -38,7 +44,7 @@ const CONTROL = gql`
 `
 
 describe('the graphcache keys', () => {
-  it('embeds chat pages, chat runs and text runs without a missing-key warning', async () => {
+  it('embeds chat pages, chat runs, text runs and post pages without a missing-key warning', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     upstream.answer = {
@@ -61,6 +67,10 @@ describe('the graphcache keys', () => {
     upstream.answer = { watch: { __typename: 'WatchMeta', id: 'video-1', descriptionRuns: [{ __typename: 'TextRun', text: 'a description', url: null }] } }
     const watch = await client.query(WATCH, {}).toPromise()
     expect(watch.data?.watch.descriptionRuns[0].text).toBe('a description')
+
+    upstream.answer = { communityPosts: { __typename: 'PostPage', items: [{ __typename: 'Post', id: 'post-1', text: 'a post' }], cursor: null } }
+    const posts = await client.query(POSTS, {}).toPromise()
+    expect(posts.data?.communityPosts.items[0].text).toBe('a post')
 
     // a type with no keys entry, so a run that cannot see the warning fails here rather than passing
     upstream.answer = { control: { __typename: 'Unkeyed', label: 'control' } }
