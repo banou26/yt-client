@@ -1,0 +1,391 @@
+{
+  "kJQP7kiw5Fk": {
+    "cards": {
+      "cardCollectionRenderer": {
+        "cards": [
+          {
+            "cardRenderer": {
+              "teaser": {
+                "simpleCardTeaserRenderer": {
+                  "message": {
+                    "simpleText": "Listen to Luis' new single"
+                  }
+                }
+              },
+              "cueRanges": [
+                {
+                  "startCardActiveMs": "15000",
+                  "endCardActiveMs": "0",
+                  "teaserDurationMs": "6000"
+                }
+              ]
+            }
+          },
+          {
+            "cardRenderer": {
+              "teaser": {
+                "simpleCardTeaserRenderer": {
+                  "message": {
+                    "simpleText": "Becky G - Glitch | Official Live Performance"
+                  }
+                }
+              },
+              "cueRanges": [
+                {
+                  "startCardActiveMs": "30000",
+                  "endCardActiveMs": "0",
+                  "teaserDurationMs": "6000"
+                }
+              ]
+            }
+          },
+          {
+            "cardRenderer": {
+              "teaser": {
+                "simpleCardTeaserRenderer": {
+                  "message": {
+                    "simpleText": "WATCH: New video by Luis Fonsi"
+                  }
+                }
+              },
+              "cueRanges": [
+                {
+                  "startCardActiveMs": "45000",
+                  "endCardActiveMs": "0",
+                  "teaserDurationMs": "6000"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "engagementPanels": [
+      {
+        "engagementPanelSectionListRenderer": {
+          "panelIdentifier": "engagement-panel-structured-description",
+          "content": {
+            "structuredDescriptionContentRenderer": {
+              "items": [
+                {
+                  "videoDescriptionInfocardsSectionRenderer": {
+                    "sectionTitle": {
+                      "simpleText": "Luis Fonsi"
+                    },
+                    "channelAvatar": {
+                      "thumbnails": [
+                        {
+                          "url": "https://yt3.ggpht.com/ia2BN5pgqtFZ79o-HmDrTZAZ3tATeNeUwx74ys7w4HMm7NLKX_tMFtLhOCPAiyOWTMrDoSapuQ=s88-c-k-c0x00ffffff-no-rj"
+                        }
+                      ]
+                    },
+                    "channelEndpoint": {
+                      "browseEndpoint": {
+                        "browseId": "UCxoq-PAQeAdk_zyg8YS0JqA"
+                      }
+                    },
+                    "infocards": [
+                      {
+                        "compactInfocardRenderer": {
+                          "content": {
+                            "mediaLockupRenderer": {
+                              "title": {
+                                "simpleText": "Luis Fonsi - Por Isso Que Eu Bebo"
+                              },
+                              "subtitle": {
+                                "simpleText": "Listen Here"
+                              },
+                              "thumbnailDetails": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://i.ytimg.com/an/kJQP7kiw5Fk/13702001461352292453_mq.jpg?v=6022aeef",
+                                    "width": 112,
+                                    "height": 64
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/an/kJQP7kiw5Fk/13702001461352292453_mq.jpg?v=6022aeef",
+                                    "width": 224,
+                                    "height": 128
+                                  }
+                                ]
+                              },
+                              "endpoint": {
+                                "urlEndpoint": {
+                                  "url": "https://www.youtube.com/redirect?event=infocard&redir_token=&q=https%3A%2F%2Fluisfonsi.lnk.to%2FPorIssoQueEuBeboYC",
+                                  "target": "TARGET_NEW_WINDOW"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "compactInfocardRenderer": {
+                          "content": {
+                            "structuredDescriptionVideoLockupRenderer": {
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.ggpht.com/proxy/o7RHS-OHdMt1CUdR4_7LfzLDrMREwmFWP4sp-bXWs-esPxU14Z_8HTGVGwYulf7TPyc6M8-csF2dNlhb=s112-w112-h64-nd",
+                                    "width": 112,
+                                    "height": 64
+                                  },
+                                  {
+                                    "url": "https://yt3.ggpht.com/proxy/o7RHS-OHdMt1CUdR4_7LfzLDrMREwmFWP4sp-bXWs-esPxU14Z_8HTGVGwYulf7TPyc6M8-csF2dNlhb=s224-w224-h128-nd",
+                                    "width": 224,
+                                    "height": 128
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "simpleText": "Becky G - Glitch | Official Live Performance"
+                              },
+                              "shortBylineText": {
+                                "simpleText": "by BeckyGVEVO"
+                              },
+                              "lengthText": {
+                                "simpleText": "2:02"
+                              },
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "Clor87IPcBg"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "compactInfocardRenderer": {
+                          "content": {
+                            "structuredDescriptionVideoLockupRenderer": {
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.ggpht.com/proxy/e6WMe8tNdwyN28pX7paPLqm0ilaA5KqyjJklseWf8myFQc990co-6UqdUrnxrE9vmGbRnX8pCAQEzizN=s112-w112-h64-nd",
+                                    "width": 112,
+                                    "height": 64
+                                  },
+                                  {
+                                    "url": "https://yt3.ggpht.com/proxy/e6WMe8tNdwyN28pX7paPLqm0ilaA5KqyjJklseWf8myFQc990co-6UqdUrnxrE9vmGbRnX8pCAQEzizN=s224-w224-h128-nd",
+                                    "width": 224,
+                                    "height": 128
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "simpleText": "Luis Fonsi, Zé Neto & Cristiano, Thyy - Por Isso Que Eu Bebo"
+                              },
+                              "shortBylineText": {
+                                "simpleText": "by LuisFonsiVEVO"
+                              },
+                              "lengthText": {
+                                "simpleText": "2:57"
+                              },
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "z1Gr0fulmXk"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "dQw4w9WgXcQ": {
+    "cards": {
+      "cardCollectionRenderer": {
+        "cards": [
+          {
+            "cardRenderer": {
+              "teaser": {
+                "simpleCardTeaserRenderer": {
+                  "message": {
+                    "simpleText": "Rick Astley-Are We There Yet?"
+                  }
+                }
+              },
+              "cueRanges": [
+                {
+                  "startCardActiveMs": "1",
+                  "endCardActiveMs": "0",
+                  "teaserDurationMs": "6000"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "engagementPanels": [
+      {
+        "engagementPanelSectionListRenderer": {
+          "panelIdentifier": "engagement-panel-structured-description",
+          "content": {
+            "structuredDescriptionContentRenderer": {
+              "items": [
+                {
+                  "videoDescriptionInfocardsSectionRenderer": {
+                    "sectionTitle": {
+                      "simpleText": "Rick Astley"
+                    },
+                    "channelAvatar": {
+                      "thumbnails": [
+                        {
+                          "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s88-c-k-c0x00ffffff-no-rj"
+                        }
+                      ]
+                    },
+                    "channelEndpoint": {
+                      "browseEndpoint": {
+                        "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw"
+                      }
+                    },
+                    "infocards": [
+                      {
+                        "compactInfocardRenderer": {
+                          "content": {
+                            "mediaLockupRenderer": {
+                              "title": {
+                                "simpleText": "Rick Astley - Are We There Yet?"
+                              },
+                              "subtitle": {
+                                "simpleText": "DOWNLOAD ARE WE THERE YET?"
+                              },
+                              "thumbnailDetails": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://i.ytimg.com/an/dQw4w9WgXcQ/18082120152609386497_mq.jpg?v=653111c5",
+                                    "width": 112,
+                                    "height": 64
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/an/dQw4w9WgXcQ/18082120152609386497_mq.jpg?v=653111c5",
+                                    "width": 224,
+                                    "height": 128
+                                  }
+                                ]
+                              },
+                              "endpoint": {
+                                "urlEndpoint": {
+                                  "url": "https://www.youtube.com/redirect?event=infocard&redir_token=&q=https%3A%2F%2FRickAstley.lnk.to%2FAreWeThereYetFA%2Fitunes",
+                                  "target": "TARGET_NEW_WINDOW"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "eyZEqSPeMwg": {
+    "cards": {
+      "cardCollectionRenderer": {
+        "cards": [
+          {
+            "cardRenderer": {
+              "teaser": {
+                "simpleCardTeaserRenderer": {
+                  "message": {
+                    "simpleText": "InGenius"
+                  }
+                }
+              },
+              "cueRanges": [
+                {
+                  "startCardActiveMs": "2029138",
+                  "endCardActiveMs": "0",
+                  "teaserDurationMs": "6000"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "engagementPanels": [
+      {
+        "engagementPanelSectionListRenderer": {
+          "panelIdentifier": "engagement-panel-structured-description",
+          "content": {
+            "structuredDescriptionContentRenderer": {
+              "items": [
+                {
+                  "videoDescriptionInfocardsSectionRenderer": {
+                    "sectionTitle": {
+                      "simpleText": "Veritasium"
+                    },
+                    "channelAvatar": {
+                      "thumbnails": [
+                        {
+                          "url": "https://yt3.ggpht.com/7vCbvtCqtjQ3YLgsJt7Y952MQV1sBvhllSCSxHP8_sVZdcPCBrITfhkN2RdyCuwPnsByq-1GoA=s88-c-k-c0x00ffffff-no-rj"
+                        }
+                      ]
+                    },
+                    "channelEndpoint": {
+                      "browseEndpoint": {
+                        "browseId": "UCHnyfMqiRRG1u-2MsSQLbXA"
+                      }
+                    },
+                    "infocards": [
+                      {
+                        "compactInfocardRenderer": {
+                          "content": {
+                            "structuredDescriptionChannelLockupRenderer": {
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.ggpht.com/QUuLympXgThsWDfQXNMY_CMIJ739ercmkYePiFPNRnyrAixF_RsASbGUPZgkpFMKKtc2-wdC8Q=s64-c-k-c0x00ffffff-no-rj",
+                                    "width": 64,
+                                    "height": 64
+                                  },
+                                  {
+                                    "url": "https://yt3.ggpht.com/QUuLympXgThsWDfQXNMY_CMIJ739ercmkYePiFPNRnyrAixF_RsASbGUPZgkpFMKKtc2-wdC8Q=s128-c-k-c0x00ffffff-no-rj",
+                                    "width": 128,
+                                    "height": 128
+                                  }
+                                ]
+                              },
+                              "title": {
+                                "simpleText": "InGenius"
+                              },
+                              "subscriberCountText": {
+                                "simpleText": "144K subscribers"
+                              },
+                              "navigationEndpoint": {
+                                "browseEndpoint": {
+                                  "browseId": "UC1UmujXTizWokDHojdEOdow"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

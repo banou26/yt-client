@@ -401,6 +401,30 @@ export type SourceWatchMeta = {
   music?: SourceMusicSection
   /** The card for the video's channel that ends youtube.com's expanded description. */
   channelCard?: SourceChannelCard
+  /** What youtube.com slides over the player at set times, each opening the channel card's info cards; empty without. */
+  cardTeasers: SourceCardTeaser[]
+}
+
+export type SourceCardTeaser = {
+  text: string
+  /** Where in the video it slides in. */
+  startMs: number
+  /** How long it stays before it collapses to the player's "i". */
+  durationMs: number
+}
+
+/** A card a creator added, which youtube.com lists under the channel card; it opens one of the video, channel or url. */
+export type SourceInfoCard = {
+  title: string
+  /** "by BeckyGVEVO" for a video, the subscriber count for a channel, the call to action for a link. */
+  subtitle?: string
+  thumbnail?: string
+  /** A video's length, as its thumbnail shows it. */
+  duration?: string
+  videoId?: string
+  channelId?: string
+  /** A page outside youtube.com, past its redirect page. */
+  url?: string
 }
 
 export type SourceSong = {
@@ -430,6 +454,8 @@ export type SourceChannelCard = {
   aboutUrl?: string
   /** The channel's own links, such as its Instagram. */
   links: SourceChannelLink[]
+  /** The info cards, which the player's "i" and its teasers open. */
+  cards: SourceInfoCard[]
 }
 
 /** The get_panel arguments of a video's transcript, as youtube.com's description button sends them. */

@@ -311,7 +311,12 @@ const style = css`
     cursor: pointer;
   }
 
-  /* above the full screen title's shade, which youtube.com never draws over it */
+  /* above the full screen title's shade, which youtube.com never draws over it, and 48 px from the top, under the info
+     cards' "i", when the video has cards (measured 2026-11-10) */
+  &.under-cards .hide {
+    top: 48px;
+  }
+
   .hide {
     position: absolute;
     z-index: 1;
@@ -595,17 +600,19 @@ const ElementView = (
 
 /**
  * The elements a creator placed over the last seconds of the video, each from its start until its end or the video's,
- * with youtube.com's Hide toggle while any is due. In the miniplayer (`docked`) they show without the toggle and take no
- * clicks, as on youtube.com. Opening a video or playlist goes through `onOpen`, as the end screen's own suggestions do;
- * a channel or website opens in a new tab, as on youtube.com.
+ * with youtube.com's Hide toggle while any is due, moved below the info cards' "i" when the video has cards
+ * (`underCards`). In the miniplayer (`docked`) they show without the toggle and take no clicks, as on youtube.com.
+ * Opening a video or playlist goes through `onOpen`, as the end screen's own suggestions do; a channel or website opens
+ * in a new tab, as on youtube.com.
  */
 export const EndScreenElements = (
-  { elements, video, time, ended, docked, onOpen }: {
+  { elements, video, time, ended, docked, underCards = false, onOpen }: {
     elements: readonly EndScreenElement[]
     video: HTMLVideoElement
     time: number
     ended: boolean
     docked: boolean
+    underCards?: boolean
     onOpen?: (target: UpNext) => void
   },
 ) => {
@@ -615,7 +622,7 @@ export const EndScreenElements = (
   const due = elements.map(element => showsAt(element, ms, ended))
   const near = elements.some(element => showsAt(element, ms, ended, PRELOAD_MS))
   return (
-    <div css={style} className={docked ? 'docked' : undefined} data-end-screen='elements'>
+    <div css={style} className={[docked && 'docked', underCards && 'under-cards'].filter(Boolean).join(' ') || undefined} data-end-screen='elements'>
       {near
         ? (
           <div

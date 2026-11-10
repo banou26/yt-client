@@ -58,6 +58,7 @@ describe('the expanded description\'s channel card', () => {
         { title: 'Facebook', url: 'https://www.facebook.com/RickAstley/' },
         { title: 'YouTube Music', url: 'https://music.youtube.com/channel/UCwZEU0wAwIyZb4x5G_KJp2w' },
       ],
+      cards: [],
     })
   })
 

@@ -2,6 +2,7 @@ import type shaka from 'shaka-player'
 
 import type { CaptionTrack, EndScreenElement, PlaybackRefusal, Storyboard } from '../frame/protocol'
 import type { Point } from '../components/ui/popup'
+import type { WatchMetaQuery } from '../generated/graphql'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './chapters'
 import type { SkipSegment } from './sponsorblock'
@@ -20,6 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { resetEngine, startEngine } from '../scramjet/client'
 import { warmShaka } from './prefetch'
 import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
+import { revealCards } from './cards'
 import { registerSeek, clearSeek } from './seek'
 import { closePlayer, setPanel, setPlayingChapter } from './session'
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
@@ -31,6 +33,7 @@ import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { EndScreenElements } from './end-screen-elements'
+import { InfoCards } from './info-cards'
 import { pictureOf } from './end-screen-layout'
 import { MiniplayerControls } from './miniplayer'
 import { useFrame } from './player-frame'
@@ -185,6 +188,8 @@ export type PlayerUpNext = {
 
 const FALLBACK_FPS = 30
 
+type CardTeaser = NonNullable<WatchMetaQuery['watch']>['cardTeasers'][number]
+
 const captionStyle = (declarations: string) => css`
   video::cue {
     ${declarations};
@@ -237,6 +242,7 @@ const captionBase = (video: HTMLVideoElement) => {
 const VideoPlayer = (
   {
     videoId, list, title, startAt, docked = false, theater = false, onTheater, onMiniplayer, upNext, chapters, segments = [],
+    teasers = [], cardsAvatar,
   }: {
     videoId: string
     list?: string
@@ -249,6 +255,8 @@ const VideoPlayer = (
     upNext?: PlayerUpNext
     chapters?: readonly PlayerChapter[]
     segments?: readonly SkipSegment[]
+    teasers?: readonly CardTeaser[]
+    cardsAvatar?: string | null
   },
 ) => {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -315,6 +323,11 @@ const VideoPlayer = (
   useEffect(() => setPlayingChapter(chapterIndex), [chapterIndex])
   const frame = useFrame()
   const grid = frame?.grid ?? false
+  // in full screen youtube.com opens the description beside the video, and on the page it expands the one under it
+  const openCards = () => {
+    if (frame?.fullscreen) frame.setAside('description')
+    else revealCards()
+  }
   // youtube.com moves on from a finished video only once Time's up is closed
   const held = timesUp || sleepTimer === 'end'
   const ending = state.ended && upNext
@@ -793,7 +806,29 @@ const VideoPlayer = (
         : undefined}
       {refusal ? <RefusalScreen refusal={refusal} /> : undefined}
       {video && !status && !refusal && endScreen.length > 0
-        ? <EndScreenElements elements={endScreen} video={video} time={time} ended={state.ended} docked={docked} onOpen={upNext?.onOpen} />
+        ? (
+          <EndScreenElements
+            elements={endScreen}
+            video={video}
+            time={time}
+            ended={state.ended}
+            docked={docked}
+            underCards={teasers.length > 0}
+            onOpen={upNext?.onOpen}
+          />
+        )
+        : undefined}
+      {video && !status && !refusal && !docked && teasers.length > 0
+        ? (
+          <InfoCards
+            teasers={teasers}
+            avatar={cardsAvatar}
+            time={time}
+            shown={(active || state.paused) && !grid}
+            ended={state.ended}
+            onOpen={openCards}
+          />
+        )
         : undefined}
       {upNext && ending === 'countdown' && upNext.pick
         ? <UpNextCountdown target={upNext.pick} onOpen={upNext.onOpen} onCancel={() => setCancelled(true)} />

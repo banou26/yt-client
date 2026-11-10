@@ -563,6 +563,33 @@ type WatchMeta {
   # The card for the video's channel that ends youtube.com's expanded
   # description. Null when upstream sends none.
   channelCard: ChannelCard
+  # What youtube.com slides over the player at set times, each opening the
+  # channel card's info cards. Empty for a video without cards.
+  cardTeasers: [CardTeaser!]!
+}
+
+type CardTeaser {
+  text: String!
+  # Where in the video it slides in.
+  startMs: Float!
+  # How long it stays before it collapses to the player's "i".
+  durationMs: Float!
+}
+
+# A card a creator added, which youtube.com lists under the channel card. It
+# opens exactly one of its video, its channel or its url.
+type InfoCard {
+  title: String!
+  # "by BeckyGVEVO" for a video, the subscriber count for a channel, the call
+  # to action for a link.
+  subtitle: String
+  thumbnail: String
+  # A video's length, as its thumbnail shows it.
+  duration: String
+  videoId: ID
+  channelId: ID
+  # A page outside youtube.com, past its redirect page.
+  url: String
 }
 
 type MusicSection {
@@ -593,6 +620,8 @@ type ChannelCard {
   aboutUrl: String
   # The channel's own links, such as its Instagram.
   links: [ChannelLink!]!
+  # The info cards, which the player's "i" and its teasers open.
+  cards: [InfoCard!]!
 }
 
 type TranscriptPanel {

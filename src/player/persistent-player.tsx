@@ -13,7 +13,7 @@ import { PlayerFrame } from './player-frame'
 import { useSponsorSegments } from './sponsorblock'
 import { hasNextInQueue, markPlayed, nextQueueIndex, pickAutoplay, previousQueueIndex } from './up-next'
 import VideoPlayer from './video-player'
-import { WATCH_META_QUERY } from './watch-query'
+import { descriptionOf, WATCH_META_QUERY } from './watch-query'
 
 const style = css`
   /* The dock is always mounted so the player's DOM home has somewhere to live
@@ -274,6 +274,7 @@ const PersistentPlayer = () => {
                 chapter: session.chapter,
                 panel: session.panel,
                 transcript: watch?.transcriptPanel ?? undefined,
+                description: watch ? descriptionOf(watch) : undefined,
               }}
             >
               <VideoPlayer
@@ -288,6 +289,8 @@ const PersistentPlayer = () => {
                 onMiniplayer={toggleMiniplayer}
                 chapters={watch?.chapters}
                 segments={segments}
+                teasers={watch?.cardTeasers}
+                cardsAvatar={watch?.channelCard?.avatar}
                 upNext={{
                   autoplay,
                   onAutoplay: (value: boolean) => updateSettings({ autoplay: value }),

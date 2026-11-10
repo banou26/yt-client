@@ -2,7 +2,10 @@ import { css } from '@emotion/react'
 import { ChevronDown, ChevronUp, Forward, ListPlus, MessageSquareText, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
+import type { FrameDetails } from './player-frame'
+
 import Comments from '../components/comments'
+import { DescriptionBox } from '../components/description-box'
 import { formatDuration, formatMeta } from '../components/format'
 import { useRateVideo } from '../components/rate-video'
 import SaveMenu from '../components/save-menu'
@@ -11,6 +14,7 @@ import { Thumbnail } from '../components/thumbnail'
 import { isTypingTarget } from './controls'
 import { openOnClick, upNextHref } from './end-screen'
 import { useFrame } from './player-frame'
+import { setPanel } from './session'
 
 // youtube.com's grid holds the first 12 related videos at every width (measured 2026-11-10 at 1024, 1280 and 1920 px)
 const GRID_SIZE = 12
@@ -224,7 +228,7 @@ const style = css`
  */
 export const FullscreenView = ({ shown, settings }: { shown: boolean, settings: boolean }) => {
   const frame = useFrame()!
-  const { details, grid, setGrid, comments, setComments } = frame
+  const { details, grid, setGrid, aside, setAside } = frame
   const rootRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [sharing, setSharing] = useState(false)
@@ -297,7 +301,13 @@ export const FullscreenView = ({ shown, settings }: { shown: boolean, settings: 
         {details.commentsHidden
           ? undefined
           : (
-            <button type='button' className='fs-action' aria-label='Comments' aria-pressed={comments} onClick={() => setComments(!comments)}>
+            <button
+              type='button'
+              className='fs-action'
+              aria-label='Comments'
+              aria-pressed={aside === 'comments'}
+              onClick={() => setAside(aside === 'comments' ? undefined : 'comments')}
+            >
               <MessageSquareText size={20} strokeWidth={1.5} />
             </button>
           )}
@@ -392,6 +402,15 @@ const panelStyle = css`
     margin-top: 0;
   }
 
+  /* youtube.com heads its description panel with the video's title, beside the close button */
+  .fs-description-title {
+    margin: 0;
+    padding: 0.4rem 4rem 0 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.8rem;
+  }
+
   /* youtube.com's 320 px panel heads the list with the title, then a sort icon beside the close button */
   .heading-row {
     gap: 0.8rem;
@@ -431,6 +450,27 @@ export const CommentsPanel = (
     </button>
     <div className='fs-body'>
       <Comments videoId={videoId} commentCountText={commentCountText} />
+    </div>
+  </aside>
+)
+
+/** The description beside the video in full screen, as youtube.com's info cards open it there, every section listed. */
+export const DescriptionPanel = ({ details, onClose }: { details: FrameDetails, onClose: () => void }) => (
+  <aside css={panelStyle} aria-label='Description'>
+    <button type='button' className='fs-close' aria-label='Close description' onClick={onClose}>
+      <X size={24} strokeWidth={1.5} />
+    </button>
+    <div className='fs-body'>
+      {details.title ? <h2 className='fs-description-title'>{details.title}</h2> : undefined}
+      <DescriptionBox
+        {...details.description}
+        videoId={details.videoId}
+        chapters={details.chapters}
+        currentChapter={details.chapter}
+        onViewChapters={() => setPanel('chapters')}
+        onShowTranscript={details.transcript ? () => setPanel('transcript') : undefined}
+        open
+      />
     </div>
   </aside>
 )

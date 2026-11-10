@@ -74,6 +74,8 @@ export const createCache = () => cacheExchange({
     MusicSection: () => null,
     Song: () => null,
     ChannelCard: () => null,
+    InfoCard: () => null,
+    CardTeaser: () => null,
     Author: () => null,
     Session: () => null,
   },

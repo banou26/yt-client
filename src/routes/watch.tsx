@@ -32,7 +32,7 @@ import { prefetchPlayback } from '../player/prefetch'
 import {
   claimPlayer, closePlayer, getPlayerSession, openPlayer, setPanel, setTheater as setPlayerTheater, usePlayerSession,
 } from '../player/session'
-import { WATCH_META_QUERY } from '../player/watch-query'
+import { descriptionOf, WATCH_META_QUERY } from '../player/watch-query'
 import { Menu, MenuItem } from '../components/ui/menu'
 import { getSettings, updateSettings } from '../settings'
 
@@ -665,20 +665,12 @@ const WatchPage = () => {
               ? (
                 <DescriptionBox
                   key={`description:${videoId}`}
-                  viewCountText={watch.viewCountText}
-                  publishedDateText={watch.publishedDateText}
-                  shortViewCountText={watch.shortViewCountText}
-                  relativeDateText={watch.relativeDateText}
-                  hashtags={watch.hashtags}
-                  description={watch.description}
-                  runs={watch.descriptionRuns}
+                  {...descriptionOf(watch)}
                   videoId={videoId}
                   chapters={chapters}
                   currentChapter={chapter}
                   onViewChapters={() => setPanel('chapters')}
                   onShowTranscript={transcript ? () => setPanel('transcript') : undefined}
-                  music={watch.music}
-                  channelCard={watch.channelCard}
                 />
               )
               : undefined}

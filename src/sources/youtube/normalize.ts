@@ -1,4 +1,4 @@
-import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSearchTopic, SourceSession, SourceStoreShelf, SourceTopicVideo, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceCardTeaser, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceInfoCard, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSearchTopic, SourceSession, SourceStoreShelf, SourceTopicVideo, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -1431,6 +1431,42 @@ type ChannelCardNode = {
   creator_videos_button?: { endpoint?: { metadata?: { url?: string } } }
   creator_about_button?: { endpoint?: { metadata?: { url?: string } } }
   creator_custom_url_buttons?: { title?: string, on_tap?: { payload?: { url?: string } } }[]
+  infocards?: { content?: InfoCardNode }[]
+}
+
+// youtubei.js has no class for StructuredDescriptionChannelLockup and builds one from its keys, in snake case
+type InfoCardNode = {
+  type?: string
+  title?: Text
+  subtitle?: Text
+  short_byline_text?: Text
+  subscriber_count_text?: Text
+  length_text?: Text
+  thumbnail?: Thumbnail[]
+  thumbnail_details?: Thumbnail[]
+  endpoint?: { payload?: { videoId?: string, browseId?: string, url?: string } }
+}
+
+const normalizeInfoCard = (card: InfoCardNode | undefined): SourceInfoCard[] => {
+  const title = presentText(card?.title)
+  if (!card || !title) return []
+  if (card.type === 'StructuredDescriptionVideoLockup') {
+    const videoId = card.endpoint?.payload?.videoId
+    return videoId
+      ? [{ title, subtitle: presentText(card.short_byline_text), thumbnail: thumbnail(card.thumbnail), duration: presentText(card.length_text), videoId }]
+      : []
+  }
+  if (card.type === 'StructuredDescriptionChannelLockup') {
+    const channelId = card.endpoint?.payload?.browseId
+    return channelId
+      ? [{ title, subtitle: presentText(card.subscriber_count_text), thumbnail: thumbnail(card.thumbnail), channelId }]
+      : []
+  }
+  if (card.type === 'MediaLockup') {
+    const url = outboundUrl(card.endpoint?.payload?.url)
+    return url ? [{ title, subtitle: presentText(card.subtitle), thumbnail: thumbnail(card.thumbnail_details), url }] : []
+  }
+  return []
 }
 
 const normalizeChannelCard = (input: unknown): SourceChannelCard | undefined => {
@@ -1449,8 +1485,24 @@ const normalizeChannelCard = (input: unknown): SourceChannelCard | undefined => 
       const url = outboundUrl(button.on_tap?.payload?.url)
       return button.title && url ? [{ title: button.title, url }] : []
     }),
+    cards: (card.infocards ?? []).flatMap((infocard) => normalizeInfoCard(infocard.content)),
   }
 }
+
+type CardNode = {
+  teaser?: { message?: Text }
+  cue_ranges?: { start_card_active_ms?: string, teaser_duration_ms?: string }[]
+}
+
+// /next's top-level cards, not the player answer's, whose cards hold only a "View corrections" stub (measured on 47 videos)
+const normalizeCardTeasers = (input: unknown): SourceCardTeaser[] =>
+  ((input as { cards?: { cards?: CardNode[] } }).cards?.cards ?? []).flatMap((card) => {
+    const message = presentText(card.teaser?.message)
+    const range = card.cue_ranges?.[0]
+    const startMs = Number(range?.start_card_active_ms)
+    const durationMs = Number(range?.teaser_duration_ms)
+    return message && Number.isFinite(startMs) && Number.isFinite(durationMs) ? [{ text: message, startMs, durationMs }] : []
+  })
 
 type PanelCommand = {
   identifier?: { tag?: string }
@@ -1660,6 +1712,7 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     transcriptPanel: normalizeTranscriptPanel(input),
     music: normalizeMusicSection(input),
     channelCard: normalizeChannelCard(input),
+    cardTeasers: normalizeCardTeasers(input),
   }
 }
 

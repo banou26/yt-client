@@ -1,3 +1,5 @@
+import type { WatchMetaQuery } from '../generated/graphql'
+
 import { gql } from '../generated'
 
 /**
@@ -35,7 +37,17 @@ export const WATCH_META_QUERY = gql(`
       chapters { title startSeconds thumbnail }
       transcriptPanel { panelId params }
       music { countText channelId songs { title artist album thumbnail videoId } }
-      channelCard { id name avatar subscriberCountText videosUrl aboutUrl links { title url } }
+      channelCard {
+        id
+        name
+        avatar
+        subscriberCountText
+        videosUrl
+        aboutUrl
+        links { title url }
+        cards { title subtitle thumbnail duration videoId channelId url }
+      }
+      cardTeasers { text startMs durationMs }
       related {
         id
         title
@@ -72,3 +84,20 @@ export const WATCH_META_QUERY = gql(`
     }
   }
 `)
+
+type Watch = NonNullable<WatchMetaQuery['watch']>
+
+/** What a description box shows of a video, as the watch page and the full screen description panel both draw it. */
+export const descriptionOf = (watch: Watch) => ({
+  viewCountText: watch.viewCountText,
+  publishedDateText: watch.publishedDateText,
+  shortViewCountText: watch.shortViewCountText,
+  relativeDateText: watch.relativeDateText,
+  hashtags: watch.hashtags,
+  description: watch.description,
+  runs: watch.descriptionRuns,
+  music: watch.music,
+  channelCard: watch.channelCard,
+})
+
+export type Description = ReturnType<typeof descriptionOf>

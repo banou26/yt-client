@@ -4,6 +4,7 @@ import type { LikeStatus, TranscriptPanel as TranscriptArgs, WatchMetaQuery } fr
 import type { PlayerChapter } from './chapters'
 import type { VideoPanel } from './session'
 import type { UpNext } from './up-next'
+import type { Description } from './watch-query'
 
 import { css } from '@emotion/react'
 import { createContext } from 'preact'
@@ -31,7 +32,12 @@ export type FrameDetails = {
   /** The session's open list, which the watch page draws beside the player and this frame draws in full screen. */
   panel?: VideoPanel
   transcript?: TranscriptArgs
+  /** What the description panel shows, which the info cards' "i" opens in full screen. */
+  description?: Description
 }
+
+/** What the slot beside the video holds in full screen when no list of the session's is open there. */
+export type FrameAside = 'comments' | 'description'
 
 type FullscreenModule = typeof import('./fullscreen-view')
 
@@ -40,8 +46,8 @@ type Frame = {
   fullscreen: boolean
   grid: boolean
   setGrid: (open: boolean) => void
-  comments: boolean
-  setComments: (open: boolean) => void
+  aside?: FrameAside
+  setAside: (aside: FrameAside | undefined) => void
   view?: FullscreenModule
 }
 
@@ -103,14 +109,14 @@ const frameStyle = css`
  *
  * It stays mounted while the video inside it changes, so a video picked in full screen plays without leaving it. In
  * full screen it carries the view's state: the grid of more videos, and the one slot beside the video that holds the
- * session's open list (the chapters or the transcript) or the comments. Opening one closes the other, and all of them
- * close when the video changes or full screen starts or ends.
+ * session's open list (the chapters or the transcript), the comments or the description. Opening one closes the
+ * others, and all of them close when the video changes or full screen starts or ends.
  */
 export const PlayerFrame = ({ details, children }: { details: FrameDetails, children: ComponentChildren }) => {
   const ref = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [grid, setGrid] = useState(false)
-  const [comments, setComments] = useState(false)
+  const [aside, setAside] = useState<FrameAside | undefined>(undefined)
   const [view, setView] = useState<FullscreenModule | undefined>(undefined)
 
   // youtube.com closes the open list on every switch in or out, including one open beside the player on the watch page
@@ -118,7 +124,7 @@ export const PlayerFrame = ({ details, children }: { details: FrameDetails, chil
     const sync = () => {
       setFullscreen(document.fullscreenElement !== null && document.fullscreenElement === ref.current)
       setGrid(false)
-      setComments(false)
+      setAside(undefined)
       setPanel(undefined)
     }
     document.addEventListener('fullscreenchange', sync)
@@ -127,16 +133,16 @@ export const PlayerFrame = ({ details, children }: { details: FrameDetails, chil
 
   useEffect(() => {
     setGrid(false)
-    setComments(false)
+    setAside(undefined)
   }, [details.videoId])
 
   useEffect(() => {
-    if (details.panel) setComments(false)
+    if (details.panel) setAside(undefined)
   }, [details.panel])
 
-  const showComments = (open: boolean) => {
+  const showAside = (open: FrameAside | undefined) => {
     if (open) setPanel(undefined)
-    setComments(open)
+    setAside(open)
   }
 
   // @fkn/lib passes a wheel inside its frame's bounds on to the scroller under the pointer, which in full screen is the
@@ -178,20 +184,18 @@ export const PlayerFrame = ({ details, children }: { details: FrameDetails, chil
       overlay: true,
     })
     : undefined
-  const panel = list ?? (fullscreen && comments && !details.commentsHidden && view
-    ? (
-      <view.CommentsPanel
-        key={details.videoId}
-        videoId={details.videoId}
-        commentCountText={details.commentCountText}
-        onClose={() => setComments(false)}
-      />
-    )
-    : undefined)
+  const close = () => setAside(undefined)
+  const panel = list ?? (!fullscreen || !view
+    ? undefined
+    : aside === 'comments' && !details.commentsHidden
+      ? <view.CommentsPanel key={details.videoId} videoId={details.videoId} commentCountText={details.commentCountText} onClose={close} />
+      : aside === 'description' && details.description
+        ? <view.DescriptionPanel key={details.videoId} details={details} onClose={close} />
+        : undefined)
 
   return (
     <div css={frameStyle} data-player-root ref={ref} className={panel ? 'panel-open' : undefined}>
-      <FrameContext.Provider value={{ details, fullscreen, grid, setGrid, comments, setComments: showComments, view }}>
+      <FrameContext.Provider value={{ details, fullscreen, grid, setGrid, aside, setAside: showAside, view }}>
         {children}
         {panel ? <div className='side-panel'>{panel}</div> : undefined}
       </FrameContext.Provider>

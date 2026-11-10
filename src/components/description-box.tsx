@@ -3,10 +3,11 @@ import type { PlayerChapter } from '../player/chapters'
 import type { RichTextRun } from './rich-text'
 
 import { css } from '@emotion/react'
-import { Music2, SquarePlay, SquareUser } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'preact/hooks'
+import { ArrowUpRight, Music2, SquarePlay, SquareUser } from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { Link } from 'wouter'
 
+import { registerCards } from '../player/cards'
 import { seekTo } from '../player/seek'
 import { ChapterCards } from './chapters'
 import { descriptionMeta } from './format'
@@ -17,6 +18,7 @@ import { watchHrefFor } from './video-card'
 
 type Watch = NonNullable<WatchMetaQuery['watch']>
 type Song = NonNullable<Watch['music']>['songs'][number]
+type InfoCard = NonNullable<Watch['channelCard']>['cards'][number]
 
 const LINES = 3
 const MORE_GAP = 4
@@ -252,6 +254,85 @@ const style = css`
     --rail-arrow-top: 0;
   }
 
+  /* youtube.com glides the cards up until they end 24 px above the bottom (measured 2026-11-10); cards above the
+     page's top land under the masthead */
+  .channel-card {
+    scroll-margin: var(--header-height) 0 2.4rem;
+  }
+
+  /* youtube.com's info cards, measured 2026-11-10: rows 64 px tall and 12 px apart, a 112 px wide picture with a
+     channel's 64 px avatar in its middle, and the text 16 px after it, the title on one line */
+  .info-cards {
+    display: grid;
+    gap: 1.2rem;
+    margin-top: 1.6rem;
+  }
+
+  .info-card {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    height: 6.4rem;
+    color: var(--text-primary);
+  }
+
+  .card-thumb {
+    position: relative;
+    flex: none;
+    width: 11.2rem;
+    height: 6.4rem;
+    overflow: hidden;
+    border-radius: 0.8rem;
+    background: var(--bg-chip);
+  }
+
+  .card-thumb.round {
+    width: 6.4rem;
+    margin: 0 2.4rem;
+    border-radius: 50%;
+  }
+
+  .card-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-duration {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.4rem;
+    padding: 0 0.4rem;
+    border-radius: 0.4rem;
+    background: var(--bg-badge);
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.8rem;
+  }
+
+  .card-text {
+    min-width: 0;
+  }
+
+  .card-title {
+    display: -webkit-box;
+    overflow: hidden;
+    font-weight: 500;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+
+  .card-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
   .less {
     display: block;
     margin-top: 1.6rem;
@@ -288,7 +369,7 @@ const placeMore = (snippet: HTMLElement) => {
 export const DescriptionBox = (
   {
     viewCountText, publishedDateText, shortViewCountText, relativeDateText, hashtags = [],
-    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters, onShowTranscript, music, channelCard,
+    description, runs, videoId, chapters = [], currentChapter = -1, onViewChapters, onShowTranscript, music, channelCard, open = false,
   }: {
     viewCountText?: string | null
     publishedDateText?: string | null
@@ -305,10 +386,24 @@ export const DescriptionBox = (
     onShowTranscript?: () => void
     music?: Watch['music']
     channelCard?: Watch['channelCard']
+    // expanded with no Show less, as youtube.com's description panel in full screen lists every section
+    open?: boolean
   },
 ) => {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(open)
   const snippetRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLElement>(null)
+  const [revealed, setRevealed] = useState(0)
+  useEffect(() => {
+    if (!channelCard || open) return
+    return registerCards(() => {
+      setExpanded(true)
+      setRevealed(count => count + 1)
+    })
+  }, [channelCard, open])
+  useEffect(() => {
+    if (revealed > 0) cardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [revealed])
   useLayoutEffect(() => {
     const snippet = snippetRef.current
     if (expanded || !snippet) return
@@ -423,7 +518,7 @@ export const DescriptionBox = (
         : undefined}
       {expanded && channelCard
         ? (
-          <section className='channel-card' aria-label='Channel'>
+          <section className='channel-card' aria-label='Channel' ref={cardRef}>
             <Link className='channel-head' href={`/channel/${channelCard.id}`}>
               <span className='channel-avatar'>{channelCard.avatar ? <Thumbnail src={channelCard.avatar} /> : undefined}</span>
               <span>
@@ -444,14 +539,36 @@ export const DescriptionBox = (
                 ))}
               </Rail>
             </div>
+            {channelCard.cards.length > 0
+              ? <div className='info-cards'>{channelCard.cards.map((card, index) => <InfoCardRow key={index} card={card} />)}</div>
+              : undefined}
           </section>
         )
         : undefined}
-      {description && expanded
+      {description && expanded && !open
         ? <button type='button' className='less' onClick={() => setExpanded(false)}>Show less</button>
         : undefined}
     </div>
   )
+}
+
+const InfoCardRow = ({ card }: { card: InfoCard }) => {
+  const body = (
+    <>
+      <span className={card.channelId ? 'card-thumb round' : 'card-thumb'}>
+        {card.thumbnail ? <Thumbnail src={card.thumbnail} /> : undefined}
+        {card.duration ? <span className='card-duration'>{card.duration}</span> : undefined}
+      </span>
+      <span className='card-text'>
+        <span className='card-title'>{card.title}</span>
+        {card.subtitle
+          ? <span className='card-subtitle'>{card.subtitle}{card.url ? <ArrowUpRight size={12} strokeWidth={2} aria-hidden='true' /> : undefined}</span>
+          : undefined}
+      </span>
+    </>
+  )
+  if (card.url) return <a className='info-card' href={card.url} target='_blank' rel='noreferrer noopener'>{body}</a>
+  return <Link className='info-card' href={card.videoId ? watchHrefFor(card.videoId) : `/channel/${card.channelId}`}>{body}</Link>
 }
 
 const SongCard = ({ song }: { song: Song }) => {
