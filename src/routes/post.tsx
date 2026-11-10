@@ -2,6 +2,7 @@ import { css } from '@emotion/react'
 import { useQuery } from 'urql'
 
 import { useDocumentTitle } from '../app'
+import { Comments } from '../components/comments'
 import { safeDecode } from '../components/format'
 import { PostCard } from '../components/post-card'
 import { gql } from '../generated'
@@ -30,7 +31,8 @@ const POST_QUERY = gql(`
 `)
 
 /* youtube.com draws the post 642px wide at the left of a centred column that
-   widens in 218px steps, up to six. Measured at 1000 to 1920px wide, 2026-11-10. */
+   widens in 218px steps, up to six, and its comments under it 852px wide.
+   Measured at 1000 to 1920px wide, 2026-11-10. */
 const style = css`
   width: max(min(100% - 3.2rem, 64.2rem), min(130.8rem, round(down, 100% - 4.8rem, 21.8rem)));
   margin: 0 auto;
@@ -38,6 +40,10 @@ const style = css`
 
   .post {
     max-width: 64.2rem;
+  }
+
+  .comments-column {
+    max-width: 85.2rem;
   }
 
   .status {
@@ -52,6 +58,13 @@ export const PostPage = ({ params }: { params: { postId: string } }) => {
   return (
     <main css={style}>
       {post ? <PostCard post={post} /> : undefined}
+      {post?.author
+        ? (
+          <div className='comments-column'>
+            <Comments key={post.id} post={{ id: post.id, channelId: post.author.id }} />
+          </div>
+        )
+        : undefined}
       {data && !post ? <p className='status'>This post isn't available.</p> : undefined}
       {error ? <p className='status'>Couldn't load this post. Try again later.</p> : undefined}
     </main>

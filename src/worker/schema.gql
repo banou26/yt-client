@@ -334,6 +334,9 @@ type Post {
   text: String!
   publishedText: String
   voteCountText: String
+  # As the Posts tab shows it ("1K"). Absent where youtube.com shows none, as
+  # on the post's own page.
+  commentCountText: String
   attachedVideo: Video
   attachedImage: String
 }
@@ -805,6 +808,9 @@ type Query {
   # A cursor is bound to the sort that minted it: switching order has to start a
   # new feed rather than page the previous ordering's results.
   comments(videoId: ID!, sort: CommentSort, cursor: String): CommentPage!
+  # A post's comments, as `comments` reads a video's. `channelId` is the post's
+  # author, which upstream keys them by too.
+  postComments(postId: ID!, channelId: ID!, sort: CommentSort, cursor: String): CommentPage!
   # Polled rather than subscribed: the whole transport is one response per
   # request. Call without a cursor to open the chat, then follow the cursor it
   # returns. A poll parks on the server until something arrives or it times out,

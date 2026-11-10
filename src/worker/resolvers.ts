@@ -51,6 +51,8 @@ export const resolvers = {
     transcriptSearch: (_, { token, query }, context) => context.source.transcriptSearch(token, query),
     comments: (_, { videoId, sort, cursor }, context) =>
       context.source.comments(videoId, sort ?? undefined, cursor ?? undefined),
+    postComments: (_, { postId, channelId, sort, cursor }, context) =>
+      context.source.postComments(postId, channelId, sort ?? undefined, cursor ?? undefined),
     liveChat: (_, { videoId, cursor }, context) => context.source.liveChat(videoId, cursor ?? undefined),
     liveChatReplay: (_, { videoId, offsetMs, view, cursor }, context) =>
       context.source.liveChatReplay(videoId, offsetMs, view ?? undefined, cursor ?? undefined),

@@ -221,6 +221,8 @@ export type SourcePost = {
   text: string
   publishedText?: string
   voteCountText?: string
+  // as the Posts tab shows it ("1K"); absent where youtube.com shows none, as on the post's own page
+  commentCountText?: string
   attachedVideo?: SourceVideo
   attachedImage?: string
 }
@@ -547,6 +549,8 @@ export type Source = {
   // the lines whose text matches `query`, by youtube.com's own search; `token` comes from the transcript's answer
   transcriptSearch(token: string, query: string): Promise<SourceTranscript>
   comments(videoId: string, sort?: SourceCommentSort, cursor?: string): Promise<SourceCommentPage>
+  // `channelId` is the post's author: upstream keys a post's comments by both
+  postComments(postId: string, channelId: string, sort?: SourceCommentSort, cursor?: string): Promise<SourceCommentPage>
   commentReplies(cursor: string): Promise<SourceCommentPage>
   // Polled rather than streamed: the emitter is kept running and each call drains what it buffered since the previous cursor
   liveChat(videoId: string, cursor?: string): Promise<SourceLiveChatPage>
@@ -603,6 +607,7 @@ export const SOURCE_METHODS = [
   'transcript',
   'transcriptSearch',
   'comments',
+  'postComments',
   'commentReplies',
   'liveChat',
   'liveChatReplay',
@@ -646,6 +651,7 @@ export const SOURCE_CURSOR_ARGUMENT = {
   search: 2,
   channel: 4,
   comments: 2,
+  postComments: 3,
   commentReplies: 0,
   liveChat: 1,
   liveChatReplay: 3,
@@ -675,6 +681,7 @@ export const SOURCE_REPLAY = {
   transcript: 'always',
   transcriptSearch: 'always',
   comments: 'unless-cursor',
+  postComments: 'unless-cursor',
   commentReplies: 'unless-cursor',
   liveChat: 'unless-cursor',
   liveChatReplay: 'unless-cursor',

@@ -663,6 +663,7 @@ export const normalizeCommunityPost = (input: unknown): SourcePost | undefined =
     content?: Text
     published?: Text
     vote_count?: Text
+    action_buttons?: { reply_button?: { text?: string } }
     attachment?: unknown
   } | undefined
   const id = node?.id
@@ -677,6 +678,7 @@ export const normalizeCommunityPost = (input: unknown): SourcePost | undefined =
     text: presentText(node?.content) ?? '',
     publishedText: presentText(node?.published),
     voteCountText: presentText(node?.vote_count),
+    commentCountText: presentText(node?.action_buttons?.reply_button?.text),
     // guarded because normalizeFeedVideo takes a node rather than a maybe-node and throws on undefined
     attachedVideo: node?.attachment === undefined ? undefined : normalizeFeedVideo(node.attachment),
     attachedImage: thumbnail(attachment?.image ?? attachment?.thumbnails),

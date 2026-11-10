@@ -1,4 +1,4 @@
-import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
+import type { Source, SourceChannel, SourceChannelHome, SourceChannelPage, SourceChannelTab, SourceCommentPage, SourceCommentSort, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatPage, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourcePlaylistListPage, SourcePlaylistPage, SourcePlaylistPrivacy, SourceSearchFeature, SourceSearchFilters, SourceSearchPage, SourceSearchResult, SourceHomePage, SourceNotificationPage, SourcePostPage, SourceSectionedVideoPage, SourceShort, SourceShortsPage, SourceVideo, SourceVideoPage } from '../types'
 import type { EntityMutation } from './normalize'
 
 import { Innertube, Utils } from 'youtubei.js/web'
@@ -258,6 +258,7 @@ export type YoutubeClient = {
   resolveURL(url: string): Promise<{ payload?: { browseId?: string, params?: string } }>
   getInfo(id: string): Promise<VideoInfoWithChat>
   getComments(videoId: string, sortBy?: 'TOP_COMMENTS' | 'NEWEST_FIRST'): Promise<CommentsFeed>
+  getPostComments(postId: string, channelId: string, sortBy?: 'TOP_COMMENTS' | 'NEWEST_FIRST'): Promise<CommentsFeed>
   getNotifications(): Promise<NotificationsFeed>
   getUnseenNotificationsCount(): Promise<number>
   getPlaylists(): Promise<PlaylistsFeed>
@@ -654,6 +655,8 @@ const LIKE_ENDPOINT = {
 const FEED_INTERVAL_MS = 100
 
 const SUBSCRIPTION_PAGES = 20
+
+const upstreamCommentSort = (sort: SourceCommentSort | undefined) => sort === 'NEWEST' ? 'NEWEST_FIRST' : 'TOP_COMMENTS'
 
 const requireSignIn = (client: YoutubeClient, action: string) => {
   if (!client.session.logged_in) throw new Error(`youtube: sign in to ${action}`)
@@ -1127,6 +1130,17 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     return result
   }
 
+  const firstCommentPage = async (kind: string, read: () => Promise<CommentsFeed>): Promise<SourceCommentPage> => {
+    try {
+      return commentPage(kind, await read())
+    } catch (error) {
+      if (error instanceof Error && /did not have any content/i.test(error.message)) {
+        return { items: [], disabled: true }
+      }
+      throw error
+    }
+  }
+
   // Read off the memo rather than the `items` getter, which throws on any node outside its union. YouTube serves the rows as LockupView now; PlaylistVideo is the older renderer.
   const playlistItems = (id: string, feed: PlaylistFeed) => [
     ...(feed.memo?.get('PlaylistVideo') ?? []).map(normalizePlaylistItem),
@@ -1387,15 +1401,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     comments: async (videoId, sort, cursor) => {
       const kind = `comments:${videoId}:${sort ?? 'TOP'}`
       if (cursor) return commentContinuations.resolve(kind, cursor)
-      try {
-        const upstreamSort = sort === 'NEWEST' ? 'NEWEST_FIRST' : 'TOP_COMMENTS'
-        return commentPage(kind, await (await client).getComments(videoId, upstreamSort))
-      } catch (error) {
-        if (error instanceof Error && /did not have any content/i.test(error.message)) {
-          return { items: [], disabled: true }
-        }
-        throw error
-      }
+      return firstCommentPage(kind, async () => (await client).getComments(videoId, upstreamCommentSort(sort)))
+    },
+    postComments: async (postId, channelId, sort, cursor) => {
+      const kind = `post-comments:${postId}:${sort ?? 'TOP'}`
+      if (cursor) return commentContinuations.resolve(kind, cursor)
+      return firstCommentPage(kind, async () => (await client).getPostComments(postId, channelId, upstreamCommentSort(sort)))
     },
     playlists: async (cursor) => {
       if (cursor) return playlistListContinuations.resolve('playlists', cursor)

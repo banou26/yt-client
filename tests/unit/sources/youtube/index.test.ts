@@ -239,6 +239,13 @@ const createFakeClient = () => {
       ...comments('top', async () => comments('next')),
       header: { count: { text: '2,461,151 Comments' }, comments_count: { text: '2.4M' } },
     }),
+    getPostComments: async (postId: string, channelId: string, sortBy?: string) => {
+      calls.push(`getPostComments:${postId}:${channelId}:${sortBy}`)
+      return {
+        ...comments(`${postId}-top`, async () => comments(`${postId}-next`)),
+        header: { count: { text: '1,045 Comments' }, comments_count: { text: '1K' } },
+      }
+    },
     resolveURL: async (url: string) => {
       calls.push(`resolveURL:${url}`)
       return { payload: { browseId: 'UCresolved' } }
@@ -793,6 +800,21 @@ describe('youtube source', () => {
     await expect(source.comments('abc', 'NEWEST', first.cursor)).rejects.toThrow('belongs to comments:abc:TOP')
   })
 
+  it('reads a post\'s comments by the post and its channel, with cursors scoped to that post and sort', async () => {
+    const client = createFakeClient()
+    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
+    const first = await source.postComments('post', 'UC1')
+    expect(first).toMatchObject({ items: [{ id: 'post-top' }], countText: '1,045 Comments' })
+    await expect(source.postComments('post', 'UC1', undefined, first.cursor)).resolves.toMatchObject({ items: [{ id: 'post-next' }] })
+    await expect(source.postComments('other', 'UC1', undefined, first.cursor)).rejects.toThrow('belongs to post-comments:post:TOP')
+    await expect(source.comments('post', undefined, first.cursor)).rejects.toThrow('belongs to post-comments:post:TOP')
+    await source.postComments('post', 'UC1', 'NEWEST')
+    expect(client.calls.filter(call => call.startsWith('getPostComments'))).toEqual([
+      'getPostComments:post:UC1:TOP_COMMENTS',
+      'getPostComments:post:UC1:NEWEST_FIRST',
+    ])
+  })
+
   it('heads comments with the full count, not the rounded one', async () => {
     const source = createYoutubeSource({
       fetch: globalThis.fetch,
@@ -894,6 +916,7 @@ describe('youtube source', () => {
     search: ['query', undefined as unknown as string],
     channel: ['c', undefined as unknown as string, undefined as unknown as string, undefined as unknown as string],
     comments: ['abc', undefined as unknown as string],
+    postComments: ['post', 'UC1', undefined as unknown as string],
     liveChat: ['abc'],
     liveChatReplay: ['abc', 0 as unknown as string, undefined as unknown as string],
     communityPosts: ['c'],

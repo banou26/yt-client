@@ -1,8 +1,10 @@
 import type { VideoCardData } from './video-card'
 
 import { css } from '@emotion/react'
+import { MessageSquareText, ThumbsUp } from 'lucide-react'
 import { Link } from 'wouter'
 
+import { ReadMore } from './read-more'
 import { VideoCardCompact } from './video-card-compact'
 
 export type PostCardData = {
@@ -10,6 +12,7 @@ export type PostCardData = {
   text: string
   publishedText?: string | null
   voteCountText?: string | null
+  commentCountText?: string | null
   attachedImage?: string | null
   author?: { id: string, name: string, avatar?: string | null } | null
   attachedVideo?: VideoCardData | null
@@ -49,9 +52,9 @@ const style = css`
   }
 
   .post-text {
-    margin: 1.2rem 0 0;
-    font-size: 1.4rem;
-    line-height: 2rem;
+    margin-top: 1.2rem;
+    font-size: 1.6rem;
+    line-height: 2.2rem;
     color: var(--text-primary);
     white-space: pre-wrap;
   }
@@ -63,10 +66,32 @@ const style = css`
     border-radius: 0.8rem;
   }
 
-  .post-votes {
-    margin-top: 1.2rem;
-    font-size: 1.3rem;
-    color: var(--text-secondary);
+  .post-footer {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    margin-top: 0.8rem;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+  }
+
+  .post-votes,
+  .post-comments {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .post-comments {
+    height: 3.2rem;
+    padding: 0 1.2rem;
+    border-radius: 1.6rem;
+    font-weight: 500;
+    transition: background 0.15s ease;
+  }
+
+  .post-comments:hover {
+    background: var(--bg-hover);
   }
 `
 
@@ -86,12 +111,28 @@ export const PostCard = ({ post }: { post: PostCardData }) => (
         : undefined}
       {post.publishedText ? <span className='post-date'>{post.publishedText}</span> : undefined}
     </div>
-    {post.text ? <p className='post-text'>{post.text}</p> : undefined}
+    {post.text ? <ReadMore className='post-text'>{post.text}</ReadMore> : undefined}
     {post.attachedImage
       ? <img className='post-image' src={post.attachedImage} alt='' loading='lazy' />
       : undefined}
     {post.attachedVideo ? <VideoCardCompact video={post.attachedVideo} /> : undefined}
-    {post.voteCountText ? <div className='post-votes'>{post.voteCountText}</div> : undefined}
+    {post.voteCountText || post.commentCountText
+      ? (
+        <div className='post-footer'>
+          {post.voteCountText
+            ? <span className='post-votes'><ThumbsUp size={18} strokeWidth={1.5} />{post.voteCountText}</span>
+            : undefined}
+          {post.commentCountText
+            ? (
+              <Link href={`/post/${post.id}`} className='post-comments' aria-label={`${post.commentCountText} comments`}>
+                <MessageSquareText size={18} strokeWidth={1.5} />
+                {post.commentCountText}
+              </Link>
+            )
+            : undefined}
+        </div>
+      )
+      : undefined}
   </article>
 )
 

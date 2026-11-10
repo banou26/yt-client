@@ -191,13 +191,6 @@ const style = css`
     grid-template-columns: repeat(auto-fill, minmax(min(23rem, 100%), 1fr));
   }
 
-  .rich-grid .post-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
   .show-more {
     display: flex;
     align-items: center;

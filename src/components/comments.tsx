@@ -4,7 +4,7 @@ import type { CommentRepliesQuery, CommentSort, CommentsQuery } from '../generat
 
 import { css } from '@emotion/react'
 import { ChevronDown, ChevronUp, ListFilter, ThumbsDown, ThumbsUp } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'preact/hooks'
+import { useState } from 'preact/hooks'
 import { useMutation, useQuery } from 'urql'
 import { Link } from 'wouter'
 
@@ -12,6 +12,7 @@ import { gql } from '../generated'
 import { useSession } from '../session'
 import { readable } from './format'
 import { showToast } from './ui/toast'
+import { ReadMore } from './read-more'
 import { RichText } from './rich-text'
 import { Menu, MenuItem } from './ui/menu'
 import { useInfiniteFeed } from './use-infinite-feed'
@@ -22,30 +23,40 @@ type CommentPage = CommentsQuery['comments']
 type RepliesPage = CommentRepliesQuery['commentReplies']
 type CommentRow = CommentPage['items'][number]
 
+gql(`
+  fragment CommentPageFields on CommentPage {
+    items {
+      id
+      text
+      runs { text url videoId startSeconds browseId }
+      publishedText
+      likeCountText
+      replyCount
+      repliesCursor
+      actionsToken
+      isPinned
+      isHearted
+      isCreator
+      isMember
+      isLiked
+      isDisliked
+      author { id name avatar isVerified isVerifiedArtist }
+    }
+    cursor
+    disabled
+    countText
+  }
+`)
+
 const COMMENTS_QUERY = gql(`
   query Comments($videoId: ID!, $sort: CommentSort, $cursor: String) {
-    comments(videoId: $videoId, sort: $sort, cursor: $cursor) {
-      items {
-        id
-        text
-        runs { text url videoId startSeconds browseId }
-        publishedText
-        likeCountText
-        replyCount
-        repliesCursor
-        actionsToken
-        isPinned
-        isHearted
-        isCreator
-        isMember
-        isLiked
-        isDisliked
-        author { id name avatar isVerified isVerifiedArtist }
-      }
-      cursor
-      disabled
-      countText
-    }
+    comments(videoId: $videoId, sort: $sort, cursor: $cursor) { ...CommentPageFields }
+  }
+`)
+
+const POST_COMMENTS_QUERY = gql(`
+  query PostComments($postId: ID!, $channelId: ID!, $sort: CommentSort, $cursor: String) {
+    postComments(postId: $postId, channelId: $channelId, sort: $sort, cursor: $cursor) { ...CommentPageFields }
   }
 `)
 
@@ -183,24 +194,8 @@ const style = css`
     word-break: break-word;
   }
 
-  .comment-text.clamped {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
   .read-more {
-    display: block;
     margin-top: 0.4rem;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 1.4rem;
-    font-weight: 500;
-    line-height: 2rem;
-    cursor: pointer;
   }
 
   .actions {
@@ -476,44 +471,15 @@ const Composer = ({ videoId }: { videoId: string }) => {
   )
 }
 
-/**
- * A comment's text, cut at youtube.com's four lines with a Read more that
- * shows only when the text runs past them.
- */
 const CommentText = (
-  { runs, text, videoId }: { runs: CommentRow['runs'], text?: string | null, videoId: string },
-) => {
-  const [expanded, setExpanded] = useState(false)
-  const [overflowing, setOverflowing] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (expanded || !element) return
-    const check = () => setOverflowing(element.scrollHeight > element.clientHeight + 1)
-    check()
-    // a clamped box keeps its height when the web font swaps in and the lines rewrap
-    void document.fonts.ready.then(check)
-    const observer = new ResizeObserver(check)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [expanded, runs, text])
-  return (
-    <>
-      <div ref={ref} className={expanded ? 'comment-text' : 'comment-text clamped'}>
-        {runs.length > 0
-          ? <RichText className='text' runs={runs} videoId={videoId} />
-          : <span className='text'>{text}</span>}
-      </div>
-      {expanded || overflowing
-        ? (
-          <button type='button' className='read-more' onClick={() => setExpanded(value => !value)}>
-            {expanded ? 'Show less' : 'Read more'}
-          </button>
-        )
-        : undefined}
-    </>
-  )
-}
+  { runs, text, videoId }: { runs: CommentRow['runs'], text?: string | null, videoId?: string },
+) => (
+  <ReadMore className='comment-text'>
+    {runs.length > 0
+      ? <RichText className='text' runs={runs} videoId={videoId} />
+      : <span className='text'>{text}</span>}
+  </ReadMore>
+)
 
 /**
  * The like, dislike and reply controls for one comment.
@@ -655,7 +621,7 @@ const REPLIES_QUERY = gql(`
  * for rows nobody opened.
  */
 const Replies = (
-  { cursor, count, videoId }: { cursor: string, count?: number | null, videoId: string },
+  { cursor, count, videoId }: { cursor: string, count?: number | null, videoId?: string },
 ) => {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState<RepliesPage[]>([])
@@ -737,16 +703,29 @@ const Replies = (
   )
 }
 
-export const Comments = ({ videoId, commentCountText }: { videoId: string, commentCountText?: string | null }) => {
+/** A video's comments, or with `post` instead, a channel post's, which have no comment box. */
+export const Comments = ({ videoId, post, commentCountText }: {
+  videoId?: string
+  post?: { id: string, channelId: string }
+  commentCountText?: string | null
+}) => {
   const [sort, setSort] = useState<CommentSort>('TOP')
   // pages carry the sort they came from: without it the accumulator dedupes a reorder into a drop
   const [loaded, setLoaded] = useState<{ sort: CommentSort, pages: CommentPage[] }>({ sort, pages: [] })
   const loadedPages = loaded.sort === sort ? loaded.pages : []
-  const [{ data, error, fetching }] = useQuery({
+  const cursor = loadedPages[loadedPages.length - 1]?.cursor ?? null
+  const [videoComments] = useQuery({
     query: COMMENTS_QUERY,
-    variables: { videoId, sort, cursor: loadedPages[loadedPages.length - 1]?.cursor ?? null }
+    variables: { videoId: videoId ?? '', sort, cursor },
+    pause: post !== undefined,
   })
-  const page = data?.comments
+  const [postComments] = useQuery({
+    query: POST_COMMENTS_QUERY,
+    variables: { postId: post?.id ?? '', channelId: post?.channelId ?? '', sort, cursor },
+    pause: post === undefined,
+  })
+  const { error, fetching } = post ? postComments : videoComments
+  const page = post ? postComments.data?.postComments : videoComments.data?.comments
   const { items } = useInfiniteFeed({
     pages: page ? [...loadedPages, page] : loadedPages,
     key: comment => comment.id
@@ -797,7 +776,7 @@ export const Comments = ({ videoId, commentCountText }: { videoId: string, comme
           ))}
         </Menu>
       </div>
-      <Composer videoId={videoId} />
+      {videoId ? <Composer videoId={videoId} /> : undefined}
       <div className='list'>
         {items.map(comment => (
           <div className='comment' key={comment.id}>
