@@ -223,6 +223,8 @@ export type SourcePost = {
   voteCountText?: string
   // as the Posts tab shows it ("1K"); absent where youtube.com shows none, as on the post's own page
   commentCountText?: string
+  // upstream's spoken form of the count ("1K comments")
+  commentCountLabel?: string
   attachedVideo?: SourceVideo
   attachedImage?: string
 }

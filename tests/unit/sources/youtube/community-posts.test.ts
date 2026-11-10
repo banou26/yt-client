@@ -20,11 +20,16 @@ const source = createYoutubeSource({
 })
 
 describe('a channel\'s Posts tab', () => {
-  it('reads each post\'s comment count beside its likes, as its footer shows them', async () => {
+  it('reads each post\'s comment count beside its likes, as its footer shows them, with the count\'s own label', async () => {
     const page = await source.communityPosts(MKBHD)
-    expect(page.items.map(({ id, voteCountText, commentCountText }) => ({ id, voteCountText, commentCountText }))).toEqual([
-      { id: 'UgkxX6gkDxQ0KRucvyG7NLui0LhjHp0CLlfZ', voteCountText: '12K', commentCountText: '1K' },
-      { id: 'UgkxWw9Nf4Kb453wM6hA2d9pySxjBixo0fXT', voteCountText: '2.5K', commentCountText: '30' },
+    expect(page.items.map(({ id, voteCountText, commentCountText, commentCountLabel }) => ({
+      id,
+      voteCountText,
+      commentCountText,
+      commentCountLabel,
+    }))).toEqual([
+      { id: 'UgkxX6gkDxQ0KRucvyG7NLui0LhjHp0CLlfZ', voteCountText: '12K', commentCountText: '1K', commentCountLabel: '1K comments' },
+      { id: 'UgkxWw9Nf4Kb453wM6hA2d9pySxjBixo0fXT', voteCountText: '2.5K', commentCountText: '30', commentCountLabel: '30 comments' },
     ])
   })
 })

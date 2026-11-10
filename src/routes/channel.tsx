@@ -34,6 +34,7 @@ const COMMUNITY_POSTS_QUERY = gql(`
         publishedText
         voteCountText
         commentCountText
+        commentCountLabel
         attachedImage
         author { id name avatar }
         attachedVideo {

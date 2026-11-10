@@ -13,6 +13,7 @@ export type PostCardData = {
   publishedText?: string | null
   voteCountText?: string | null
   commentCountText?: string | null
+  commentCountLabel?: string | null
   attachedImage?: string | null
   author?: { id: string, name: string, avatar?: string | null } | null
   attachedVideo?: VideoCardData | null
@@ -124,7 +125,11 @@ export const PostCard = ({ post }: { post: PostCardData }) => (
             : undefined}
           {post.commentCountText
             ? (
-              <Link href={`/post/${post.id}`} className='post-comments' aria-label={`${post.commentCountText} comments`}>
+              <Link
+                href={`/post/${post.id}`}
+                className='post-comments'
+                aria-label={post.commentCountLabel ?? `${post.commentCountText} comments`}
+              >
                 <MessageSquareText size={18} strokeWidth={1.5} />
                 {post.commentCountText}
               </Link>
