@@ -143,7 +143,10 @@ const serve = () => vi.mocked(egressFetch).mockImplementation(async (_url, optio
   if (once !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status: once }).finish())))
   if (status !== undefined) return new Response(new Uint8Array(part(UMPPartId.STREAM_PROTECTION_STATUS, StreamProtectionStatus.encode({ status }).finish())))
   while (sequence > head()) await sleep(250)
-  const answer = [...part(UMPPartId.LIVE_METADATA, LiveMetadata.encode({ headSequenceNumber: String(head()), headTimeMs: String(startMsOf(head())) }).finish())]
+  // the window's start in microsecond ticks, as measured
+  const minSeekableTimeTicks = String(startMsOf(head() - WINDOW) * 1_000 + 333)
+  const metadata = { headSequenceNumber: String(head()), headTimeMs: String(startMsOf(head())), minSeekableTimeTicks, minSeekableTimescale: 1_000_000 }
+  const answer = [...part(UMPPartId.LIVE_METADATA, LiveMetadata.encode(metadata).finish())]
   const cuepoint = cuepoints.get(sequence)
   if (refused.has(sequence) || (cuepoint && !entry.cuepoints.some((named) => named.id === cuepoint))) {
     answer.push(...part(UMPPartId.NEXT_REQUEST_POLICY, NextRequestPolicy.encode({ backoffTimeMs: 5_000 }).finish()))
@@ -214,6 +217,14 @@ describe('a live SABR session on a stream with a DVR window', () => {
     expect(asked[0]!.playerTimeMs).toBe(Number.MAX_SAFE_INTEGER)
     expect(listed(session)).toEqual([HEAD - 2, HEAD - 1, HEAD])
     expect(asked.slice(1).every((request) => request.playerTimeMs >= startMsOf(HEAD - 2))).toBe(true)
+    session.close()
+  })
+
+  it('notes where the server\'s DVR window starts, which moves on with the head', async () => {
+    const session = await open()
+    expect(session.liveWindowStartMs).toBeCloseTo(startMsOf(HEAD - WINDOW) + 0.333, 3)
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(session.liveWindowStartMs).toBeCloseTo(startMsOf(HEAD + 2 - WINDOW) + 0.333, 3)
     session.close()
   })
 
@@ -382,6 +393,38 @@ describe('a live SABR session on a stream with a DVR window', () => {
     // and stops naming it once the timeline passes the cuepoint's end, as youtube.com does
     await vi.advanceTimersByTimeAsync(70_000)
     expect(asked.at(-1)!.cuepoints).toEqual([])
+    session.close()
+  })
+
+  it('names an ad cuepoint hours behind the head, as a seek into the window meets one, and is sent the segment at it', async () => {
+    const far = HEAD - WINDOW / 2
+    cuepoints.set(far, 'cue-far')
+    const session = await open()
+    const answer = session.requestSegment(media('134:', far))
+      .then((segment) => sequenceOf(segment.data!), (error: Error) => error.message)
+    await vi.advanceTimersByTimeAsync(15_000)
+    expect(await answer).toEqual({ itag: 134, sequence: far })
+    expect(asked).toContainEqual(expect.objectContaining({
+      playerTimeMs: middleOf(far),
+      cuepoints: [{ id: 'cue-far', state: 11, startMs: startMsOf(far), durationMs: 60_000 }],
+    }))
+    // and the pump at the head does not name it
+    expect(asked.filter((request) => request.playerTimeMs > startMsOf(HEAD)).every((request) => request.cuepoints.length === 0)).toBe(true)
+    session.close()
+  })
+
+  it('keeps the newest segments listed while segments hours behind the head are answered', async () => {
+    const session = await open()
+    // four minutes on, the timeline holds as many segments as it keeps
+    await vi.advanceTimersByTimeAsync(250_000)
+    const newest = listed(session)
+    expect(newest).toHaveLength(48)
+    for (const sequence of [HEAD - 100, HEAD - 99, HEAD - 98]) {
+      const answer = session.requestSegment(media('134:', sequence))
+      await vi.advanceTimersByTimeAsync(500)
+      expect(sequenceOf((await answer).data!)).toEqual({ itag: 134, sequence })
+    }
+    expect(Math.min(...listed(session))).toBeGreaterThanOrEqual(Math.min(...newest))
     session.close()
   })
 

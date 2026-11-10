@@ -48,7 +48,7 @@ const START_TIME_TOLERANCE_MS = 2
 const REFRESH_ERROR = 'SabrSessionRefreshError'
 // under Shaka's own 30s segment timeout, so a wait turns into a retry we control
 const LIVE_SEGMENT_WAIT_MS = 20_000
-// Segments kept in the advertised timeline, which is also the rewind window.
+// delivered segments kept in the timeline the live manifest ends with
 const LIVE_TIMELINE_LIMIT = 48
 // a live session keeps answers from this many segments behind the server's head on, and its pump starts there when the opening answer brought no segment
 const LIVE_START_SEGMENTS = 3
@@ -394,8 +394,13 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
   // LIVE_METADATA's head: the start of the newest segment the server has
   let liveHeadMs: number | undefined
   let liveStartMs = liveFromMs
+  // LIVE_METADATA's oldest seekable time, where the server's DVR window starts
+  let liveWindowStartMs: number | undefined
   const noteLiveHead = (payload: Uint8Array) => {
-    const headMs = Number(LiveMetadata.decode(payload).headTimeMs)
+    const metadata = LiveMetadata.decode(payload)
+    const windowStartMs = Number(metadata.minSeekableTimeTicks) / (metadata.minSeekableTimescale ?? 0) * 1_000
+    if (Number.isFinite(windowStartMs) && windowStartMs > 0) liveWindowStartMs = Math.max(liveWindowStartMs ?? 0, windowStartMs)
+    const headMs = Number(metadata.headTimeMs)
     if (!Number.isFinite(headMs) || headMs <= 0) return
     liveHeadMs = Math.max(liveHeadMs ?? headMs, headMs)
     liveStartMs ??= headMs - LIVE_START_SEGMENTS * targetDurationMs
@@ -410,18 +415,20 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
      a request names the cuepoint. youtube.com names it in every request until its buffer passes the cuepoint's end.
      Measured 2026-11-10 on rFZHOHl-L8A, a 60 s cuepoint every 36 segments: asked again naming it, 11 of 11 were served,
      6 of them after the server's 5 s backoff; another video format, youtube.com's top-level fields or its ClientAbrState
-     fields were refused 2 of 2 each, and without the name 6 of 6 were refused for good. */
+     fields were refused 2 of 2 each, and without the name 6 of 6 were refused for good. The DVR window behind the head
+     has them too, so a request names those at its own position: the pump's at the head, a seek's hours behind it. */
   const cuepoints = new Map<string, Cuepoint>()
   const noteCuepoints = (payload: Uint8Array) => {
     for (const cuepoint of readCuepoints(payload)) {
       if (!cuepoints.has(cuepoint.id)) cuepoints.set(cuepoint.id, cuepoint)
     }
   }
-  const announcedCuepoints = () => {
+  const announcedCuepoints = (positionMs: number) => {
     for (const [id, { startMs, durationMs }] of cuepoints) {
-      if (startMs + durationMs <= liveEndMs()) cuepoints.delete(id)
+      if (startMs + durationMs <= (liveWindowStartMs ?? 0)) cuepoints.delete(id)
     }
-    return cuepoints.values()
+    return [...cuepoints.values()]
+      .filter(({ startMs, durationMs }) => startMs < positionMs + targetDurationMs && positionMs < startMs + durationMs)
   }
   const recordLiveSegment = (segment: CachedMedia, targetMs: number) => {
     const { sequenceNumber, startMs, track } = segment
@@ -432,11 +439,8 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       startMs,
       durationMs: segment.durationMs && segment.durationMs > 0 ? segment.durationMs : targetMs,
     })
-    while (liveTimeline.size > LIVE_TIMELINE_LIMIT) {
-      const oldest = liveTimeline.keys().next().value
-      if (oldest === undefined) break
-      liveTimeline.delete(oldest)
-    }
+    // the lowest sequence goes, not the first filed: a seek's answers hours behind the head arrive after the head's
+    while (liveTimeline.size > LIVE_TIMELINE_LIMIT) liveTimeline.delete(Math.min(...liveTimeline.keys()))
   }
   let resolveCacheChange: () => void = () => {}
   let cacheChange = new Promise<void>((resolve) => {
@@ -622,7 +626,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       }
       // the adapter claims the segment the pump just delivered as buffered, and a live init asked there is answered with no video at all (measured 2026-11-06: three empty answers, then a session refresh)
       if (init && source.isLive) decoded.bufferedRanges = []
-      requestBody = Uint8Array.of(...VideoPlaybackAbrRequest.encode(decoded).finish(), ...encodeSsapPlaybackInfos(announcedCuepoints()))
+      requestBody = Uint8Array.of(...VideoPlaybackAbrRequest.encode(decoded).finish(), ...encodeSsapPlaybackInfos(announcedCuepoints(startTimeMs)))
       filtered.body = requestBody
     }
     const metadata = state.metadata?.getRequestMetadata(filtered.url)
@@ -1014,7 +1018,9 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
       const awaitLiveSequence = async (sequenceNumber: number): Promise<SegmentEnvelope> => {
         const deadline = Date.now() + LIVE_SEGMENT_WAIT_MS
         ensureLivePump()
-        let fetched = false
+        let fetches = 0
+        // an address answered with no media is asked once more, which names the ad cuepoint the answer announced
+        let allowed = 1
         for (;;) {
           // captured BEFORE the lookup: a segment can land between the miss and the await
           const changed = cacheChange
@@ -1025,14 +1031,14 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
              refreshed session's start. The server answers it by its address. */
           const addressMs = liveTimeline.get(sequenceNumber)?.startMs
             ?? (request.startTimeMs < liveEndMs() ? request.startTimeMs : undefined)
-          if (addressMs !== undefined && !fetched) {
+          if (addressMs !== undefined && fetches < allowed) {
             const harvest = activeHarvest
             if (harvest?.formatKeys.has(format.key)) {
               progress('live-wait')
               await withAbort(Promise.race([changed, harvest.done]), signal)
               continue
             }
-            fetched = true
+            fetches += 1
             progress('live-fetch')
             const response = await execute(
               `sabr://${request.track}?key=${encodeURIComponent(format.key)}`,
@@ -1043,7 +1049,10 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
               progress,
               signal,
             )
-            if (!response.data?.byteLength) await recoverFor(response.metadata.streamInfo?.streamProtectionStatus?.status)
+            if (!response.data?.byteLength) {
+              await recoverFor(response.metadata.streamInfo?.streamProtectionStatus?.status)
+              allowed = 2
+            }
             continue
           }
           // Plain errors, NEVER refreshError: a refresh starts with an empty live timeline and the manifest is generated from it
@@ -1110,6 +1119,7 @@ export const createSabrSession = (source: SabrSource, maxHeight = 1_080, liveFro
     targetDurationMs,
     get liveSegments() { return [...liveTimeline.values()] },
     get liveEndMs() { return liveEndMs() },
+    get liveWindowStartMs() { return liveWindowStartMs },
     startLivePump: ensureLivePump,
     get videoFormat() { return videoFormat },
     get audioFormat() { return audioFormat },
