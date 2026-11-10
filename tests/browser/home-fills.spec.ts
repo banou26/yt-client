@@ -1,14 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, plainTest as test } from './test'
-
-/* InnerTube answers http://localhost without CORS, so the page runs on youtube.localhost, where the direct lane reads
-   Home as it does on youtube.fkn.app. Through the relay, a second Home read in one session is the relay's first answer. */
-const laneOrigin = (baseURL: string | undefined) => {
-  const url = new URL(baseURL ?? 'http://localhost:4561')
-  url.hostname = 'youtube.localhost'
-  return url.origin
-}
+import { expect, laneOrigin, plainTest as test } from './test'
 
 const playedSeconds = (page: Page) => page.evaluate(() => document.querySelector('video')?.currentTime ?? 0)
 

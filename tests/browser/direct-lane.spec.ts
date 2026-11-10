@@ -3,17 +3,9 @@ import type { Page, Request } from '@playwright/test'
 import { chromium, firefox } from '@playwright/test'
 
 import { extensionBuild } from './extension-build'
-import { dismissFknNotice, expect, test } from './test'
+import { dismissFknNotice, expect, laneOrigin, test } from './test'
 
-/* InnerTube answers a simple request from http://localhost with 403 and no Access-Control-Allow-Origin, and from
-   http://youtube.localhost with its ACAO (measured 2026-11-02, curl, /youtubei/v1/guide), so the lane is driven from
-   youtube.localhost on the configured port. Both arms use that origin, so the flag is the only difference. */
-const laneOrigin = (baseURL: string | undefined) => {
-  const url = new URL(baseURL ?? 'http://localhost:4561')
-  url.hostname = 'youtube.localhost'
-  return url.origin
-}
-
+// both arms run on laneOrigin, so the flag is the only difference
 const turnOff = (page: Page) => page.addInitScript(() => localStorage.setItem('yt-client:step:direct', '0'))
 
 type Seen = { url: string, method: string, mainFrame: boolean, headers: Record<string, string> }

@@ -36,6 +36,15 @@ export const answerLookups = async (context: BrowserContext) => {
     route.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: [] }))
 }
 
+/* InnerTube answers a simple request from http://localhost with 403 and no Access-Control-Allow-Origin, and from
+   http://youtube.localhost with its ACAO (measured 2026-11-02, curl, /youtubei/v1/guide), so a spec of the direct lane
+   runs on youtube.localhost on the configured port. */
+export const laneOrigin = (baseURL: string | undefined) => {
+  const url = new URL(baseURL ?? 'http://localhost:4561')
+  url.hostname = 'youtube.localhost'
+  return url.origin
+}
+
 export const test = base.extend({
   context: async ({ context }, use) => {
     await answerLookups(context)
