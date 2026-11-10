@@ -149,6 +149,29 @@ test('f, t and a double click leave the miniplayer as it is, and Escape closes i
   expect(new URL(page.url()).pathname).toBe('/settings')
 })
 
+// youtube.com closes Settings, or the panel open in it, as the player docks (measured signed out on 2026-11-10)
+test('i with Settings or one of its panels open docks the player with the menu closed, and one Escape closes it', async ({ page }) => {
+  test.setTimeout(300_000)
+  for (const panel of [undefined, 'Playback speed']) {
+    await page.goto(`/watch?v=${VIDEO_ID}`)
+    await startPlayback(page)
+    await page.locator('[data-player-root]').hover()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const settings = page.getByRole('menu', { name: 'Player settings' })
+    await expect(settings).toBeVisible()
+    if (panel) {
+      await settings.getByRole('menuitem', { name: new RegExp(`^${panel}`) }).click()
+      await expect(page.getByRole('menu', { name: panel })).toBeVisible()
+    }
+
+    await page.keyboard.press('i')
+    await expect(dock(page)).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dock(page)).toHaveCount(0)
+    await expect(page.locator('video')).toHaveCount(0)
+  }
+})
+
 test('in a playlist it names the playlist and the place in it, Shift+P plays the entry before, and Close stops it', async ({ page }) => {
   test.setTimeout(300_000)
   await page.goto(`/playlist?list=${FIXED_LIST}`)

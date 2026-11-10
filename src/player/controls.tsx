@@ -518,13 +518,15 @@ type ControlsProps = {
   sleepTimer?: SleepTimer
   // counts the requests to open the Sleep timer panel, so each one opens it again
   sleepMenu?: number
+  /** Closes the settings menu as the player docks into the miniplayer, as youtube.com does. */
+  docked?: boolean
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
     theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], onChapters, segments = [], onMenu,
-    sleepTimer, sleepMenu = 0,
+    sleepTimer, sleepMenu = 0, docked = false,
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
@@ -553,6 +555,10 @@ export const PlayerControls = (
     sleepMenuSeen.current = sleepMenu
     setMenu('sleep')
   }, [sleepMenu])
+
+  useEffect(() => {
+    if (docked) setMenu(undefined)
+  }, [docked])
 
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement !== null)

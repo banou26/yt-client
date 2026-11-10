@@ -828,6 +828,7 @@ const VideoPlayer = (
             segments={segments}
             sleepTimer={sleepTimer}
             sleepMenu={sleepMenu}
+            docked={docked}
             visible={(active || state.paused) && !grid}
             onMenu={setSettingsOpen}
           />
