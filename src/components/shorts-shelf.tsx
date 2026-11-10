@@ -1,13 +1,9 @@
 import type { VideoCardData } from './video-card'
 
 import { css } from '@emotion/react'
-import { Link } from 'wouter'
 
-import { formatViews } from './format'
 import { Rail } from './rail'
-import { Thumbnail } from './thumbnail'
-
-export const shortsHrefFor = (id: string) => `/shorts/${encodeURIComponent(id)}`
+import { ShortsTile } from './shorts-tile'
 
 const style = css`
   /* A full-width band in the grid's second row. An item placed on both axes is
@@ -31,41 +27,8 @@ const style = css`
     color: var(--text-primary);
   }
 
-  .card {
+  .tile {
     width: 21rem;
-  }
-
-  .thumb {
-    display: block;
-    aspect-ratio: 9 / 16;
-    border-radius: 1.2rem;
-    overflow: hidden;
-    background: var(--bg-elevated);
-  }
-
-  .thumb img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .title {
-    margin: 0.8rem 0 0;
-    font-size: 1.4rem;
-    font-weight: 500;
-    line-height: 2rem;
-    color: var(--text-primary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .views {
-    margin-top: 0.4rem;
-    font-size: 1.2rem;
-    color: var(--text-secondary);
   }
 `
 
@@ -85,17 +48,7 @@ export const ShortsShelf = ({ shorts, title = 'Shorts' }: { shorts: readonly Vid
         <h2 className='shelf-title'>{title}</h2>
       </div>
       <Rail label='shorts' count={shorts.length}>
-        {shorts.map(short => (
-          <article className='card' key={short.id}>
-            <Link href={shortsHrefFor(short.id)} className='thumb' tabIndex={-1} aria-hidden='true'>
-              {short.thumbnail ? <Thumbnail src={short.thumbnail} srcSet={short.thumbnailSrcset} sizes='21rem' /> : undefined}
-            </Link>
-            <h3 className='title'>
-              <Link href={shortsHrefFor(short.id)}>{short.title}</Link>
-            </h3>
-            {short.viewCount ? <div className='views'>{formatViews(short.viewCount)}</div> : undefined}
-          </article>
-        ))}
+        {shorts.map(short => <ShortsTile key={short.id} short={short} />)}
       </Rail>
     </section>
   )

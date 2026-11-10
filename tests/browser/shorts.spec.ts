@@ -146,3 +146,25 @@ plainTest('the arrow keys move between Shorts as soon as one plays, without a cl
   await expect.poll(() => shownShort(page), { timeout: 10_000 }).toBe(firstId)
   await playing(first)
 })
+
+test('a channel Home\'s and a search\'s Shorts shelves draw youtube.com\'s 2:3 tiles', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  const sizeOf = (thumb: Locator) => thumb.evaluate(link => {
+    const box = link.getBoundingClientRect()
+    return { width: Math.round(box.width), height: Math.round(box.height) }
+  })
+
+  // youtube.com's tiles on @MKBHD's Home shelf, measured signed out on 2026-11-10
+  await page.goto('/@MKBHD')
+  const shelfTile = page.locator('main a.thumb[href^="/shorts/"]').first()
+  await expect(shelfTile).toBeVisible({ timeout: 120_000 })
+  expect(await sizeOf(shelfTile)).toEqual({ width: 210, height: 315 })
+
+  // 219x329 on the same day's "rick astley" search
+  await page.goto('/results?search_query=rick+astley')
+  const searchTile = page.locator('main a.thumb[href^="/shorts/"]').first()
+  await expect(searchTile).toBeVisible({ timeout: 120_000 })
+  const { width, height } = await sizeOf(searchTile)
+  expect(height / width).toBeCloseTo(3 / 2, 2)
+})
