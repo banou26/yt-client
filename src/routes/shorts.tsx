@@ -310,6 +310,11 @@ const style = css`
   }
 
   @media (max-width: 900px) {
+    /* a wheel over the comments sheet's backdrop would otherwise move to the next Short */
+    &.comments-open {
+      overflow-y: hidden;
+    }
+
     .rail {
       /* Below the breakpoint the rail sits on top of the video, which is where
          it lives on a phone anyway. */
@@ -492,7 +497,7 @@ const ShortsPage = () => {
     key: short => short.id,
   })
   // a Short the address named stays to say why it does not play; any other YouTube refuses is passed over
-  const items = feed.filter(short => short.id === seed || !refused.has(short.id))
+  const items = feed.filter(short => !refused.has(short.id))
 
   useDocumentTitle('Shorts')
 

@@ -25,6 +25,16 @@ const refuseFirstShort = (reply: string) => {
   } as typeof MessagePort.prototype.postMessage
 }
 
+// leaves every openPlayback unanswered, so no refusal can take a Short out of the feed while its layout is read
+const holdPlayback = () => {
+  if (window.top !== window) return
+  const post = Object.getOwnPropertyDescriptor(MessagePort.prototype, 'postMessage')!.value as (this: MessagePort, message: unknown, ...rest: unknown[]) => void
+  MessagePort.prototype.postMessage = function (this: MessagePort, message: unknown, ...rest: unknown[]) {
+    if ((message as { method?: string } | null)?.method === 'openPlayback') return
+    return post.call(this, message, ...rest)
+  } as typeof MessagePort.prototype.postMessage
+}
+
 const shownShort = (page: Page) => new URL(page.url()).pathname.replace('/shorts/', '')
 
 const playing = (slide: Locator) =>
@@ -41,6 +51,7 @@ const center = async (locator: Locator) => {
 test('at phone width each Short\'s buttons sit on it, and Comments opens a sheet', async ({ page }) => {
   test.setTimeout(240_000)
   await hideFknNotice(page)
+  await page.addInitScript(holdPlayback)
   await page.setViewportSize({ width: 412, height: 860 })
   await page.goto('/shorts')
   const slides = page.locator('[data-short-id]')
@@ -75,7 +86,11 @@ test('at phone width each Short\'s buttons sit on it, and Comments opens a sheet
   const middle = await center(sheet)
   expect(await page.evaluate(([x, y]) => Boolean(document.elementFromPoint(x!, y!)?.closest('aside')), [middle.x, middle.y])).toBe(true)
 
-  // a tap beside the sheet closes it, the way youtube.com's does
+  // a wheel over the backdrop leaves the Short in place, and a tap there closes the sheet, as on youtube.com
+  await page.mouse.move(206, Math.round(box.y / 2))
+  await page.mouse.wheel(0, 600)
+  await page.waitForTimeout(1_000)
+  expect(shownShort(page)).toBe(await slide.getAttribute('data-short-id'))
   await page.mouse.click(206, Math.round(box.y / 2))
   await expect(sheet).toBeHidden()
   expect(shownShort(page)).toBe(await slide.getAttribute('data-short-id'))
