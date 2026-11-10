@@ -233,10 +233,9 @@ enum SearchDuration {
   OVER_TWENTY_MINS
 }
 
-# youtubei.js only encodes these two orderings. 'Upload date' and 'Rating' are
-# reachable at runtime through the response's own sub_menu endpoints, which
-# carry pre-baked params, so they are deliberately NOT modelled here as if they
-# were a free choice.
+# youtube.com's Prioritize group, Relevance being what an unset sort asks. Its
+# older orderings (upload date, rating) are gone from its panel, and youtubei.js
+# encodes only these two.
 enum SearchSort {
   RELEVANCE
   POPULARITY

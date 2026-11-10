@@ -1,9 +1,9 @@
-import type { SearchDuration, SearchFeature, SearchResultsQuery, SearchSort, SearchType, SearchUploadDate, SearchVideoFragment } from '../generated/graphql'
+import type { SearchResultsQuery, SearchVideoFragment } from '../generated/graphql'
 
 import type { TargetedPointerEvent } from 'preact'
 
 import { css } from '@emotion/react'
-import { ListVideo, SlidersHorizontal } from 'lucide-react'
+import { ListVideo, SlidersHorizontal, X } from 'lucide-react'
 import { useCallback, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -16,6 +16,7 @@ import { playlistHrefFor } from '../components/playlist'
 import { MusicNote } from '../components/row-marks'
 import { SearchCard } from '../components/search-card'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
+import { chosen, FILTER_GROUPS, filterSearch, removable, searchFilters, searchParams } from '../components/search-filters'
 import { ShortsShelf } from '../components/shorts-shelf'
 import SubscribeButton from '../components/subscribe-button'
 import { Thumbnail } from '../components/thumbnail'
@@ -110,74 +111,6 @@ const SEARCH_RESULTS_QUERY = gql(`
     collaborators { id name avatar handle subscriberCountText isVerified isVerifiedArtist }
   }
 `)
-
-// filters live in readable query parameters, not youtube.com's `sp=` protobuf, so a link pasted from youtube.com keeps its query but loses its filters
-const FILTER_PARAMS = ['upload_date', 'type', 'duration', 'sort', 'features', 'unwatched']
-
-type FilterGroup<Value extends string> = {
-  param: string
-  label: string
-  options: { value: Value, label: string }[]
-}
-
-const UPLOAD_DATE: FilterGroup<SearchUploadDate> = {
-  param: 'upload_date',
-  label: 'Upload date',
-  options: [
-    { value: 'TODAY', label: 'Today' },
-    { value: 'WEEK', label: 'This week' },
-    { value: 'MONTH', label: 'This month' },
-    { value: 'YEAR', label: 'This year' },
-  ],
-}
-
-const RESULT_TYPE: FilterGroup<SearchType> = {
-  param: 'type',
-  label: 'Type',
-  options: [
-    { value: 'VIDEO', label: 'Video' },
-    { value: 'CHANNEL', label: 'Channel' },
-    { value: 'PLAYLIST', label: 'Playlist' },
-    { value: 'MOVIE', label: 'Movie' },
-    { value: 'SHORTS', label: 'Short' },
-  ],
-}
-
-const DURATION: FilterGroup<SearchDuration> = {
-  param: 'duration',
-  label: 'Duration',
-  options: [
-    { value: 'UNDER_THREE_MINS', label: 'Under 4 minutes' },
-    { value: 'THREE_TO_TWENTY_MINS', label: '4 to 20 minutes' },
-    { value: 'OVER_TWENTY_MINS', label: 'Over 20 minutes' },
-  ],
-}
-
-// only the two orderings youtubei.js can actually encode; upload date and rating need the response's own sub_menu endpoints
-const SORT: FilterGroup<SearchSort> = {
-  param: 'sort',
-  label: 'Sort by',
-  options: [
-    { value: 'RELEVANCE', label: 'Relevance' },
-    { value: 'POPULARITY', label: 'View count' },
-  ],
-}
-
-const FEATURES: { value: SearchFeature, label: string }[] = [
-  { value: 'LIVE', label: 'Live' },
-  { value: 'FOUR_K', label: '4K' },
-  { value: 'HD', label: 'HD' },
-  { value: 'SUBTITLES', label: 'Subtitles' },
-  { value: 'CREATIVE_COMMONS', label: 'Creative Commons' },
-  { value: 'THREE_SIXTY', label: '360' },
-  { value: 'VR180', label: 'VR180' },
-  { value: 'THREE_D', label: '3D' },
-  { value: 'HDR', label: 'HDR' },
-  { value: 'LOCATION', label: 'Location' },
-  { value: 'PURCHASED', label: 'Purchased' },
-]
-
-const SINGLE_GROUPS = [UPLOAD_DATE, RESULT_TYPE, DURATION, SORT]
 
 const style = css`
   max-width: 109.6rem;
@@ -287,7 +220,9 @@ const style = css`
   }
 
   .option {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
     width: fit-content;
     padding: 0.8rem 0;
     border: none;
@@ -305,6 +240,11 @@ const style = css`
   .option.active {
     color: var(--text-primary);
     font-weight: 500;
+  }
+
+  .option svg {
+    flex: none;
+    margin: -0.2rem 0;
   }
 
   .refinements {
@@ -750,28 +690,18 @@ const ResultShelf = ({ shelf }: { shelf: ShelfResult }) => {
 }
 
 const SearchPage = () => {
-  const search = useSearch()
-  const params = new URLSearchParams(search)
+  const params = searchParams(useSearch())
   const query = params.get('search_query') ?? ''
   const [, navigate] = useLocation()
   useDocumentTitle(query.length > 0 ? query : 'Search')
 
-  const features = (params.get('features') ?? '').split(',').filter(Boolean) as SearchFeature[]
-  const filters = {
-    uploadDate: (params.get('upload_date') ?? undefined) as SearchUploadDate | undefined,
-    type: (params.get('type') ?? undefined) as SearchType | undefined,
-    duration: (params.get('duration') ?? undefined) as SearchDuration | undefined,
-    sortBy: (params.get('sort') ?? undefined) as SearchSort | undefined,
-    features: features.length > 0 ? features : undefined,
-    unwatched: params.get('unwatched') ? true : undefined,
-  }
-  const activeFilters = FILTER_PARAMS.filter(param => params.get(param)).length
+  const filters = searchFilters(params)
   const chip = activeChip(params)
   const [filtersOpen, setFiltersOpen] = useState(false)
   // stable, or the dialog re-runs its focus effect on every navigation a filter makes
   const closeFilters = useCallback(() => setFiltersOpen(false), [])
 
-  const feedKey = `${query}|${FILTER_PARAMS.map(param => params.get(param) ?? '').join('|')}`
+  const feedKey = `${query}|${JSON.stringify(filters)}`
   const [loaded, setLoaded] = useState<{ key: string, pages: ResultsPage[] }>({ key: feedKey, pages: [] })
   const pages = loaded.key === feedKey ? loaded.pages : []
 
@@ -792,25 +722,6 @@ const SearchPage = () => {
   const onMore = () => {
     if (!page?.cursor || fetching || error) return
     setLoaded({ key: feedKey, pages: pages[pages.length - 1] === page ? pages : [...pages, page] })
-  }
-
-  const setParam = (param: string, value: string | undefined) => {
-    const next = new URLSearchParams(search)
-    if (value === undefined || next.get(param) === value) next.delete(param)
-    else next.set(param, value)
-    setFiltersOpen(false)
-    navigate(`/results?${next}`)
-  }
-
-  const toggleFeature = (feature: SearchFeature) => {
-    const next = new URLSearchParams(search)
-    const set = new Set(features)
-    if (set.has(feature)) set.delete(feature)
-    else set.add(feature)
-    if (set.size === 0) next.delete('features')
-    else next.set('features', [...set].join(','))
-    setFiltersOpen(false)
-    navigate(`/results?${next}`)
   }
 
   const onRefine = (refinement: string) => {
@@ -836,7 +747,6 @@ const SearchPage = () => {
         </div>
         <button type='button' className='filter-toggle' onClick={() => setFiltersOpen(true)}>
           Filters
-          {activeFilters > 0 ? ` (${activeFilters})` : ''}
           <SlidersHorizontal size={20} strokeWidth={1.5} />
         </button>
       </div>
@@ -844,42 +754,31 @@ const SearchPage = () => {
         ? (
           <Dialog title='Search filters' wide onClose={closeFilters}>
             <div className='filters'>
-              {SINGLE_GROUPS.map(group => (
+              {FILTER_GROUPS.map(group => (
                 <div key={group.param}>
                   <h3 className='group-title'>{group.label}</h3>
                   {group.options.map(option => {
-                    const active = params.get(group.param) === option.value
+                    const active = chosen(params, group).includes(option.value)
                     return (
                       <button
                         type='button'
                         key={option.value}
                         className={active ? 'option active' : 'option'}
                         aria-pressed={active}
-                        onClick={() => setParam(group.param, option.value)}
+                        onClick={active && !removable(group)
+                          ? undefined
+                          : () => {
+                            setFiltersOpen(false)
+                            navigate(`/results?${filterSearch(params, group, option.value)}`)
+                          }}
                       >
                         {option.label}
+                        {active && removable(group) ? <X size={20} strokeWidth={1.5} /> : undefined}
                       </button>
                     )
                   })}
                 </div>
               ))}
-              <div>
-                <h3 className='group-title'>Features</h3>
-                {FEATURES.map(feature => {
-                  const active = features.includes(feature.value)
-                  return (
-                    <button
-                      type='button'
-                      key={feature.value}
-                      className={active ? 'option active' : 'option'}
-                      aria-pressed={active}
-                      onClick={() => toggleFeature(feature.value)}
-                    >
-                      {feature.label}
-                    </button>
-                  )
-                })}
-              </div>
             </div>
           </Dialog>
         )
