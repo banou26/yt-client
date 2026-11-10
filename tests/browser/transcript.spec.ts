@@ -119,7 +119,7 @@ test('opens under the player at 412 px, headed Transcript with no chips for a vi
   test.setTimeout(240_000)
   await page.setViewportSize({ width: 412, height: 860 })
   await openTranscript(page, 'dQw4w9WgXcQ')
-  const panel = page.locator('main .chapters-slot section[aria-label="Transcript"]')
+  const panel = page.locator('main .panel-slot section[aria-label="Transcript"]')
   await expect(panel.getByRole('heading', { name: 'Transcript' })).toBeVisible()
   await expect(panel.getByRole('tab')).toHaveCount(0)
   await expect(panel.locator('.transcript-chapter')).toHaveCount(0)

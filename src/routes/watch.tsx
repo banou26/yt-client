@@ -19,11 +19,11 @@ import LiveChat from '../components/live-chat'
 import PlaylistPanel from '../components/playlist-panel'
 import SaveMenu from '../components/save-menu'
 import ShareDialog from '../components/share-dialog'
-import { watchPanel } from '../components/transcript'
 import SubscribeButton, { subscribeStyle } from '../components/subscribe-button'
 import { FeedSentinel } from '../components/use-infinite-feed'
 import { VerifiedBadge } from '../components/verified-badge'
 import { VideoCardCompact, VideoCardCompactSkeleton } from '../components/video-card-compact'
+import { watchPanel } from '../components/watch-panel'
 import { useDislikes } from '../dislikes'
 import { gql } from '../generated'
 import { prefetchPlayback } from '../player/prefetch'
@@ -91,7 +91,7 @@ const style = css`
     min-width: 0;
   }
 
-  .chapters-slot {
+  .panel-slot {
     grid-column: 1;
     margin-top: 1.2rem;
   }
@@ -554,7 +554,7 @@ const WatchPage = () => {
         {/* The player is NOT mounted here: it lives above the router, so leaving the page docks it rather than destroying its SABR session */}
         <div className='player-slot' ref={claimPlayer} />
       </div>
-      {oneColumn && videoPanel ? <div className='chapters-slot'>{videoPanel}</div> : undefined}
+      {oneColumn && videoPanel ? <div className='panel-slot'>{videoPanel}</div> : undefined}
       <div className='primary'>
         {oneColumn ? replay : undefined}
         {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}

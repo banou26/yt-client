@@ -211,7 +211,7 @@ test('opens the chapter list under the player at 412 px, where the bar has no ro
   const box = page.locator('main div:has(> .snippet)')
   await box.click({ position: { x: 20, y: 10 } })
   await box.getByRole('button', { name: 'View all' }).click()
-  const panel = page.locator('main .chapters-slot section[aria-label="Chapters"]')
+  const panel = page.locator('main .panel-slot section[aria-label="Chapters"]')
   await expect(panel).toBeVisible()
   const [frame, list, title] = await Promise.all([player(page).boundingBox(), panel.boundingBox(), page.locator('main h1.title').boundingBox()])
   expect(list!.y).toBeGreaterThan(frame!.y + frame!.height)

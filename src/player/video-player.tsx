@@ -5,7 +5,7 @@ import type { Point } from '../components/ui/popup'
 import type { BezelCue } from './bezel'
 import type { PlayerChapter } from './chapters'
 import type { VideoPanel } from './session'
-import type { TranscriptPanelArgs } from '../components/transcript'
+import type { TranscriptPanel as TranscriptArgs } from '../generated/graphql'
 import type { SkipSegment } from './sponsorblock'
 import type { UpNext } from './up-next'
 
@@ -25,7 +25,7 @@ import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { setPanel, setPlayingChapter } from './session'
 import { getSettings, updateSettings } from '../settings'
-import { watchPanel } from '../components/transcript'
+import { watchPanel } from '../components/watch-panel'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
@@ -67,12 +67,12 @@ const playerStyle = css`
     height: 100%;
   }
 
-  /* in full screen the chapter list takes the right of the player, which the watch page draws outside it */
-  &.chapters-open {
+  /* in full screen the open list takes the right of the player, which the watch page draws outside it */
+  &.panel-open {
     --panel-room: 35.2rem;
   }
 
-  &.chapters-open video {
+  &.panel-open video {
     width: calc(100% - var(--panel-room));
   }
 
@@ -216,7 +216,7 @@ const VideoPlayer = (
     chapters?: readonly PlayerChapter[]
     // the list open beside the player, which the player draws over itself in full screen
     panel?: VideoPanel
-    transcript?: TranscriptPanelArgs
+    transcript?: TranscriptArgs
     segments?: readonly SkipSegment[]
   },
 ) => {
@@ -629,7 +629,7 @@ const VideoPlayer = (
     <div
       css={playerStyle}
       data-player-root
-      className={[!active && !state.paused && !menu && 'idle', panelOver && 'chapters-open'].filter(Boolean).join(' ') || undefined}
+      className={[!active && !state.paused && !menu && 'idle', panelOver && 'panel-open'].filter(Boolean).join(' ') || undefined}
       onPointerMove={wake}
       onPointerLeave={() => setActive(false)}
       onPointerDown={() => {
