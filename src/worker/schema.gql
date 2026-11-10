@@ -278,6 +278,7 @@ enum ChannelTab {
   SHOWS
   PLAYLISTS
   COMMUNITY
+  STORE
   ABOUT
   SEARCH
 }
@@ -407,6 +408,30 @@ type ChannelPage {
   appliedFilter: String
   # Only on the Home tab.
   home: ChannelHome
+  # Only on the Store tab, in upstream's order.
+  store: [StoreShelf!]
+}
+
+# A row of a channel's Store tab.
+type StoreShelf {
+  title: String!
+  # Laid out as one row that scrolls, rather than a grid.
+  scrolls: Boolean
+  products: [Product!]!
+}
+
+# A product a channel's store sells. `url` is its page on that store, never
+# upstream's redirect page.
+type Product {
+  title: String!
+  url: String!
+  thumbnail: String
+  # Upstream's own lines: the price, or "Unavailable" in its place, then what
+  # the price leaves out ("(taxes included) + additional fees") and the store
+  # ("From MKBHD").
+  price: String
+  priceNote: String
+  merchant: String
 }
 
 # The queue rail beside the player, present only when /watch was opened inside a

@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 
 import { DIRECT_HOSTS, FKN_DOMAINS } from '../../src/privacy-hosts'
+import store from './fixtures/channel-store.json'
 import fehistory from './history/fehistory.json'
 import uploadsFeed from './fixtures/uulf-computerphile.xml?raw'
 
@@ -62,9 +63,22 @@ describe('the hosts the privacy page lists', () => {
   it('cover every image host in real YouTube answers', () => {
     const hosts = new Set([
       ...imageHosts(fehistory),
+      ...imageHosts(store),
       ...[...uploadsFeed.matchAll(/<media:thumbnail url="([^"]+)"/g)].map(([, url]) => new URL(url!).hostname),
     ])
-    expect([...hosts].sort()).toEqual(['i.ytimg.com', 'i1.ytimg.com', 'i2.ytimg.com', 'i3.ytimg.com', 'i4.ytimg.com', 'yt3.ggpht.com'])
+    expect([...hosts].sort()).toEqual([
+      'encrypted-tbn0.gstatic.com',
+      'encrypted-tbn1.gstatic.com',
+      'encrypted-tbn2.gstatic.com',
+      'encrypted-tbn3.gstatic.com',
+      'i.ytimg.com',
+      'i1.ytimg.com',
+      'i2.ytimg.com',
+      'i3.ytimg.com',
+      'i4.ytimg.com',
+      'yt3.ggpht.com',
+      'yt3.googleusercontent.com',
+    ])
     expect([...hosts].filter((host) => !listed(host))).toEqual([])
   })
 

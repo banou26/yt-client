@@ -44,6 +44,8 @@ export const createCache = () => cacheExchange({
     ChannelPage: () => null,
     ChannelHome: () => null,
     ChannelShelf: () => null,
+    StoreShelf: () => null,
+    Product: () => null,
     Game: () => null,
     ChannelAbout: () => null,
     ChannelLink: () => null,

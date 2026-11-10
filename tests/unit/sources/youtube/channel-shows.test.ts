@@ -26,7 +26,7 @@ const listed = (playlists: { id: string, title: string, videoCountText?: string 
 describe('a channel\'s shows', () => {
   it('has a Shows tab where youtube.com shows one, between Live and Playlists', async () => {
     const page = await sourceFor(fixture.playlists).channel(MKBHD, 'PLAYLISTS')
-    expect(page.availableTabs).toEqual(['HOME', 'VIDEOS', 'SHORTS', 'LIVE', 'SHOWS', 'PLAYLISTS', 'COMMUNITY', 'SEARCH'])
+    expect(page.availableTabs).toEqual(['HOME', 'VIDEOS', 'SHORTS', 'LIVE', 'SHOWS', 'PLAYLISTS', 'COMMUNITY', 'STORE', 'SEARCH'])
   })
 
   it('keeps the shows on the Playlists tab, counted in episodes', async () => {

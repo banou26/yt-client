@@ -5,7 +5,7 @@ import { Innertube, Utils } from 'youtubei.js/web'
 
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
-import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
+import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeStoreShelf, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 import { base64Bytes, protoField } from './protobuf'
 
 type Feed = {
@@ -90,6 +90,8 @@ type ChannelFeed = Feed & {
   applyFilter?: (filter: SortChip | string, secondary?: string) => Promise<ChannelFeed>
   filter_nodes?: { primary_filters?: DropdownRow[] }
   search?: (query: string) => Promise<ChannelFeed>
+  hasTabWithURL?: (word: string) => boolean
+  getTabByURL?: (word: string) => Promise<ChannelFeed>
   current_tab?: {
     endpoint?: { metadata?: { url?: string } }
     content?: { contents?: Iterable<{ contents?: Iterable<unknown>, content?: unknown }> }
@@ -536,6 +538,8 @@ const availableChannelTabs = (feed: ChannelFeed): SourceChannelTab[] => {
   const tabs: SourceChannelTab[] = CHANNEL_TABS
     .filter((entry) => feed[entry.has] === true)
     .map((entry) => entry.tab)
+  // youtubei.js has no getter for the Store tab, which comes last in upstream's order
+  if (feed.hasTabWithURL?.('store') === true) tabs.push('STORE')
   if (feed.has_about === true) tabs.push('ABOUT')
   if (feed.has_search === true) tabs.push('SEARCH')
   return tabs
@@ -593,6 +597,7 @@ const openChannelTab = async (
   query: string | undefined,
 ): Promise<ChannelFeed> => {
   if (tab === 'ABOUT') return feed
+  if (tab === 'STORE') return feed.getTabByURL?.('store') ?? feed
   if (tab === 'SEARCH') {
     if (!query || !feed.search) return feed
     return feed.search(query)
@@ -1289,6 +1294,10 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       const rest = { availableTabs, tab: selected, sortOptions, appliedSort, sortMenu: chips.menu, filterOptions, appliedFilter }
       channels.set(id, { channel, page: rest })
       if (selected === 'HOME') return { ...rest, channel, videos: { items: [], playlists: [] }, home: channelHome(feed) }
+      if (selected === 'STORE') {
+        const store = (feed.memo?.get('Shelf') ?? []).flatMap((shelf) => normalizeStoreShelf(shelf) ?? [])
+        return { ...rest, channel, videos: { items: [], playlists: [] }, store }
+      }
       return { ...rest, channel, videos: page(kind, feed, { own: true }) }
     },
     channelAbout: async (id) => {

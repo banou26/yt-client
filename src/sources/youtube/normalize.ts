@@ -1,4 +1,4 @@
-import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceStoreShelf, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -1052,6 +1052,41 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
   }
   const { videos, shorts, playlists, channels, games, posts } = shelf
   return videos.length + shorts.length + playlists.length + channels.length + games.length + posts.length > 0 ? shelf : undefined
+}
+
+// youtubei.js has no class for a store's product card and builds one from its keys, so these are upstream's in snake case
+type ProductCard = {
+  title?: string
+  thumbnail?: Thumbnail[]
+  endpoint?: { payload?: { url?: string, commands?: { urlEndpoint?: { url?: string } }[] } }
+  price?: string
+  additional_fees_text?: string
+  from_merchant_text?: string
+  price_replacement_text?: string
+}
+
+// A row of a channel's Store tab: a Shelf holding a Grid, or a HorizontalList that scrolls
+export const normalizeStoreShelf = (input: unknown): SourceStoreShelf | undefined => {
+  const node = input as { title?: Text, content?: { type?: string, items?: unknown[] } } | undefined
+  const title = presentText(node?.title)
+  const products = (node?.content?.items ?? []).flatMap((item) => {
+    const card = item as ProductCard
+    const payload = card.endpoint?.payload
+    // the card's command logs the click first, then opens the product's page
+    const url = outboundUrl(payload?.url ?? payload?.commands?.find((command) => command.urlEndpoint)?.urlEndpoint?.url)
+    if (!card.title || !url) return []
+    const unavailable = presentText(card.price_replacement_text)
+    return [{
+      title: card.title,
+      url,
+      thumbnail: thumbnail(card.thumbnail),
+      price: unavailable ?? presentText(card.price),
+      priceNote: unavailable ? undefined : presentText(card.additional_fees_text),
+      merchant: presentText(card.from_merchant_text),
+    }]
+  })
+  if (!title || products.length === 0) return undefined
+  return { title, scrolls: node?.content?.type === 'HorizontalList' ? true : undefined, products }
 }
 
 type CardAction = {

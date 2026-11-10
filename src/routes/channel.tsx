@@ -22,6 +22,7 @@ import { gql } from '../generated'
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../sources/types'
 import { CHANNEL_ABOUT_QUERY, ChannelAboutDialog } from './channel-about'
 import { ChannelHome } from './channel-home'
+import { ChannelStore } from './channel-store'
 import { CHANNEL_TAB_PATHS } from './channel-tabs'
 
 type VideosPage = ChannelViewQuery['channel']['videos']
@@ -188,6 +189,11 @@ const CHANNEL_VIEW_QUERY = gql(`
         }
         message
       }
+      store {
+        title
+        scrolls
+        products { title url thumbnail price priceNote merchant }
+      }
     }
   }
 `)
@@ -203,6 +209,7 @@ const TAB_LABELS: Record<ChannelTab, string> = {
   SHOWS: 'Shows',
   PLAYLISTS: 'Playlists',
   COMMUNITY: 'Posts',
+  STORE: 'Store',
   ABOUT: 'About',
   SEARCH: 'Search',
 }
@@ -807,46 +814,53 @@ export const ChannelPage = ({ id, base, tab: requestedTab }: { id: string, base:
             <FeedSentinel onVisible={onMorePosts} disabled={postsFetching || !postsCursor} />
           </div>
         )
-        : activeTab === 'HOME' && data?.channel.home
+        : activeTab === 'STORE' && data?.channel.store
           ? (
             <div className='videos'>
-              <ChannelHome home={data.channel.home} />
-              {!data.channel.home.featured && data.channel.home.shelves.length === 0
-                ? <p className='status'>{data.channel.home.message ?? emptyMessageFor('HOME')}</p>
-                : undefined}
+              <ChannelStore shelves={data.channel.store} />
+              {data.channel.store.length === 0 ? <p className='status'>{emptyMessageFor('STORE')}</p> : undefined}
             </div>
           )
-          : (
-            <>
+          : activeTab === 'HOME' && data?.channel.home
+            ? (
               <div className='videos'>
-                {(activeTab ?? tab) === 'SHORTS'
-                  ? <ShortsGrid shorts={items} fetching={fetching} />
-                  : <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />}
-                {playlists.length > 0
-                  ? (
-                    <div className='playlist-grid'>
-                      {playlists.map(playlist => (
-                        <PlaylistCard
-                          key={playlist.id}
-                          id={playlist.id}
-                          title={playlist.title}
-                          thumbnail={playlist.thumbnail}
-                          videoCountText={playlist.videoCountText}
-                          updatedText={playlist.updatedText}
-                          channelName={activeTab === 'SHOWS' ? playlist.channel?.name : undefined}
-                        />
-                      ))}
-                    </div>
-                  )
-                  : undefined}
-                {data && !fetching && !error && items.length === 0 && playlists.length === 0
-                  ? <p className='status'>{emptyMessageFor(tab)}</p>
+                <ChannelHome home={data.channel.home} />
+                {!data.channel.home.featured && data.channel.home.shelves.length === 0
+                  ? <p className='status'>{data.channel.home.message ?? emptyMessageFor('HOME')}</p>
                   : undefined}
               </div>
-              {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
-              <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
-            </>
-          )}
+            )
+            : (
+              <>
+                <div className='videos'>
+                  {(activeTab ?? tab) === 'SHORTS'
+                    ? <ShortsGrid shorts={items} fetching={fetching} />
+                    : <VideoGrid videos={items} fetching={fetching && items.length === 0} variant='channel' />}
+                  {playlists.length > 0
+                    ? (
+                      <div className='playlist-grid'>
+                        {playlists.map(playlist => (
+                          <PlaylistCard
+                            key={playlist.id}
+                            id={playlist.id}
+                            title={playlist.title}
+                            thumbnail={playlist.thumbnail}
+                            videoCountText={playlist.videoCountText}
+                            updatedText={playlist.updatedText}
+                            channelName={activeTab === 'SHOWS' ? playlist.channel?.name : undefined}
+                          />
+                        ))}
+                      </div>
+                    )
+                    : undefined}
+                  {data && !fetching && !error && items.length === 0 && playlists.length === 0
+                    ? <p className='status'>{emptyMessageFor(tab)}</p>
+                    : undefined}
+                </div>
+                {fetching && items.length > 0 ? <p className='status'>Loading more…</p> : undefined}
+                <FeedSentinel onVisible={onMore} disabled={fetching || !cursor} />
+              </>
+            )}
     </main>
   )
 }

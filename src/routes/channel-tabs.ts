@@ -12,6 +12,7 @@ export const CHANNEL_TAB_PATHS: Record<ChannelTab, string> = {
   SHOWS: 'shows',
   PLAYLISTS: 'playlists',
   COMMUNITY: 'posts',
+  STORE: 'store',
   ABOUT: 'about',
   SEARCH: 'search',
 }

@@ -180,7 +180,7 @@ export type SourceSearchPage = {
 
 export type SourceChannelTab =
   | 'HOME' | 'VIDEOS' | 'SHORTS' | 'LIVE' | 'RELEASES'
-  | 'PODCASTS' | 'COURSES' | 'SHOWS' | 'PLAYLISTS' | 'COMMUNITY' | 'ABOUT' | 'SEARCH'
+  | 'PODCASTS' | 'COURSES' | 'SHOWS' | 'PLAYLISTS' | 'COMMUNITY' | 'STORE' | 'ABOUT' | 'SEARCH'
 
 export type SourceNotification = {
   id: string
@@ -279,6 +279,25 @@ export type SourceChannelPage = {
   appliedFilter?: string
   // only on the Home tab
   home?: SourceChannelHome
+  // only on the Store tab
+  store?: SourceStoreShelf[]
+}
+
+export type SourceProduct = {
+  title: string
+  // the product's page on its store, never upstream's redirect page
+  url: string
+  thumbnail?: string
+  // "Unavailable" in place of the price when upstream prints that
+  price?: string
+  priceNote?: string
+  merchant?: string
+}
+
+export type SourceStoreShelf = {
+  title: string
+  scrolls?: boolean
+  products: SourceProduct[]
 }
 
 /**
