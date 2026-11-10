@@ -1,0 +1,527 @@
+{
+ "dQw4w9WgXcQ": {
+  "engagementPanels": [
+   {
+    "engagementPanelSectionListRenderer": {
+     "panelIdentifier": "engagement-panel-structured-description",
+     "content": {
+      "structuredDescriptionContentRenderer": {
+       "items": [
+        {
+         "horizontalCardListRenderer": {
+          "cards": [
+           {
+            "videoAttributeViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://yt3.googleusercontent.com/eC9DfRcYSk4FE-fvDCJSu_4xsKdVMKxwmFTYFZwP8OqB7R4TKxAjKoR-Kp1lXeRi2WddPFYulSte4eW-"
+               }
+              ]
+             },
+             "title": "Never Gonna Give You Up (7\" Mix)",
+             "subtitle": "Rick Astley",
+             "secondarySubtitle": {
+              "content": "Whenever You Need Somebody"
+             }
+            }
+           }
+          ],
+          "header": {
+           "richListHeaderRenderer": {
+            "title": {
+             "simpleText": "Music"
+            },
+            "subtitle": {
+             "simpleText": "1 song"
+            }
+           }
+          },
+          "footerButton": {
+           "buttonViewModel": {
+            "iconName": "MUSIC",
+            "onTap": {
+             "innertubeCommand": {
+              "commandMetadata": {
+               "webCommandMetadata": {
+                "url": "/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+               }
+              },
+              "browseEndpoint": {
+               "browseId": "UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+              }
+             }
+            },
+            "titleFormatted": {
+             "content": "Music"
+            }
+           }
+          }
+         }
+        },
+        {
+         "videoDescriptionInfocardsSectionRenderer": {
+          "sectionTitle": {
+           "simpleText": "Rick Astley"
+          },
+          "creatorVideosButton": {
+           "buttonRenderer": {
+            "text": {
+             "simpleText": "Videos"
+            },
+            "command": {
+             "commandMetadata": {
+              "webCommandMetadata": {
+               "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw/videos"
+              }
+             },
+             "browseEndpoint": {
+              "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw"
+             }
+            }
+           }
+          },
+          "creatorAboutButton": {
+           "buttonRenderer": {
+            "text": {
+             "simpleText": "About"
+            },
+            "command": {
+             "commandMetadata": {
+              "webCommandMetadata": {
+               "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw/about"
+              }
+             },
+             "browseEndpoint": {
+              "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw"
+             }
+            }
+           }
+          },
+          "sectionSubtitle": {
+           "simpleText": "4.56M subscribers"
+          },
+          "channelAvatar": {
+           "thumbnails": [
+            {
+             "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s88-c-k-c0x00ffffff-no-rj"
+            }
+           ]
+          },
+          "channelEndpoint": {
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "url": "/@RickAstleyYT"
+            }
+           },
+           "browseEndpoint": {
+            "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+            "canonicalBaseUrl": "/@RickAstleyYT"
+           }
+          },
+          "creatorCustomUrlButtons": [
+           {
+            "buttonViewModel": {
+             "title": "Instagram",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.instagram.com%2Fofficialrickastley%2F"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.instagram.com%2Fofficialrickastley%2F",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "TikTok",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.tiktok.com%2F%40rickastleyofficial"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.tiktok.com%2F%40rickastleyofficial",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "Facebook",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.facebook.com%2FRickAstley%2F"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=https%3A%2F%2Fwww.facebook.com%2FRickAstley%2F",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "YouTube Music",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://music.youtube.com/channel/UCwZEU0wAwIyZb4x5G_KJp2w"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://music.youtube.com/channel/UCwZEU0wAwIyZb4x5G_KJp2w",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           }
+          ]
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "g6Die8gVFn0": {
+  "engagementPanels": [
+   {
+    "engagementPanelSectionListRenderer": {
+     "panelIdentifier": "engagement-panel-structured-description",
+     "content": {
+      "structuredDescriptionContentRenderer": {
+       "items": [
+        {
+         "horizontalCardListRenderer": {
+          "cards": [
+           {
+            "macroMarkersListItemRenderer": {
+             "title": {
+              "simpleText": "Hardware and performance"
+             },
+             "timeDescription": {
+              "simpleText": "0:00"
+             }
+            }
+           }
+          ],
+          "header": {
+           "richListHeaderRenderer": {
+            "title": {
+             "simpleText": "Chapters"
+            }
+           }
+          }
+         }
+        },
+        {
+         "videoDescriptionInfocardsSectionRenderer": {
+          "sectionTitle": {
+           "simpleText": "Marques Brownlee"
+          },
+          "creatorVideosButton": {
+           "buttonRenderer": {
+            "text": {
+             "simpleText": "Videos"
+            },
+            "command": {
+             "commandMetadata": {
+              "webCommandMetadata": {
+               "url": "/channel/UCBJycsmduvYEL83R_U4JriQ/videos"
+              }
+             },
+             "browseEndpoint": {
+              "browseId": "UCBJycsmduvYEL83R_U4JriQ"
+             }
+            }
+           }
+          },
+          "creatorAboutButton": {
+           "buttonRenderer": {
+            "text": {
+             "simpleText": "About"
+            },
+            "command": {
+             "commandMetadata": {
+              "webCommandMetadata": {
+               "url": "/channel/UCBJycsmduvYEL83R_U4JriQ/about"
+              }
+             },
+             "browseEndpoint": {
+              "browseId": "UCBJycsmduvYEL83R_U4JriQ"
+             }
+            }
+           }
+          },
+          "sectionSubtitle": {
+           "simpleText": "21.4M subscribers"
+          },
+          "channelAvatar": {
+           "thumbnails": [
+            {
+             "url": "https://yt3.ggpht.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s88-c-k-c0x00ffffff-no-rj"
+            }
+           ]
+          },
+          "channelEndpoint": {
+           "commandMetadata": {
+            "webCommandMetadata": {
+             "url": "/@mkbhd"
+            }
+           },
+           "browseEndpoint": {
+            "browseId": "UCBJycsmduvYEL83R_U4JriQ",
+            "canonicalBaseUrl": "/@mkbhd"
+           }
+          },
+          "creatorCustomUrlButtons": [
+           {
+            "buttonViewModel": {
+             "title": "Twitter",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Ftwitter.com%2FMKBHD"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Ftwitter.com%2FMKBHD",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "Instagram",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Finstagram.com%2FMKBHD"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Finstagram.com%2FMKBHD",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "The Studio",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "http://youtube.com/c/TheStudio"
+                }
+               },
+               "urlEndpoint": {
+                "url": "http://youtube.com/c/TheStudio",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "Reddit",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Freddit.com%2Fr%2FMKBHD"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Freddit.com%2Fr%2FMKBHD",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           },
+           {
+            "buttonViewModel": {
+             "title": "Discord",
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Fdiscord.gg%2FMKBHD"
+                }
+               },
+               "urlEndpoint": {
+                "url": "https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=&q=http%3A%2F%2Fdiscord.gg%2FMKBHD",
+                "target": "TARGET_NEW_WINDOW"
+               }
+              }
+             }
+            }
+           }
+          ]
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ },
+ "rYYuswC2PHE": {
+  "engagementPanels": [
+   {
+    "engagementPanelSectionListRenderer": {
+     "panelIdentifier": "engagement-panel-structured-description",
+     "content": {
+      "structuredDescriptionContentRenderer": {
+       "items": [
+        {
+         "horizontalCardListRenderer": {
+          "cards": [
+           {
+            "macroMarkersListItemRenderer": {
+             "title": {
+              "simpleText": "1. One Assassination Under God"
+             },
+             "timeDescription": {
+              "simpleText": "0:00"
+             }
+            }
+           }
+          ],
+          "header": {
+           "richListHeaderRenderer": {
+            "title": {
+             "simpleText": "Chapters"
+            }
+           }
+          }
+         }
+        },
+        {
+         "horizontalCardListRenderer": {
+          "cards": [
+           {
+            "videoAttributeViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://yt3.googleusercontent.com/y4rFVZu8p3xn32ervDGbR62smP9C8TbvCwDxQldocU8DplfBrZCktTppk1pe3nUCnrXfcBLvmiqthJskng"
+               }
+              ]
+             },
+             "title": "One Assassination Under God",
+             "subtitle": "Marilyn Manson",
+             "secondarySubtitle": {
+              "content": "One Assassination Under God - Chapter 1"
+             },
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "/watch?v=_wrY-11KZTM"
+                }
+               },
+               "watchEndpoint": {
+                "videoId": "_wrY-11KZTM"
+               }
+              }
+             }
+            }
+           },
+           {
+            "videoAttributeViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://yt3.googleusercontent.com/y4rFVZu8p3xn32ervDGbR62smP9C8TbvCwDxQldocU8DplfBrZCktTppk1pe3nUCnrXfcBLvmiqthJskng"
+               }
+              ]
+             },
+             "title": "No Funeral Without Applause",
+             "subtitle": "Marilyn Manson",
+             "secondarySubtitle": {
+              "content": "One Assassination Under God - Chapter 1"
+             },
+             "onTap": {
+              "innertubeCommand": {
+               "commandMetadata": {
+                "webCommandMetadata": {
+                 "url": "/watch?v=7boUHGfuxQk"
+                }
+               },
+               "watchEndpoint": {
+                "videoId": "7boUHGfuxQk"
+               }
+              }
+             }
+            }
+           }
+          ],
+          "header": {
+           "richListHeaderRenderer": {
+            "title": {
+             "simpleText": "Music"
+            },
+            "subtitle": {
+             "simpleText": "9 songs"
+            }
+           }
+          },
+          "footerButton": {
+           "buttonViewModel": {
+            "iconName": "MUSIC",
+            "onTap": {
+             "innertubeCommand": {
+              "commandMetadata": {
+               "webCommandMetadata": {
+                "url": "/channel/UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+               }
+              },
+              "browseEndpoint": {
+               "browseId": "UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+              }
+             }
+            },
+            "titleFormatted": {
+             "content": "Music"
+            }
+           }
+          }
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  ]
+ }
+}

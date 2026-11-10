@@ -11,6 +11,33 @@ index 6e9c132..5ac1c67 100644
                  enable_truncation: data.enableTruncation
              })),
              badges: Parser.parseArray(row.badges, BadgeView)
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js
+index a6e4c20..16e5643 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js
+@@ -6,18 +6,21 @@ import MacroMarkersListItem from './MacroMarkersListItem.js';
+ import GameCard from './GameCard.js';
+ import VideoCard from './VideoCard.js';
+ import VideoAttributeView from './VideoAttributeView.js';
++import ButtonView from './ButtonView.js';
+ export default class HorizontalCardList extends YTNode {
+     static type = 'HorizontalCardList';
+     cards;
+     header;
+     previous_button;
+     next_button;
++    footer_button;
+     constructor(data) {
+         super();
+         this.cards = Parser.parseArray(data.cards, [VideoAttributeView, SearchRefinementCard, MacroMarkersListItem, GameCard, VideoCard]);
+         this.header = Parser.parseItem(data.header);
+         this.previous_button = Parser.parseItem(data.previousButton, Button);
+         this.next_button = Parser.parseItem(data.nextButton, Button);
++        this.footer_button = Parser.parseItem(data.footerButton, ButtonView);
+     }
+ }
+ //# sourceMappingURL=HorizontalCardList.js.map
+\ No newline at end of file
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalShelfView.js b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalShelfView.js
 new file mode 100644
 index 0000000..9d30210
@@ -73,6 +100,28 @@ index 3346601..87c442b 100644
      }
  }
  //# sourceMappingURL=Tab.js.map
+\ No newline at end of file
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js b/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js
+index f310e85..c97f807 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js
+@@ -14,6 +14,7 @@ export default class VideoAttributeView extends YTNode {
+     sizing_rule;
+     overflow_menu_on_tap;
+     overflow_menu_a11y_label;
++    on_tap;
+     constructor(data) {
+         super();
+         if (data.image?.sources) {
+@@ -34,6 +35,8 @@ export default class VideoAttributeView extends YTNode {
+         this.sizing_rule = data.sizingRule;
+         this.overflow_menu_on_tap = new NavigationEndpoint(data.overflowMenuOnTap);
+         this.overflow_menu_a11y_label = data.overflowMenuA11yLabel;
++        if ('onTap' in data)
++            this.on_tap = new NavigationEndpoint(data.onTap);
+     }
+ }
+ //# sourceMappingURL=VideoAttributeView.js.map
 \ No newline at end of file
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js b/node_modules/youtubei.js/dist/src/parser/classes/misc/Text.js
 index 996db9d..0219751 100644

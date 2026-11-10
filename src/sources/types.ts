@@ -331,6 +331,39 @@ export type SourceWatchMeta = {
   chapters: SourceChapter[]
   /** What youtube.com's description section "Transcript" opens, absent for a video without one. */
   transcriptPanel?: SourceTranscriptPanel
+  /** youtube.com's description section "Music", absent for a video without one. */
+  music?: SourceMusicSection
+  /** The card for the video's channel that ends youtube.com's expanded description. */
+  channelCard?: SourceChannelCard
+}
+
+export type SourceSong = {
+  title: string
+  artist?: string
+  album?: string
+  thumbnail?: string
+  /** The song's own video, which its card opens; absent when the card opens nothing. */
+  videoId?: string
+}
+
+export type SourceMusicSection = {
+  /** As the section heads its songs, "1 song". */
+  countText?: string
+  songs: SourceSong[]
+  /** The channel its Music button opens. */
+  channelId?: string
+}
+
+export type SourceChannelCard = {
+  id: string
+  name: string
+  avatar?: string
+  subscriberCountText?: string
+  /** youtube.com's addresses of the card's Videos and About buttons, such as /channel/UC.../videos. */
+  videosUrl?: string
+  aboutUrl?: string
+  /** The channel's own links, such as its Instagram. */
+  links: SourceChannelLink[]
 }
 
 /** The get_panel arguments of a video's transcript, as youtube.com's description button sends them. */

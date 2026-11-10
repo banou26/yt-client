@@ -1,4 +1,4 @@
-import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
+import type { SourceBylinePart, SourceChannel, SourceChannelAbout, SourceChannelCard, SourceChannelShelf, SourceChapter, SourceGame, SourceNotification, SourceTextRun, SourceComment, SourceLikeStatus, SourceLiveChatMessage, SourceLiveChatRun, SourceMix, SourceMusicSection, SourcePost, SourceNotificationLevel, SourcePlaylist, SourcePlaylistItem, SourceSearchCard, SourceSearchShelf, SourceSession, SourceTranscript, SourceTranscriptLine, SourceTranscriptPanel, SourceVideo, SourceWatchMeta, SourceWatchPlaylist } from '../types'
 
 type Thumbnail = {
   url?: string
@@ -1276,6 +1276,77 @@ export const chatReplayToken = (input: unknown) => {
   return bar?.is_replay === true && bar.continuation ? bar.continuation : undefined
 }
 
+// the sections of youtube.com's expanded description, in its order
+const descriptionItems = (input: unknown): { type?: string }[] =>
+  ((input as { engagement_panels?: { content?: { items?: { type?: string }[] } }[] }).engagement_panels ?? [])
+    .flatMap((panel) => panel.content?.items ?? [])
+
+type SongNode = {
+  type?: string
+  title?: string
+  subtitle?: string
+  secondary_subtitle?: { content?: string }
+  // a ContentPreviewImageView in place of the list when upstream sends no sources
+  image?: Thumbnail[] | { type?: string }
+  on_tap?: { payload?: { videoId?: string } }
+}
+
+type CardListNode = {
+  type?: string
+  header?: { subtitle?: Text }
+  cards?: SongNode[]
+  footer_button?: { on_tap?: { payload?: { browseId?: string } } }
+}
+
+// the description lists its chapters in a card list too, of MacroMarkersListItem
+const normalizeMusicSection = (input: unknown): SourceMusicSection | undefined => {
+  const list = descriptionItems(input).find((item): item is CardListNode =>
+    item.type === 'HorizontalCardList' && (item as CardListNode).cards?.some((card) => card.type === 'VideoAttributeView') === true)
+  const songs = (list?.cards ?? []).flatMap((card) => {
+    const title = card.type === 'VideoAttributeView' ? presentText(card.title) : undefined
+    return title
+      ? [{
+          title,
+          artist: presentText(card.subtitle) || undefined,
+          album: presentText(card.secondary_subtitle?.content) || undefined,
+          thumbnail: Array.isArray(card.image) ? thumbnail(card.image) : undefined,
+          videoId: card.on_tap?.payload?.videoId,
+        }]
+      : []
+  })
+  if (!list || songs.length === 0) return undefined
+  return { countText: presentText(list.header?.subtitle), songs, channelId: list.footer_button?.on_tap?.payload?.browseId }
+}
+
+type ChannelCardNode = {
+  section_title?: Text
+  section_subtitle?: Text
+  channel_avatar?: Thumbnail[]
+  channel_endpoint?: { payload?: { browseId?: string } }
+  creator_videos_button?: { endpoint?: { metadata?: { url?: string } } }
+  creator_about_button?: { endpoint?: { metadata?: { url?: string } } }
+  creator_custom_url_buttons?: { title?: string, on_tap?: { payload?: { url?: string } } }[]
+}
+
+const normalizeChannelCard = (input: unknown): SourceChannelCard | undefined => {
+  const card = descriptionItems(input).find((item) => item.type === 'VideoDescriptionInfocardsSection') as ChannelCardNode | undefined
+  const id = card?.channel_endpoint?.payload?.browseId
+  const name = presentText(card?.section_title)
+  if (!card || !id || !name) return undefined
+  return {
+    id,
+    name,
+    avatar: thumbnail(card.channel_avatar, AVATAR_WIDTH),
+    subscriberCountText: presentText(card.section_subtitle),
+    videosUrl: card.creator_videos_button?.endpoint?.metadata?.url,
+    aboutUrl: card.creator_about_button?.endpoint?.metadata?.url,
+    links: (card.creator_custom_url_buttons ?? []).flatMap((button) => {
+      const url = outboundUrl(button.on_tap?.payload?.url)
+      return button.title && url ? [{ title: button.title, url }] : []
+    }),
+  }
+}
+
 type PanelCommand = {
   identifier?: { tag?: string }
   contentSourcePanelIdentifier?: { tag?: string }
@@ -1297,8 +1368,7 @@ type TranscriptSectionNode = {
    engagement-panel-searchable-transcript /next still lists (measured 2026-11-10): a video with chapters names it in an
    updateEngagementPanelContentCommand, one without in a showEngagementPanelEndpoint. */
 const normalizeTranscriptPanel = (input: unknown): SourceTranscriptPanel | undefined => {
-  const panels = (input as { engagement_panels?: { content?: { items?: TranscriptSectionNode[] } }[] }).engagement_panels ?? []
-  const section = panels.flatMap((panel) => panel.content?.items ?? []).find((item) => item?.type === 'VideoDescriptionTranscriptSection')
+  const section = descriptionItems(input).find((item) => item.type === 'VideoDescriptionTranscriptSection') as TranscriptSectionNode | undefined
   const payload = section?.primary_button?.endpoint?.payload
   const commands = [
     payload,
@@ -1483,6 +1553,8 @@ export const normalizeWatchMeta = (input: unknown, id: string): SourceWatchMeta 
     playlist: normalizeWatchPlaylist(watchNext?.playlist),
     chapters: normalizeChapters(input),
     transcriptPanel: normalizeTranscriptPanel(input),
+    music: normalizeMusicSection(input),
+    channelCard: normalizeChannelCard(input),
   }
 }
 

@@ -482,6 +482,41 @@ type WatchMeta {
   # What youtube.com's description section "Transcript" opens: pass it to
   # `transcript`. Null for a video without one.
   transcriptPanel: TranscriptPanel
+  # youtube.com's description section "Music". Null for a video without one.
+  music: MusicSection
+  # The card for the video's channel that ends youtube.com's expanded
+  # description. Null when upstream sends none.
+  channelCard: ChannelCard
+}
+
+type MusicSection {
+  # As the section heads its songs, "1 song".
+  countText: String
+  songs: [Song!]!
+  # The channel its Music button opens.
+  channelId: ID
+}
+
+type Song {
+  title: String!
+  artist: String
+  album: String
+  thumbnail: String
+  # The song's own video, which its card opens. Null when the card opens nothing.
+  videoId: ID
+}
+
+type ChannelCard {
+  id: ID!
+  name: String!
+  avatar: String
+  subscriberCountText: String
+  # youtube.com's addresses of the card's Videos and About buttons, such as
+  # /channel/UC.../videos, which the app's routes take as they are.
+  videosUrl: String
+  aboutUrl: String
+  # The channel's own links, such as its Instagram.
+  links: [ChannelLink!]!
 }
 
 type TranscriptPanel {
