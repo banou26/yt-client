@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vite-plus/test'
 import { CAPTION_OPTIONS, captionDeclarations, stepCaptionSize } from '../../../src/player/caption-style'
 import { DEFAULT_SETTINGS } from '../../../src/settings'
 
-const declarations = (look: Partial<typeof DEFAULT_SETTINGS>) =>
-  Object.fromEntries(captionDeclarations({ ...DEFAULT_SETTINGS, ...look }).split('; ').map(line => line.split(/: (.*)/s).slice(0, 2)))
+const declarations = (look: Partial<typeof DEFAULT_SETTINGS>, base = 16.5) =>
+  Object.fromEntries(captionDeclarations({ ...DEFAULT_SETTINGS, ...look }, base).split('; ').map(line => line.split(/: (.*)/s).slice(0, 2)))
+
+// each shadow's lengths, in px
+const shadowLengths = (look: Partial<typeof DEFAULT_SETTINGS>, base: number) =>
+  (declarations(look, base)['text-shadow'] as string).split(/, (?=rgba)/).map(shadow => [...shadow.matchAll(/(-?[\d.]+)px/g)].map(([, length]) => Number(length)))
 
 describe('the Subtitles Options panel', () => {
   it('offers youtube.com\'s rows and choices, in its order (measured 2026-11-10)', () => {
@@ -41,10 +45,37 @@ describe('the caption look', () => {
     expect(declarations({ captionColor: 'Yellow', captionOpacity: 0.5, captionBackground: 'Blue', captionBackgroundOpacity: 0.25, captionEdge: 'Depressed' })).toMatchObject({
       'color': 'rgba(255, 255, 0, 0.5)',
       'background-color': 'rgba(0, 0, 255, 0.25)',
-      'text-shadow': 'rgba(204, 204, 204, 0.5) 0.06em 0.06em, rgba(34, 34, 34, 0.5) -0.06em -0.06em',
+      'text-shadow': 'rgba(204, 204, 204, 0.5) 1px 1px, rgba(34, 34, 34, 0.5) -1px -1px',
     })
     expect(declarations({ captionFont: 'Casual' })['font-family']).toBe('"Comic Sans MS", Impact, Handlee, fantasy')
     expect(declarations({ captionSize: 125 })['font-size']).toBe('125%')
+  })
+})
+
+describe('the caption edges', () => {
+  it('draw youtube.com\'s shadows on a 16.5 px base caption (measured 2026-11-10)', () => {
+    expect(declarations({ captionEdge: 'Drop Shadow' })['text-shadow']).toBe(
+      'rgba(34, 34, 34, 1) 1.03125px 1.03125px 1.546875px, rgba(34, 34, 34, 1) 1.03125px 1.03125px 2.0625px, rgba(34, 34, 34, 1) 1.03125px 1.03125px 2.578125px',
+    )
+    expect(declarations({ captionEdge: 'Raised' })['text-shadow']).toBe('rgba(34, 34, 34, 1) 1px 1px')
+    expect(declarations({ captionEdge: 'Outline' })['text-shadow']).toBe(Array(5).fill('rgba(34, 34, 34, 1) 0 0 1.03125px').join(', '))
+  })
+
+  it('draw youtube.com\'s shadows on a 33.6 px base caption (measured 2026-11-10)', () => {
+    const close = (lengths: number[][], expected: number[][]) => {
+      expect(lengths.length).toBe(expected.length)
+      lengths.forEach((shadow, index) => shadow.forEach((length, at) => expect(length).toBeCloseTo(expected[index]![at]!, 6)))
+    }
+    close(shadowLengths({ captionEdge: 'Drop Shadow' }, 33.6), [[2.1, 2.1, 3.15], [2.1, 2.1, 4.2], [2.1, 2.1, 5.25]])
+    close(shadowLengths({ captionEdge: 'Raised' }, 33.6), [[1.05, 1.05], [2.05, 2.05], [3.05, 3.05]])
+    close(shadowLengths({ captionEdge: 'Depressed' }, 33.6), [[1.05, 1.05], [-1.05, -1.05]])
+    close(shadowLengths({ captionEdge: 'Outline' }, 33.6), Array(5).fill([2.1]))
+  })
+
+  it('follow the player\'s base caption size, not the size picked', () => {
+    for (const captionEdge of ['Drop Shadow', 'Raised', 'Depressed', 'Outline']) {
+      expect(declarations({ captionEdge, captionSize: 200 })['text-shadow']).toBe(declarations({ captionEdge, captionSize: 50 })['text-shadow'])
+    }
   })
 })
 

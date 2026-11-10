@@ -28,13 +28,28 @@ const COLORS: Record<string, string> = {
   Black: '8, 8, 8',
 }
 
-// youtube.com's shadows, which grow with the caption (measured 2026-11-10 on 16.5 and 33.6 px captions)
-const EDGES: Record<string, (dark: string, light: string) => string> = {
-  'None': () => 'none',
-  'Drop Shadow': dark => [0.09375, 0.125, 0.15625].map(blur => `${dark} 0.0625em 0.0625em ${blur}em`).join(', '),
-  'Raised': dark => [0.03, 0.06, 0.09].map(offset => `${dark} ${offset}em ${offset}em`).join(', '),
-  'Depressed': (dark, light) => `${light} 0.06em 0.06em, ${dark} -0.06em -0.06em`,
-  'Outline': dark => Array.from({ length: 5 }, () => `${dark} 0 0 0.0625em`).join(', '),
+const EDGES = ['None', 'Drop Shadow', 'Raised', 'Depressed', 'Outline']
+
+// `for (; from <= to; from += step)` as youtube.com writes it, so the float steps give the same count
+const steps = (from: number, to: number, step: number) => {
+  const values: number[] = []
+  for (let value = from; value <= to; value += step) values.push(value)
+  return values
+}
+
+/* youtube.com's edges as its captions module draws them (read 2026-11-10): lengths in 32nds of the player's base
+   caption size, never of the chosen size, and at least 1 px; Raised draws a shadow every pixel, or half pixel on a 2x
+   screen */
+const edgeShadows = (edge: string, base: number, dark: string, light: string) => {
+  const unit = Math.max(base, 1) / 32
+  const [m, n, p, q] = [1, 2, 3, 5].map(times => Math.max(times * unit, 1)) as [number, number, number, number]
+  switch (edge) {
+    case 'Drop Shadow': return steps(p, q, unit).map(blur => `${dark} ${n}px ${n}px ${blur}px`)
+    case 'Raised': return steps(m, p, globalThis.devicePixelRatio >= 2 ? 0.5 : 1).map(offset => `${dark} ${offset}px ${offset}px`)
+    case 'Depressed': return [`${light} ${m}px ${m}px`, `${dark} -${m}px -${m}px`]
+    case 'Outline': return Array.from({ length: 5 }, () => `${dark} 0 0 ${n}px`)
+    default: return []
+  }
 }
 
 /** The caption look the Subtitles Options panel sets, one setting to a row. */
@@ -52,7 +67,7 @@ export const CAPTION_OPTIONS: CaptionOption[] = [
   { key: 'captionSize', label: 'Font size', choices: CAPTION_SIZES.map((value, index) => ({ value, label: SIZE_LABELS[index]! })) },
   { key: 'captionBackground', label: 'Background color', choices: named(Object.keys(COLORS)) },
   { key: 'captionBackgroundOpacity', label: 'Background opacity', choices: percents([0, 0.25, 0.5, 0.75, 1]) },
-  { key: 'captionEdge', label: 'Character edge style', choices: named(Object.keys(EDGES)) },
+  { key: 'captionEdge', label: 'Character edge style', choices: named(EDGES) },
   { key: 'captionOpacity', label: 'Font opacity', choices: percents([0.25, 0.5, 0.75, 1]) },
 ]
 
@@ -60,14 +75,18 @@ export const CAPTION_OPTIONS: CaptionOption[] = [
 export const stepCaptionSize = (size: number, direction: 1 | -1) =>
   Math.min(CAPTION_SIZES.at(-1)!, Math.max(CAPTION_SIZES[0]!, size + direction * 50))
 
-/** The look as declarations for a drawn cue, and for the sample drawn in place of one. The font opacity carries to the edge. */
-export const captionDeclarations = (look: CaptionLook) => {
+/**
+ * The look as declarations for a drawn cue, and for the sample drawn in place of one, on a player whose base caption
+ * size is `base` px. The font opacity carries to the edge.
+ */
+export const captionDeclarations = (look: CaptionLook, base: number) => {
   const alpha = look.captionOpacity
+  const shadows = edgeShadows(look.captionEdge, base, `rgba(34, 34, 34, ${alpha})`, `rgba(204, 204, 204, ${alpha})`)
   return [
     `font-size: ${look.captionSize}%`,
     `font-family: ${FONTS[look.captionFont]}`,
     `color: rgba(${COLORS[look.captionColor]}, ${alpha})`,
     `background-color: rgba(${COLORS[look.captionBackground]}, ${look.captionBackgroundOpacity})`,
-    `text-shadow: ${EDGES[look.captionEdge]!(`rgba(34, 34, 34, ${alpha})`, `rgba(204, 204, 204, ${alpha})`)}`,
+    `text-shadow: ${shadows.length > 0 ? shadows.join(', ') : 'none'}`,
   ].join('; ')
 }

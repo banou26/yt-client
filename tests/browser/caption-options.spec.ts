@@ -66,7 +66,10 @@ test('the Options panel restyles the captions, the look stays for the next visit
   }
   await expect.poll(async () => (await cue())?.color).toBe(styled.color)
   expect(await cue()).toMatchObject(styled)
-  expect((await cue())!.shadow).toContain('rgb(34, 34, 34) 0px 0px')
+  // youtube.com's outline follows the player's base caption size, never the size picked
+  const { shadow, base } = (await cue())!
+  expect(shadow.split(', rgb').length).toBe(5)
+  expect(Number(shadow.match(/^rgb\(34, 34, 34\) 0px 0px ([\d.]+)px/)?.[1])).toBeCloseTo(Math.max(base / 16, 1), 1)
 
   await startPlayback(page)
   await page.getByRole('button', { name: 'Turn off captions' }).waitFor({ timeout: 30_000 })

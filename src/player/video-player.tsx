@@ -275,7 +275,7 @@ const VideoPlayer = (
   const [shortcuts, setShortcuts] = useState(false)
   const closeShortcuts = useCallback(() => setShortcuts(false), [])
   const [loop, setLoop] = useState(false)
-  const [cueStyle, setCueStyle] = useState(() => captionDeclarations(getSettings()))
+  const [cueStyle, setCueStyle] = useState('')
   const [sample, setSample] = useState<number | undefined>(undefined)
   const sampleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [timesUp, setTimesUp] = useState(false)
@@ -333,7 +333,22 @@ const VideoPlayer = (
 
   useEffect(() => () => clearTimeout(sampleTimer.current), [])
 
-  useEffect(() => subscribeSettings(settings => setCueStyle(captionDeclarations(settings))), [])
+  // the edges follow the player's base caption size, so the look is drawn again when the picture changes size
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    const update = () => setCueStyle(captionDeclarations(getSettings(), captionBase(video)))
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(video)
+    video.addEventListener('resize', update)
+    const unsubscribe = subscribeSettings(update)
+    return () => {
+      observer.disconnect()
+      video.removeEventListener('resize', update)
+      unsubscribe()
+    }
+  }, [attempt])
 
   const sponsors = useRef(segments)
   sponsors.current = segments
