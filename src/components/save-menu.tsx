@@ -214,7 +214,7 @@ export const SaveMenu = (
   })
 
   const onMore = () => {
-    if (!page?.cursor || fetching || error) return
+    if (!page?.cursor || fetching) return
     setLoaded(loaded[loaded.length - 1] === page ? loaded : [...loaded, page])
   }
 
