@@ -4,7 +4,7 @@ import { expect, test } from './test'
 
 /* youtube.com's Posts tab, signed out (measured 2026-11-10): a post longer than four lines is cut there with a Read
    more that opens it in place, and its footer's comment count links to /post/<id>, which shows the post and then its
-   comments, sorted as on a watch page. */
+   comments, sorted as on a watch page, under a comment prompt that asks to sign in. */
 
 test('opens a post from the Posts tab by its comment count, on the post and then its comments', async ({ page }) => {
   test.setTimeout(240_000)
@@ -34,6 +34,7 @@ test('opens a post from the Posts tab by its comment count, on the post and then
   const comments = page.locator('main section').filter({ has: page.locator('.heading') })
   await expect(comments.locator('.heading')).toHaveText(/^\d{1,3}(,\d{3})* Comments?$/, { timeout: 120_000 })
   await expect(comments.locator('.comment').first()).toBeVisible()
+  await expect(comments.getByRole('button', { name: 'Sign in to comment' })).toBeVisible()
 
   const top = await comments.locator('.comment').first().textContent()
   await comments.getByRole('button', { name: 'Sort by' }).click()

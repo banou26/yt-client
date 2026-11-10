@@ -415,7 +415,7 @@ const style = css`
 `
 
 /** The top-level comment box. Signed-out readers get a prompt, not a dead form. */
-const Composer = ({ videoId }: { videoId: string }) => {
+const Composer = ({ videoId }: { videoId?: string }) => {
   const { ready, signedIn } = useSession()
   const [, postComment] = useMutation(POST_COMMENT)
   const [draft, setDraft] = useState('')
@@ -428,6 +428,7 @@ const Composer = ({ videoId }: { videoId: string }) => {
       </button>
     )
   }
+  if (!videoId) return null
 
   const send = () => {
     const body = draft.trim()
@@ -703,7 +704,7 @@ const Replies = (
   )
 }
 
-/** A video's comments, or with `post` instead, a channel post's, which have no comment box. */
+/** A video's comments, or with `post` instead, a channel post's, where a signed-in viewer gets no comment box. */
 export const Comments = ({ videoId, post, commentCountText }: {
   videoId?: string
   post?: { id: string, channelId: string }
@@ -776,7 +777,7 @@ export const Comments = ({ videoId, post, commentCountText }: {
           ))}
         </Menu>
       </div>
-      {videoId ? <Composer videoId={videoId} /> : undefined}
+      <Composer videoId={videoId} />
       <div className='list'>
         {items.map(comment => (
           <div className='comment' key={comment.id}>
