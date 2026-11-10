@@ -182,7 +182,6 @@ const createFakeClient = () => {
       searchFilters.push(filters)
       return search('search', async () => search('search-2'))
     },
-    getSearchSuggestions: async (query: string) => [`${query} one`, `${query} two`],
     getBasicInfo: async () => ({ basic_info: undefined }),
     // getWatchNextContinuation MUTATES this object and returns `this` rather than handing back a fresh page
     getShortsVideoInfo: async (id: string) => {
@@ -274,7 +273,7 @@ const createFakeClient = () => {
     getChannelsFeed: async () => ({
       channels: [{ author: { id: 'UC1', name: 'Chan', thumbnails: [{ url: 'a' }] } }],
     }),
-    session: { logged_in: true },
+    session: { logged_in: true, context: { client: { hl: 'en', gl: 'US' } } },
     interact: {
       comment: async (videoId: string, body: string) => void calls.push(`comment:${videoId}:${body}`),
       subscribe: async (channelId: string) => void calls.push(`subscribe:${channelId}`),
@@ -416,15 +415,6 @@ describe('youtube search', () => {
     await expect(source.search('query', { uploadDate: 'WEEK' }, unfiltered.cursor))
       .rejects.toThrow('belongs to')
     await expect(source.search('query', undefined, unfiltered.cursor)).resolves.toBeTruthy()
-  })
-
-  it('degrades suggestions to an empty list rather than failing the header', async () => {
-    const client = createFakeClient()
-    const source = createYoutubeSource({ fetch: globalThis.fetch, createClient: async () => client })
-    expect(await source.searchSuggestions('bl')).toEqual(['bl one', 'bl two'])
-    expect(await source.searchSuggestions('   ')).toEqual([])
-    client.getSearchSuggestions = async () => { throw new Error('suggest host unreachable') }
-    expect(await source.searchSuggestions('bl')).toEqual([])
   })
 })
 

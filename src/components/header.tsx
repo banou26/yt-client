@@ -17,7 +17,7 @@ import { signIn } from '../sign-in'
 
 const SEARCH_SUGGESTIONS_QUERY = gql(`
   query SearchSuggestions($query: String!) {
-    searchSuggestions(query: $query)
+    searchSuggestions(query: $query) { query name description photo channelId }
   }
 `)
 
@@ -216,6 +216,32 @@ const style = css`
   .suggestion:hover,
   .suggestion.active {
     background: var(--bg-hover);
+  }
+
+  .entity {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .entity-description {
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+    color: var(--text-secondary);
+  }
+
+  /* youtube.com's, measured on 2026-11-10: 30 px, its right edge 48 px in from the list's, a channel's round and any
+     other's with 4 px corners */
+  .entity-photo {
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 3.2rem 0 auto;
+    border-radius: 0.4rem;
+    object-fit: cover;
+  }
+
+  .entity-photo.channel {
+    border-radius: 50%;
   }
 
   .search-box:focus-within {
@@ -469,7 +495,7 @@ export const Header = ({ onMenu, onSkip }: { onMenu?: () => void, onSkip?: () =>
       const next = activeSuggestion + step
       const wrapped = next < -1 ? suggestions.length - 1 : next >= suggestions.length ? -1 : next
       setActiveSuggestion(wrapped)
-      if (inputRef.current) inputRef.current.value = wrapped === -1 ? typed ?? '' : suggestions[wrapped] ?? ''
+      if (inputRef.current) inputRef.current.value = wrapped === -1 ? typed ?? '' : suggestions[wrapped]?.query ?? ''
       return
     }
     if (event.key === 'Escape' && activeSuggestion !== -1) {
@@ -542,21 +568,32 @@ export const Header = ({ onMenu, onSkip }: { onMenu?: () => void, onSkip?: () =>
             ? (
               <ul className='suggestions' id='search-suggestions' role='listbox'>
                 {suggestions.map((suggestion, index) => {
-                  const parts = splitSuggestion(typed ?? debounced, suggestion)
+                  const parts = splitSuggestion(typed ?? debounced, suggestion.query)
                   return (
                     <li
-                      key={suggestion}
+                      key={suggestion.query}
                       id={`suggestion-${index}`}
                       role='option'
+                      aria-label={suggestion.query}
                       aria-selected={index === activeSuggestion}
                       className={index === activeSuggestion ? 'suggestion active' : 'suggestion'}
                       onPointerDown={(event: TargetedEvent<HTMLLIElement>) => {
                         event.preventDefault()
-                        submitQuery(suggestion)
+                        submitQuery(suggestion.query)
                       }}
                     >
                       <Search size={16} strokeWidth={1.5} />
-                      <span>{parts.typed}<b>{parts.completion}</b></span>
+                      {suggestion.name
+                        ? (
+                          <span className='entity'>
+                            <b>{suggestion.name}</b>
+                            {suggestion.description ? <span className='entity-description'>{suggestion.description}</span> : undefined}
+                          </span>
+                        )
+                        : <span>{parts.typed}<b>{parts.completion}</b></span>}
+                      {suggestion.photo
+                        ? <img className={suggestion.channelId ? 'entity-photo channel' : 'entity-photo'} src={suggestion.photo} alt='' referrerpolicy='no-referrer' />
+                        : undefined}
                     </li>
                   )
                 })}

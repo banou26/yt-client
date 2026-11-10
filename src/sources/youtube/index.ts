@@ -7,6 +7,7 @@ import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE } from '../types'
 import { channelFeedUrl, createPacer, isChannelId, parseChannelFeed, timeFromAgo } from './channel-feed'
 import { approximateCount, chatReplayToken, normalizeChannel, normalizeChannelShelf, normalizeCommentThread, normalizeCommentView, normalizeLiveChatMessage, normalizeFeedChannel, normalizeFeedVideo, normalizeGridPlaylist, normalizeGridShow, normalizeLockupVideo, normalizeNotification, normalizePlaylistDetails, normalizePlaylistItem, normalizePlaylistLockup, normalizePlaylistLockupItem, normalizeChannelAbout, normalizeCommunityPost, normalizeFeaturedVideo, normalizeSearchCard, normalizeSearchChannel, normalizeSearchShelf, normalizeSession, normalizeShortsLockup, normalizeStoreShelf, normalizeTranscript, normalizeVideoDetails, normalizeWatchMeta } from './normalize'
 import { base64Bytes, protoField } from './protobuf'
+import { readSearchSuggestions, searchSuggestionsUrl } from './suggestions'
 
 type Feed = {
   videos: Iterable<unknown>
@@ -254,7 +255,6 @@ export type YoutubeClient = {
   getHistory(): Promise<SectionedFeed>
   getChannelsFeed(): Promise<ChannelsFeed>
   search(query: string, filters?: YoutubeSearchFilters): Promise<SearchFeed>
-  getSearchSuggestions(query: string, previousQuery?: string): Promise<string[]>
   getBasicInfo(id: string): Promise<{ basic_info?: unknown }>
   getShortsVideoInfo(id: string): Promise<ShortsSequence>
   getChannel(id: string): Promise<ChannelFeed>
@@ -274,6 +274,7 @@ export type YoutubeClient = {
   }
   session: {
     logged_in: boolean
+    context: { client: { hl: string, gl: string } }
   }
   actions: {
     // `playlistId` and `playlistIndex` are the keys /next actually reads: a raw `index` key would go out untouched and be ignored.
@@ -1251,7 +1252,8 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
     searchSuggestions: async (query, previousQuery) => {
       if (query.trim() === '') return []
       try {
-        return await (await client).getSearchSuggestions(query, previousQuery)
+        const { session } = await client
+        return await readSearchSuggestions(await fetch(searchSuggestionsUrl(query, previousQuery, session.context.client)))
       } catch {
         return []
       }

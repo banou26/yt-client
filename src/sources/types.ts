@@ -178,6 +178,18 @@ export type SourceSearchPage = {
   unwatchedChip: boolean
 }
 
+/**
+ * One suggestion for the search box, `query` being what it searches for. `name` is set when upstream ties it to a
+ * person, a thing or a channel (then `channelId`), with what that is in `description` and its `photo`.
+ */
+export type SourceSearchSuggestion = {
+  query: string
+  name?: string
+  description?: string
+  photo?: string
+  channelId?: string
+}
+
 export type SourceChannelTab =
   | 'HOME' | 'VIDEOS' | 'SHORTS' | 'LIVE' | 'RELEASES'
   | 'PODCASTS' | 'COURSES' | 'SHOWS' | 'PLAYLISTS' | 'COMMUNITY' | 'STORE' | 'ABOUT' | 'SEARCH'
@@ -556,7 +568,7 @@ export type Source = {
   channelUploads(channelId: string): Promise<SourceVideo[]>
   search(query: string, filters?: SourceSearchFilters, cursor?: string): Promise<SourceSearchPage>
   // Not an InnerTube call: every keystroke that reaches it is a tunneled round trip, so the caller is expected to debounce
-  searchSuggestions(query: string, previousQuery?: string): Promise<string[]>
+  searchSuggestions(query: string, previousQuery?: string): Promise<SourceSearchSuggestion[]>
   video(id: string): Promise<SourceVideo | undefined>
   // `id` is a UC id or a youtube.com channel path without its leading slash: `@handle`, `c/<name>` or `user/<name>`
   channel(id: string, tab?: SourceChannelTab, sort?: string, query?: string, cursor?: string, filter?: string): Promise<SourceChannelPage>

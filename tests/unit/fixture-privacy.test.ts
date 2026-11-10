@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vite-plus/test'
 // A recorded YouTube answer carries the address it was fetched from (googlevideo's `ip=` in onesie and playback URLs,
 // measured 2026-11-10), and this repo is public. Only the documentation ranges may appear.
 // raw text through vite, since vite.config.ts shims node:fs to an empty module under vp test
-const fixtures = import.meta.glob<string>('./fixtures/*.{json,html,xml}', { query: '?raw', import: 'default', eager: true })
+const fixtures = import.meta.glob<string>('./fixtures/*.{json,html,xml,txt}', { query: '?raw', import: 'default', eager: true })
 const DOCUMENTATION = [/^192\.0\.2\./, /^198\.51\.100\./, /^203\.0\.113\./, /^2001:db8:/i]
 const IPV4 = /(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?![\d.])/g
 // at least three colons, so a clock time such as 1:02:03 never reads as one

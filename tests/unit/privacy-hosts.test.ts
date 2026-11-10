@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vite-plus/test'
 
 import { DIRECT_HOSTS, FKN_DOMAINS } from '../../src/privacy-hosts'
 import store from './fixtures/channel-store.json'
+import mrbeas from './fixtures/suggestions-mrbeas.txt?raw'
+import taylor from './fixtures/suggestions-taylor-s.txt?raw'
 import fehistory from './history/fehistory.json'
 import uploadsFeed from './fixtures/uulf-computerphile.xml?raw'
 
@@ -74,6 +76,7 @@ describe('the hosts the privacy page lists', () => {
       ...imageHosts(fehistory),
       ...imageHosts(store),
       ...[...uploadsFeed.matchAll(/<media:thumbnail url="([^"]+)"/g)].map(([, url]) => new URL(url!).hostname),
+      ...[taylor, mrbeas].flatMap((answer) => [...answer.matchAll(/"zai":"([^"]+)"/g)].map(([, url]) => new URL(url!).hostname)),
     ])
     expect([...hosts].sort()).toEqual([
       'encrypted-tbn0.gstatic.com',

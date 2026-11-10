@@ -207,6 +207,17 @@ type SearchPage {
   unwatchedChip: Boolean!
 }
 
+# One suggestion for the search box, `query` being what it searches for. `name`
+# is set when upstream ties it to a person, a thing or a channel (then
+# `channelId`), with what that is in `description` and its `photo`.
+type SearchSuggestion {
+  query: String!
+  name: String
+  description: String
+  photo: String
+  channelId: ID
+}
+
 # Upstream's own vocabulary, lowercased by the source before it reaches
 # youtubei.js. ALL is the unset state rather than a filter that gets sent.
 enum SearchUploadDate {
@@ -803,10 +814,10 @@ type Query {
   # the query AND the filter set that minted it, so changing a filter starts a
   # fresh feed rather than paging the previous one's results.
   search(query: String!, filters: SearchFilters, cursor: String): SearchPage!
-  # Free-text suggestions for the search box. Not an InnerTube call: it reads
+  # Suggestions for the search box. Not an InnerTube call: it reads
   # suggestqueries-clients6.youtube.com through the same rewritten fetch, so it
   # is one tunneled round trip per call and callers must debounce.
-  searchSuggestions(query: String!, previousQuery: String): [String!]!
+  searchSuggestions(query: String!, previousQuery: String): [SearchSuggestion!]!
   video(id: ID!): Video
   # `tab` defaults to the channel's own landing tab. `query` only applies to the
   # SEARCH tab and is ignored elsewhere. `sort` is one of the page's own
