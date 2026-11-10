@@ -798,6 +798,7 @@ export const normalizeShortsLockup = (input: unknown): SourceVideo | undefined =
     entity_id?: string
     thumbnail?: Thumbnail[]
     content_image?: { image?: Thumbnail[], primary_thumbnail?: { image?: Thumbnail[] } }
+    thumbnail_view_model?: { image?: Thumbnail[] }
     on_tap_endpoint?: { payload?: { videoId?: string } }
     overlay_metadata?: { primary_text?: Text, secondary_text?: Text }
     accessibility_text?: string
@@ -806,9 +807,12 @@ export const normalizeShortsLockup = (input: unknown): SourceVideo | undefined =
   const id = node?.on_tap_endpoint?.payload?.videoId ?? node?.entity_id
   const title = presentText(node?.overlay_metadata?.primary_text) ?? node?.accessibility_text
   if (!id || !title) return undefined
-  // i.ytimg.com/vi/ID/hqdefault.jpg is the canonical still for any public video id, used when the node carries none
-  // a Short's still from a feed lockup is the vertical frame letterboxed into 16:9, which is why the 9:16 card crops back to the content rather than showing bars; the reel endpoint's poster is the true 1080x1920 portrait frame and wins wherever it exists
-  const image = thumbnail(node?.thumbnail)
+  // i.ytimg.com/vi/ID/hqdefault.jpg is the canonical still for any public video id, used when the node carries none.
+  // It and a feed lockup's own still letterbox the vertical frame, so a portrait tile crops into their bars; the
+  // thumbnail view's image is the portrait frame itself (405x608 on a channel's Shorts tab, 2026-11-10), and the reel
+  // endpoint's poster is the true 1080x1920 frame and wins wherever it exists
+  const image = thumbnail(node?.thumbnail_view_model?.image)
+    ?? thumbnail(node?.thumbnail)
     ?? thumbnail(node?.content_image?.primary_thumbnail?.image ?? node?.content_image?.image)
     ?? `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`
   return {

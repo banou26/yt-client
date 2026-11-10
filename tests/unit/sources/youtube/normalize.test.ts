@@ -191,6 +191,15 @@ describe('youtube normalization', () => {
     })?.thumbnail).toBe('real')
   })
 
+  it('takes the portrait still a short\'s thumbnail view carries over a letterboxed one', () => {
+    expect(normalizeShortsLockup({
+      on_tap_endpoint: { payload: { videoId: 'abc123' } },
+      overlay_metadata: { primary_text: { text: 'A Short' } },
+      thumbnail: [{ url: 'letterboxed', width: 480, height: 270 }],
+      thumbnail_view_model: { image: [{ url: 'portrait', width: 405, height: 720 }] },
+    })?.thumbnail).toBe('portrait')
+  })
+
   it('falls back to the entity id and drops a short with no title', () => {
     expect(normalizeShortsLockup({
       entity_id: 'shorts-entity',
