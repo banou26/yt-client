@@ -212,12 +212,12 @@ export type FrameEgressResponse = {
  * after a direct call failed and the frame's own fetch answered it. */
 export type DirectReport = 'on' | 'off' | 'skipped'
 
-/** The frame to the app realm on the direct lane: an InnerTube POST for the app realm to send, its cancel, or the lane's state. */
+/** The frame to the app realm on the direct lane: a request for the app realm to send (`body` is absent for a GET), its cancel, or the lane's state. */
 export type DirectRequest = {
   type: 'fetch'
   id: number
   url: string
-  body: string
+  body?: string
 } | {
   type: 'cancel'
   id: number
@@ -238,14 +238,18 @@ export type DirectResponse = {
   network: boolean
 }
 
-/** The only requests the direct lane carries: InnerTube on www.youtube.com, which answers youtube.fkn.app's origin. */
-export const isDirectUrl = (url: string) => {
+/**
+ * The only requests the direct lane carries, with the one method each is sent with: InnerTube POSTs and caption GETs on
+ * www.youtube.com, which both answer youtube.fkn.app's origin. Undefined for any other url.
+ */
+export const directMethod = (url: string): 'POST' | 'GET' | undefined => {
   try {
     const parsed = new URL(url)
-    return parsed.protocol === 'https:' && parsed.hostname === 'www.youtube.com' && parsed.pathname.startsWith('/youtubei/v1/')
-  } catch {
-    return false
-  }
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'www.youtube.com') return undefined
+    if (parsed.pathname.startsWith('/youtubei/v1/')) return 'POST'
+    if (parsed.pathname === '/api/timedtext') return 'GET'
+  } catch {}
+  return undefined
 }
 
 export const FRAME_CONNECT = 'yt-client-frame-connect'

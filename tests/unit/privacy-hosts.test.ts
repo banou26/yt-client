@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { describe, expect, it } from 'vite-plus/test'
 
+import { directMethod } from '../../src/frame/protocol'
 import { DIRECT_HOSTS, FKN_DOMAINS } from '../../src/privacy-hosts'
 import store from './fixtures/channel-store.json'
 import mrbeas from './fixtures/suggestions-mrbeas.txt?raw'
@@ -92,6 +93,11 @@ describe('the hosts the privacy page lists', () => {
       'yt3.googleusercontent.com',
     ])
     expect([...hosts].filter((host) => !listed(host))).toEqual([])
+  })
+
+  it('name the captions the browser reads from www.youtube.com itself', () => {
+    expect(directMethod('https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&fmt=json3')).toBe('GET')
+    expect(DIRECT_HOSTS.find(({ domain }) => domain === 'www.youtube.com')?.what).toMatch(/\bcaptions\b/)
   })
 
   it('cover the hosts sessions were seen reaching', () => {

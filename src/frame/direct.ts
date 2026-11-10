@@ -1,12 +1,12 @@
 import type { DirectReport, DirectRequest, DirectResponse } from './protocol'
 
-import { FRAME_DIRECT_CONNECT, isDirectUrl } from './protocol'
+import { directMethod, FRAME_DIRECT_CONNECT } from './protocol'
 
 /** How long direct calls pause after one failed with a TypeError and the frame's own fetch then answered it. */
 export const DIRECT_SKIP_MS = 5 * 60_000
 
-/** Sends an InnerTube POST from the app realm; rejects with a TypeError when the browser's fetch did. */
-export type DirectFetch = (url: string, body: string, signal?: AbortSignal) => Promise<Response>
+/** Sends a request from the app realm, a POST with `body` or a GET without; rejects with a TypeError when the browser's fetch did. */
+export type DirectFetch = (url: string, body: string | undefined, signal?: AbortSignal) => Promise<Response>
 
 type FrameWindow = Window & {
   [FRAME_DIRECT_CONNECT]?: (port: MessagePort) => void
@@ -63,7 +63,7 @@ const sendDirect: DirectFetch = (url, body, signal) => new Promise((resolve, rej
     port.postMessage({ type: 'cancel', id } satisfies DirectRequest)
     reject(signal.reason)
   }, { once: true })
-  port.postMessage({ type: 'fetch', id, url, body } satisfies DirectRequest)
+  port.postMessage({ type: 'fetch', id, url, ...(body !== undefined && { body }) } satisfies DirectRequest)
 })
 
 /** The app realm's direct lane, once the host connected it; undefined while `yt-client:step:direct` is off. */
@@ -97,8 +97,8 @@ type YoutubeFetchOptions = {
 }
 
 /**
- * youtubei.js's fetch. A signed-out InnerTube POST goes on the direct lane when it is connected; every other request,
- * and every signed-in one, takes today's path unchanged.
+ * youtubei.js's fetch, and the captions'. A signed-out InnerTube POST or caption GET goes on the direct lane when it is
+ * connected; every other request, and every signed-in one, takes today's path unchanged.
  *
  * A direct answer is YouTube's own whatever its status, and is never sent again. Only a TypeError resends that one
  * request on today's path, and only when that path then answers it with a 2xx are direct calls paused, for
@@ -111,14 +111,15 @@ export const createYoutubeFetch = ({ fetch, direct, signedIn, report, now = Date
     const lane = direct()
     if (!lane) return fetch(input, init)
     const { url, method, headers, body, signal } = requestParts(input, init)
-    if (method !== 'POST' || typeof body !== 'string' || !isDirectUrl(url)) return fetch(input, init)
+    const text = typeof body === 'string' ? body : undefined
+    if (method !== directMethod(url) || (method === 'POST' && text === undefined)) return fetch(input, init)
     if (signedIn() || headers.has('authorization')) {
       report('off')
       return fetch(input, init)
     }
     if (now() < skipUntil) return fetch(input, init)
     try {
-      const response = await lane(url, body, signal)
+      const response = await lane(url, text, signal)
       report('on')
       return response
     } catch (error) {

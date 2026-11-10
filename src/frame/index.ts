@@ -7,7 +7,7 @@ import type { PlaybackEntry } from './playback'
 
 import { createYoutubeSource } from '../sources/youtube'
 import { json3ToWebVtt, parseCaptionTracks, timedTextUrl } from './captions'
-import { catalogInnertube, hasSessionCookie, prefetchInitialPlayerResponse } from './innertube'
+import { catalogInnertube, hasSessionCookie, prefetchInitialPlayerResponse, youtubeFetch } from './innertube'
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
 import { openLiveManifest } from './live-open'
 import { closePlaybackEntry, isCancellation, openPlaybackEntry, requestPlaybackSegment } from './playback'
@@ -123,8 +123,8 @@ const api = {
     const track = entry.captions.find((candidate) => candidate.id === trackId)
     if (!track) throw new Error(`youtube: unknown caption track ${trackId}`)
     const source = await cueSourceFor(entry, track)
-    // the frame's own fetch rather than `egressFetch`: same-origin here, and an explicit cookie header would route this onto the tunnel
-    const response = await globalThis.fetch(timedTextUrl(source.url), { credentials: 'include' })
+    // off the direct lane, the frame's own fetch rather than `egressFetch`: same-origin here, and an explicit cookie header would route this onto the tunnel
+    const response = await youtubeFetch(timedTextUrl(source.url), { credentials: 'include' })
     if (!response.ok) throw new Error(`youtube: caption track ${trackId} answered ${response.status}`)
     const body = await response.text()
     if (!body) throw new Error(`youtube: caption track ${trackId} was answered with no cues`)

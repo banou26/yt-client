@@ -7,7 +7,7 @@ export type DirectHost = { domain: string, what: string }
  * to the code's own urls and to real YouTube answers, tests/browser/privacy.spec.ts to what the page shows.
  */
 export const DIRECT_HOSTS: readonly DirectHost[] = [
-  { domain: 'www.youtube.com', what: 'YouTube\'s API while yt-client is not signed in to YouTube, with your searches, what you open and your YouTube visitor ID' },
+  { domain: 'www.youtube.com', what: 'YouTube\'s API and captions while yt-client is not signed in to YouTube, with your searches, what you open and your YouTube visitor ID' },
   { domain: 'ytimg.com', what: 'Video thumbnails and preview frames' },
   { domain: 'ggpht.com', what: 'Channel pictures, post images and channel emoji' },
   { domain: 'googleusercontent.com', what: 'Channel pictures, banners and song covers' },

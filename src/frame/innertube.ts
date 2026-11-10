@@ -91,7 +91,8 @@ export const hasSessionCookie = () => readAuthCookie() !== undefined
 
 const authCookie = readAuthCookie()
 
-const youtubeFetch = createYoutubeFetch({
+/** The frame's fetch for InnerTube and captions: signed out, both leave from the app realm on the direct lane. */
+export const youtubeFetch = createYoutubeFetch({
   fetch: (input, init) => globalThis.fetch(input, init),
   direct: directLane,
   signedIn: hasSessionCookie,

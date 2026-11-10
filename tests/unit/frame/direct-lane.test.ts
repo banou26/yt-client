@@ -5,6 +5,7 @@ import type { DirectReport } from '../../../src/frame/protocol'
 import { FRAME_DIRECT_CONNECT } from '../../../src/frame/protocol'
 
 const SEARCH = 'https://www.youtube.com/youtubei/v1/search?prettyPrint=false&alt=json'
+const CAPTIONS = 'https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&ip=0.0.0.0&ipbits=0&sparams=ip%2Cipbits%2Cv%2Ccaps&signature=AB12&key=yt8&lang=en&fmt=json3'
 const VISITOR = 'CgtWSVNJVE9SXzEyMyiA'
 const PAYLOAD = JSON.stringify({ context: { client: { clientName: 'WEB', visitorData: VISITOR } }, query: 'lofi' })
 
@@ -100,6 +101,30 @@ describe('the direct lane', () => {
     lane.close()
   })
 
+  it('sends a caption GET from the app realm with no header and no credentials, and answers with its cues', async () => {
+    const cues = '{"events":[{"tStartMs":0,"dDurationMs":1000,"segs":[{"utf8":"Never"}]}]}'
+    const { youtubeFetch, sent, today, dataset, lane } = await wire({ answer: async () => new Response(cues, { headers: { 'content-type': 'application/json' } }) })
+    const response = await youtubeFetch(CAPTIONS, { credentials: 'include' })
+    expect(today).not.toHaveBeenCalled()
+    expect(sent).toHaveLength(1)
+    expect(sent[0]!.url).toBe(CAPTIONS)
+    const { signal, ...init } = sent[0]!.init
+    expect(signal).toBeInstanceOf(AbortSignal)
+    expect(init).toEqual({ method: 'GET', credentials: 'omit', mode: 'cors', redirect: 'follow' })
+    expect(await response.text()).toBe(cues)
+    await flush()
+    expect(dataset.ytDirect).toBe('on')
+    lane.close()
+  })
+
+  it('sends a signed-in caption GET on today\'s path, with the frame\'s own credentials', async () => {
+    const { youtubeFetch, sent, today, lane } = await wire({ answer: async () => new Response('{}'), signedIn: true })
+    await youtubeFetch(CAPTIONS, { credentials: 'include' })
+    expect(sent).toHaveLength(0)
+    expect(today).toHaveBeenCalledWith(CAPTIONS, { credentials: 'include' })
+    lane.close()
+  })
+
   it('drops X-Origin from youtubei.js\'s /config call and keeps its visitorData in the body', async () => {
     const { youtubeFetch, sent, lane } = await wire({ answer: async () => new Response('{}') })
     const config = JSON.stringify({ context: { client: { clientName: 'WEB', visitorData: VISITOR } } })
@@ -141,7 +166,7 @@ describe('the direct lane', () => {
     lane.close()
   })
 
-  it('keeps every request that is not an InnerTube POST on today\'s path', async () => {
+  it('keeps every request that is not an InnerTube POST or a caption GET on today\'s path', async () => {
     const { youtubeFetch, today, sent, lane } = await wire({ answer: async () => new Response('{}') })
     await youtubeFetch('https://www.youtube.com/sw.js_data', { headers: { Cookie: 'PREF=tz=UTC' } })
     await youtubeFetch('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -150,8 +175,11 @@ describe('the direct lane', () => {
     await youtubeFetch('https://s.youtube.com/api/stats/playback?cpn=x', { method: 'POST', body: '' })
     await youtubeFetch('https://youtubei.googleapis.com/youtubei/v1/search', { method: 'POST', body: PAYLOAD })
     await youtubeFetch('https://www.youtube.com/youtubei/v1/browse', { method: 'PUT', body: PAYLOAD })
+    await youtubeFetch('https://www.youtube.com/youtubei/v1/browse')
+    await youtubeFetch(CAPTIONS, { method: 'POST', body: '' })
+    await youtubeFetch('https://www.youtube.com/api/timedtext/list')
     expect(sent).toHaveLength(0)
-    expect(today).toHaveBeenCalledTimes(7)
+    expect(today).toHaveBeenCalledTimes(10)
     lane.close()
   })
 
@@ -261,7 +289,7 @@ describe('the direct lane', () => {
     const reply = new Promise<unknown>((resolve) => lane.port.addEventListener('message', (event) => resolve(event.data), { once: true }))
     lane.port.start()
     lane.port.postMessage({ type: 'fetch', id: 1, url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', body: '' })
-    expect(await reply).toEqual({ id: 1, error: expect.stringContaining('only InnerTube'), network: false })
+    expect(await reply).toEqual({ id: 1, error: expect.stringContaining('only InnerTube and captions'), network: false })
     expect(send).not.toHaveBeenCalled()
     lane.close()
   })
