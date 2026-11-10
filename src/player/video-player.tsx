@@ -30,6 +30,7 @@ import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
 import { EndScreenElements } from './end-screen-elements'
+import { pictureOf } from './end-screen-layout'
 import { MiniplayerControls } from './miniplayer'
 import { useFrame } from './player-frame'
 import { RefusalScreen } from './refusal-screen'
@@ -227,10 +228,8 @@ const timesUpStyle = css`
 
 // Chrome sizes cues to 5% of the smaller side of the picture drawn, not of the element
 const captionBase = (video: HTMLVideoElement) => {
-  const fit = video.videoWidth > 0 && video.videoHeight > 0
-    ? Math.min(video.clientWidth / video.videoWidth, video.clientHeight / video.videoHeight)
-    : 0
-  return 0.05 * (fit > 0 ? Math.min(video.videoWidth * fit, video.videoHeight * fit) : video.clientHeight)
+  const picture = pictureOf(video)
+  return 0.05 * Math.min(picture.width, picture.height)
 }
 
 const VideoPlayer = (
