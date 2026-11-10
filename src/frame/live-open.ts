@@ -1,9 +1,6 @@
-import type { createSabrSession } from './sabr'
+import { LIVE_HEAD_MS, type createSabrSession } from './sabr'
 
 export type LiveOpenSession = Pick<ReturnType<typeof createSabrSession>, 'requestSegment' | 'startLivePump' | 'liveSegments' | 'videoFormat' | 'close'>
-
-/** The position a live session's opening request asks at: the stream's head, as youtube.com's live player asks first. */
-export const LIVE_HEAD_MS = Number.MAX_SAFE_INTEGER
 
 const LIVE_START_TIMEOUT_MS = 3_000
 

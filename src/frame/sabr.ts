@@ -17,7 +17,6 @@ import { LiveMetadata, MediaHeader, UMPPartId, VideoPlaybackAbrRequest } from 'g
 import { FormatKeyUtils } from 'googlevideo/utils'
 import { GVS_ORIGIN_KEY } from './innertube'
 import { egressFetch } from './egress'
-import { LIVE_HEAD_MS } from './live-open'
 
 type AdapterState = {
   snapshot: PlaybackSnapshot
@@ -37,6 +36,10 @@ type ExecutedResponse = PlayerHttpResponse & {
   partTypes: number[]
   incomplete?: { actual: number, expected: number }
 }
+
+/** The position googlevideo reads as a live stream's head: it answers with a seek and the segment two behind it, as
+    youtube.com's live player asks first. */
+export const LIVE_HEAD_MS = Number.MAX_SAFE_INTEGER
 
 const MAX_SEGMENT_ATTEMPTS = 3
 const MAX_HARVESTED_SEGMENT_BYTES = 32 * 1024 * 1024

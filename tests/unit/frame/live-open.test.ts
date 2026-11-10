@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 import type { LiveOpenSession } from '../../../src/frame/live-open'
-import { LIVE_HEAD_MS, openLiveManifest } from '../../../src/frame/live-open'
+import { openLiveManifest } from '../../../src/frame/live-open'
+import { LIVE_HEAD_MS } from '../../../src/frame/sabr'
 
 // a SABR session whose pump asks YouTube for the next segment every second, from startLivePump until close
 const fakeLiveSession = (opening: () => Promise<void> = async () => {}) => {

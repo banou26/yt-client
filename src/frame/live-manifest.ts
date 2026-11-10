@@ -96,7 +96,8 @@ export const buildLiveManifest = (
 
   const shiftDepth = Math.max(windowMs, targetMs)
 
-  // start behind the edge by more than one segment: the delay is also all the buffer the playhead ever gets, and at two segments buffer-ahead measured a 0.4s to 4.7s sawtooth
+  // Shaka keeps the first manifest's delay for the whole session (shaka-player 4.16, outside low-latency mode), and a live
+  // open lists 1 to 3 segments, so the live start is the first listed segment and the buffer grows from there
   const presentationDelay = Math.min(targetMs * 3, windowMs)
 
   const updatePeriod = Math.max(1_000, Math.round(targetMs / 2))

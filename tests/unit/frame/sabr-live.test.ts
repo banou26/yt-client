@@ -5,8 +5,7 @@ import { LiveMetadata, MediaHeader, NextRequestPolicy, StreamProtectionStatus, U
 import type { SabrSource } from '../../../src/frame/innertube'
 import type { SegmentRequest } from '../../../src/frame/protocol'
 import { egressFetch } from '../../../src/frame/egress'
-import { LIVE_HEAD_MS } from '../../../src/frame/live-open'
-import { createSabrSession } from '../../../src/frame/sabr'
+import { createSabrSession, LIVE_HEAD_MS } from '../../../src/frame/sabr'
 
 vi.mock('../../../src/frame/egress', () => ({ egressFetch: vi.fn() }))
 vi.mock('../../../src/frame/innertube', () => ({ GVS_ORIGIN_KEY: 'gvs-origin' }))
