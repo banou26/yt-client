@@ -166,3 +166,37 @@ describe('the caption look settings', () => {
     })
   })
 })
+
+describe('the captions on or off choice', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  const saved = async (patch: Record<string, unknown>) => {
+    const written: string[] = []
+    vi.resetModules()
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: (_key: string, value: string) => written.push(value) })
+    const { updateSettings } = await import('../../src/settings')
+    updateSettings(patch)
+    return JSON.parse(written.at(-1)!)
+  }
+
+  it('is not made until a person turns captions on or off', async () => {
+    expect((await load()).getSettings().captionsChosen).toBeUndefined()
+    expect((await saved({ volume: 0.5 })).captionsChosen).toBeUndefined()
+  })
+
+  it('reads an off stored with every other setting as no choice', async () => {
+    expect((await load({ captionsEnabled: false, theater: true })).getSettings().captionsChosen).toBeUndefined()
+  })
+
+  it('reads a stored on as a choice', async () => {
+    expect((await load({ captionsEnabled: true, captionsLanguage: 'en' })).getSettings()).toMatchObject({ captionsEnabled: true, captionsChosen: true })
+  })
+
+  it('keeps captions turned off as a choice for the next visit', async () => {
+    const off = await saved({ captionsEnabled: false })
+    expect(off).toMatchObject({ captionsEnabled: false, captionsChosen: true })
+    expect((await load(off)).getSettings()).toMatchObject({ captionsEnabled: false, captionsChosen: true })
+  })
+})

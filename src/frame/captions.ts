@@ -4,6 +4,8 @@ export type CaptionTrack = {
   languageCode: string
   label: string
   auto: boolean
+  // the track YouTube's answer recommends showing to this viewer: set only when the default audio track's caption state starts with `ON_`
+  recommended?: true
 }
 
 export type CaptionSource = CaptionTrack & { url: string }
@@ -16,6 +18,11 @@ type RawTracklist = {
     language_code?: string
     kind?: string
   }[]
+  audio_tracks?: {
+    captions_initial_state?: string
+    default_caption_track_index?: number
+  }[]
+  default_audio_track_index?: number
 }
 
 const nameOf = (name: string | { text?: string } | undefined) =>
@@ -23,8 +30,12 @@ const nameOf = (name: string | { text?: string } | undefined) =>
 
 export const parseCaptionTracks = (tracklist: RawTracklist | undefined): CaptionSource[] => {
   const tracks = tracklist?.caption_tracks ?? []
+  const audio = tracklist?.audio_tracks?.[tracklist.default_audio_track_index ?? 0]
+  const recommended = audio?.captions_initial_state?.startsWith('CAPTIONS_INITIAL_STATE_ON_')
+    ? audio.default_caption_track_index ?? 0
+    : undefined
   const seen = new Set<string>()
-  return tracks.flatMap((track) => {
+  return tracks.flatMap((track, index) => {
     const url = track.base_url
     const languageCode = track.language_code ?? ''
     if (!url || !languageCode) return []
@@ -37,6 +48,7 @@ export const parseCaptionTracks = (tracklist: RawTracklist | undefined): Caption
       languageCode,
       label: nameOf(track.name) || languageCode,
       auto,
+      ...(index === recommended ? { recommended: true as const } : {}),
       url,
     }]
   })
@@ -56,6 +68,14 @@ export const preferredTrack = (tracks: CaptionTrack[], language: string | undefi
     return undefined
   }
   return [...tracks].sort(byRank)[0]
+}
+
+type CaptionChoice = { captionsChosen?: boolean, captionsEnabled: boolean, captionsLanguage?: string }
+
+/** The track a video starts with: the person's own choice once they turned captions on or off, else the one YouTube recommends, if any. */
+export const startingTrack = (tracks: CaptionTrack[], choice: CaptionChoice) => {
+  if (!choice.captionsChosen) return tracks.find((track) => track.recommended)
+  return choice.captionsEnabled ? preferredTrack(tracks, choice.captionsLanguage) : undefined
 }
 
 // one `fmt=json3` event: every field is optional, and `aAppend` marks an event that re-states the line before it so a rolling caption can grow a word at a time

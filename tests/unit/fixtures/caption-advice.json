@@ -1,0 +1,156 @@
+{
+  "japaneseViewer": {
+    "playerCaptionsTracklistRenderer": {
+      "captionTracks": [
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=es-419",
+          "name": {
+            "simpleText": "スペイン語 (ラテンアメリカ)"
+          },
+          "vssId": ".es-419",
+          "languageCode": "es-419",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=de-DE",
+          "name": {
+            "simpleText": "ドイツ語 (ドイツ)"
+          },
+          "vssId": ".de-DE",
+          "languageCode": "de-DE",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=pt-BR",
+          "name": {
+            "simpleText": "ポルトガル語 (ブラジル)"
+          },
+          "vssId": ".pt-BR",
+          "languageCode": "pt-BR",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=en",
+          "name": {
+            "simpleText": "英語"
+          },
+          "vssId": ".en",
+          "languageCode": "en",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&kind=asr&lang=en",
+          "name": {
+            "simpleText": "英語 (自動生成)"
+          },
+          "vssId": "a.en",
+          "languageCode": "en",
+          "kind": "asr",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=ja&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=ja",
+          "name": {
+            "simpleText": "日本語"
+          },
+          "vssId": ".ja",
+          "languageCode": "ja",
+          "isTranslatable": true
+        }
+      ],
+      "audioTracks": [
+        {
+          "captionTrackIndices": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            4
+          ],
+          "defaultCaptionTrackIndex": 5,
+          "hasDefaultTrack": true,
+          "captionsInitialState": "CAPTIONS_INITIAL_STATE_ON_RECOMMENDED"
+        }
+      ],
+      "defaultAudioTrackIndex": 0
+    }
+  },
+  "englishViewer": {
+    "playerCaptionsTracklistRenderer": {
+      "captionTracks": [
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=en",
+          "name": {
+            "simpleText": "English"
+          },
+          "vssId": ".en",
+          "languageCode": "en",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&kind=asr&lang=en",
+          "name": {
+            "simpleText": "English (auto-generated)"
+          },
+          "vssId": "a.en",
+          "languageCode": "en",
+          "kind": "asr",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=de-DE",
+          "name": {
+            "simpleText": "German (Germany)"
+          },
+          "vssId": ".de-DE",
+          "languageCode": "de-DE",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=ja",
+          "name": {
+            "simpleText": "Japanese"
+          },
+          "vssId": ".ja",
+          "languageCode": "ja",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=pt-BR",
+          "name": {
+            "simpleText": "Portuguese (Brazil)"
+          },
+          "vssId": ".pt-BR",
+          "languageCode": "pt-BR",
+          "isTranslatable": true
+        },
+        {
+          "baseUrl": "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&caps=asr&exp=xpe&xoaf=5&hl=en&ip=192.0.2.1&ipbits=0&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&key=yt8&lang=es-419",
+          "name": {
+            "simpleText": "Spanish (Latin America)"
+          },
+          "vssId": ".es-419",
+          "languageCode": "es-419",
+          "isTranslatable": true
+        }
+      ],
+      "audioTracks": [
+        {
+          "captionTrackIndices": [
+            0,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "defaultCaptionTrackIndex": 0,
+          "hasDefaultTrack": true,
+          "captionsInitialState": "CAPTIONS_INITIAL_STATE_OFF_RECOMMENDED"
+        }
+      ],
+      "defaultAudioTrackIndex": 0
+    }
+  }
+}

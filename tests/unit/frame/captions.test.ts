@@ -1,6 +1,8 @@
+import { YTNodes } from 'youtubei.js'
 import { describe, expect, it } from 'vite-plus/test'
 
-import { json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, timedTextUrl } from '../../../src/frame/captions'
+import { json3ToWebVtt, parseCaptionTracks, parseJson3, preferredTrack, startingTrack, timedTextUrl } from '../../../src/frame/captions'
+import answers from '../fixtures/caption-advice.json'
 
 // youtubei.js parses `name` into a Text node, so the label arrives as an object
 const TRACKLIST = {
@@ -102,6 +104,37 @@ describe('preferredTrack', () => {
 
   it('has nothing to pick from an empty list', () => {
     expect(preferredTrack([], 'en')).toBeUndefined()
+  })
+})
+
+// dQw4w9WgXcQ's captions as youtube.com answered a signed-out viewer (recorded 2026-11-10): ON_RECOMMENDED with the
+// Japanese track for a Japanese browser, OFF_RECOMMENDED for an English one
+const recorded = (viewer: keyof typeof answers) =>
+  parseCaptionTracks(new YTNodes.PlayerCaptionsTracklist(answers[viewer].playerCaptionsTracklistRenderer))
+
+describe('the track YouTube recommends', () => {
+  it('is the default track of an answer that recommends captions on', () => {
+    const tracks = recorded('japaneseViewer')
+    expect(tracks.filter((track) => track.recommended).map((track) => track.id)).toStrictEqual(['.ja'])
+  })
+
+  it('is none when the answer recommends captions off', () => {
+    expect(recorded('englishViewer').some((track) => track.recommended)).toBe(false)
+  })
+
+  it('starts a video with nothing chosen on the recommended track', () => {
+    expect(startingTrack(recorded('japaneseViewer'), { captionsEnabled: false })?.id).toBe('.ja')
+    expect(startingTrack(recorded('englishViewer'), { captionsEnabled: false })).toBeUndefined()
+  })
+
+  it('keeps captions off once a person turned them off', () => {
+    expect(startingTrack(recorded('japaneseViewer'), { captionsChosen: true, captionsEnabled: false })).toBeUndefined()
+  })
+
+  it('shows the language a person turned on, whatever YouTube recommends', () => {
+    const choice = { captionsChosen: true, captionsEnabled: true, captionsLanguage: 'en' }
+    expect(startingTrack(recorded('japaneseViewer'), choice)?.id).toBe('.en')
+    expect(startingTrack(recorded('englishViewer'), choice)?.id).toBe('.en')
   })
 })
 

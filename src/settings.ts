@@ -17,6 +17,8 @@ export type Settings = {
   quality: QualityPreference
   captionsEnabled: boolean
   captionsLanguage?: string
+  // set once a person turns captions on or off; until then each video shows the track YouTube recommends for it, if any
+  captionsChosen?: boolean
   // the Subtitles Options panel's rows: fonts, colors and edges by name, opacities as fractions, the size in percent
   captionFont: string
   captionColor: string
@@ -81,6 +83,8 @@ const coerce = (stored: Partial<Record<keyof Settings, unknown>>): Settings => {
       : DEFAULT_SETTINGS.quality,
     captionsEnabled: typeof stored.captionsEnabled === 'boolean' ? stored.captionsEnabled : DEFAULT_SETTINGS.captionsEnabled,
     captionsLanguage: typeof captionsLanguage === 'string' ? captionsLanguage : undefined,
+    // an off stored without the mark is the default every write saves, not a choice; an on could only have been chosen
+    captionsChosen: stored.captionsChosen === true || stored.captionsEnabled === true ? true : undefined,
     ...Object.fromEntries(CAPTION_OPTIONS.map(({ key, choices }) => [
       key,
       choices.some(choice => choice.value === stored[key]) ? stored[key] : DEFAULT_SETTINGS[key],
@@ -121,7 +125,12 @@ export const subscribeSettings = (listener: (settings: Settings) => void) => {
 }
 
 export const updateSettings = (patch: Partial<Settings>) => {
-  const next = { ...current, ...patch, ...('theme' in patch ? { themeChosen: true } : {}) }
+  const next = {
+    ...current,
+    ...patch,
+    ...('theme' in patch ? { themeChosen: true } : {}),
+    ...('captionsEnabled' in patch ? { captionsChosen: true } : {}),
+  }
   current = next
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
