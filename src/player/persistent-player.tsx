@@ -1,14 +1,13 @@
 import type { UpNext } from './up-next'
 
 import { css } from '@emotion/react'
-import { X } from 'lucide-react'
 import { createPortal } from 'preact/compat'
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { useQuery } from 'urql'
 import { Link, useLocation, useSearch } from 'wouter'
 
 import { getSettings, subscribeSettings, updateSettings } from '../settings'
-import { closePlayer, getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
+import { getPlayerSession, openPlayer, playerHost, registerPlayerDock, setTheater, usePlayerSession } from './session'
 import { upNextHref } from './end-screen'
 import { PlayerFrame } from './player-frame'
 import { useSponsorSegments } from './sponsorblock'
@@ -28,8 +27,8 @@ const style = css`
   max-width: calc(100vw - 3.2rem);
   border-radius: 1.2rem;
   overflow: hidden;
-  background: var(--bg-elevated, var(--bg-subtle));
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
+  background: var(--bg-subtle);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.2);
 
   &.hidden {
     /* Moved off-screen rather than hidden with display none: the player lives
@@ -47,51 +46,78 @@ const style = css`
     pointer-events: none;
   }
 
+  /* above the lines under it, which the knob overhangs as on youtube.com */
   .dock-slot {
-    display: block;
+    position: relative;
+    z-index: 1;
   }
 
-  .dock-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.8rem 0.8rem 0.8rem 1.2rem;
+  /* youtube.com's miniplayer has none of the player bar's groups, only its seek bar, drawn all the time along the
+     bottom edge of the video, 3 px tall */
+  .dock-slot [data-player-root] {
+    border-radius: 0;
+    overflow: visible;
   }
 
-  .dock-title {
-    flex: 1;
-    min-width: 0;
-    color: var(--text-primary);
-    font-size: 1.3rem;
-    font-weight: 500;
-    line-height: 1.8rem;
-    text-decoration: none;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .dock-slot .bar {
+    display: none;
   }
 
-  .dock-close {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 3.2rem;
-    height: 3.2rem;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text-primary);
-    cursor: pointer;
+  .dock-slot div:has(> .scrubber) {
+    padding: 0;
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .dock-close:hover {
-    background: var(--bg-chip-hover);
+  .dock-slot .scrubber {
+    padding-bottom: 0;
+  }
+
+  .dock-slot .rail {
+    height: 0.3rem;
   }
 
   /* youtube.com's miniplayer names no chapter under the frame its seek bar shows */
   .preview-chapter {
     display: none;
+  }
+
+  .dock-meta {
+    height: 7.6rem;
+    padding: 1.2rem 1.6rem;
+  }
+
+  .dock-title,
+  .dock-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dock-title {
+    display: block;
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    font-weight: 500;
+    line-height: 2rem;
+    text-decoration: none;
+  }
+
+  .dock-byline {
+    display: flex;
+    margin-top: 0.4rem;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
+  .dock-index {
+    flex: none;
+  }
+
+  .dock-index::before {
+    content: '•';
+    margin: 0 0.4rem;
   }
 `
 
@@ -207,7 +233,7 @@ const PersistentPlayer = () => {
 
   return (
     <>
-      <aside css={style} className={docked ? undefined : 'hidden'} aria-hidden={!docked}>
+      <aside css={style} className={docked ? undefined : 'hidden'} aria-label='Miniplayer' aria-hidden={!docked}>
         <div className='dock-slot' ref={registerPlayerDock} />
         {docked
           ? (
@@ -216,11 +242,17 @@ const PersistentPlayer = () => {
                 className='dock-title'
                 href={upNextHref({ id: session.videoId!, list: session.list, index: session.index })}
               >
-                {session.title ?? 'Now playing'}
+                {watch?.title ?? session.title ?? 'Now playing'}
               </Link>
-              <button type='button' className='dock-close' aria-label='Close miniplayer' onClick={closePlayer}>
-                <X size={20} strokeWidth={1.5} />
-              </button>
+              {/* youtube.com names the playlist and the place in it where it would name the channel */}
+              {playlist || watch?.channel?.name
+                ? (
+                  <div className='dock-byline'>
+                    <span className='dock-name'>{playlist ? playlist.title ?? 'Playlist' : watch?.channel?.name}</span>
+                    {playlist && count > 0 ? <span className='dock-index'>{current + 1} / {count}</span> : undefined}
+                  </div>
+                )
+                : undefined}
             </div>
           )
           : undefined}

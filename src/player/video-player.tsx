@@ -29,6 +29,7 @@ import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
 import { isTypingTarget, PlayerControls } from './controls'
 import { EndScreen, UpNextCountdown } from './end-screen'
+import { MiniplayerControls } from './miniplayer'
 import { useFrame } from './player-frame'
 import { RefusalScreen } from './refusal-screen'
 import { stepRate } from './rates'
@@ -758,6 +759,9 @@ const VideoPlayer = (
         : upNext && ending === 'suggestions' && upNext.suggestions.length > 0
           ? <EndScreen videos={upNext.suggestions} onOpen={upNext.onOpen} />
           : undefined}
+      {docked
+        ? <MiniplayerControls video={video && !status && !refusal ? video : undefined} state={state} isLive={isLive} onExpand={onMiniplayer} />
+        : undefined}
       {video && !status && !refusal
         ? (
           <PlayerControls

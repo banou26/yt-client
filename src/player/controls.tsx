@@ -418,7 +418,7 @@ const style = css`
     }
   }
 
-  /* the 400 px miniplayer dock: youtube.com narrows its controls to 32 px here */
+  /* a 400 px player, as in a phone's window: youtube.com narrows its controls to 32 px here */
   @container player (max-width: 600px) {
     padding: 0 0.8rem;
 

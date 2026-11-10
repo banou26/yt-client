@@ -187,7 +187,7 @@ test('the miniplayer moves on in place, without leaving the page', async ({ page
   await startPlayback(page)
 })
 
-test('the miniplayer keeps its bar and its end screen inside the dock', async ({ page }) => {
+test('the miniplayer keeps its end screen inside the dock', async ({ page }) => {
   test.setTimeout(300_000)
   await withAutoplay(page, false)
   await page.goto(`/watch?v=${VIDEO_ID}`)
@@ -199,16 +199,6 @@ test('the miniplayer keeps its bar and its end screen inside the dock', async ({
   await expect(page.locator('.dock-title')).toBeVisible({ timeout: 30_000 })
 
   const player = page.locator('[data-player-root]')
-  const fit = () => player.evaluate((root) => {
-    const bar = root.querySelector('.bar')!
-    const edge = root.getBoundingClientRect().right
-    const buttons = [...bar.querySelectorAll('button')].map(button => button.getBoundingClientRect()).filter(box => box.width > 0)
-    return { overflow: bar.scrollWidth - bar.clientWidth, outside: buttons.filter(box => box.right > edge + 0.5).length }
-  })
-  await expect.poll(async () => (await fit()).overflow, { message: 'the bar overflows the dock' }).toBeLessThanOrEqual(0)
-  expect((await fit()).outside).toBe(0)
-  await expect(page.getByRole('button', { name: 'Full screen' })).toBeVisible()
-
   await runToEnd(video)
   await expect(page.locator('[data-end-screen="suggestions"]')).toBeVisible()
   const tiles = await player.evaluate((root) => {

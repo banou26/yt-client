@@ -123,11 +123,8 @@ test('every control keeps its label, and the bar fits a 1920, 1280, 640 and 400 
   await expectFits(page, 640)
   await expectLabelled(page)
 
-  await page.evaluate(() => {
-    history.pushState(null, '', '/settings')
-    dispatchEvent(new PopStateEvent('popstate'))
-  })
-  await expect(page.locator('.dock-title')).toBeVisible({ timeout: 30_000 })
+  // a phone's width: the miniplayer, also 400 px, draws youtube.com's own controls instead of this bar
+  await page.setViewportSize({ width: 400, height: 800 })
   await expectFits(page, 400)
   await expectLabelled(page)
   for (const name of ['Play', 'Next', /^(Mute|Unmute)$/, 'Settings', 'Full screen']) {
