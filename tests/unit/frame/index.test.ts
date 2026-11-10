@@ -163,7 +163,7 @@ it('keeps a live manifest\'s DVR window across a session refresh, before the new
     liveWindowStartMs,
   }) as unknown as Session
   const first = liveSession(async (request) => {
-    if (request.requestId.endsWith(':live-probe')) return {} as never
+    if (request.requestId.endsWith(':live-open')) return {} as never
     throw refreshError()
   }, delivered(1_000), 100 * 5_000)
   // the session a refresh opens has delivered its first segments but been told nothing of the window yet
