@@ -380,8 +380,8 @@ type ChannelShelf {
 
 type ChannelHome {
   featured: Video
-  # In upstream's order. Rows of a kind this client does not render, such as a
-  # channel's own posts, are left out.
+  # In upstream's order. Rows of a kind this client does not render are left
+  # out.
   shelves: [ChannelShelf!]!
   # Upstream's own line for a Home it does not serve in this region ("This
   # page is not available.").

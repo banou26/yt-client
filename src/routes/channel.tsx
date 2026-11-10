@@ -173,6 +173,8 @@ const CHANNEL_VIEW_QUERY = gql(`
             text
             publishedText
             voteCountText
+            commentCountText
+            commentCountLabel
             attachedImage
             author { id name avatar }
             attachedVideo {

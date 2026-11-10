@@ -116,6 +116,65 @@ const style = css`
     width: 20.6rem;
   }
 
+  /* A channel's own posts row on youtube.com: 436 by 210px cards on a 444px
+     step, five lines of text with its line breaks run together, the picture a
+     116px square beside it, and the comment count at the far end. Measured on
+     youtube.com/@mkbhd at 1280px, 2026-11-10. */
+  .post-shelf {
+    --rail-arrow-top: 8.5rem;
+    margin-top: 1.6rem;
+  }
+
+  .post-shelf .post {
+    display: grid;
+    grid-template: auto minmax(0, 1fr) auto / minmax(0, 1fr) auto;
+    column-gap: 1.6rem;
+    width: 43.6rem;
+    height: 21rem;
+    padding: 1.2rem 2.4rem 0;
+    overflow: hidden;
+  }
+
+  .post-shelf .post-head {
+    grid-column: 1 / -1;
+    gap: 1.2rem;
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
+  .post-shelf .post-author {
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .post-shelf .post-text {
+    align-self: start;
+    margin-top: 1.4rem;
+    font-size: 1.4rem;
+    line-height: 2rem;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-shelf .post-image {
+    grid-area: 2 / 2;
+    width: 11.6rem;
+    height: 11.6rem;
+    margin-top: 1.2rem;
+    object-fit: cover;
+  }
+
+  .post-shelf .post-footer {
+    grid-column: 1 / -1;
+  }
+
+  .post-shelf .post-comments {
+    margin-left: auto;
+  }
+
   .channel-tile {
     display: flex;
     flex-direction: column;
@@ -284,11 +343,11 @@ const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
     return <ShortsShelf shorts={shelf.shorts} />
   }
   if (isRichRow(shelf)) return <RichShelfRow shelf={shelf} />
-  const count = shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length
+  const count = shelf.videos.length + shelf.playlists.length + shelf.channels.length + shelf.games.length + shelf.posts.length
   return (
     <section aria-label={shelf.title}>
       <ShelfHeading shelf={shelf} />
-      <div className='shelf-rail'>
+      <div className={shelf.posts.length > 0 ? 'shelf-rail post-shelf' : 'shelf-rail'}>
         <Rail label={shelf.title} count={count}>
           {shelf.videos.map(video => (
             <div className='shelf-card' key={video.id}>
@@ -322,6 +381,7 @@ const ShelfRow = ({ shelf }: { shelf: Shelf }) => {
               <span className='name'>{game.title}</span>
             </Link>
           ))}
+          {shelf.posts.map(post => <PostCard key={post.id} post={post} readMore={false} />)}
         </Rail>
       </div>
     </section>

@@ -3,7 +3,8 @@ import { expect, test } from './test'
 /* youtube.com's channel addresses, measured signed out on 2026-11-10: a tab opens at /@handle/<word> (Home at
    /featured, Live at /streams, Posts at /posts, Store at /store, a search at /search?query=), under the channel's handle
    even from its /channel/, /c/ or /user/ address, and every one of those addresses opens in place. @mkbhd's tabs end
-   with Store, which lists products from its store with links out to them. */
+   with Store, which lists products from its store with links out to them, and its Home ends with a row of posts laid
+   sideways, 436 by 210px each, before Collaborations. */
 
 const MKBHD_ID = 'UCBJycsmduvYEL83R_U4JriQ'
 
@@ -89,4 +90,31 @@ test('lists a channel\'s products on its Store tab, each linking to its page on 
     message: 'the first product\'s picture loads',
     timeout: 30_000,
   }).toBeGreaterThan(0)
+})
+
+test('ends @mkbhd\'s Home with its posts laid sideways before Collaborations', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/@mkbhd')
+  const posts = page.getByRole('region', { name: 'Posts', exact: true })
+  await expect(posts.locator('article.post').first()).toBeVisible({ timeout: 120_000 })
+  const labels = await page.locator('main section[aria-label]').evaluateAll(sections => sections.map(section => section.getAttribute('aria-label')))
+  expect(labels.slice(labels.indexOf('Posts'), labels.indexOf('Posts') + 2)).toEqual(['Posts', 'Collaborations'])
+  await expect(posts.locator('h2 a')).toHaveAttribute('href', `/channel/${MKBHD_ID}/posts`)
+
+  const cards = posts.locator('article.post')
+  expect(await cards.count()).toBeGreaterThan(2)
+  await expect(cards.first().locator('.post-date')).toHaveAttribute('href', /^\/post\/[\w-]+$/)
+  const boxes = await cards.evaluateAll(articles => articles.slice(0, 2).map(article => {
+    const box = article.getBoundingClientRect()
+    return { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height) }
+  }))
+  expect(boxes[0]).toMatchObject({ width: 436, height: 210 })
+  expect(boxes[1]).toMatchObject({ x: boxes[0]!.x + 444, y: boxes[0]!.y })
+  // a post's picture sits beside its text, as youtube.com draws it
+  const pictured = cards.filter({ has: page.locator('img.post-image') }).first()
+  const [text, picture] = await Promise.all([pictured.locator('.post-text').boundingBox(), pictured.locator('img.post-image').boundingBox()])
+  expect(picture!.x).toBeGreaterThan(text!.x + text!.width - 1)
+  expect(picture!.width).toBe(116)
+  await expect(posts.getByRole('button', { name: 'More Posts', exact: true })).toBeVisible()
 })

@@ -1044,8 +1044,7 @@ export const normalizeChannelShelf = (input: unknown): SourceChannelShelf | unde
     } else if (type === 'GameCard') {
       const game = normalizeGame(item)
       if (game) shelf.games.push(game)
-    } else if (type === 'Post' && rich) {
-      // only a topic channel's rich row: a channel's own Home lays its posts sideways, which is not built here
+    } else if (type === 'Post') {
       const post = normalizeCommunityPost(item)
       if (post) shelf.posts.push(post)
     }

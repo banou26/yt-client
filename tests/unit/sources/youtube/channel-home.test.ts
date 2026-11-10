@@ -29,7 +29,7 @@ describe('channel Home tab', () => {
     expect(page.videos.items).toEqual([])
     expect(page.home?.featured).toMatchObject({ id: 'IA9LlfQ9X-Q', title: 'I Bought EVERY Tech Ad I Saw for a MONTH' })
     // Collaborations follows the Shorts row upstream, so a read of all Shelf nodes and then all ReelShelf nodes puts it before Shorts
-    expect(page.home?.shelves.map((shelf) => shelf.title)).toEqual(['Videos', 'Featured Channels', 'Playlists', 'Shorts', 'Collaborations'])
+    expect(page.home?.shelves.map((shelf) => shelf.title)).toEqual(['Videos', 'Featured Channels', 'Playlists', 'Shorts', 'Posts', 'Collaborations'])
   })
 
   it('reads each row as the kind of item it holds', async () => {
@@ -40,6 +40,16 @@ describe('channel Home tab', () => {
     expect(playlists?.playlists).toMatchObject([{ id: expect.stringMatching(/^PL/) }])
     expect(playlists?.videos).toEqual([])
     expect(shorts?.shorts).toMatchObject([{ id: '9st7OYkUHJk', isShort: true }])
+  })
+
+  it('reads the channel\'s own posts, which its Home lays sideways, with the row\'s link to the Posts tab', async () => {
+    const posts = (await sourceFor().channel(CHANNEL_ID)).home?.shelves.find((shelf) => shelf.title === 'Posts')
+    expect(posts).toMatchObject({ url: `/channel/${CHANNEL_ID}/posts`, expandable: undefined, videos: [] })
+    expect(posts?.posts).toMatchObject([{
+      id: 'Ugkx4sDqy43oCEZaeQ3ViukscBcUjRVv1ygy',
+      author: { id: CHANNEL_ID, name: 'Linus Tech Tips' },
+      attachedImage: expect.stringMatching(/^https:\/\/yt3\.ggpht\.com\//),
+    }])
   })
 
   // the avatar still taps through to the channel, so a byline read off the first part named the channel '775K'
