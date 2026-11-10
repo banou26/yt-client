@@ -151,7 +151,7 @@ test('its actions open what the watch page opens, signed out', async ({ page }) 
   await expect(share).toHaveCount(0)
 
   // comments open beside the video, which narrows to make room
-  await press(page, player.getByRole('button', { name: 'Comments' }))
+  await press(page, player.getByRole('button', { name: 'Comments', exact: true }))
   const comments = player.getByRole('complementary', { name: 'Comments' })
   await expect(comments).toBeVisible()
   const room = () => player.evaluate(root => root.getBoundingClientRect().width - root.querySelector('video')!.getBoundingClientRect().width)
@@ -192,7 +192,7 @@ test('the chapters and the comments take turns in one slot beside the video', as
   expect(await chapters.boundingBox()).toEqual(slot)
   expect(await videoWidth()).toBe(928)
 
-  await press(page, player.getByRole('button', { name: 'Comments' }))
+  await press(page, player.getByRole('button', { name: 'Comments', exact: true }))
   await expect(comments).toBeVisible()
   await expect(chapters).toHaveCount(0)
   expect(await comments.boundingBox()).toEqual(slot)
@@ -236,7 +236,7 @@ test('the transcript takes the same slot, and the comments replace it', async ({
   await expect(transcript.getByRole('heading', { name: 'In this video' })).toBeVisible()
   expect(await transcript.boundingBox()).toEqual(slot)
 
-  await press(page, player.getByRole('button', { name: 'Comments' }))
+  await press(page, player.getByRole('button', { name: 'Comments', exact: true }))
   await expect(comments).toBeVisible()
   await expect(transcript).toHaveCount(0)
   expect(await comments.boundingBox()).toEqual(slot)
