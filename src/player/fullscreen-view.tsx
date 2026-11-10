@@ -347,7 +347,7 @@ export const FullscreenView = ({ shown, settings }: { shown: boolean, settings: 
           </div>
         )
         : undefined}
-      {sharing ? <ShareDialog videoId={details.videoId} list={details.list} onClose={() => setSharing(false)} /> : undefined}
+      {sharing ? <ShareDialog videoId={details.videoId} title={details.title} list={details.list} onClose={() => setSharing(false)} /> : undefined}
     </div>
   )
 }

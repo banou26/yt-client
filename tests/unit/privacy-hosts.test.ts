@@ -25,11 +25,20 @@ const sources = import.meta.glob(
 ) as Record<string, string>
 
 // A host these files name but the browser never loads itself: the sign-in window runs under Scramjet, whose every
-// request goes out through FKN or the extension, and the rest only name it
+// request goes out through FKN or the extension, and the rest only name it (the share targets are links the viewer
+// opens in a new tab)
+const SHARE_TARGETS = ['src/components/share-dialog.tsx']
 const NOT_FETCHED_FROM_THE_PAGE: Record<string, string[]> = {
   'accounts.google.com': ['src/scramjet/signin-window.ts'],
   'returnyoutubedislike.com': ['src/routes/settings.tsx'],
   'yt-client.local': ['src/graphql.ts'],
+  'messages.google.com': SHARE_TARGETS,
+  'wa.me': SHARE_TARGETS,
+  'www.facebook.com': SHARE_TARGETS,
+  'twitter.com': SHARE_TARGETS,
+  'reddit.com': SHARE_TARGETS,
+  'pinterest.com': SHARE_TARGETS,
+  'www.linkedin.com': SHARE_TARGETS,
 }
 
 // Named by no code or fixture: the standard emoji in live chat messages (fonts.gstatic.com/s/e/notoemoji, read again

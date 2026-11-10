@@ -705,7 +705,7 @@ const WatchPage = () => {
           )
           : undefined}
       </div>
-      {sharing ? <ShareDialog videoId={videoId} list={listId} onClose={() => setSharing(false)} /> : undefined}
+      {sharing ? <ShareDialog videoId={videoId} title={watch?.title ?? undefined} list={listId} onClose={() => setSharing(false)} /> : undefined}
     </main>
   )
 }
