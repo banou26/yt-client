@@ -67,7 +67,8 @@ test('the Sleep timer counts down under Subtitles and pauses the video when its 
   await expect(row).toHaveText('Sleep timer15 min left')
 })
 
-// youtube.com's miniplayer has no Time's up (measured signed out on 2026-11-10), only a toast when the timer runs out there
+// youtube.com's miniplayer has no Time's up (measured signed out on 2026-11-10): a toast when the timer runs out there,
+// and Back from the watch page docks the player with the dialog closed
 test('in the miniplayer the timer\'s end pauses the video with a toast, and Escape then closes the miniplayer', async ({ page }) => {
   test.setTimeout(300_000)
   await startPlayback(page)
@@ -89,6 +90,29 @@ test('in the miniplayer the timer\'s end pauses the video with a toast, and Esca
   await page.keyboard.press('Escape')
   await expect(mini).toHaveCount(0)
   await expect(page.locator('video')).toHaveCount(0)
+})
+
+test('Back from the watch page closes Time\'s up as the player docks', async ({ page }) => {
+  test.setTimeout(300_000)
+  await page.goto('/settings')
+  await page.evaluate((watch) => {
+    history.pushState(null, '', watch)
+    dispatchEvent(new PopStateEvent('popstate'))
+  }, VIDEO)
+  await page.waitForFunction(() => performance.getEntriesByName('yt:first-frame', 'mark').length > 0, null, { timeout: 120_000 })
+  await page.clock.install()
+  const settings = await openSettings(page)
+  await settings.getByRole('menuitem', { name: /^Sleep timer/ }).click()
+  await sleepPanel(page).getByRole('menuitem', { name: '10 minutes' }).click()
+  await page.keyboard.press('Escape')
+  await page.clock.fastForward('10:01')
+  const timesUp = page.getByRole('dialog', { name: 'Time\'s up' })
+  await expect(timesUp).toBeVisible()
+
+  await page.goBack()
+  await expect(page.getByRole('complementary', { name: 'Miniplayer' })).toBeVisible({ timeout: 30_000 })
+  await expect(timesUp).toHaveCount(0)
+  expect(await paused(page)).toBe(true)
 })
 
 const videoIdOf = (url: string) => new URL(url, 'http://localhost').searchParams.get('v')

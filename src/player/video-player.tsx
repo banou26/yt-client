@@ -294,6 +294,10 @@ const VideoPlayer = (
     if (docked) showToast('Sleep timer has been turned off')
     else setTimesUp(true)
   })
+  // and docking, as Back from the watch page does, closes it
+  useEffect(() => {
+    if (docked) setTimesUp(false)
+  }, [docked])
   // from the player's corner, so the menu follows the player as the page scrolls
   const [menu, setMenu] = useState<Point | undefined>(undefined)
   const closeMenu = useCallback(() => setMenu(undefined), [])
