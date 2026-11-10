@@ -20,7 +20,6 @@ describe('the < and > speed keys', () => {
 
 describe('a speed', () => {
   it('is held to the slider\'s steps of 0.05, so a sum of steps reads as typed', () => {
-    expect(1.1 + 0.05).not.toBe(1.15)
     expect(toRate(1.1 + 0.05)).toBe(1.15)
     expect(toRate(1.12)).toBe(1.1)
   })
