@@ -288,9 +288,11 @@ const VideoPlayer = (
     setTimesUp(false)
     setSleepMenu(value => value + 1)
   }, [])
+  // youtube.com's miniplayer has no Time's up: a timer that runs out there says so in a toast
   const sleepTimer = useSleepTimer(() => {
     videoRef.current?.pause()
-    setTimesUp(true)
+    if (docked) showToast('Sleep timer has been turned off')
+    else setTimesUp(true)
   })
   // from the player's corner, so the menu follows the player as the page scrolls
   const [menu, setMenu] = useState<Point | undefined>(undefined)
