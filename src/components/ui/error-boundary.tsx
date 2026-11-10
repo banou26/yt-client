@@ -48,28 +48,36 @@ addEventListener('online', () => {
 })
 
 /**
- * A failed page or failed data: `line` and a Try again button that calls `retry`. With `whenOnline`, `retry` also runs
- * by itself when the browser comes back online, as youtube.com does for a page it could not load, and every 3 s while
- * that try fails in the 30 s after it.
+ * Runs `retry` by itself when the browser comes back online, as youtube.com does for a page it could not load, and every
+ * 3 s while that try fails in the 30 s after it. For a failure line: call it from the component that shows the line, so
+ * it runs only while the line shows, and that component mounts again each time a try fails.
  */
-export const Failure = ({ line, retry, whenOnline = false }: { line: string, retry: () => void, whenOnline?: boolean }) => {
+export const useRetryWhenOnline = (retry: () => void, enabled = true) => {
   const latest = useRef(retry)
   latest.current = retry
   // one listener for the line's life: one swapped by a render that an earlier 'online' listener caused is skipped for
   // that event (a watch page's comments missed their retry that way), and a layout effect, because a plain one waits
   // for a paint and misses a connection that comes back as the line shows
   useLayoutEffect(() => {
-    if (!whenOnline) return
+    if (!enabled) return
     const onOnline = () => latest.current()
     addEventListener('online', onOnline)
     return () => removeEventListener('online', onOnline)
-  }, [whenOnline])
+  }, [enabled])
 
   useEffect(() => {
-    if (!whenOnline || !navigator.onLine || Date.now() - backOnlineAt > SETTLE_MS) return
+    if (!enabled || !navigator.onLine || Date.now() - backOnlineAt > SETTLE_MS) return
     const timer = setTimeout(() => latest.current(), SETTLE_RETRY_MS)
     return () => clearTimeout(timer)
-  }, [whenOnline])
+  }, [enabled])
+}
+
+/**
+ * A failed page or failed data: `line` and a Try again button that calls `retry`. With `whenOnline`, `retry` also runs
+ * by itself as useRetryWhenOnline says.
+ */
+export const Failure = ({ line, retry, whenOnline = false }: { line: string, retry: () => void, whenOnline?: boolean }) => {
+  useRetryWhenOnline(retry, whenOnline)
 
   return (
     <div css={style} role='alert'>
