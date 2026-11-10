@@ -78,6 +78,22 @@ const style = css`
     padding: 1.2rem 0;
   }
 
+  /* A Short's video and its buttons, positioned so that below the breakpoint
+     the buttons sit on that Short's video. */
+  .reel {
+    position: relative;
+    display: flex;
+    gap: 1.6rem;
+    height: 100%;
+    /* The cap is on the HEIGHT, and the video's width follows from its aspect
+       ratio. Capping the width instead leaves height at 100% and the box stops
+       being 9:16 at all: on a tall viewport it became 460x1165 and cropped the
+       sides off every short. */
+    max-height: calc(46rem * 16 / 9);
+    max-width: 100%;
+    flex: none;
+  }
+
   /* The 9:16 box IS the player element, so the quality the player asks for is
      derived from the size the video is actually shown at. Sizing the element to
      the whole slide and letterboxing inside it would make it request a stream
@@ -86,11 +102,6 @@ const style = css`
     position: relative;
     height: 100%;
     aspect-ratio: 9 / 16;
-    /* The cap is on the HEIGHT, and the width follows from the aspect ratio.
-       Capping the width instead leaves height at 100% and the box stops being
-       9:16 at all: on a tall viewport it became 460x1165 and cropped the sides
-       off every short. */
-    max-height: calc(46rem * 16 / 9);
     max-width: 100%;
     flex: none;
   }
@@ -100,11 +111,6 @@ const style = css`
     flex-direction: column;
     justify-content: flex-end;
     gap: 1.6rem;
-    height: 100%;
-    /* The same cap the stage has, so the rail ends where the video ends. Left
-       at a plain 100% it stretches to the full slide and the buttons sit below
-       the bottom edge of the video they belong to. */
-    max-height: calc(46rem * 16 / 9);
     padding-bottom: 1.2rem;
   }
 
@@ -208,6 +214,10 @@ const style = css`
     overflow: hidden;
   }
 
+  .comments-scrim {
+    display: none;
+  }
+
   .comments-panel header {
     display: flex;
     align-items: center;
@@ -305,9 +315,12 @@ const style = css`
       position: absolute;
       right: 0.8rem;
       bottom: 5.6rem;
-      height: auto;
       padding: 0;
       z-index: 1;
+    }
+
+    .meta {
+      padding-right: 8rem;
     }
 
     .rail-button {
@@ -320,9 +333,29 @@ const style = css`
       color: #fff;
     }
 
-    .comments-panel,
     .pager {
       display: none;
+    }
+
+    /* A sheet over the Short, as youtube.com opens it at this width (measured
+       2026-11-10): about three quarters of the height below the header, at
+       most 48rem wide, closed by a tap beside it. */
+    .comments-scrim {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-dialog);
+      background: var(--bg-scrim);
+    }
+
+    .comments-panel {
+      position: fixed;
+      inset: calc(var(--header-height) + 11%) 0 10%;
+      z-index: var(--z-dialog);
+      width: auto;
+      max-width: 48rem;
+      height: auto;
+      margin: 0 auto;
     }
   }
 `
@@ -362,7 +395,7 @@ const Slide = (
   }
 
   return (
-    <>
+    <div className='reel'>
       <div className='stage'>
         <ShortsPlayer videoId={id} poster={poster ?? undefined} active={active} />
         <div className='meta'>
@@ -430,7 +463,7 @@ const Slide = (
           />
         </Menu>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -540,17 +573,20 @@ const ShortsPage = () => {
           />
           {showComments && short.id === activeId
             ? (
-              <aside className='comments-panel'>
-                <header>
-                  Comments
-                  <button type='button' className='icon-button' aria-label='Close comments' onClick={() => setShowComments(false)}>
-                    <X size={24} strokeWidth={1.5} />
-                  </button>
-                </header>
-                <div className='body'>
-                  <Comments videoId={short.id} />
-                </div>
-              </aside>
+              <>
+                <div className='comments-scrim' onClick={() => setShowComments(false)} />
+                <aside className='comments-panel' aria-label='Comments'>
+                  <header>
+                    Comments
+                    <button type='button' className='icon-button' aria-label='Close comments' onClick={() => setShowComments(false)}>
+                      <X size={24} strokeWidth={1.5} />
+                    </button>
+                  </header>
+                  <div className='body'>
+                    <Comments videoId={short.id} />
+                  </div>
+                </aside>
+              </>
             )
             : undefined}
         </section>
