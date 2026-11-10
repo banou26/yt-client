@@ -184,7 +184,15 @@ export const App = () => {
     const page = pageRef.current
     if (!page) return
     const first = [...page.querySelectorAll<HTMLElement>(FOCUSABLE)].find(element => element.checkVisibility({ visibilityProperty: true }))
-    ;(first ?? page).focus()
+    if (first) {
+      first.focus()
+      return
+    }
+    // focusable only until it loses the focus: a page that is always focusable takes the focus on every click in it,
+    // and the next Tab then goes back to its first control instead of on from the click
+    page.tabIndex = -1
+    page.addEventListener('blur', () => page.removeAttribute('tabindex'), { once: true })
+    page.focus()
   }, [])
 
   return (
@@ -192,7 +200,7 @@ export const App = () => {
       <Header onMenu={onMenu} onSkip={onSkip} />
       <div className='content'>
         {guideVariant ? <Guide variant={guideVariant} /> : undefined}
-        <div ref={pageRef} tabIndex={-1} className={guideVariant ? `page guide-${guideVariant}` : 'page'}>
+        <div ref={pageRef} className={guideVariant ? `page guide-${guideVariant}` : 'page'}>
           <ErrorBoundary key={route}>
             <Suspense fallback={<div className='route-loading' />}>
             <Switch>
