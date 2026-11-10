@@ -5,10 +5,10 @@ import { expect, plainTest as test } from './test'
 /* `kJQP7kiw5Fk` carries three info cards, whose teasers slide in at 15, 30 and 45 s and stay 6 s, or while the
    pointer is on them (measured on youtube.com signed out, 2026-11-10). youtube.com draws a teaser 12 px from the
    player's right and 16.5 px from its top, 31 px tall, and the "i" that opens the cards 36 px square, 8 px from the
-   top, with the controls. The cards are the ones its expanded description lists under the channel card, which on
-   the page it glides to 24 px above the bottom, and in full screen the "i" opens that description beside the video,
-   its text cut at 20 lines (400 px) behind ...more. Its miniplayer shows neither, and its end screen's Hide toggle
-   sits 48 px from the top, under the "i". */
+   top, with the controls, and not once the video ends; a seek past a teaser's start shows none. The cards are the
+   ones its expanded description lists under the channel card, which on the page it glides to 24 px above the bottom,
+   and in full screen the "i" opens that description beside the video, its text cut at 20 lines (400 px) behind
+   ...more. Its miniplayer shows neither, and its end screen's Hide toggle sits 48 px from the top, under the "i". */
 
 const VIDEO_ID = 'kJQP7kiw5Fk'
 const FIRST = 'Listen to Luis\' new single'
@@ -43,7 +43,7 @@ const wake = async (page: Page) => {
 
 const showCards = (page: Page) => page.getByRole('button', { name: 'Show cards', exact: true })
 
-test('slides a teaser in at its time and collapses it into the corner, where the "i" opens the cards under the description', async ({ page }) => {
+test('slides a teaser in at its time and collapses it into the corner, where the "i" opens the cards, and shows none after a seek past one', async ({ page }) => {
   test.setTimeout(300_000)
   await playFrom(page, 12)
 
@@ -77,6 +77,13 @@ test('slides a teaser in at its time and collapses it into the corner, where the
   await expect(link).toHaveAttribute('href', 'https://luisfonsi.lnk.to/PorIssoQueEuBeboYC')
   await expect(link).toHaveAttribute('target', '_blank')
   expect(await video(page).evaluate(element => (element as HTMLVideoElement).paused)).toBe(false)
+
+  await seek(page, 26)
+  await expect.poll(() => currentTime(page), { timeout: 30_000 }).toBeGreaterThan(27)
+  await seek(page, 32)
+  await expect.poll(() => currentTime(page), { timeout: 30_000 }).toBeGreaterThan(33)
+  // a count, not toHaveCount(0), which would wait out a teaser shown by mistake
+  expect(await page.getByRole('button', { name: SECOND, exact: true }).count()).toBe(0)
 })
 
 test('holds a teaser under the pointer and closes it, opens the description beside the video in full screen, and shows no cards in the miniplayer', async ({ page }) => {
@@ -124,7 +131,7 @@ test('holds a teaser under the pointer and closes it, opens the description besi
   await expect(showCards(page)).toHaveCount(0)
 })
 
-test('moves the end screen\'s Hide toggle under the "i"', async ({ page }) => {
+test('moves the end screen\'s Hide toggle under the "i", and hides the "i" once the video ends', async ({ page }) => {
   test.setTimeout(300_000)
   await playFrom(page, 268)
 
@@ -136,6 +143,11 @@ test('moves the end screen\'s Hide toggle under the "i"', async ({ page }) => {
   }).toPass({ timeout: 5_000 })
   expect(await corner(page, showCards(page))).toEqual({ right: 12, top: 8, width: 36, height: 36 })
   expect(await corner(page, hide)).toMatchObject({ right: 12, top: 48 })
+
+  await expect.poll(() => video(page).evaluate(element => (element as HTMLVideoElement).ended), { timeout: 30_000 }).toBe(true)
+  await wake(page)
+  await page.waitForTimeout(500)
+  expect(await showCards(page).isVisible()).toBe(false)
 })
 
 test('offers ...more in the full screen description only on a text longer than its 20 lines', async ({ page }) => {
