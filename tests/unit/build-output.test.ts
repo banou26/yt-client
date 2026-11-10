@@ -87,6 +87,21 @@ describe('a deploy renames only the files whose code changed', () => {
   })
 })
 
+describe('the app page lists the code it can import later, for src/warm-code.ts', () => {
+  it('index.html lists every page\'s file and the player\'s, none it loads at start, and the engine pages list nothing', () => {
+    const page = files.get('index.html') ?? ''
+    const list = JSON.parse(/<script type="application\/json" id="lazy-code">([^<]*)<\/script>/.exec(page)?.[1] ?? '[]') as string[]
+    for (const name of ['search', 'watch', 'settings', 'privacy', 'feed-history', 'shaka']) {
+      expect(list).toContainEqual(expect.stringMatching(new RegExp(`^/assets/${name}-[\\w-]{8}\\.js$`)))
+    }
+    expect(list.filter(href => !files.has(href.slice(1)))).toEqual([])
+    const atStart = [...page.matchAll(/<(?:script type="module"|link rel="modulepreload") crossorigin (?:src|href)="([^"]+)"/g)].map(([, href]) => href)
+    expect(atStart.length).toBeGreaterThan(1)
+    expect(list.filter(href => atStart.includes(href))).toEqual([])
+    expect(['__yt_scramjet__/host.html', '__yt_scramjet__/signin.html'].filter(name => files.get(name)?.includes('lazy-code'))).toEqual([])
+  })
+})
+
 describe('repeat visits take the build\'s hashed files from the browser cache', () => {
   it('every file the build puts under assets/ has a content hash in its name, and _headers gives each of them a year', () => {
     const assets = [...files.keys()].filter(name => name.startsWith('assets/'))

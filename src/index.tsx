@@ -12,6 +12,7 @@ import { markStartup } from './perf'
 import { startEngine } from './scramjet/client'
 import { applyTheme, watchDeviceTheme } from './settings'
 import { setSource } from './sources/runtime'
+import { lazyCodeList, warmLazyCode } from './warm-code'
 
 const globalStyles = css`
   /* Dark is the base palette; the light block below overrides only what
@@ -211,3 +212,7 @@ render(
   </Provider>,
   root,
 )
+
+// after the first render rather than on load, which waits for the FKN and engine frames and comes 0.3 to 0.6 s later
+// (measured 2026-11-10 in Chrome, Firefox and WebKit)
+setTimeout(() => warmLazyCode(lazyCodeList()), 0)

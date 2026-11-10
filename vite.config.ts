@@ -6,6 +6,8 @@ import preact from '@preact/preset-vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
+import { lazyCode } from './src/lazy-code'
+
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
 // one value for the app and the engine pages it serves, new on every build (src/scramjet/engine-build.ts). It goes in
@@ -46,6 +48,20 @@ export default defineConfig({
   },
   plugins: lazyPlugins(() => [
     { name: 'yt-build', transformIndexHtml: () => [buildTag] },
+    // in the app's own HTML, so the list always names the files of the document's own build
+    {
+      name: 'yt-lazy-code',
+      apply: 'build',
+      transformIndexHtml: {
+        order: 'post',
+        handler: (_html, { path, bundle, chunk }) => path !== '/index.html' || !bundle || !chunk ? undefined : [{
+          tag: 'script',
+          attrs: { type: 'application/json', id: 'lazy-code' },
+          children: JSON.stringify(lazyCode(bundle, chunk.fileName)),
+          injectTo: 'head',
+        }],
+      },
+    },
     nodePolyfills({
       globals: { Buffer: true, global: true, process: true },
     }),
