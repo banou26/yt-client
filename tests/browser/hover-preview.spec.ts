@@ -216,6 +216,29 @@ plain('a click on a preview moved past its start opens the video where the previ
   expect(await watch.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeLessThan(asked + 60)
 })
 
+// youtube.com's "lofi" search has kept several 24/7 streams among its first rows (6 or 7 of 20 on 2026-11-11)
+plain('a live row previews muted under a LIVE badge, and a click opens the stream at its edge', async ({ page }) => {
+  plain.setTimeout(240_000)
+  await page.goto('/results?search_query=lofi')
+  const row = page.locator('article.result').filter({ has: page.locator('.badge.live') }).first()
+  await expect(row.locator('a.thumb img')).toBeVisible({ timeout: 120_000 })
+  const href = await row.locator('a.thumb').getAttribute('href')
+  await row.locator('a.thumb').hover()
+  const preview = row.locator('[data-painted]')
+  await expect(preview).toBeVisible({ timeout: 90_000 })
+  const video = row.locator('video')
+  const started = await video.evaluate((element: HTMLVideoElement) => element.currentTime)
+  await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime), { timeout: 15_000 })
+    .toBeGreaterThan(started + 1)
+  expect(await video.evaluate((element: HTMLVideoElement) => element.muted)).toBe(true)
+  await expect(preview.locator('.time')).toHaveText('LIVE')
+  await expect(preview.locator('.scrubber .fill')).toHaveAttribute('style', /width: 100%/)
+
+  expect(started, 'the stream clock is under 10 s, so a carried position would not show').toBeGreaterThan(10)
+  await preview.click({ position: { x: 40, y: 40 } })
+  await expect(page).toHaveURL(new RegExp(`${href!.replace('?', '\\?')}$`))
+})
+
 test('a related video plays its moving thumbnail on hover, in place of the duration', async ({ browser, baseURL }) => {
   test.setTimeout(480_000)
   /* Upstream sends these stills per visitor: on 2026-11-10 seven of nine fresh visitors got one on nearly every related
@@ -314,6 +337,37 @@ test('a row or card with inline params opens its preview with them, and one with
   await expect(still.locator('video')).toHaveCount(0)
   await expect(still.locator('img.moving')).toHaveCount(0)
   expect(await opened(), 'a card without params asked for a playback').toHaveLength(2)
+})
+
+test('a live row or card opens its preview with its inline params', async ({ page }) => {
+  test.setTimeout(240_000)
+  await hideFknNotice(page)
+  await page.addInitScript(answerPlaybackHere)
+  await page.setViewportSize({ width: 1280, height: 1200 })
+  await page.goto('/privacy?search_query=lofi')
+  const params = await page.evaluate(async () => {
+    const harness = '/tests/browser/fixtures/preview-harness.tsx'
+    const module = await import(harness) as { mountPreviews: (live: boolean) => void, LIVE_PARAMS: string }
+    module.mountPreviews(true)
+    return module.LIVE_PARAMS
+  })
+  const harness = page.locator('[data-preview-harness]')
+  const card = harness.locator('[data-previews="cards"] article')
+  const row = harness.locator('article.result')
+  const opened = () => page.evaluate(() =>
+    (window as unknown as Asked).asked.filter(({ method }) => method === 'openPlayback').map(({ args }) => [args[0], args[2]]))
+
+  await expect(row.locator('.badge.live')).toBeVisible({ timeout: 60_000 })
+  await row.locator('a.thumb').hover()
+  await expect(row.locator('video')).toHaveCount(1)
+  await expect.poll(opened, { timeout: 120_000 }).toEqual([['live-0', params]])
+  await page.mouse.move(0, 0)
+  await expect(row.locator('video')).toHaveCount(0)
+
+  await expect(card.locator('.badge.live')).toBeVisible()
+  await card.locator('a.thumb').hover()
+  await expect(card.locator('video')).toHaveCount(1)
+  await expect.poll(opened, { timeout: 60_000 }).toEqual([['live-0', params], ['live-1', params]])
 })
 
 for (const tab of ['HOME', 'VIDEOS'] as const) {

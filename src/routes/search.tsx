@@ -686,7 +686,7 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
     ?? row.descriptionSnippet
     ?? row.description
   // youtube.com mounts a player only on a row that carries its inline playback params
-  const playerParams = row.isUpcoming !== true && row.isLive !== true ? row.inlinePlayerParams ?? undefined : undefined
+  const playerParams = row.isUpcoming !== true ? row.inlinePlayerParams ?? undefined : undefined
   return (
     <article
       className='result'

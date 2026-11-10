@@ -532,7 +532,7 @@ export const VideoCard = (
     .join(' ')
   // youtube.com mounts a player only on a card that carries its inline playback params (search rows, Home), and plays the
   // moving thumbnail on the rest (a channel's Home rows and Videos tab), measured signed out on 2026-11-10
-  const playerParams = video.isUpcoming !== true && video.isLive !== true ? video.inlinePlayerParams ?? undefined : undefined
+  const playerParams = video.isUpcoming !== true ? video.inlinePlayerParams ?? undefined : undefined
   const moving = hovered && !playerParams ? video.animatedThumbnail ?? undefined : undefined
   const avatar = variant === undefined || variant === 'carousel'
   return (

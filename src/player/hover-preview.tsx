@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import { Captions, CaptionsOff, Volume2, VolumeX } from 'lucide-react'
+import { Captions, CaptionsOff, Radio, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { useLocation } from 'wouter'
 
@@ -234,6 +234,17 @@ const style = css`
     pointer-events: none;
   }
 
+  .time.live {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: var(--brand-red);
+  }
+
+  .scrubber.live {
+    pointer-events: none;
+  }
+
   .corner {
     position: absolute;
     top: 0.8rem;
@@ -280,6 +291,7 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
   const [time, setTime] = useState(0)
   const [buffered, setBuffered] = useState(0)
   const [ready, setReady] = useState(false)
+  const [live, setLive] = useState(false)
   const [painted, setPainted] = useState(false)
   const [muted, setMuted] = useState(preferMuted)
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
@@ -315,6 +327,7 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
         setStoryboards(controller.storyboards)
         setCaptionTracks(controller.captionTracks)
         selectCaption.current = controller.selectCaption
+        setLive(controller.isLive)
         setReady(true)
         const wanted = previewCaption(controller.captionTracks)
         if (wanted) {
@@ -378,7 +391,8 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
 
   const openAtTime = (event: MouseEvent) => {
     const at = Math.floor(videoRef.current?.currentTime ?? 0)
-    if (at < CARRY_SECONDS || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    // youtube.com opens a live preview at the stream's edge, wherever the preview is (measured 2026-11-11)
+    if (live || at < CARRY_SECONDS || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     event.preventDefault()
     const url = new URL(href, location.origin)
     url.searchParams.set('t', `${at}s`)
@@ -461,8 +475,22 @@ export const HoverPreview = ({ videoId, href, playerParams }: { videoId: string,
         )
         : undefined}
       {/* time LEFT, as youtube.com's preview counts, and out of the way while the pointer is on the bar */}
-      {ready && !scrub && !hover ? <span className='time'>{clock(duration - time)}</span> : undefined}
-      {ready
+      {ready && live
+        ? <span className='time live'><Radio size={12} strokeWidth={2.5} />LIVE</span>
+        : ready && !scrub && !hover
+        ? <span className='time'>{clock(duration - time)}</span>
+        : undefined}
+      {/* youtube.com's live bar seeks back through the stream, which a live playback here cannot, so it stays full at the edge */}
+      {ready && live
+        ? (
+          <div className='scrubber live'>
+            <div className='track'>
+              <div className='fill' style={{ width: '100%' }} />
+            </div>
+          </div>
+        )
+        : undefined}
+      {ready && !live
         ? (
           <div
             className={scrub ? 'scrubber scrubbing' : 'scrubber'}
