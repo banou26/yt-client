@@ -98,6 +98,12 @@ test('draws youtube.com\'s box, title and channel, and Expand, Close, Play and t
   await expect.poll(() => paused(video)).toBe(true)
   await mini.getByRole('button', { name: 'Play', exact: true }).click()
   await expect.poll(() => paused(video)).toBe(false)
+  // the clicked button keeps the focus, and the controls still go with the pointer; moving the focus by key shows them
+  await page.mouse.move(10, 400)
+  await expect.poll(() => opacity(controls)).toBe('0')
+  await page.keyboard.press('Shift+Tab')
+  await expect(mini.getByRole('button', { name: 'Close miniplayer' })).toBeFocused()
+  await expect.poll(() => opacity(controls)).toBe('1')
 
   // Expand takes the same video element back to its watch page, still playing
   await video.evaluate((element) => {

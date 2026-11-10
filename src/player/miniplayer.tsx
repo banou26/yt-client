@@ -18,8 +18,10 @@ const style = css`
   /* a click between the buttons reaches the video, which plays and pauses as on youtube.com */
   pointer-events: none;
 
+  /* not :focus-within: a click leaves the focus on its button, and youtube.com hides the controls once the pointer
+     leaves even then */
   [data-player-root]:hover &,
-  &:focus-within {
+  &:has(:focus-visible) {
     opacity: 1;
   }
 
