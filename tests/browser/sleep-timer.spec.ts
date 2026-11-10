@@ -110,9 +110,13 @@ test('Back from the watch page closes Time\'s up as the player docks', async ({ 
   await expect(timesUp).toBeVisible()
 
   await page.goBack()
-  await expect(page.getByRole('complementary', { name: 'Miniplayer' })).toBeVisible({ timeout: 30_000 })
+  const mini = page.getByRole('complementary', { name: 'Miniplayer' })
+  await expect(mini).toBeVisible({ timeout: 30_000 })
   await expect(timesUp).toHaveCount(0)
   expect(await paused(page)).toBe(true)
+
+  await page.keyboard.press('Escape')
+  await expect(mini).toHaveCount(0)
 })
 
 const videoIdOf = (url: string) => new URL(url, 'http://localhost').searchParams.get('v')
