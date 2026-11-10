@@ -41,6 +41,16 @@ const press = async (page: Page, control: Locator) => {
   }).toPass({ timeout: 30_000 })
 }
 
+// the view hides by fading, which Playwright still counts as visible
+const opacity = (locator: Locator) => locator.evaluate((element) => {
+  let value = 1
+  for (let node: Element | null = element; node; node = node.parentElement) value *= Number(getComputedStyle(node).opacity)
+  return value
+})
+
+// the surface goes idle once the pointer has been still for 2.5 s with the video playing
+const idle = (page: Page) => expect(page.locator('[data-player-surface]')).toHaveClass(/\bidle\b/, { timeout: 15_000 })
+
 test('shows the title, opens a grid of the related videos, and plays one in full screen', async ({ page }) => {
   test.setTimeout(300_000)
   await page.goto(`/watch?v=${VIDEO_ID}`)
@@ -52,7 +62,16 @@ test('shows the title, opens a grid of the related videos, and plays one in full
 
   await enterFullscreen(page)
   const player = page.locator('[data-player-root]')
-  await expect(player.getByRole('heading', { name: title, exact: true })).toBeVisible()
+  const heading = player.getByRole('heading', { name: title, exact: true })
+  const share = player.getByRole('button', { name: 'Share' })
+  await expect(heading).toBeVisible()
+  await page.mouse.move(600, 300)
+  await expect.poll(() => opacity(heading)).toBe(1)
+
+  // the title and the actions hide with the controls, as youtube.com's do
+  await idle(page)
+  await expect.poll(() => opacity(heading)).toBe(0)
+  expect(await opacity(share)).toBe(0)
 
   const grid = player.getByRole('list', { name: 'More videos' })
   await expect(grid).toHaveCount(0)
@@ -62,6 +81,10 @@ test('shows the title, opens a grid of the related videos, and plays one in full
   await page.mouse.wheel(0, 120)
   await expect(grid).toBeVisible()
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0)
+  // and stay hidden over the open grid, though the pointer is moving
+  await page.mouse.move(600, 320)
+  await expect.poll(() => opacity(heading)).toBe(0)
+  expect(await opacity(share)).toBe(0)
   const shown = await grid.getByRole('link').evaluateAll(links =>
     links.map(link => new URL(link.getAttribute('href')!, location.href).searchParams.get('v')))
   expect(shown).toEqual(related.slice(0, 12))
