@@ -8,7 +8,7 @@ const warm = () => {
     .then(() => {
       const link = document.createElement('link')
       link.rel = 'modulepreload'
-      // as Vite writes its own, so its preload helper finds this one and adds none
+      // the same request mode as Vite's own preload links and the import
       link.crossOrigin = ''
       link.href = href
       document.head.append(link)
