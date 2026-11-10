@@ -59,6 +59,14 @@ const YOUTUBE_SIZES = [
   { width: 1920, height: 800, player: { x: 16, y: 68, width: 1216, height: 684 }, aside: { x: 1248, width: 656 }, thumb: { width: 410, height: 230.6 } },
   { width: 1920, height: 600, player: { x: 185.8, y: 68, width: 860.4, height: 484 }, aside: { x: 1062.2, width: 672 }, thumb: { width: 420, height: 236.25 } },
   { width: 1280, height: 450, player: { x: 88, y: 68, width: 640, height: 360 }, aside: { x: 744, width: 448 }, thumb: { width: 280, height: 157.5 } },
+  // the title column holds 640 px and keeps the left margin, so the sidebar runs into the right one
+  { width: 1000, height: 800, player: { x: 16, y: 68, width: 640, height: 360 }, aside: { x: 672, width: 320 }, thumb: { width: 200, height: 112.5 } },
+] as const
+
+// youtube.com's default view in one column, from 999 px down: the sidebar under the player, 16 px margins
+const YOUTUBE_ONE_COLUMN = [
+  { width: 999, height: 800, title: { x: 16, width: 967 } },
+  { width: 800, height: 600, title: { x: 16, width: 768 } },
 ] as const
 
 // youtube.com's theater on this video, signed out, 2026-11-10: the window height less 169 px, never under 480 px in two
@@ -72,7 +80,7 @@ const YOUTUBE_THEATER = [
   { width: 2560, height: 1080, player: { x: 0, y: 56, width: 2560, height: 911 }, title: { x: 65.1, width: 1713.8 }, aside: { x: 1794.9, width: 700 }, thumb: { width: 437.5, height: 246.1, below: 24 } },
   // the title column holds 640 px, so the two overflow the window's margins evenly
   { width: 1000, height: 800, player: { x: 0, y: 56, width: 1000, height: 562.5 }, title: { x: 12, width: 640 }, aside: { x: 668, width: 320 }, thumb: { width: 200, height: 112.5, below: 24 } },
-  { width: 800, height: 600, player: { x: 0, y: 56, width: 800, height: 431 } },
+  { width: 800, height: 600, player: { x: 0, y: 56, width: 800, height: 431 }, title: { x: 16, width: 768 } },
 ] as const
 
 const expectClose = (actual: Record<string, number>, expected: Record<string, number>, what: string) => {
@@ -110,9 +118,12 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     expectClose(layout.title, { x: layout.player.x, below: 12 }, `the title at ${at}`)
   }
 
-  // one column from 999 px down, the sidebar under the player
-  await page.setViewportSize({ width: 999, height: 800 })
-  await expect.poll(async () => (await measure()).aside.below, { message: 'the sidebar under the player at 999' }).toBeGreaterThan(0)
+  for (const size of YOUTUBE_ONE_COLUMN) {
+    await page.setViewportSize({ width: size.width, height: size.height })
+    const at = `${size.width}x${size.height}`
+    await expect.poll(async () => (await measure()).aside.below, { message: `the sidebar under the player at ${at}` }).toBeGreaterThan(0)
+    expectClose((await measure()).title, size.title, `the title in one column at ${at}`)
+  }
 
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.locator('main h1.title').click()
@@ -125,12 +136,10 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     const at = `theater at ${size.width}x${size.height}`
     expectClose(layout.player, size.player, `the player in ${at}`)
     expect(layout.title.below, `the title's gap under the player in ${at}`).toBeCloseTo(12, 0)
+    expectClose(layout.title, size.title, `the title in ${at}`)
     if ('aside' in size) {
-      expectClose(layout.title, size.title, `the title in ${at}`)
       expectClose(layout.aside, size.aside, `the sidebar in ${at}`)
       expectClose(layout.thumb, size.thumb, `a related thumbnail in ${at}`)
-    } else {
-      expect(layout.title.width, `the title's width in ${at}`).toBeCloseTo(size.width - 2 * layout.title.x, 0)
     }
   }
 })

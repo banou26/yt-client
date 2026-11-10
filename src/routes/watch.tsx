@@ -44,14 +44,16 @@ const style = css`
   /* youtube.com's own proportions, measured at 1000 to 2560 px wide on
      2026-11-10: a 16 px margin and gap, 12 px above the player, the sidebar
      27.5% of the window held between 320 px and 35% of the window or 700 px,
-     and the player takes the rest, up to the width whose 16:9 frame still
-     fits under the header with room below it. A short window gives the width
-     the player cannot take to the sidebar, up to that maximum, and only what
-     is left past both centers the two. */
+     and the player takes the rest, never under 640 px, up to the width whose
+     16:9 frame still fits under the header with room below it. A short window
+     gives the width the player cannot take to the sidebar, up to that maximum,
+     and only what is left past both centers the two. From 1000 to 1007 px wide
+     the two keep the left margin and run into the right one (theater centers
+     them instead). */
   --player-max: max(64rem, calc((100vh - var(--header-height) - 6rem) * 16 / 9));
   --sidebar: clamp(32rem, max(27.5vw, 100% - 1.6rem - var(--player-max)), min(35vw, 70rem));
-  grid-template-columns: minmax(0, var(--player-max)) var(--sidebar);
-  justify-content: center;
+  grid-template-columns: minmax(64rem, var(--player-max)) var(--sidebar);
+  justify-content: safe center;
   /* The sidebar spans BOTH rows, and an auto-sized row absorbs a share of a
      spanning item that is taller than its own content. So a long sidebar
      inflated row 1 and pushed the title and description far below the player:
@@ -103,7 +105,7 @@ const style = css`
 
   /* The columns join this grid in the default view. youtube.com's theater, measured 2026-11-10, runs the player edge
      to edge and keeps the default view's column widths and centering under it, so there they take a grid of their
-     own. Its title column holds 640 px there, so from 1000 to 1007 px wide the two overflow the margins evenly. */
+     own. From 1000 to 1007 px wide the two overflow the margins evenly there. */
   .columns {
     display: contents;
   }
@@ -334,7 +336,8 @@ const style = css`
   }
 
   @media ${ONE_COLUMN} {
-    padding: 2.4rem;
+    --margin: 1.6rem;
+    padding: 2.4rem var(--margin);
 
     grid-template-columns: minmax(0, 1fr);
 
@@ -356,11 +359,11 @@ const style = css`
     }
 
     &.theater {
-      padding: 0 1.2rem 2.4rem;
+      padding: 0 var(--margin) 2.4rem;
     }
 
     &.theater .stage {
-      margin: 0 -1.2rem;
+      margin: 0 calc(-1 * var(--margin));
     }
 
     &.theater .stage [data-player-root]:not(:fullscreen) {
@@ -369,7 +372,14 @@ const style = css`
   }
 
   @media (max-width: 768px) {
-    padding: 1.2rem;
+    padding: 1.2rem var(--margin);
+  }
+
+  /* youtube.com's title column never goes under 426.667 px, a 240 px tall
+     16:9 player, so below 459 px its margins shrink and its page scrolls
+     sideways. A phone keeps 12 px margins here and no sideways scroll. */
+  @media (max-width: 458px) {
+    --margin: 1.2rem;
   }
 `
 
