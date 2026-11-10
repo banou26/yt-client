@@ -63,10 +63,15 @@ const YOUTUBE_SIZES = [
   { width: 1000, height: 800, player: { x: 16, y: 68, width: 640, height: 360 }, aside: { x: 672, width: 320 }, thumb: { width: 200, height: 112.5 } },
 ] as const
 
-// youtube.com's default view in one column, from 999 px down: the sidebar under the player, 16 px margins
+// youtube.com's default view in one column, from 999 px down, signed out, 2026-11-11: the player edge to edge under the
+// header with square corners as in theater, the window height less 169 px at most and never under 240 px, the title
+// 12 px under it, the sidebar under that, 16 px margins
 const YOUTUBE_ONE_COLUMN = [
-  { width: 999, height: 800, title: { x: 16, width: 967 } },
-  { width: 800, height: 600, title: { x: 16, width: 768 } },
+  { width: 999, height: 800, player: { x: 0, y: 56, width: 999, height: 561.94, radius: 0 }, title: { x: 16, width: 967 } },
+  { width: 800, height: 600, player: { x: 0, y: 56, width: 800, height: 431, radius: 0 }, title: { x: 16, width: 768 } },
+  { width: 600, height: 800, player: { x: 0, y: 56, width: 600, height: 337.5, radius: 0 }, title: { x: 16, width: 568 } },
+  // the title there is yt-client's own, with 12 px margins: youtube.com holds a 426.67 px column and scrolls sideways
+  { width: 412, height: 800, player: { x: 0, y: 56, width: 412, height: 240, radius: 0 } },
 ] as const
 
 // youtube.com's theater on this video, signed out, 2026-11-10: the window height less 169 px, never under 480 px in two
@@ -99,8 +104,9 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     const aside = box('main aside')
     const thumb = box('main aside article .thumb')
     const title = box('main h1.title')
+    const radius = Number.parseFloat(getComputedStyle(document.querySelector('main .stage [data-player-root]')!).borderTopLeftRadius)
     return {
-      player: { x: player.x, y: player.y, width: player.width, height: player.height },
+      player: { x: player.x, y: player.y, width: player.width, height: player.height, radius },
       aside: { x: aside.x, width: aside.width, below: aside.y - player.bottom },
       thumb: { width: thumb.width, height: thumb.height, below: thumb.y - player.bottom },
       title: { x: title.x, width: title.width, below: title.y - player.bottom },
@@ -122,7 +128,10 @@ test('sizes the player, the sidebar and its thumbnails like youtube.com', async 
     await page.setViewportSize({ width: size.width, height: size.height })
     const at = `${size.width}x${size.height}`
     await expect.poll(async () => (await measure()).aside.below, { message: `the sidebar under the player at ${at}` }).toBeGreaterThan(0)
-    expectClose((await measure()).title, size.title, `the title in one column at ${at}`)
+    const layout = await measure()
+    expectClose(layout.player, size.player, `the player in one column at ${at}`)
+    expect(layout.title.below, `the title's gap under the player in one column at ${at}`).toBeCloseTo(12, 0)
+    if ('title' in size) expectClose(layout.title, size.title, `the title in one column at ${at}`)
   }
 
   await page.setViewportSize({ width: 1280, height: 800 })

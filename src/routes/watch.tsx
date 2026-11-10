@@ -331,11 +331,17 @@ const style = css`
     background: var(--bg-chip-hover);
   }
 
+  /* youtube.com's one column is the same in the default view and in theater, measured 2026-11-11 from 999 to 360 px
+     wide: the player runs edge to edge right under the header with square corners, at most the window height less
+     169 px and never under 240 px. The theater selectors only outrank theater's own two column rules. */
   @media ${ONE_COLUMN} {
     --margin: 1.6rem;
-    padding: 2.4rem var(--margin);
-
     grid-template-columns: minmax(0, 1fr);
+
+    &,
+    &.theater {
+      padding: 0 var(--margin) 2.4rem;
+    }
 
     .stage,
     .primary,
@@ -349,26 +355,23 @@ const style = css`
       display: contents;
     }
 
-    .secondary {
+    .secondary,
+    &.theater .secondary {
       margin-top: 2.4rem;
+      padding-top: 0;
       --compact-thumb-width: 16.8rem;
     }
 
-    &.theater {
-      padding: 0 var(--margin) 2.4rem;
-    }
-
-    &.theater .stage {
+    .stage {
       margin: 0 calc(-1 * var(--margin));
     }
 
+    .stage [data-player-root]:not(:fullscreen),
     &.theater .stage [data-player-root]:not(:fullscreen) {
+      max-height: calc(100vh - 169px);
       min-height: 240px;
+      border-radius: 0;
     }
-  }
-
-  @media (max-width: 768px) {
-    padding: 1.2rem var(--margin);
   }
 
   /* youtube.com's title column never goes under 426.667 px, a 240 px tall

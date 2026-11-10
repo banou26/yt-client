@@ -160,9 +160,10 @@ test('names the chapter the playhead is in, beside the clock', async ({ page }) 
   // narrower, the title goes before the clock would clip, rather than shrinking to an empty pill
   await seek(6)
   await expect(chapter).toHaveText('The cool thing')
-  // 808, 728 and 608 px players: each window is narrower than the last, so the poll waits for the resize
+  // 808, 728 and 608 px players, edge to edge in one column: each window is narrower than the last, so the poll waits
+  // for the resize
   let previous = (await fit(page)).width
-  for (const width of [840, 760, 640]) {
+  for (const width of [808, 728, 608]) {
     await page.setViewportSize({ width, height: 800 })
     await expect.poll(async () => (await fit(page)).width).toBeLessThan(previous)
     for (const target of ['player', 'volume'] as const) {
