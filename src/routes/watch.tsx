@@ -101,17 +101,29 @@ const style = css`
     --compact-thumb-width: 62.5%;
   }
 
-  /* a theater player runs edge to edge; the columns under it keep the page's 16 px margins, where youtube.com
-     centers them on a short or very wide window */
+  /* The columns join this grid in the default view. youtube.com's theater, measured 2026-11-10, runs the player edge
+     to edge and keeps the default view's column widths and centering under it, so there they take a grid of their
+     own. Its title column holds 640 px there, so from 1000 to 1007 px wide the two overflow the margins evenly. */
+  .columns {
+    display: contents;
+  }
+
   &.theater {
-    grid-template-columns: minmax(0, 1fr) var(--sidebar);
-    padding-top: 0;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 0 2.4rem;
   }
 
   &.theater .stage {
-    grid-column: 1 / -1;
-    margin: 0 -1.6rem;
     background: #000;
+  }
+
+  &.theater .columns {
+    display: grid;
+    grid-template-columns: minmax(64rem, var(--player-max)) var(--sidebar);
+    justify-content: center;
+    align-items: start;
+    gap: 0 1.6rem;
+    padding: 0 1.6rem;
   }
 
   /* Keeps a tall window from pushing the title below the fold. Excluded in
@@ -132,7 +144,7 @@ const style = css`
   }
 
   &.theater .secondary {
-    grid-row: 2;
+    grid-row: 1;
     padding-top: 2.4rem;
   }
 
@@ -324,19 +336,18 @@ const style = css`
   @media ${ONE_COLUMN} {
     padding: 2.4rem;
 
-    &,
-    &.theater {
-      grid-template-columns: minmax(0, 1fr);
-    }
+    grid-template-columns: minmax(0, 1fr);
 
     .stage,
     .primary,
     .secondary,
-    &.theater .stage,
-    &.theater .primary,
     &.theater .secondary {
       grid-column: 1;
       grid-row: auto;
+    }
+
+    &.theater .columns {
+      display: contents;
     }
 
     .secondary {
@@ -533,165 +544,167 @@ const WatchPage = () => {
         <div className='player-slot' ref={claimPlayer} />
       </div>
       {oneColumn && videoPanel ? <div className='panel-slot'>{videoPanel}</div> : undefined}
-      <div className='primary'>
-        {oneColumn ? replay : undefined}
-        {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
-        {watch?.isMembersOnly ? <MembersOnly /> : undefined}
-        {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
-        {watch
-          ? (
-            <div className='owner-row'>
-              {/* youtube.com opens the choice of a collaboration's channels from its avatars, its names and its Subscribe */}
-              {watch.byline?.length && watch.collaborators?.length
-                ? (
-                  <>
-                    <CollaboratorsButton channels={watch.collaborators} subscribe className='avatars' label='Collaboration channels'>
-                      <AvatarStack channels={watch.collaborators} />
-                    </CollaboratorsButton>
-                    <div className='owner-text'>
-                      <CollaboratorsButton channels={watch.collaborators} subscribe className='channel-name'>
-                        <span className='name'><BylineNames parts={watch.byline} /></span>
-                      </CollaboratorsButton>
-                    </div>
-                    <div css={subscribeStyle}>
-                      <CollaboratorsButton channels={watch.collaborators} subscribe className='subscribe'>Subscribe</CollaboratorsButton>
-                    </div>
-                  </>
-                )
-                : channel
-                ? (
-                  <>
-                    <Link
-                      href={`/channel/${channel.id}`}
-                      className={channel.avatar ? 'avatar' : 'avatar fallback'}
-                      aria-label={channel.name}
-                    >
-                      {channel.avatar
-                        ? <img src={channel.avatar} alt='' loading='lazy' />
-                        : channel.name.slice(0, 1).toUpperCase()}
-                    </Link>
-                    <div className='owner-text'>
-                      <Link href={`/channel/${channel.id}`} className='channel-name'>
-                        <span className='name'>{channel.name}</span>
-                        <VerifiedBadge channel={channel} />
-                      </Link>
-                      {channel.subscriberCountText
-                        ? <div className='sub-count'>{channel.subscriberCountText}</div>
-                        : undefined}
-                    </div>
-                    <SubscribeButton
-                      channelId={channel.id}
-                      subscribed={channel.isSubscribed}
-                      notificationLevel={channel.notificationLevel}
-                    />
-                  </>
-                )
-                : undefined}
-              <div className='actions'>
-                <div className='like-pill'>
-                  <button
-                    type='button'
-                    className='like'
-                    aria-label='Like'
-                    aria-pressed={liked}
-                    disabled={rating}
-                    onClick={() => rate('LIKE')}
-                  >
-                    <ThumbsUp size={20} strokeWidth={1.5} fill={liked ? 'currentColor' : 'none'} />
-                    {watch?.likeCountText ? <span>{watch.likeCountText}</span> : undefined}
-                  </button>
-                  <button
-                    type='button'
-                    className='dislike'
-                    aria-label='Dislike'
-                    aria-pressed={disliked}
-                    disabled={rating}
-                    onClick={() => rate('DISLIKE')}
-                  >
-                    <ThumbsDown size={20} strokeWidth={1.5} fill={disliked ? 'currentColor' : 'none'} />
-                    {dislikes !== undefined ? <span>{formatCompact(dislikes)}</span> : undefined}
-                  </button>
-                </div>
-                <button type='button' className='pill' onClick={() => setSharing(true)}>
-                  <Share2 size={20} strokeWidth={1.5} />
-                  Share
-                </button>
-                {/* Save sits beside Share rather than inside the More menu: a menu's panel is drawn on the body, so a press in a nested one would close the menu holding it */}
-                <SaveMenu videoId={videoId} />
-                <Menu
-                  label='More actions'
-                  trigger={
-                    <button type='button' className='round' aria-label='More actions'>
-                      <EllipsisVertical size={20} strokeWidth={1.5} />
-                    </button>
-                  }
-                >
-                  <MenuItem icon={Link2} label='Share' onSelect={() => setSharing(true)} />
-                  <MenuItem
-                    label='Theater mode'
-                    checked={theater}
-                    closeOnSelect
-                    onSelect={toggleTheater}
-                  />
-                </Menu>
-              </div>
-            </div>
-          )
-          : undefined}
-        <div className='about'>
-          {watch?.description || watch?.viewCountText || watch?.publishedDateText
+      <div className='columns'>
+        <div className='primary'>
+          {oneColumn ? replay : undefined}
+          {watch?.title ? <h1 className='title'>{watch.title}</h1> : undefined}
+          {watch?.isMembersOnly ? <MembersOnly /> : undefined}
+          {watchError && !watch ? <p className='error'>{watchError.message}</p> : undefined}
+          {watch
             ? (
-              <DescriptionBox
-                key={`description:${videoId}`}
-                viewCountText={watch.viewCountText}
-                publishedDateText={watch.publishedDateText}
-                shortViewCountText={watch.shortViewCountText}
-                relativeDateText={watch.relativeDateText}
-                hashtags={watch.hashtags}
-                description={watch.description}
-                runs={watch.descriptionRuns}
-                videoId={videoId}
-                chapters={chapters}
-                currentChapter={chapter}
-                onViewChapters={() => setPanel('chapters')}
-                onShowTranscript={transcript ? () => setPanel('transcript') : undefined}
-                music={watch.music}
-                channelCard={watch.channelCard}
-              />
+              <div className='owner-row'>
+                {/* youtube.com opens the choice of a collaboration's channels from its avatars, its names and its Subscribe */}
+                {watch.byline?.length && watch.collaborators?.length
+                  ? (
+                    <>
+                      <CollaboratorsButton channels={watch.collaborators} subscribe className='avatars' label='Collaboration channels'>
+                        <AvatarStack channels={watch.collaborators} />
+                      </CollaboratorsButton>
+                      <div className='owner-text'>
+                        <CollaboratorsButton channels={watch.collaborators} subscribe className='channel-name'>
+                          <span className='name'><BylineNames parts={watch.byline} /></span>
+                        </CollaboratorsButton>
+                      </div>
+                      <div css={subscribeStyle}>
+                        <CollaboratorsButton channels={watch.collaborators} subscribe className='subscribe'>Subscribe</CollaboratorsButton>
+                      </div>
+                    </>
+                  )
+                  : channel
+                  ? (
+                    <>
+                      <Link
+                        href={`/channel/${channel.id}`}
+                        className={channel.avatar ? 'avatar' : 'avatar fallback'}
+                        aria-label={channel.name}
+                      >
+                        {channel.avatar
+                          ? <img src={channel.avatar} alt='' loading='lazy' />
+                          : channel.name.slice(0, 1).toUpperCase()}
+                      </Link>
+                      <div className='owner-text'>
+                        <Link href={`/channel/${channel.id}`} className='channel-name'>
+                          <span className='name'>{channel.name}</span>
+                          <VerifiedBadge channel={channel} />
+                        </Link>
+                        {channel.subscriberCountText
+                          ? <div className='sub-count'>{channel.subscriberCountText}</div>
+                          : undefined}
+                      </div>
+                      <SubscribeButton
+                        channelId={channel.id}
+                        subscribed={channel.isSubscribed}
+                        notificationLevel={channel.notificationLevel}
+                      />
+                    </>
+                  )
+                  : undefined}
+                <div className='actions'>
+                  <div className='like-pill'>
+                    <button
+                      type='button'
+                      className='like'
+                      aria-label='Like'
+                      aria-pressed={liked}
+                      disabled={rating}
+                      onClick={() => rate('LIKE')}
+                    >
+                      <ThumbsUp size={20} strokeWidth={1.5} fill={liked ? 'currentColor' : 'none'} />
+                      {watch?.likeCountText ? <span>{watch.likeCountText}</span> : undefined}
+                    </button>
+                    <button
+                      type='button'
+                      className='dislike'
+                      aria-label='Dislike'
+                      aria-pressed={disliked}
+                      disabled={rating}
+                      onClick={() => rate('DISLIKE')}
+                    >
+                      <ThumbsDown size={20} strokeWidth={1.5} fill={disliked ? 'currentColor' : 'none'} />
+                      {dislikes !== undefined ? <span>{formatCompact(dislikes)}</span> : undefined}
+                    </button>
+                  </div>
+                  <button type='button' className='pill' onClick={() => setSharing(true)}>
+                    <Share2 size={20} strokeWidth={1.5} />
+                    Share
+                  </button>
+                  {/* Save sits beside Share rather than inside the More menu: a menu's panel is drawn on the body, so a press in a nested one would close the menu holding it */}
+                  <SaveMenu videoId={videoId} />
+                  <Menu
+                    label='More actions'
+                    trigger={
+                      <button type='button' className='round' aria-label='More actions'>
+                        <EllipsisVertical size={20} strokeWidth={1.5} />
+                      </button>
+                    }
+                  >
+                    <MenuItem icon={Link2} label='Share' onSelect={() => setSharing(true)} />
+                    <MenuItem
+                      label='Theater mode'
+                      checked={theater}
+                      closeOnSelect
+                      onSelect={toggleTheater}
+                    />
+                  </Menu>
+                </div>
+              </div>
             )
             : undefined}
-          {watch?.hasChatReplay ? <ChatReplayTeaser open={replayOpen} onOpen={() => setReplayFor(videoId)} /> : undefined}
-        </div>
-        {!watchFetching && !watch?.commentsHidden
-          ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
-          : undefined}
-      </div>
-      {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && videoPanel)
-        ? (
-          <aside className='secondary'>
-            {oneColumn ? undefined : replay}
-            {oneColumn ? undefined : videoPanel}
-            {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
-            {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
-            {related
-              ? related.map(item => <VideoCardCompact key={item.id} video={item} />)
-              : RELATED_SKELETON_KEYS.map(key => <VideoCardCompactSkeleton key={key} />)}
-            {relatedCursor
+          <div className='about'>
+            {watch?.description || watch?.viewCountText || watch?.publishedDateText
               ? (
-                <FeedSentinel
-                  onVisible={() => {
-                    if (!wantMoreRelated) setWantMoreRelated(true)
-                    else if (morePage && !moreFetching) {
-                      setRelatedPages(pages => pages[pages.length - 1] === morePage ? pages : [...pages, morePage])
-                    }
-                  }}
-                  disabled={moreFetching}
+                <DescriptionBox
+                  key={`description:${videoId}`}
+                  viewCountText={watch.viewCountText}
+                  publishedDateText={watch.publishedDateText}
+                  shortViewCountText={watch.shortViewCountText}
+                  relativeDateText={watch.relativeDateText}
+                  hashtags={watch.hashtags}
+                  description={watch.description}
+                  runs={watch.descriptionRuns}
+                  videoId={videoId}
+                  chapters={chapters}
+                  currentChapter={chapter}
+                  onViewChapters={() => setPanel('chapters')}
+                  onShowTranscript={transcript ? () => setPanel('transcript') : undefined}
+                  music={watch.music}
+                  channelCard={watch.channelCard}
                 />
               )
               : undefined}
-          </aside>
-        )
-        : undefined}
+            {watch?.hasChatReplay ? <ChatReplayTeaser open={replayOpen} onOpen={() => setReplayFor(videoId)} /> : undefined}
+          </div>
+          {!watchFetching && !watch?.commentsHidden
+            ? <Comments key={`comments:${videoId}`} videoId={videoId} commentCountText={watch?.commentCountText} />
+            : undefined}
+        </div>
+        {watchFetching || playlist || watch?.isLive || replayOpen || (related && related.length > 0) || (!oneColumn && videoPanel)
+          ? (
+            <aside className='secondary'>
+              {oneColumn ? undefined : replay}
+              {oneColumn ? undefined : videoPanel}
+              {playlist ? <PlaylistPanel playlist={playlist} /> : undefined}
+              {watch?.isLive ? <LiveChat key={`chat:${videoId}`} videoId={videoId} /> : undefined}
+              {related
+                ? related.map(item => <VideoCardCompact key={item.id} video={item} />)
+                : RELATED_SKELETON_KEYS.map(key => <VideoCardCompactSkeleton key={key} />)}
+              {relatedCursor
+                ? (
+                  <FeedSentinel
+                    onVisible={() => {
+                      if (!wantMoreRelated) setWantMoreRelated(true)
+                      else if (morePage && !moreFetching) {
+                        setRelatedPages(pages => pages[pages.length - 1] === morePage ? pages : [...pages, morePage])
+                      }
+                    }}
+                    disabled={moreFetching}
+                  />
+                )
+                : undefined}
+            </aside>
+          )
+          : undefined}
+      </div>
       {sharing ? <ShareDialog videoId={videoId} list={listId} onClose={() => setSharing(false)} /> : undefined}
     </main>
   )
