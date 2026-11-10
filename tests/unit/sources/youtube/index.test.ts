@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { Parser, YT, YTNodes } from 'youtubei.js'
+import { Innertube, Parser, YT, YTNodes } from 'youtubei.js'
+
+import type { YoutubeClient } from '../../../../src/sources/youtube'
 
 import { createYoutubeSource } from '../../../../src/sources/youtube'
 import { CHANNEL_NOT_FOUND, CHANNEL_UNAVAILABLE, SOURCE_CURSOR_ARGUMENT, SOURCE_REPLAY } from '../../../../src/sources/types'
@@ -705,6 +707,28 @@ describe('youtube source', () => {
     const third = await source.shorts(undefined, second.cursor)
     expect(third.items.map((item) => item.id)).toEqual(['reel-page-2'])
     expect(third.cursor).toBeUndefined()
+  })
+
+  it('reads the reel sequence of the tile the pager was opened from, as youtube.com does', async () => {
+    const sent: { endpoint: string, args: { sequenceParams?: string } }[] = []
+    const actions = {
+      execute: async (endpoint: string, args: { sequenceParams?: string }) => {
+        sent.push({ endpoint, args })
+        const data = endpoint === '/reel/reel_watch_sequence'
+          ? { entries: [{ command: { reelWatchEndpoint: { videoId: 'next-in-channel' } } }] }
+          : {}
+        return { success: true, status_code: 200, data }
+      },
+    }
+    const source = createYoutubeSource({
+      fetch: globalThis.fetch,
+      // the patched youtubei.js itself, which reads the given sequence instead of building the general feed's
+      createClient: async () => new Innertube({ actions } as never) as unknown as YoutubeClient,
+    })
+    const page = await source.shorts('abc', undefined, 'channel-sequence')
+    expect(sent.filter((call) => call.endpoint === '/reel/reel_watch_sequence').map((call) => call.args.sequenceParams))
+      .toEqual(['channel-sequence'])
+    expect(page.items.map((item) => item.id)).toContain('next-in-channel')
   })
 
   it('seeds a shorts feed with no id from the home shelf', async () => {

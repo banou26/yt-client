@@ -39,6 +39,7 @@ export type VideoCardData =
       | 'metaDelimiter'
       | 'progressPercent'
       | 'publishedText'
+      | 'shortsSequence'
       | 'thumbnail'
       | 'thumbnailBadge'
       | 'thumbnailSrcset'

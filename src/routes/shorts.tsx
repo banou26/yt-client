@@ -10,6 +10,7 @@ import { useDocumentTitle } from '../app'
 import { Comments } from '../components/comments'
 import { readable, safeDecode } from '../components/format'
 import ShareDialog from '../components/share-dialog'
+import { shortsSequenceIn } from '../components/shorts-tile'
 import SubscribeButton from '../components/subscribe-button'
 import { Menu, MenuItem } from '../components/ui/menu'
 import useInfiniteFeed from '../components/use-infinite-feed'
@@ -21,8 +22,8 @@ import { closePlayer } from '../player/session'
 import { useSession } from '../session'
 
 const SHORTS_FEED_QUERY = gql(`
-  query ShortsFeed($seed: ID, $cursor: String) {
-    shorts(seed: $seed, cursor: $cursor) {
+  query ShortsFeed($seed: ID, $sequence: String, $cursor: String) {
+    shorts(seed: $seed, sequence: $sequence, cursor: $cursor) {
       items { id poster title }
       cursor
     }
@@ -479,6 +480,7 @@ const ShortsPage = () => {
   const [, params] = useRoute('/shorts/:videoId')
   // frozen at mount: re-reading the param would refetch the whole sequence on every path rewrite the pager makes
   const [seed] = useState(() => (params?.videoId ? safeDecode(params.videoId) : undefined))
+  const [sequence] = useState(() => shortsSequenceIn(history.state))
   const { ready } = useSession()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [loaded, setLoaded] = useState<ShortsPage[]>([])
@@ -489,7 +491,7 @@ const ShortsPage = () => {
 
   const [{ data, error, fetching }] = useQuery({
     query: SHORTS_FEED_QUERY,
-    variables: { seed, cursor: loaded[loaded.length - 1]?.cursor },
+    variables: { seed, sequence, cursor: loaded[loaded.length - 1]?.cursor },
     pause: !ready,
   })
   const page = data?.shorts

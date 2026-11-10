@@ -49,6 +49,8 @@ export type SourceVideo = {
   isUpcoming?: boolean
   isMembersOnly?: boolean
   isShort?: boolean
+  // a Shorts tile's reel sequence, which the pager reads to move through that tile's channel or search as youtube.com does
+  shortsSequence?: string
   badges: string[]
   // a collaboration's first channel, when the answer lists them
   channel?: SourceChannel
@@ -588,7 +590,8 @@ export type Source = {
   id: string
   home(chip?: string, cursor?: string): Promise<SourceHomeFeed>
   // There is no Shorts DESTINATION feed to fall back on: `FEshorts` parses to an empty response
-  shorts(seed?: string, cursor?: string): Promise<SourceShortsPage>
+  // `sequence` is a Shorts tile's own, which keeps the feed in that tile's channel or search
+  shorts(seed?: string, cursor?: string, sequence?: string): Promise<SourceShortsPage>
   subscriptions(cursor?: string): Promise<SourceVideoPage>
   history(cursor?: string): Promise<SourceSectionedVideoPage>
   // `all` follows the list past its first page, at a cost of one request per page

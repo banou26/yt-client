@@ -257,7 +257,8 @@ export type YoutubeClient = {
   getChannelsFeed(): Promise<ChannelsFeed>
   search(query: string, filters?: YoutubeSearchFilters): Promise<SearchFeed>
   getBasicInfo(id: string): Promise<{ basic_info?: unknown }>
-  getShortsVideoInfo(id: string): Promise<ShortsSequence>
+  // `sequenceParams` is patched in: youtubei.js 18.3.0 always builds its own, which reads the general Shorts feed
+  getShortsVideoInfo(id: string, client?: undefined, sequenceParams?: string): Promise<ShortsSequence>
   getChannel(id: string): Promise<ChannelFeed>
   resolveURL(url: string): Promise<{ payload?: { browseId?: string, params?: string } }>
   getInfo(id: string): Promise<VideoInfoWithChat>
@@ -1192,12 +1193,12 @@ export const createYoutubeSource = ({ fetch, createClient, signedIn }: YoutubeSo
       }
     },
     // Playback is deliberately NOT taken from the sequence even though it prefetches a player response: that would trade a proven path for a preview-tier one.
-    shorts: async (seed, cursor) => {
+    shorts: async (seed, cursor, sequence) => {
       if (cursor) return shortsContinuations.resolve('shorts', cursor)
       const active = await client
       const from = seed ?? await seedShort(active)
       if (!from) return { items: [] }
-      const info = await active.getShortsVideoInfo(from)
+      const info = await active.getShortsVideoInfo(from, undefined, sequence)
       const details = (info.basic_info ?? {}) as { id?: string, title?: string, thumbnail?: { url?: string, width?: number }[] }
       const seeded: SourceShort | undefined = details.id
         ? {

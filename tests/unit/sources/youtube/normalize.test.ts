@@ -200,6 +200,17 @@ describe('youtube normalization', () => {
     })?.thumbnail).toBe('portrait')
   })
 
+  it('keeps the reel sequence a Shorts tile opens the Shorts player with', () => {
+    const lockup = Parser.parseItem({
+      shortsLockupViewModel: {
+        entityId: 'shorts-shelf-item-abc123',
+        onTap: { innertubeCommand: { reelWatchEndpoint: { videoId: 'abc123', sequenceParams: 'channel-sequence' } } },
+        overlayMetadata: { primaryText: { content: 'A Short' } },
+      },
+    } as never)
+    expect(normalizeShortsLockup(lockup)?.shortsSequence).toBe('channel-sequence')
+  })
+
   it('falls back to the entity id and drops a short with no title', () => {
     expect(normalizeShortsLockup({
       entity_id: 'shorts-entity',

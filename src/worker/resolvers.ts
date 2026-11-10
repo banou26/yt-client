@@ -29,7 +29,8 @@ export const resolvers = {
   },
   Query: {
     home: (_, { chip, cursor }, context) => context.source.home(chip ?? undefined, cursor ?? undefined),
-    shorts: (_, { seed, cursor }, context) => context.source.shorts(seed ?? undefined, cursor ?? undefined),
+    shorts: (_, { seed, cursor, sequence }, context) =>
+      context.source.shorts(seed ?? undefined, cursor ?? undefined, sequence ?? undefined),
     subscriptions: (_, { cursor }, context) => context.source.subscriptions(cursor ?? undefined),
     history: (_, { cursor }, context) => context.source.history(cursor ?? undefined),
     subscribedChannels: (_, { all }, context) => context.source.subscribedChannels(all ?? undefined),

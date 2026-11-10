@@ -88,6 +88,7 @@ const CHANNEL_VIEW_QUERY = gql(`
           metaDelimiter
           isLive
           isShort
+          shortsSequence
           isUpcoming
           isMembersOnly
           badges
@@ -150,6 +151,7 @@ const CHANNEL_VIEW_QUERY = gql(`
             title
             thumbnail
             viewCount
+            shortsSequence
           }
           playlists {
             id

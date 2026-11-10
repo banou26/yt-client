@@ -800,7 +800,7 @@ export const normalizeShortsLockup = (input: unknown): SourceVideo | undefined =
     thumbnail?: Thumbnail[]
     content_image?: { image?: Thumbnail[], primary_thumbnail?: { image?: Thumbnail[] } }
     thumbnail_view_model?: { image?: Thumbnail[] }
-    on_tap_endpoint?: { payload?: { videoId?: string } }
+    on_tap_endpoint?: { payload?: { videoId?: string, sequenceParams?: string } }
     overlay_metadata?: { primary_text?: Text, secondary_text?: Text }
     accessibility_text?: string
     badge?: { label?: string, text?: string }
@@ -823,6 +823,7 @@ export const normalizeShortsLockup = (input: unknown): SourceVideo | undefined =
     // no durationSeconds: Shorts carry no length on this node and a card should not show one
     viewCount: presentText(node?.overlay_metadata?.secondary_text),
     isShort: true,
+    shortsSequence: node?.on_tap_endpoint?.payload?.sequenceParams,
     badges: badgeTexts(node?.badge ? [node.badge] : undefined),
   }
 }

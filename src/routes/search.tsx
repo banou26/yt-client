@@ -84,7 +84,7 @@ const SEARCH_RESULTS_QUERY = gql(`
           horizontal
           collapsedCount
           videos { ...SearchVideo }
-          shorts { id title thumbnail viewCount }
+          shorts { id title thumbnail viewCount shortsSequence }
         }
       }
       topic {

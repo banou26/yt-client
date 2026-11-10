@@ -191,3 +191,26 @@ test('Share on a Shorts tile and in the Shorts player gives the Short\'s /shorts
   await expect(dialog.locator('.target')).toHaveText(['Messages', 'WhatsApp', 'Facebook', 'X', 'Email', 'Reddit', 'Pinterest', 'LinkedIn'])
   await expect(dialog.getByRole('checkbox')).toHaveCount(0)
 })
+
+test('a Short opened from a channel\'s Shorts tab moves on through that channel\'s Shorts', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.addInitScript(holdPlayback)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/@MKBHD/shorts')
+  const thumbs = page.locator('main article a.thumb[href^="/shorts/"]')
+  await expect(thumbs.nth(1)).toBeVisible({ timeout: 120_000 })
+  const channelShorts = await thumbs.evaluateAll(links => links.map(link => link.getAttribute('href')!.slice('/shorts/'.length)))
+  const seed = channelShorts[1]!
+
+  await thumbs.nth(1).click()
+  // youtube.com keeps the plain address, and reads the next Shorts off the sequence the tile carries
+  await expect(page).toHaveURL(`/shorts/${seed}`)
+  const later = page.locator(`[data-short-id="${seed}"] ~ [data-short-id]`)
+  await expect(later.nth(3)).toBeAttached({ timeout: 120_000 })
+  const next = await later.evaluateAll(slides => slides.map(slide => (slide as HTMLElement).dataset.shortId!))
+  const inChannel = next.filter(id => channelShorts.includes(id))
+  expect(inChannel.length, `the Shorts after it, ${next.join(' ')}, are mostly another feed's`).toBeGreaterThan(next.length / 2)
+
+  await page.keyboard.press('ArrowDown')
+  await expect.poll(() => shownShort(page), { timeout: 10_000 }).toBe(next[0])
+})

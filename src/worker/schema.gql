@@ -85,6 +85,10 @@ type Video {
   # Vertical, and 9:16 in the grid. Shorts reach the normalizers as their own
   # node kind, so this is set at the source rather than guessed from duration.
   isShort: Boolean
+  # A Shorts tile's reel sequence. youtube.com's pager reads it after a click on
+  # the tile, and so moves through the Shorts of that tile's channel or search
+  # rather than the general feed (measured 2026-11-10).
+  shortsSequence: String
   # Upstream's own badge texts (4K, CC, New), already localized. Kept as text
   # because the vocabulary changes and an unknown badge should still render.
   badges: [String!]!
@@ -826,8 +830,9 @@ type Query {
   home(chip: ID, cursor: String): HomeFeed!
   # `seed` names the short to open on; the sequence follows from it. With no
   # seed the home shelf supplies one, so a signed-out session has no Shorts
-  # feed rather than an error.
-  shorts(seed: ID, cursor: String): ShortsPage!
+  # feed rather than an error. `sequence` is the Video.shortsSequence of the
+  # tile the seed was opened from.
+  shorts(seed: ID, cursor: String, sequence: String): ShortsPage!
   # Signed-in only. youtubei.js refuses these before the network call when
   # signed out, so callers gate on `session.signedIn` rather than firing a
   # request that cannot succeed.

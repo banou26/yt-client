@@ -8,6 +8,17 @@ import { formatViews } from './format'
 import { Thumbnail } from './thumbnail'
 import { VideoCardMenu } from './video-card'
 
+type ShortsLinkState = { sequence?: string }
+
+/**
+ * The reel sequence of the tile the Shorts pager was opened from. A tile hands it over in the history entry, so the
+ * address stays /shorts/<id> as youtube.com's does.
+ */
+export const shortsSequenceIn = (state: unknown) => {
+  const sequence = (state as ShortsLinkState | null | undefined)?.sequence
+  return typeof sequence === 'string' ? sequence : undefined
+}
+
 /* youtube.com draws every Shorts tile alike, in a channel's Shorts tab, a channel's Home shelf and a search's shelf:
    a 2:3 still with 8px corners, a 16/22px title beside a 40px More actions button, and 14/20px views that step down
    to 12/18px below a 1024px window. Measured signed out on @MKBHD and a "rick astley" search, 2026-11-10. */
@@ -87,15 +98,16 @@ export const shortsTileStyle = css`
 /** One vertical tile that opens the Shorts player, as youtube.com draws a Short in a grid or a shelf. */
 export const ShortsTile = ({ short }: { short: VideoCardData }) => {
   const href = shortsHrefFor(short.id)
+  const state: ShortsLinkState | undefined = short.shortsSequence ? { sequence: short.shortsSequence } : undefined
   const views = formatViews(short.viewCount)
   return (
     <article css={shortsTileStyle} className='tile'>
-      <Link href={href} className='thumb' tabIndex={-1} aria-hidden='true'>
+      <Link href={href} state={state} className='thumb' tabIndex={-1} aria-hidden='true'>
         {short.thumbnail ? <Thumbnail src={short.thumbnail} srcSet={short.thumbnailSrcset} sizes='21rem' /> : undefined}
       </Link>
       <div className='details'>
         <h3 className='title'>
-          <Link href={href}>{short.title}</Link>
+          <Link href={href} state={state}>{short.title}</Link>
         </h3>
         {views ? <div className='views'>{views}</div> : undefined}
         <VideoCardMenu videoId={short.id} title={short.title} iconSize={24} short class='more-menu' />

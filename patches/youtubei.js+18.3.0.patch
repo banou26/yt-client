@@ -1,3 +1,38 @@
+diff --git a/node_modules/youtubei.js/dist/src/Innertube.d.ts b/node_modules/youtubei.js/dist/src/Innertube.d.ts
+index 42c8901..2b05dab 100644
+--- a/node_modules/youtubei.js/dist/src/Innertube.d.ts
++++ b/node_modules/youtubei.js/dist/src/Innertube.d.ts
+@@ -24,7 +24,7 @@ export default class Innertube {
+     static create(config?: InnerTubeConfig): Promise<Innertube>;
+     getInfo(target: string | NavigationEndpoint, options?: GetVideoInfoOptions): Promise<VideoInfo>;
+     getBasicInfo(video_id: string, options?: GetVideoInfoOptions): Promise<VideoInfo>;
+-    getShortsVideoInfo(video_id: string, client?: InnerTubeClient): Promise<ShortFormVideoInfo>;
++    getShortsVideoInfo(video_id: string, client?: InnerTubeClient, sequence_params?: string): Promise<ShortFormVideoInfo>;
+     search(query: string, filters?: SearchFilters): Promise<Search>;
+     getSearchSuggestions(query: string, previous_query?: string): Promise<string[]>;
+     getComments(video_id: string, sort_by?: 'TOP_COMMENTS' | 'NEWEST_FIRST', comment_id?: string): Promise<Comments>;
+diff --git a/node_modules/youtubei.js/dist/src/Innertube.js b/node_modules/youtubei.js/dist/src/Innertube.js
+index 59b66ab..3643f4c 100644
+--- a/node_modules/youtubei.js/dist/src/Innertube.js
++++ b/node_modules/youtubei.js/dist/src/Innertube.js
+@@ -101,7 +101,7 @@ export default class Innertube {
+         const cpn = generateRandomString(16);
+         return new VideoInfo([watch_response], session.actions, cpn);
+     }
+-    async getShortsVideoInfo(video_id, client) {
++    async getShortsVideoInfo(video_id, client, sequence_params) {
+         throwIfMissing({ video_id });
+         const reel_watch_endpoint = new NavigationEndpoint({
+             reelWatchEndpoint: {
+@@ -120,7 +120,7 @@ export default class Innertube {
+             feature2: 25,
+             feature3: 0
+         });
+-        const params = encodeURIComponent(u8ToBase64(writer.finish()));
++        const params = sequence_params ?? encodeURIComponent(u8ToBase64(writer.finish()));
+         const sequence_response = actions.execute('/reel/reel_watch_sequence', { sequenceParams: params });
+         const response = await Promise.all([reel_watch_response, sequence_response]);
+         const cpn = generateRandomString(16);
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js b/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js
 index 6e9c132..5ac1c67 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/ContentMetadataView.js
