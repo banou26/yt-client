@@ -41,6 +41,11 @@ test('an unknown address shows youtube.com\'s 404 page, whose box searches', asy
   await expect(page).toHaveURL('/results?search_query=lofi+beats')
 })
 
+test('an address of three segments shows the 404 page', async ({ page }) => {
+  await page.goto('/a/b/c')
+  await expect(page.getByRole('main').locator('p')).toHaveText(LINES, { timeout: 30_000 })
+})
+
 test('the 404 page fits a phone', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 })
   await page.goto('/nope-page-xyz')
