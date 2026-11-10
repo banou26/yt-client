@@ -191,6 +191,13 @@ const style = css`
     grid-template-columns: repeat(auto-fill, minmax(min(23rem, 100%), 1fr));
   }
 
+  .rich-grid .post-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .show-more {
     display: flex;
     align-items: center;
@@ -251,7 +258,7 @@ const RichShelfRow = ({ shelf }: { shelf: Shelf }) => {
         videoCountText={playlist.videoCountText}
       />
     )),
-    ...shelf.posts.map(post => <PostCard key={post.id} post={post} />),
+    ...shelf.posts.map(post => <PostCard key={post.id} post={post} readMore={false} />),
   ]
   const more = columns !== undefined && cards.length > columns
   return (

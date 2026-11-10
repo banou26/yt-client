@@ -96,8 +96,11 @@ const style = css`
   }
 `
 
-/** A channel post, on a channel's Posts tab or in a row of a topic channel's Home. */
-export const PostCard = ({ post }: { post: PostCardData }) => (
+/**
+ * A channel post, on a channel's Posts tab, on its own page, or in a row of a topic channel's Home. A long text gets a
+ * Read more, unless `readMore` is false: a Home row cuts it with none, as youtube.com does.
+ */
+export const PostCard = ({ post, readMore = true }: { post: PostCardData, readMore?: boolean }) => (
   <article css={style} className='post'>
     <div className='post-head'>
       {post.author
@@ -110,9 +113,13 @@ export const PostCard = ({ post }: { post: PostCardData }) => (
           </Link>
         )
         : undefined}
-      {post.publishedText ? <span className='post-date'>{post.publishedText}</span> : undefined}
+      {post.publishedText ? <Link href={`/post/${post.id}`} className='post-date'>{post.publishedText}</Link> : undefined}
     </div>
-    {post.text ? <ReadMore className='post-text' text={post.text}>{post.text}</ReadMore> : undefined}
+    {post.text
+      ? readMore
+        ? <ReadMore className='post-text' text={post.text}>{post.text}</ReadMore>
+        : <p className='post-text'>{post.text}</p>
+      : undefined}
     {post.attachedImage
       ? <img className='post-image' src={post.attachedImage} alt='' loading='lazy' />
       : undefined}
