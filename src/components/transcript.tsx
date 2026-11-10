@@ -9,7 +9,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/ho
 import { useQuery } from 'urql'
 
 import { gql } from '../generated'
-import { chapterIndexAt } from '../player/chapters'
 import { playheadOf, seekTo } from '../player/seek'
 import { readable } from './format'
 import { SidePanel } from './side-panel'
@@ -18,7 +17,7 @@ const TRANSCRIPT_QUERY = gql(`
   query Transcript($panelId: String!, $params: String!) {
     transcript(panelId: $panelId, params: $params) {
       searchToken
-      sections { title lines { startSeconds timestamp text } }
+      sections { title startSeconds lines { startSeconds timestamp text } }
     }
   }
 `)
@@ -26,7 +25,7 @@ const TRANSCRIPT_QUERY = gql(`
 const TRANSCRIPT_SEARCH_QUERY = gql(`
   query TranscriptSearch($token: String!, $query: String!) {
     transcriptSearch(token: $token, query: $query) {
-      sections { title lines { startSeconds timestamp text } }
+      sections { title startSeconds lines { startSeconds timestamp text } }
     }
   }
 `)
@@ -91,11 +90,22 @@ const style = css`
     overflow-y: auto;
   }
 
-  .transcript-chapter {
+  .transcript-chapter button {
+    display: block;
+    width: 100%;
     padding: 0.8rem 2.4rem 0.8rem 0.8rem;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
     font-size: 2rem;
     font-weight: 700;
     line-height: 2.8rem;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .transcript-chapter button:hover {
+    background: var(--bg-hover);
   }
 
   .transcript-line {
@@ -161,9 +171,9 @@ const style = css`
 `
 
 /**
- * youtube.com's transcript panel: the spoken text by chapter, the line playing highlighted and kept in view, a line
- * seeking to itself, and a search through youtube.com's own. Scrolling the list stops it following the video until
- * "Sync to video time" or a line is pressed.
+ * youtube.com's transcript panel: the spoken text by chapter, the line playing highlighted and kept in view, a line or
+ * a chapter heading seeking to its start, and a search through youtube.com's own. Scrolling the list stops it following
+ * the video until "Sync to video time", a line or a heading is pressed.
  */
 export const TranscriptPanel = (
   { videoId, panel, heading = 'Transcript', chips, onClose, overlay = false, fit }: {
@@ -191,27 +201,37 @@ export const TranscriptPanel = (
     ? operation?.variables.query === query ? found?.transcriptSearch : undefined
     : data?.transcript
   const failure = searching ? searchError : error
-  const lines = useMemo(() => transcript?.sections.flatMap(section => section.lines) ?? [], [transcript])
-
+  /* The starts of the chapter headings and the lines in list order, as youtube.com's timed list syncs them: the item
+     playing is the last one started, so no line is highlighted from a chapter's start to its first line. */
+  const starts = useMemo(() => transcript?.sections.flatMap(section => [
+    ...(section.startSeconds == null ? [] : [section.startSeconds]),
+    ...section.lines.map(line => line.startSeconds),
+  ]) ?? [], [transcript])
   const [active, setActive] = useState(-1)
+  const follow = (time: number) => setActive(starts.findLastIndex(start => start <= time))
   useEffect(() => {
-    const tick = () => setActive(chapterIndexAt(lines, playheadOf(videoId) ?? -1))
+    const tick = () => follow(playheadOf(videoId) ?? -1)
     tick()
     const timer = setInterval(tick, TICK_MS)
     return () => clearInterval(timer)
-  }, [videoId, lines])
+  }, [videoId, starts])
 
   const listRef = useRef<HTMLDivElement>(null)
   const [following, setFollowing] = useState(true)
   const placed = useRef(false)
   useLayoutEffect(() => {
     const list = listRef.current
-    const row = list?.querySelector<HTMLElement>('.transcript-line[aria-current="true"]')
+    const row = list?.querySelector<HTMLElement>('[aria-current="true"]')
     if (!following || !list || !row) return
     list.scrollTo({ top: row.offsetTop - list.clientHeight * ALIGN, behavior: placed.current ? 'smooth' : 'instant' })
     placed.current = true
-  }, [active, following, lines])
+  }, [active, following, starts])
   const detach = () => setFollowing(false)
+  const seek = (time: number) => {
+    seekTo(videoId, time, false)
+    follow(time)
+    setFollowing(true)
+  }
 
   let position = 0
   return (
@@ -263,31 +283,42 @@ export const TranscriptPanel = (
             if (event.target === event.currentTarget) detach()
           }}
         >
-          {transcript?.sections.map((section, index) => (
-            <Fragment key={index}>
-              {section.title ? <h3 className='transcript-chapter'>{section.title}</h3> : undefined}
-              {section.lines.map((line) => {
-                const at = position++
-                return (
-                  <button
-                    type='button'
-                    key={at}
-                    className='transcript-line'
-                    aria-current={at === active ? 'true' : undefined}
-                    onClick={() => {
-                      seekTo(videoId, line.startSeconds, false)
-                      setActive(at)
-                      setFollowing(true)
-                    }}
-                  >
-                    <span className='transcript-time'>{line.timestamp}</span>
-                    {line.text}
-                  </button>
-                )
-              })}
-            </Fragment>
-          ))}
-          {transcript && lines.length === 0 ? <p className='transcript-empty'>No results found.</p> : undefined}
+          {transcript?.sections.map(({ title, startSeconds, lines }, index) => {
+            const chapterAt = startSeconds == null ? undefined : position++
+            return (
+              <Fragment key={index}>
+                {title
+                  ? (
+                    <h3 className='transcript-chapter'>
+                      <button
+                        type='button'
+                        aria-current={chapterAt === active ? 'true' : undefined}
+                        onClick={() => startSeconds == null || seek(startSeconds)}
+                      >
+                        {title}
+                      </button>
+                    </h3>
+                  )
+                  : undefined}
+                {lines.map((line) => {
+                  const at = position++
+                  return (
+                    <button
+                      type='button'
+                      key={at}
+                      className='transcript-line'
+                      aria-current={at === active ? 'true' : undefined}
+                      onClick={() => seek(line.startSeconds)}
+                    >
+                      <span className='transcript-time'>{line.timestamp}</span>
+                      {line.text}
+                    </button>
+                  )
+                })}
+              </Fragment>
+            )
+          })}
+          {transcript?.sections.length === 0 ? <p className='transcript-empty'>No results found.</p> : undefined}
           {failure && !transcript ? <p className='transcript-empty'>{readable(failure.message)}</p> : undefined}
         </div>
         {following

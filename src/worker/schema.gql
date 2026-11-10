@@ -495,6 +495,8 @@ type Transcript {
 type TranscriptSection {
   # As youtube.com heads it, "Chapter 1: Hardware and performance".
   title: String
+  # The chapter's start, which its heading seeks to. Null with the title.
+  startSeconds: Float
   lines: [TranscriptLine!]!
 }
 

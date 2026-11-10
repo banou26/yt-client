@@ -347,6 +347,8 @@ export type SourceTranscriptLine = {
 /** One per chapter, titled "Chapter 1: ...", or a single untitled one for a video without chapters. */
 export type SourceTranscriptSection = {
   title?: string
+  /** The chapter's start, which its heading seeks to; absent with the title. */
+  startSeconds?: number
   lines: SourceTranscriptLine[]
 }
 

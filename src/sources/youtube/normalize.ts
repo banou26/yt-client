@@ -1311,6 +1311,7 @@ type TranscriptItem = {
       timelineItemViewModel?: { timestamp?: string, contentItems?: { transcriptSegmentViewModel?: { simpleText?: string } }[] }
       timelineChapterViewModel?: { title?: string }
     }
+    onTap?: { innertubeCommand?: { watchEndpoint?: { startTimeSeconds?: number } } }
   }
 }
 
@@ -1346,8 +1347,10 @@ export const normalizeTranscript = (input: unknown): SourceTranscript => {
   return {
     sections: sections.flatMap(({ itemSectionRenderer: section }) => {
       const lines = transcriptLines(section?.contents ?? [])
-      const title = section?.header?.macroMarkersPanelItemViewModel?.item?.timelineChapterViewModel?.title || undefined
-      return lines.length > 0 ? [{ title, lines }] : []
+      const header = section?.header?.macroMarkersPanelItemViewModel
+      const title = header?.item?.timelineChapterViewModel?.title || undefined
+      const startSeconds = title ? header?.onTap?.innertubeCommand?.watchEndpoint?.startTimeSeconds : undefined
+      return lines.length > 0 ? [{ title, startSeconds, lines }] : []
     }),
     searchToken: list?.header?.searchInputViewModel?.onInputAction?.command?.innertubeCommand?.continuationCommand?.token,
   }

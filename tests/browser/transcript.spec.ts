@@ -28,7 +28,10 @@ const seek = (page: Page, to: number, play: boolean) => video(page).evaluate((el
   else media.pause()
 }, [to, play] as const)
 
-// the line highlighted, the one youtube.com would highlight at the same moment, and how far down the list it sits
+const seconds = (time: string) => time.split(':').reduce((total, part) => total * 60 + Number(part), 0)
+
+// the line highlighted, the one youtube.com would highlight at the same moment inside a chapter, and how far down the
+// list it sits
 const following = (panel: Locator) => panel.locator('.transcript-lines').evaluate((list) => {
   const time = Math.floor(document.querySelector<HTMLVideoElement>('[data-player-root] video')!.currentTime)
   const lines = [...list.querySelectorAll('.transcript-line')]
@@ -41,7 +44,7 @@ const following = (panel: Locator) => panel.locator('.transcript-lines').evaluat
 
 const atTenth = (state: { offset?: number }) => state.offset !== undefined && state.offset > 0.05 && state.offset < 0.15
 
-plainTest('opens from the description beside the player, follows the line playing, and a line seeks to itself', async ({ page }) => {
+plainTest('opens from the description beside the player, follows the line playing, and a line or a heading seeks to its start', async ({ page }) => {
   plainTest.setTimeout(300_000)
   await page.setViewportSize({ width: 1280, height: 800 })
   await openTranscript(page, 'g6Die8gVFn0')
@@ -69,12 +72,20 @@ plainTest('opens from the description beside the player, follows the line playin
 
   await video(page).evaluate(element => (element as HTMLVideoElement).pause())
   const target = panel.locator('.transcript-line').nth(state.active + 3)
-  const start = (await target.locator('.transcript-time').textContent())!.split(':').reduce((total, part) => total * 60 + Number(part), 0)
+  const start = seconds((await target.locator('.transcript-time').textContent())!)
   await target.click()
   await expect.poll(() => currentTime(page)).toBeCloseTo(start, 0)
   await expect(target).toHaveAttribute('aria-current', 'true')
   // as on youtube.com, a line leaves a paused video paused
   expect(await video(page).evaluate(element => (element as HTMLVideoElement).paused)).toBe(true)
+
+  // a chapter heading seeks to its chapter, paused as well; the fifth starts at 9:38, before its first line at 9:42,
+  // and youtube.com highlights no line until that line starts (measured 2026-11-10)
+  await panel.getByRole('button', { name: /^Chapter 5: / }).click()
+  await expect.poll(() => currentTime(page)).toBeCloseTo(578, 0)
+  expect(await video(page).evaluate(element => (element as HTMLVideoElement).paused)).toBe(true)
+  await expect(panel.getByRole('button', { name: /^Chapter 5: / })).toHaveAttribute('aria-current', 'true')
+  await expect(panel.locator('.transcript-line[aria-current="true"]')).toHaveCount(0)
 
   await panel.getByRole('tab', { name: 'Chapters' }).click()
   const chapters = page.locator('main aside section[aria-label="Chapters"]')

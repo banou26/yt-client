@@ -39,13 +39,13 @@ describe('watch transcript panel', () => {
 })
 
 describe('transcript', () => {
-  it('asks get_panel for the panel, and lists its lines by chapter from the time youtube.com prints', async () => {
+  it('asks get_panel for the panel, and lists its lines by chapter from the time youtube.com prints, each heading with its chapter\'s start', async () => {
     const { source, calls } = sourceAnswering(fixture.panelChapters)
     const transcript = await source.transcript('PAmodern_transcript_view', 'qgkPCgtnNkRpZThnVkZuMBgB')
     expect(calls).toEqual([{ endpoint: '/get_panel', args: { panelId: 'PAmodern_transcript_view', params: 'qgkPCgtnNkRpZThnVkZuMBgB' } }])
-    expect(transcript.sections.map(section => section.title)).toEqual([
-      'Chapter 1: Hardware and performance',
-      'Chapter 2: Pricing and restrictions',
+    expect(transcript.sections.map(section => [section.title, section.startSeconds])).toEqual([
+      ['Chapter 1: Hardware and performance', 0],
+      ['Chapter 2: Pricing and restrictions', 161],
     ])
     expect(transcript.sections[0]!.lines.map(line => [line.startSeconds, line.timestamp])).toEqual([[5, '0:05'], [13, '0:13'], [22, '0:22']])
     expect(transcript.sections[1]!.lines[0]).toEqual({
@@ -60,6 +60,7 @@ describe('transcript', () => {
     const transcript = await sourceAnswering(fixture.panelPlain).source.transcript('PAmodern_transcript_view', 'qgkPCgtkUXc0dzlXZ1hjURgC')
     expect(transcript.sections).toHaveLength(1)
     expect(transcript.sections[0]!.title).toBeUndefined()
+    expect(transcript.sections[0]!.startSeconds).toBeUndefined()
     expect(transcript.sections[0]!.lines.map(line => [line.startSeconds, line.text])).toEqual([
       [1, '[♪♪♪]'],
       [18, '♪ We\'re no strangers to love ♪ ♪ You know the rules and so do I ♪'],
@@ -74,11 +75,11 @@ describe('transcript', () => {
       endpoint: '/get_panel',
       args: { continuation: 'kta-ngs-token', formData: { searchInputFormData: { query: 'OLED' } } },
     }])
-    expect(found.sections.map(section => [section.title, section.lines.map(line => line.timestamp)])).toEqual([
-      ['Chapter 1: Hardware and performance', ['0:59', '1:00', '2:07']],
-      ['Chapter 2: The 60Hz display debate', ['5:47', '6:31']],
+    expect(found.sections.map(section => [section.title, section.startSeconds, section.lines.map(line => line.timestamp)])).toEqual([
+      ['Chapter 1: Hardware and performance', 0, ['0:59', '1:00', '2:07']],
+      ['Chapter 2: The 60Hz display debate', 347, ['5:47', '6:31']],
       // youtube.com numbers the chapters the results fall in, so the fifth chapter heads its third section
-      ['Chapter 3: Usage and impressions', ['11:32']],
+      ['Chapter 3: Usage and impressions', 578, ['11:32']],
     ])
     expect(found.searchToken).toBeUndefined()
   })
