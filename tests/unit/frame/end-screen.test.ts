@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vite-plus/test'
 import { parseEndScreen } from '../../../src/frame/end-screen'
 import fixture from '../fixtures/end-screens.json'
 
-/* end-screens.json holds the `endscreen` of youtube.com's signed-out player answers of 2026-11-10, each address in
-   them replaced by 192.0.2.1 */
+/* end-screens.json holds the fields parseEndScreen reads from the `endscreen` of youtube.com's signed-out player
+   answers of 2026-11-10 */
 
 describe('parseEndScreen', () => {
   it('reads a channel and two videos with where and when each shows', () => {
