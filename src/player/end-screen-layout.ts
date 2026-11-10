@@ -16,8 +16,8 @@ export const pictureOf = (video: HTMLVideoElement): Picture => {
 
 /**
  * Where youtube.com's player puts an element in the picture, at whole pixels (measured 2026-11-10 at five player
- * sizes): the height follows from the rounded width, the corners round 12 px from a 256 px wide tile and 8 px from
- * 98 px, and the hover card opens away from the nearer side.
+ * sizes, and the height at 251 picture widths from 634 to 1183 px): the height follows from the unrounded width, the
+ * corners round 12 px from a 256 px wide tile and 8 px from 98 px, and the hover card opens away from the nearer side.
  */
 export const placeElement = (element: EndScreenElement, picture: Pick<Picture, 'width' | 'height'>) => {
   const width = Math.round(element.width * picture.width)
@@ -25,7 +25,7 @@ export const placeElement = (element: EndScreenElement, picture: Pick<Picture, '
     left: Math.round(element.left * picture.width),
     top: Math.round(element.top * picture.height),
     width,
-    height: Math.round(width / element.aspectRatio),
+    height: Math.round(element.width * picture.width / element.aspectRatio),
     radius: width >= 256 ? 12 : width >= 98 ? 8 : 4,
     opensLeft: element.left + element.width / 2 > 0.5,
   }
