@@ -63,7 +63,7 @@ describe('a deploy renames only the files whose code changed', () => {
     const edit: Plugin = {
       name: 'edit-privacy',
       enforce: 'pre',
-      transform: (code, id) => id.endsWith('/src/routes/privacy.tsx') ? code.replace('>Privacy<', '>Privacy!<') : undefined,
+      transform: (code, id) => id.endsWith('/src/routes/privacy.tsx') ? `${code}\nconsole.info('edited')` : undefined,
     }
     const edited = await buildFiles(edit)
     const dependents = new Set([...files.keys()].filter(name => /^assets\/privacy-[\w-]{8}\.js$/.test(name)))
