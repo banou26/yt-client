@@ -507,6 +507,11 @@ const VideoPlayer = (
       setHeights(controller.heights)
       setStoryboards(controller.storyboards)
       setEndScreen(controller.endScreen)
+      if (playerParams) {
+        void api.endScreen(videoId).then((elements) => {
+          if (!abort.signal.aborted) setEndScreen(elements)
+        }, () => {})
+      }
       setIsLive(controller.isLive)
       selectQualityRef.current = controller.selectQuality
       setCaptionTracks(controller.captionTracks)

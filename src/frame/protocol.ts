@@ -132,6 +132,8 @@ export type FrameApi = SourceApi & {
    * as `playerParams`.
    */
   openPlayback(videoId: string, maxHeight?: number, playerParams?: string): Promise<PlaybackSession>
+  /** The end screen of the video's plain watch page, which the answer to a card's params leaves out. */
+  endScreen(videoId: string): Promise<EndScreenElement[]>
   requestSegment(request: SegmentRequest): Promise<SegmentEnvelope>
   liveManifest(sessionId: string): Promise<string>
   captionCues(sessionId: string, trackId: string): Promise<string>
@@ -145,6 +147,7 @@ export const FRAME_METHODS = [
   ...SOURCE_METHODS,
   'prefetchPlayback',
   'openPlayback',
+  'endScreen',
   'requestSegment',
   'liveManifest',
   'captionCues',

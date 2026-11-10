@@ -4,9 +4,11 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import type { SabrSource } from '../../../src/frame/innertube'
 import type { FrameRequest, FrameResponse, PlaybackSession, SegmentRequest } from '../../../src/frame/protocol'
-import { getSabrSource } from '../../../src/frame/innertube'
+import { parseEndScreen } from '../../../src/frame/end-screen'
+import { getSabrSource, prefetchInitialPlayerResponse } from '../../../src/frame/innertube'
 import { FRAME_CONNECT, STREAM_REFUSED } from '../../../src/frame/protocol'
 import { createSabrSession } from '../../../src/frame/sabr'
+import endScreens from '../fixtures/end-screens.json'
 
 vi.mock('../../../src/frame/innertube', () => ({
   GVS_ORIGIN_KEY: 'gvs-origin',
@@ -179,4 +181,12 @@ it('keeps a live manifest\'s DVR window across a session refresh, before the new
   // the refreshed session's own newest segment, on the window the first session named
   expect(refreshed).toContain(`<S t="${1_013 * 5_000}" d="5000"/>`)
   expect(startNumber(refreshed)).toBe('100')
+})
+
+it('answers the end screen of the plain page an intent prefetch read, which a card\'s playback leaves out', async () => {
+  vi.mocked(prefetchInitialPlayerResponse).mockReset().mockResolvedValue(endScreens.g6Die8gVFn0)
+  const response = await call('endScreen', 'video-1')
+  expect(response.result).toEqual(parseEndScreen(endScreens.g6Die8gVFn0))
+  expect(response.result).toHaveLength(3)
+  expect(vi.mocked(prefetchInitialPlayerResponse).mock.calls).toEqual([['video-1']])
 })

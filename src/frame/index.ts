@@ -7,6 +7,7 @@ import type { PlaybackEntry } from './playback'
 
 import { createYoutubeSource } from '../sources/youtube'
 import { json3ToWebVtt, parseCaptionTracks, timedTextUrl } from './captions'
+import { parseEndScreen } from './end-screen'
 import { catalogInnertube, hasSessionCookie, prefetchInitialPlayerResponse, youtubeFetch } from './innertube'
 import { buildLiveManifest, liveAnchor, timelineEndMs } from './live-manifest'
 import { openLiveManifest } from './live-open'
@@ -99,6 +100,8 @@ const api = {
       isLive: source.isLive,
     }
   },
+  // the page an intent prefetch read for the click, which a card's playback neither uses nor drops
+  endScreen: async (videoId) => parseEndScreen(await prefetchInitialPlayerResponse(videoId)),
   requestSegment: async (request, progress: (phase: string) => void = () => {}) => {
     const entry = sessions.get(request.sessionId)
     if (!entry) throw new Error(`youtube: unknown playback session ${request.sessionId}`)
