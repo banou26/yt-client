@@ -79,11 +79,14 @@ const style = css`
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
 
 export const Dialog = (
-  { title, onClose, children, wide = false }: {
+  { title, onClose, onEscape = onClose, children, wide = false, closeButton = true }: {
     title: string
     onClose: () => void
+    /** Escape's own action, where it differs from the close button's and a click beside the dialog. */
+    onEscape?: () => void
     children: ComponentChildren
     wide?: boolean
+    closeButton?: boolean
   },
 ) => {
   const panelRef = useRef<HTMLDivElement>(null)
@@ -101,7 +104,7 @@ export const Dialog = (
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation()
-        onClose()
+        onEscape()
         return
       }
       if (event.key !== 'Tab' || !panel) return
@@ -124,7 +127,7 @@ export const Dialog = (
       document.body.style.overflow = previousOverflow
       previous?.focus()
     }
-  }, [onClose])
+  }, [onEscape])
 
   return (
     <div css={style}>
@@ -132,9 +135,13 @@ export const Dialog = (
       <div className={wide ? 'panel wide' : 'panel'} ref={panelRef} role='dialog' aria-modal='true' aria-label={title} tabIndex={-1}>
         <div className='head'>
           <h2 className='heading'>{title}</h2>
-          <button type='button' className='close' aria-label='Close' onClick={onClose}>
-            <X size={24} strokeWidth={1.5} />
-          </button>
+          {closeButton
+            ? (
+              <button type='button' className='close' aria-label='Close' onClick={onClose}>
+                <X size={24} strokeWidth={1.5} />
+              </button>
+            )
+            : undefined}
         </div>
         <div className='body'>{children}</div>
       </div>

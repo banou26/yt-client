@@ -279,18 +279,19 @@ const VideoPlayer = (
   const [sample, setSample] = useState<number | undefined>(undefined)
   const sampleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [timesUp, setTimesUp] = useState(false)
-  // set when the timer ended on a finished video, so closing Time's up does not start the next one
-  const [slept, setSlept] = useState(false)
   const [sleepMenu, setSleepMenu] = useState(0)
   const closeTimesUp = useCallback(() => setTimesUp(false), [])
+  // as on youtube.com, Escape on Time's up over a finished video also cancels the countdown to the next one
+  const escapeTimesUp = useCallback(() => {
+    setTimesUp(false)
+    if (videoRef.current?.ended) setCancelled(true)
+  }, [])
   const addTime = useCallback(() => {
     setTimesUp(false)
     setSleepMenu(value => value + 1)
   }, [])
   const sleepTimer = useSleepTimer(() => {
-    const video = videoRef.current
-    if (video?.ended) setSlept(true)
-    video?.pause()
+    videoRef.current?.pause()
     setTimesUp(true)
   })
   // from the player's corner, so the menu follows the player as the page scrolls
@@ -308,7 +309,8 @@ const VideoPlayer = (
   useEffect(() => setPlayingChapter(chapterIndex), [chapterIndex])
   const frame = useFrame()
   const grid = frame?.grid ?? false
-  const held = slept || sleepTimer === 'end'
+  // youtube.com moves on from a finished video only once Time's up is closed
+  const held = timesUp || sleepTimer === 'end'
   const ending = state.ended && upNext
     ? endAction({ queued: !held && upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled: cancelled || held })
     : undefined
@@ -826,7 +828,7 @@ const VideoPlayer = (
       {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
       {timesUp
         ? createPortal(
-          <Dialog title={'Time\'s up'} onClose={closeTimesUp}>
+          <Dialog title={'Time\'s up'} onClose={closeTimesUp} onEscape={escapeTimesUp} closeButton={false}>
             <div css={timesUpStyle}>
               <button type='button' className='add-time' onClick={addTime}>Add time</button>
               <button type='button' className='done' onClick={closeTimesUp}>Close</button>

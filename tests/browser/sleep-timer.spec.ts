@@ -67,9 +67,12 @@ test('the Sleep timer counts down under Subtitles and pauses the video when its 
   await expect(row).toHaveText('Sleep timer15 min left')
 })
 
-test('End of video stops at the end of the video rather than moving on to the next', async ({ page }) => {
-  test.setTimeout(300_000)
+const videoIdOf = (url: string) => new URL(url, 'http://localhost').searchParams.get('v')
+
+// End of video set, then played out: Time's up opens on the ended video
+const sleepAtEnd = async (page: Page) => {
   const video = await startPlayback(page)
+  await page.clock.install()
   const settings = await openSettings(page)
   await settings.getByRole('menuitem', { name: /^Sleep timer/ }).click()
   await sleepPanel(page).getByRole('menuitem', { name: /^End of video/ }).click()
@@ -84,12 +87,37 @@ test('End of video stops at the end of the video rather than moving on to the ne
   const timesUp = page.getByRole('dialog', { name: 'Time\'s up' })
   await expect(timesUp).toBeVisible({ timeout: 60_000 })
   expect(await video.evaluate(element => (element as HTMLVideoElement).ended)).toBe(true)
+  await expect(timesUp.getByRole('button')).toHaveText(['Add time', 'Close'])
+  return timesUp
+}
 
-  // the Close of the dialog's own two buttons, not its corner
-  await timesUp.getByRole('button', { name: 'Close' }).last().click()
+const countdown = (page: Page) => page.locator('[data-end-screen="countdown"]')
+
+test('End of video holds the next video while Time\'s up is open, and Close lets the countdown run', async ({ page }) => {
+  test.setTimeout(300_000)
+  const timesUp = await sleepAtEnd(page)
+
+  // youtube.com's countdown is 3 s, so by now it would have moved on
+  await page.clock.fastForward('00:10')
+  await expect(countdown(page)).toHaveCount(0)
+  expect(videoIdOf(page.url())).toBe('dQw4w9WgXcQ')
+
+  await timesUp.getByRole('button', { name: 'Close' }).click()
   await expect(timesUp).toBeHidden()
-  // autoplay's countdown is 3 s, so by now it would have moved on
-  await page.waitForTimeout(6_000)
-  await expect(page.locator('[data-end-screen="countdown"]')).toHaveCount(0)
-  expect(new URL(page.url()).searchParams.get('v')).toBe('dQw4w9WgXcQ')
+  await expect(countdown(page)).toBeVisible()
+  const next = videoIdOf((await countdown(page).locator('a[href^="/watch"]').getAttribute('href'))!)
+  await page.clock.fastForward('00:04')
+  await expect.poll(() => videoIdOf(page.url()), { timeout: 30_000 }).toBe(next)
+})
+
+test('Escape on Time\'s up at the end of the video cancels the countdown and keeps the suggestions', async ({ page }) => {
+  test.setTimeout(300_000)
+  const timesUp = await sleepAtEnd(page)
+
+  await page.keyboard.press('Escape')
+  await expect(timesUp).toBeHidden()
+  await expect(page.locator('[data-end-screen="suggestions"]')).toBeVisible()
+  await page.clock.fastForward('00:10')
+  await expect(countdown(page)).toHaveCount(0)
+  expect(videoIdOf(page.url())).toBe('dQw4w9WgXcQ')
 })
