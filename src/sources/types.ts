@@ -31,6 +31,12 @@ export type SourceVideo = {
   thumbnail?: string
   thumbnailSrcset?: string
   animatedThumbnail?: string
+  /**
+   * The params youtube.com reads a card's hover preview with, off its inline-playback endpoint, only on the surfaces
+   * that preview in a player (search rows, Home). A watch page read with them as `pp` schedules no ads, so the preview's
+   * first SABR request is served rather than held back (measured 2026-11-10).
+   */
+  inlinePlayerParams?: string
   // the label youtube.com draws in the still's top corner, such as New
   thumbnailBadge?: string
   durationSeconds?: number

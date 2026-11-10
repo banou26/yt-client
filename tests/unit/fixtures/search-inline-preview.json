@@ -1,0 +1,551 @@
+{
+  "contents": {
+    "twoColumnSearchResultsRenderer": {
+      "primaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "itemSectionRenderer": {
+                "contents": [
+                  {
+                    "videoRenderer": {
+                      "videoId": "BBz-Jyr23M4",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/BBz-Jyr23M4/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDKT15WLDhaFG92OQKNX-vTuxsgTg",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/BBz-Jyr23M4/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBzAELeeOg4FKTagXmtSGW4svAkUA",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Guitar Lesson 1 - Absolute Beginner? Start Here! [Free 10 Day Starter Course]"
+                          }
+                        ]
+                      },
+                      "longBylineText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "publishedTimeText": {
+                        "simpleText": "10 years ago"
+                      },
+                      "lengthText": {
+                        "simpleText": "16:11"
+                      },
+                      "viewCountText": {
+                        "simpleText": "39,786,034 views"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=BBz-Jyr23M4&pp=ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "BBz-Jyr23M4",
+                          "playerParams": "ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D"
+                        }
+                      },
+                      "ownerBadges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "icon": {
+                              "iconType": "CHECK_CIRCLE_THICK"
+                            },
+                            "style": "BADGE_STYLE_TYPE_VERIFIED",
+                            "tooltip": "Verified",
+                            "accessibilityData": {
+                              "label": "Verified"
+                            }
+                          }
+                        }
+                      ],
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortBylineText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortViewCountText": {
+                        "simpleText": "39M views"
+                      },
+                      "channelThumbnailSupportedRenderers": {
+                        "channelThumbnailWithLinkRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.ggpht.com/ytc/AIdro_nU3JrPpx35JfjrJ7I1Ta4Il7w7eLhwwIqpGFPKxz9jkrhy=s68-c-k-c0x00ffffff-no-rj",
+                                "width": 68,
+                                "height": 68
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "url": "/@andycrowley",
+                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                "rootVe": 3611,
+                                "apiUrl": "/youtubei/v1/browse"
+                              }
+                            },
+                            "browseEndpoint": {
+                              "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                              "canonicalBaseUrl": "/@andycrowley"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlays": [
+                        {
+                          "thumbnailOverlayTimeStatusRenderer": {
+                            "text": {
+                              "simpleText": "16:11"
+                            },
+                            "style": "DEFAULT"
+                          }
+                        }
+                      ],
+                      "inlinePlaybackEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=BBz-Jyr23M4&pp=YAHIAQGiBhUBqHapM4pS7yURthtEeAtKvDyfuqPSBwkJ7hwBhyohjO8%3D",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "BBz-Jyr23M4",
+                          "playerParams": "YAHIAQGiBhUBqHapM4pS7yURthtEeAtKvDyfuqPSBwkJ7hwBhyohjO8%3D",
+                          "playerExtraUrlParams": [
+                            {
+                              "key": "inline",
+                              "value": "1"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "videoRenderer": {
+                      "videoId": "jq0ZAc97cAY",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/jq0ZAc97cAY/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCJ69Gxhj8cOa2_prg-U7-BNQR5xw",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/jq0ZAc97cAY/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCmAn6FZ15uEYRnpyazzKxD5Sqf1Q",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "LEARN GUITAR IN 7 DAYS (or less)"
+                          }
+                        ]
+                      },
+                      "longBylineText": {
+                        "runs": [
+                          {
+                            "text": "Redlight Blue",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@RedlightBlue",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCojVsOfwIRPbQsb2HzR67NQ",
+                                "canonicalBaseUrl": "/@RedlightBlue"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "publishedTimeText": {
+                        "simpleText": "2 years ago"
+                      },
+                      "lengthText": {
+                        "simpleText": "3:16"
+                      },
+                      "viewCountText": {
+                        "simpleText": "3,111,474 views"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=jq0ZAc97cAY&pp=ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "jq0ZAc97cAY",
+                          "playerParams": "ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D"
+                        }
+                      },
+                      "ownerBadges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "icon": {
+                              "iconType": "CHECK_CIRCLE_THICK"
+                            },
+                            "style": "BADGE_STYLE_TYPE_VERIFIED",
+                            "tooltip": "Verified",
+                            "accessibilityData": {
+                              "label": "Verified"
+                            }
+                          }
+                        }
+                      ],
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "Redlight Blue",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@RedlightBlue",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCojVsOfwIRPbQsb2HzR67NQ",
+                                "canonicalBaseUrl": "/@RedlightBlue"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortBylineText": {
+                        "runs": [
+                          {
+                            "text": "Redlight Blue",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@RedlightBlue",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UCojVsOfwIRPbQsb2HzR67NQ",
+                                "canonicalBaseUrl": "/@RedlightBlue"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortViewCountText": {
+                        "simpleText": "3.1M views"
+                      },
+                      "channelThumbnailSupportedRenderers": {
+                        "channelThumbnailWithLinkRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.ggpht.com/ytc/AIdro_l4z-vimDjiXmeWzQnVhoJ_51XgY2_ehJvh3AQfCWS-4XE=s68-c-k-c0x00ffffff-no-rj",
+                                "width": 68,
+                                "height": 68
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "url": "/@RedlightBlue",
+                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                "rootVe": 3611,
+                                "apiUrl": "/youtubei/v1/browse"
+                              }
+                            },
+                            "browseEndpoint": {
+                              "browseId": "UCojVsOfwIRPbQsb2HzR67NQ",
+                              "canonicalBaseUrl": "/@RedlightBlue"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlays": [
+                        {
+                          "thumbnailOverlayTimeStatusRenderer": {
+                            "text": {
+                              "simpleText": "3:16"
+                            },
+                            "style": "DEFAULT"
+                          }
+                        }
+                      ],
+                      "inlinePlaybackEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=jq0ZAc97cAY&pp=YAHIAQGiBhUBqHapM460cO611cWYYNLC7NuOcLk%3D",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "jq0ZAc97cAY",
+                          "playerParams": "YAHIAQGiBhUBqHapM460cO611cWYYNLC7NuOcLk%3D",
+                          "playerExtraUrlParams": [
+                            {
+                              "key": "inline",
+                              "value": "1"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "videoRenderer": {
+                      "videoId": "vnBd5kL7ynE",
+                      "thumbnail": {
+                        "thumbnails": [
+                          {
+                            "url": "https://i.ytimg.com/vi/vnBd5kL7ynE/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDz6SYIuJ4hrJB8UwZQpqwVUtKSDQ",
+                            "width": 360,
+                            "height": 202
+                          },
+                          {
+                            "url": "https://i.ytimg.com/vi/vnBd5kL7ynE/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCD2WBE_ZuAfqKQ48ZupXBR5-RF_w",
+                            "width": 720,
+                            "height": 404
+                          }
+                        ]
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Acoustic Guitar Lesson 1 - Absolute Beginner? Start Here! (10 Day Course)"
+                          }
+                        ]
+                      },
+                      "longBylineText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "publishedTimeText": {
+                        "simpleText": "1 year ago"
+                      },
+                      "lengthText": {
+                        "simpleText": "1:09:03"
+                      },
+                      "viewCountText": {
+                        "simpleText": "601,622 views"
+                      },
+                      "navigationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "/watch?v=vnBd5kL7ynE&pp=ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D",
+                            "webPageType": "WEB_PAGE_TYPE_WATCH",
+                            "rootVe": 3832
+                          }
+                        },
+                        "watchEndpoint": {
+                          "videoId": "vnBd5kL7ynE",
+                          "playerParams": "ygUNZ3VpdGFyIGxlc3Nvbg%3D%3D"
+                        }
+                      },
+                      "ownerBadges": [
+                        {
+                          "metadataBadgeRenderer": {
+                            "icon": {
+                              "iconType": "CHECK_CIRCLE_THICK"
+                            },
+                            "style": "BADGE_STYLE_TYPE_VERIFIED",
+                            "tooltip": "Verified",
+                            "accessibilityData": {
+                              "label": "Verified"
+                            }
+                          }
+                        }
+                      ],
+                      "ownerText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortBylineText": {
+                        "runs": [
+                          {
+                            "text": "Andy Guitar",
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@andycrowley",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                                "canonicalBaseUrl": "/@andycrowley"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "shortViewCountText": {
+                        "simpleText": "601K views"
+                      },
+                      "channelThumbnailSupportedRenderers": {
+                        "channelThumbnailWithLinkRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.ggpht.com/ytc/AIdro_nU3JrPpx35JfjrJ7I1Ta4Il7w7eLhwwIqpGFPKxz9jkrhy=s68-c-k-c0x00ffffff-no-rj",
+                                "width": 68,
+                                "height": 68
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "url": "/@andycrowley",
+                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                "rootVe": 3611,
+                                "apiUrl": "/youtubei/v1/browse"
+                              }
+                            },
+                            "browseEndpoint": {
+                              "browseId": "UC9cvVvlvr-qBssphm1EdYGQ",
+                              "canonicalBaseUrl": "/@andycrowley"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlays": [
+                        {
+                          "thumbnailOverlayTimeStatusRenderer": {
+                            "text": {
+                              "simpleText": "1:09:03"
+                            },
+                            "style": "DEFAULT"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

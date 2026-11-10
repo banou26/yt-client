@@ -1,0 +1,413 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "selected": true,
+            "content": {
+              "richGridRenderer": {
+                "contents": [
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/F0OkwXKcPSE/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLBFQ2Oxasc_NJCl5pl-hkvKvwDLWA",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/F0OkwXKcPSE/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLDll68HTka9WNuTAFj1LjsRoiDBcQ",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {}
+                                }
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Hi Me In 10 Years"
+                              },
+                              "image": {
+                                "decoratedAvatarViewModel": {
+                                  "a11yLabel": "Go to channel MrBeast",
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/@MrBeast",
+                                              "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                              "rootVe": 3611,
+                                              "apiUrl": "/youtubei/v1/browse"
+                                            }
+                                          },
+                                          "browseEndpoint": {
+                                            "browseId": "UCX6OQ3DkcsbYNE6H8uQQuVA",
+                                            "canonicalBaseUrl": "/@MrBeast"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "MrBeast",
+                                            "commandRuns": [
+                                              {
+                                                "startIndex": 0,
+                                                "length": 7,
+                                                "onTap": {
+                                                  "innertubeCommand": {
+                                                    "commandMetadata": {
+                                                      "webCommandMetadata": {
+                                                        "url": "/@MrBeast",
+                                                        "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                        "rootVe": 3611,
+                                                        "apiUrl": "/youtubei/v1/browse"
+                                                      }
+                                                    },
+                                                    "browseEndpoint": {
+                                                      "browseId": "UCX6OQ3DkcsbYNE6H8uQQuVA",
+                                                      "canonicalBaseUrl": "/@MrBeast"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "styleRuns": [
+                                              {
+                                                "startIndex": 0,
+                                                "length": 7,
+                                                "weightLabel": "FONT_WEIGHT_NORMAL"
+                                              }
+                                            ]
+                                          },
+                                          "icon": {
+                                            "name": "CHECK_CIRCLE_FILLED",
+                                            "height": 14,
+                                            "width": 14,
+                                            "accessibilityLabel": "Verified"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "77M"
+                                          },
+                                          "accessibilityLabel": "77 million views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "1y ago"
+                                          },
+                                          "accessibilityLabel": "1 year ago"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "F0OkwXKcPSE",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "itemPlayback": {
+                            "inlinePlayerData": {
+                              "onVisible": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=F0OkwXKcPSE&pp=YAHIAQG6BQQSAmVuogYVAah2qTMljWapEebunsDzXCMdS7Rt0gcJCe4cAYcqIYzv",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "F0OkwXKcPSE",
+                                    "playerParams": "YAHIAQG6BQQSAmVuogYVAah2qTMljWapEebunsDzXCMdS7Rt0gcJCe4cAYcqIYzv",
+                                    "playerExtraUrlParams": [
+                                      {
+                                        "key": "inline",
+                                        "value": "1"
+                                      }
+                                    ],
+                                    "ustreamerConfig": "KgYKBBICZW4="
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=F0OkwXKcPSE&pp=ugUEEgJlbg%3D%3D",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "F0OkwXKcPSE",
+                                    "playerParams": "ugUEEgJlbg%3D%3D",
+                                    "ustreamerConfig": "KgYKBBICZW4="
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "onFocusEffect": {
+                        "onFocusStyle": "ON_FOCUS_STYLE_BACKGROUND",
+                        "onFocusColor": {
+                          "lightTheme": 566854725,
+                          "darkTheme": 734626885
+                        },
+                        "textPrimaryColor": {
+                          "lightTheme": 4281736970,
+                          "darkTheme": 4294634976
+                        },
+                        "textSecondaryColor": {
+                          "lightTheme": 4285420346,
+                          "darkTheme": 4292723628
+                        },
+                        "touchResponseColor": {
+                          "lightTheme": 566854725,
+                          "darkTheme": 734626885
+                        }
+                      },
+                      "rowIndex": 0,
+                      "colIndex": 2
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/49_Ph2q6uIM/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLA7EYkHwp2Fimc1xHNTaoh8w4kWQg",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/49_Ph2q6uIM/hq720.jpg?sqp=-oaymwEnCNAFEJQDSFryq4qpAxkIARUAAIhCGAHYAQHiAQoIGBACGAY4AUAB&rs=AOn4CLB5PY2gmAoPl8eVjajAcN2bDzBBvA",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {}
+                                }
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "What Did Ancient Humans Actually Do All Day?"
+                              },
+                              "image": {
+                                "decoratedAvatarViewModel": {
+                                  "a11yLabel": "Go to channel Ink Explainer",
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/@Inkexplainer96",
+                                              "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                              "rootVe": 3611,
+                                              "apiUrl": "/youtubei/v1/browse"
+                                            }
+                                          },
+                                          "browseEndpoint": {
+                                            "browseId": "UCpgrEMx8diLrw7YNQ6r3uUw",
+                                            "canonicalBaseUrl": "/@Inkexplainer96"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Ink Explainer",
+                                            "commandRuns": [
+                                              {
+                                                "startIndex": 0,
+                                                "length": 13,
+                                                "onTap": {
+                                                  "innertubeCommand": {
+                                                    "commandMetadata": {
+                                                      "webCommandMetadata": {
+                                                        "url": "/@Inkexplainer96",
+                                                        "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                        "rootVe": 3611,
+                                                        "apiUrl": "/youtubei/v1/browse"
+                                                      }
+                                                    },
+                                                    "browseEndpoint": {
+                                                      "browseId": "UCpgrEMx8diLrw7YNQ6r3uUw",
+                                                      "canonicalBaseUrl": "/@Inkexplainer96"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ],
+                                            "styleRuns": [
+                                              {
+                                                "startIndex": 0,
+                                                "length": 13,
+                                                "weightLabel": "FONT_WEIGHT_NORMAL"
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "18M"
+                                          },
+                                          "accessibilityLabel": "18 million views",
+                                          "leadingIcon": {
+                                            "name": "PLAY_ARROW_OUTLINED",
+                                            "height": 12,
+                                            "width": 12
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "2mo ago"
+                                          },
+                                          "accessibilityLabel": "2 months ago"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "49_Ph2q6uIM",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "itemPlayback": {
+                            "inlinePlayerData": {
+                              "onVisible": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=49_Ph2q6uIM&pp=YAHIAQG6BQcSBWVuLVVTogYVAah2qTO-oHm9XTru9fnNGyqzUZ5S",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "49_Ph2q6uIM",
+                                    "playerParams": "YAHIAQG6BQcSBWVuLVVTogYVAah2qTO-oHm9XTru9fnNGyqzUZ5S",
+                                    "playerExtraUrlParams": [
+                                      {
+                                        "key": "inline",
+                                        "value": "1"
+                                      }
+                                    ],
+                                    "ustreamerConfig": "KgkKBxIFZW4tVVM="
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=49_Ph2q6uIM&pp=ugUHEgVlbi1VUw%3D%3D",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "49_Ph2q6uIM",
+                                    "playerParams": "ugUHEgVlbi1VUw%3D%3D",
+                                    "ustreamerConfig": "KgkKBxIFZW4tVVM="
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "onFocusEffect": {
+                        "onFocusStyle": "ON_FOCUS_STYLE_BACKGROUND",
+                        "onFocusColor": {
+                          "lightTheme": 556966620,
+                          "darkTheme": 724738780
+                        },
+                        "textPrimaryColor": {
+                          "lightTheme": 4278462780,
+                          "darkTheme": 4292735741
+                        },
+                        "textSecondaryColor": {
+                          "lightTheme": 4279593107,
+                          "darkTheme": 4288074738
+                        },
+                        "touchResponseColor": {
+                          "lightTheme": 556966620,
+                          "darkTheme": 724738780
+                        }
+                      },
+                      "rowIndex": 2,
+                      "colIndex": 0
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

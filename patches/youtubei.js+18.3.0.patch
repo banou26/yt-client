@@ -102,6 +102,26 @@ index 0000000..9d30210
 +        this.items = Parser.parseArray(data.items);
 +    }
 +}
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/LockupView.js b/node_modules/youtubei.js/dist/src/parser/classes/LockupView.js
+index a0cc03a..da95d1c 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/LockupView.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/LockupView.js
+@@ -15,6 +15,7 @@ export default class LockupView extends YTNode {
+     content_type;
+     styling;
+     renderer_context;
++    inline_player_params;
+     constructor(data) {
+         super();
+         this.content_image = Parser.parseItem(data.contentImage, [CollectionThumbnailView, ThumbnailView]);
+@@ -28,6 +29,7 @@ export default class LockupView extends YTNode {
+             };
+         }
+         this.renderer_context = new RendererContext(data.rendererContext);
++        this.inline_player_params = data.itemPlayback?.inlinePlayerData?.onVisible?.innertubeCommand?.watchEndpoint?.playerParams;
+     }
+     /**
+      * The video's duration, parsed from its thumbnail overlay badge (e.g. "16:09").
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/OfficialCardView.js b/node_modules/youtubei.js/dist/src/parser/classes/OfficialCardView.js
 new file mode 100644
 index 0000000..cfa24b0
@@ -149,6 +169,26 @@ index 3346601..87c442b 100644
  }
  //# sourceMappingURL=Tab.js.map
 \ No newline at end of file
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/Video.js b/node_modules/youtubei.js/dist/src/parser/classes/Video.js
+index 1de24ef..02890ca 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/Video.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/Video.js
+@@ -37,6 +37,7 @@ export default class Video extends YTNode {
+     service_endpoints;
+     service_endpoint;
+     style;
++    inline_player_params;
+     constructor(data) {
+         super();
+         this.title = new Text(data.title);
+@@ -85,6 +86,7 @@ export default class Video extends YTNode {
+             this.service_endpoint = new NavigationEndpoint(data.serviceEndpoint);
+         if ('style' in data)
+             this.style = data.style;
++        this.inline_player_params = data.inlinePlaybackEndpoint?.watchEndpoint?.playerParams;
+     }
+     /**
+      * @deprecated Use {@linkcode video_id} instead.
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js b/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js
 index f310e85..c97f807 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/VideoAttributeView.js

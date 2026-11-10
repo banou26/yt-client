@@ -53,6 +53,10 @@ type Video {
   # A few seconds of the video as an animated image, which youtube.com plays
   # over a related video's still on hover. Only lockups carry it.
   animatedThumbnail: String
+  # The params youtube.com reads this card's hover preview with, off its
+  # inline-playback endpoint. Only the surfaces that preview in a player (search
+  # rows, Home) carry them; the rest play the moving thumbnail instead.
+  inlinePlayerParams: String
   # The label youtube.com draws in the still's top corner, such as New. Read
   # off a lockup's top-corner overlay, never inferred from the date.
   thumbnailBadge: String

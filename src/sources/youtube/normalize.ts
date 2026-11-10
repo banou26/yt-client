@@ -72,6 +72,7 @@ type FeedVideo = {
     header?: { expanded_title?: Text }
     expanded_content?: { cards?: { title?: Text, time_description?: Text, thumbnail?: Thumbnail[] }[] }
   }
+  inline_player_params?: string
 }
 
 type VideoDetails = {
@@ -174,6 +175,7 @@ type LockupVideo = {
     metadata?: MetadataParts
   }
   renderer_context?: { command_context?: { on_tap?: { payload?: { videoId?: string } } } }
+  inline_player_params?: string
 }
 
 type PlaylistVideoNode = FeedVideo & {
@@ -749,6 +751,16 @@ const lockupProgressPercent = (image: {
 } | undefined) =>
   (image?.overlays ?? []).map((overlay) => clampPercent(overlay.progress_bar?.start_percent)).find((value) => value !== undefined)
 
+// sent URL-encoded ('…%3D'), as the pp= of the card's inline-playback link carries them
+const inlinePlayerParams = (value: string | undefined) => {
+  if (!value) return undefined
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 // a search row's strip under the description, which holds an AI summary instead on some videos
 const searchChapters = (metadata: FeedVideo['expandable_metadata']) => {
   const chapters = (metadata?.expanded_content?.cards ?? []).flatMap((card) => {
@@ -789,6 +801,7 @@ export const normalizeFeedVideo = (input: unknown): SourceVideo | undefined => {
     isUpcoming: video.is_upcoming === true ? true : undefined,
     isMembersOnly: hasBadgeStyle(video.badges, 'MEMBERS_ONLY') ? true : undefined,
     badges: badgeTexts(video.badges),
+    inlinePlayerParams: inlinePlayerParams(video.inline_player_params),
     ...authorByline(video.author),
     ...searchChapters(video.expandable_metadata),
   }
@@ -891,6 +904,7 @@ export const normalizeLockupVideo = (input: unknown, { own = false }: { own?: bo
       : undefined,
     // empty because a lockup's overlay badges carry only the length, the live pill and the corner label, all read above
     badges: [],
+    inlinePlayerParams: inlinePlayerParams(lockup.inline_player_params),
     ...lockupByline(lockup, byline),
   }
 }
