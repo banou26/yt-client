@@ -128,3 +128,23 @@ test('the related column and a search draw the marks youtube.com answers with', 
   await expect(rows.locator('.description b').first()).toBeVisible()
   await expect(rows.locator('.badge [data-mark="music"]').first()).toBeVisible()
 })
+
+// youtube.com's playlist rows and a music channel's Home shelves are lockups too, measured signed out on 2026-11-10:
+// the play arrow, the music note and the gap, with no bullet
+test('a playlist and a channel\'s Home shelves draw the marks youtube.com answers with', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI')
+  const rows = page.locator('main .rows article')
+  await expect(rows.first()).toBeVisible({ timeout: 120_000 })
+  await expect(rows.locator('.meta [data-mark="views"]').first()).toBeVisible()
+  await expect(rows.locator('.badge [data-mark="music"]').first()).toBeAttached()
+  await expect(rows.locator('.meta').filter({ hasText: '•' })).toHaveCount(0)
+
+  await page.goto('/@RickAstleyYT')
+  const tiles = page.locator('main .shelf-rail article')
+  await expect(tiles.first()).toBeVisible({ timeout: 120_000 })
+  await expect(tiles.locator('.meta [data-mark="views"]').first()).toBeAttached()
+  await expect(tiles.locator('.badge [data-mark="music"]').first()).toBeAttached()
+  await expect(tiles.locator('.meta').filter({ hasText: '•' })).toHaveCount(0)
+})

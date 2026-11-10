@@ -43,9 +43,13 @@ const PLAYLIST_VIEW_QUERY = gql(`
           thumbnail
           thumbnailSrcset
           durationSeconds
+          isMusic
           viewCount
+          viewCountIcon
           publishedText
+          metaDelimiter
           isLive
+          isMembersOnly
           channel { id name isVerified isVerifiedArtist }
         }
       }
