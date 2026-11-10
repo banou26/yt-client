@@ -180,11 +180,15 @@ type SearchCard {
   videos: [Video!]!
 }
 
-# A titled group inside the results: "Latest from" a channel as result rows, or
-# a row of Shorts.
+# A titled group inside the results: "Latest from" a channel as result rows, a
+# row of video cards ("People also search for"), or a row of Shorts.
 type SearchShelf {
   title: String!
+  # The line under a row of cards' title: 'People also search for'.
+  subtitle: String
   videos: [Video!]!
+  # `videos` scroll sideways as cards rather than stacking as result rows.
+  horizontal: Boolean
   # How many of `videos` upstream shows before the rest fold behind a button.
   collapsedCount: Int
   shorts: [Video!]!

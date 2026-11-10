@@ -453,6 +453,27 @@ const style = css`
     font-size: 1.2rem;
   }
 
+  /* A search carousel's card on youtube.com keeps the avatar at the smaller
+     type: measured signed out at 1280px, 2026-11-10. */
+  &.carousel .details {
+    margin-top: 0.8rem;
+  }
+
+  &.carousel .text {
+    margin-left: 0.8rem;
+  }
+
+  &.carousel .title {
+    font-size: 1.4rem;
+    line-height: 2rem;
+  }
+
+  &.carousel .meta,
+  &.carousel .channel-name {
+    font-size: 1.2rem;
+    line-height: 1.8rem;
+  }
+
   .more {
     flex: none;
     width: 3.6rem;
@@ -484,7 +505,7 @@ const style = css`
 `
 
 export const VideoCard = (
-  { video, variant, context }: { video: VideoCardData, variant?: 'channel' | 'shelf', context?: WatchContext },
+  { video, variant, context }: { video: VideoCardData, variant?: 'channel' | 'shelf' | 'carousel', context?: WatchContext },
 ) => {
   const watchHref = watchHrefFor(video.id, context)
   const channelHref = video.channel ? `/channel/${video.channel.id}` : undefined
@@ -497,6 +518,7 @@ export const VideoCard = (
     .filter(Boolean)
     .join(' ')
   const canPreview = video.isUpcoming !== true && video.isLive !== true
+  const avatar = variant === undefined || variant === 'carousel'
   return (
     <article
       css={style}
@@ -531,13 +553,13 @@ export const VideoCard = (
           : undefined}
       </Link>
       <div className='details'>
-        {byline === 'names' && video.collaborators?.length && variant === undefined
+        {byline === 'names' && video.collaborators?.length && avatar
           ? (
             <CollaboratorsButton channels={video.collaborators} className='avatars' label='Collaboration channels'>
               <AvatarStack channels={video.collaborators} />
             </CollaboratorsButton>
           )
-          : video.channel && channelHref && variant === undefined
+          : video.channel && channelHref && avatar
           ? (
             <Link
               href={channelHref}

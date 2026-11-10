@@ -72,9 +72,13 @@ const SCROLL_BY = 0.8
 /**
  * A horizontal row that scrolls by its arrows. `label` names the items in the
  * arrows' labels ("More shorts"), and `count` is how many there are, so the
- * arrows are measured again when the row grows.
+ * arrows are measured again when the row grows. With `wholeCards` an arrow
+ * moves the row by whole items, as many as its width holds rounded, at least
+ * one: youtube.com's search carousels, measured from 512 to 735px on 2026-11-10.
  */
-export const Rail = ({ label, count, children }: { label: string, count: number, children: ComponentChildren }) => {
+export const Rail = (
+  { label, count, wholeCards = false, children }: { label: string, count: number, wholeCards?: boolean, children: ComponentChildren },
+) => {
   const trackRef = useRef<HTMLDivElement>(null)
   const [atStart, setAtStart] = useState(true)
   const [atEnd, setAtEnd] = useState(false)
@@ -100,7 +104,10 @@ export const Rail = ({ label, count, children }: { label: string, count: number,
   const scrollBy = (direction: 1 | -1) => {
     const track = trackRef.current
     if (!track) return
-    track.scrollBy({ left: direction * track.clientWidth * SCROLL_BY, behavior: 'smooth' })
+    const [first, second] = [...track.children] as HTMLElement[]
+    const pitch = wholeCards && first && second ? second.offsetLeft - first.offsetLeft : 0
+    const step = pitch > 0 ? Math.max(1, Math.round(track.clientWidth / pitch)) * pitch : track.clientWidth * SCROLL_BY
+    track.scrollBy({ left: direction * step, behavior: 'smooth' })
   }
 
   return (

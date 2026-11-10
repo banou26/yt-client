@@ -11,6 +11,19 @@ index 6e9c132..5ac1c67 100644
                  enable_truncation: data.enableTruncation
              })),
              badges: Parser.parseArray(row.badges, BadgeView)
+diff --git a/node_modules/youtubei.js/dist/src/parser/classes/GridVideo.js b/node_modules/youtubei.js/dist/src/parser/classes/GridVideo.js
+index a46eb2f..c3f03a8 100644
+--- a/node_modules/youtubei.js/dist/src/parser/classes/GridVideo.js
++++ b/node_modules/youtubei.js/dist/src/parser/classes/GridVideo.js
+@@ -33,7 +33,7 @@ export default class GridVideo extends YTNode {
+         this.rich_thumbnail = Parser.parseItem(data.richThumbnail);
+         this.published = new Text(data.publishedTimeText);
+         this.duration = data.lengthText ? new Text(data.lengthText) : length_alt?.text ? new Text(length_alt.text) : null;
+-        this.author = data.shortBylineText && new Author(data.shortBylineText, data.ownerBadges);
++        this.author = data.shortBylineText && new Author(data.shortBylineText, data.ownerBadges, data.channelThumbnailSupportedRenderers?.channelThumbnailWithLinkRenderer?.thumbnail);
+         this.views = new Text(data.viewCountText);
+         this.short_view_count = new Text(data.shortViewCountText);
+         this.endpoint = new NavigationEndpoint(data.navigationEndpoint);
 diff --git a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js b/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js
 index a6e4c20..16e5643 100644
 --- a/node_modules/youtubei.js/dist/src/parser/classes/HorizontalCardList.js

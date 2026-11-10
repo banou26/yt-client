@@ -152,10 +152,14 @@ export type SourceSearchCard = {
   videos: SourceVideo[]
 }
 
-// "Latest from" a channel as result rows, or a row of Shorts
+// "Latest from" a channel as result rows, a row of video cards ("People also search for"), or a row of Shorts
 export type SourceSearchShelf = {
   title: string
+  // the line under a row of cards' title: 'People also search for'
+  subtitle?: string
   videos: SourceVideo[]
+  // `videos` scroll sideways as cards rather than stacking as result rows
+  horizontal?: boolean
   // how many of `videos` upstream shows before the rest fold behind a button
   collapsedCount?: number
   shorts: SourceVideo[]

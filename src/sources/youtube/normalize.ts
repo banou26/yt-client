@@ -58,7 +58,7 @@ type FeedVideo = {
   snippets?: { text?: Text }[]
   thumbnails?: Thumbnail[]
   best_thumbnail?: Thumbnail
-  duration?: { seconds?: number }
+  duration?: { seconds?: number, text?: string }
   length_text?: Text
   view_count?: Text
   short_view_count?: Text
@@ -312,7 +312,8 @@ const durationSeconds = (value: string | undefined) => {
 
 const duration = (video: FeedVideo) => {
   if (Number.isFinite(video.duration?.seconds)) return video.duration?.seconds
-  return durationSeconds(text(video.length_text))
+  // a GridVideo's duration is the length's Text rather than a parsed one
+  return durationSeconds(text(video.length_text) ?? video.duration?.text)
 }
 
 /** A count as upstream abbreviates it ('6.7K', '1,234 views'), as a whole number; undefined when the text does not start with one. */
@@ -1147,11 +1148,13 @@ export const normalizeSearchCard = (input: unknown, mutations?: EntityMutation[]
   }
 }
 
-// Only a Shelf of rows ("Latest from") and a GridShelfView of Shorts: a horizontal Shelf holds posts or related searches
+// A Shelf of rows ("Latest from"), a horizontal Shelf of cards ("People also search for") and a GridShelfView of Shorts.
+// A horizontal Shelf of posts holds no video and is left out.
 export const normalizeSearchShelf = (input: unknown): SourceSearchShelf | undefined => {
   const node = input as {
     type?: string
     title?: Text
+    subtitle?: Text
     content?: { type?: string, items?: unknown[], collapsed_item_count?: number }
     header?: { headline?: Text }
     contents?: unknown[]
@@ -1161,12 +1164,14 @@ export const normalizeSearchShelf = (input: unknown): SourceSearchShelf | undefi
     const shorts = (node.contents ?? []).flatMap((item) => normalizeShortsLockup(item) ?? [])
     return title && shorts.length > 0 ? { title, videos: [], shorts } : undefined
   }
-  if (node.type !== 'Shelf' || node.content?.type !== 'VerticalList') return undefined
+  const horizontal = node.content?.type === 'HorizontalList'
+  if (node.type !== 'Shelf' || !node.content || (!horizontal && node.content.type !== 'VerticalList')) return undefined
   const title = presentText(node.title)
   const videos = (node.content.items ?? []).flatMap((item) => normalizeFeedVideo(item) ?? normalizeLockupVideo(item) ?? [])
-  return title && videos.length > 0
-    ? { title, videos, collapsedCount: node.content.collapsed_item_count, shorts: [] }
-    : undefined
+  if (!title || videos.length === 0) return undefined
+  return horizontal
+    ? { title, subtitle: presentText(node.subtitle), videos, horizontal, shorts: [] }
+    : { title, videos, collapsedCount: node.content.collapsed_item_count, shorts: [] }
 }
 
 // the playlist id is nowhere in `info` on any renderer, so the caller carries the id it browsed with

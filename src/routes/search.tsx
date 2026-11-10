@@ -13,6 +13,7 @@ import { AvatarStack, BylineNames, CollaboratorsButton } from '../components/byl
 import { ChapterStrip } from '../components/chapters'
 import { formatDuration, formatMeta, rowByline } from '../components/format'
 import { playlistHrefFor } from '../components/playlist'
+import { Rail } from '../components/rail'
 import { MusicNote } from '../components/row-marks'
 import { SearchCard } from '../components/search-card'
 import { activeChip, chipSearch, SEARCH_CHIPS } from '../components/search-chips'
@@ -23,7 +24,7 @@ import { Thumbnail } from '../components/thumbnail'
 import Dialog from '../components/ui/dialog'
 import { VerifiedBadge } from '../components/verified-badge'
 import { FeedSentinel, useInfiniteFeed } from '../components/use-infinite-feed'
-import { VideoCardMenu, watchHrefFor } from '../components/video-card'
+import { VideoCard, VideoCardMenu, watchHrefFor } from '../components/video-card'
 import { gql } from '../generated'
 import { HoverPreview } from '../player/hover-preview'
 import { usePrefetchOnIntent } from '../player/prefetch'
@@ -78,6 +79,8 @@ const SEARCH_RESULTS_QUERY = gql(`
         }
         ... on SearchShelf {
           title
+          subtitle
+          horizontal
           collapsedCount
           videos { ...SearchVideo }
           shorts { id title thumbnail viewCount }
@@ -359,6 +362,41 @@ const style = css`
     font-weight: 700;
     line-height: 2.8rem;
     color: var(--text-primary);
+  }
+
+  /* youtube.com's carousel of video cards inside the results, measured signed
+     out at 1280 and 412px on 2026-11-10: 44px from the row above to its title,
+     cards 360px wide on a 364px step, 40px from them to the row below. */
+  .carousel-shelf {
+    padding: 2.8rem 0 2.4rem;
+  }
+
+  .carousel-shelf .shelf-heading {
+    margin: 0;
+  }
+
+  .shelf-subtitle {
+    margin: 0.4rem 0 0;
+    font-size: 1.4rem;
+    line-height: 2rem;
+    color: var(--text-secondary);
+  }
+
+  .carousel-rail {
+    --rail-gap: 0.4rem;
+    --rail-arrow-top: 8.1rem;
+    margin-top: 2.4rem;
+  }
+
+  .carousel-card {
+    width: 36rem;
+  }
+
+  @media (max-width: 599px) {
+    .carousel-shelf .shelf-heading {
+      font-size: 1.8rem;
+      line-height: 2.6rem;
+    }
   }
 
   .shelf-more {
@@ -676,6 +714,23 @@ const VideoRow = ({ row }: { row: SearchVideoFragment }) => {
 const ResultShelf = ({ shelf }: { shelf: ShelfResult }) => {
   const [expanded, setExpanded] = useState(false)
   if (shelf.shorts.length > 0) return <ShortsShelf shorts={shelf.shorts} title={shelf.title} />
+  if (shelf.horizontal) {
+    return (
+      <section className='carousel-shelf' aria-label={shelf.title}>
+        <h2 className='shelf-heading'>{shelf.title}</h2>
+        {shelf.subtitle ? <p className='shelf-subtitle'>{shelf.subtitle}</p> : undefined}
+        <div className='carousel-rail'>
+          <Rail label={shelf.title} count={shelf.videos.length} wholeCards>
+            {shelf.videos.map(video => (
+              <div className='carousel-card' key={video.id}>
+                <VideoCard video={video} variant='carousel' />
+              </div>
+            ))}
+          </Rail>
+        </div>
+      </section>
+    )
+  }
   const shown = expanded || !shelf.collapsedCount ? shelf.videos : shelf.videos.slice(0, shelf.collapsedCount)
   const hidden = shelf.videos.length - shown.length
   return (
