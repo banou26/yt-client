@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 
 import type { CaptionTrack, Storyboard } from '../frame/protocol'
 import type { PlayerChapter } from './chapters'
+import type { SleepTimer } from './sleep-timer'
 import type { SkipSegment } from './sponsorblock'
 import type { PlayerState } from './use-player-state'
 
@@ -15,6 +16,7 @@ import { MenuItem, Popup, useDismiss } from '../components/ui/popup'
 import { updateSettings } from '../settings'
 import { barFill, barOffset, barParts, barWidth, chapterIndexAt, timeAtOffset } from './chapters'
 import { RATES } from './rates'
+import { setSleepTimer, SLEEP_MINUTES, sleepDetail, sleepDuration } from './sleep-timer'
 
 export const clock = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
@@ -472,19 +474,23 @@ type ControlsProps = {
   segments?: readonly SkipSegment[]
   /** Told whether a settings menu is open, which keeps the controls shown while the pointer is still. */
   onMenu?: (open: boolean) => void
+  sleepTimer?: SleepTimer
+  // counts the requests to open the Sleep timer panel, so each one opens it again
+  sleepMenu?: number
 }
 
 export const PlayerControls = (
   {
     video, state, heights, storyboards, quality, onQuality, captionTracks, caption, onCaption, onToggleCaption,
     theater, onTheater, onNext, autoplay, onAutoplay, visible, isLive = false, chapters = [], onChapters, segments = [], onMenu,
+    sleepTimer, sleepMenu = 0,
   }: ControlsProps,
 ) => {
   const [scrubbing, setScrubbing] = useState(false)
   const [preview, setPreview] = useState<number | undefined>(undefined)
   const [hover, setHover] = useState<{ time: number, ratio: number } | undefined>(undefined)
   const [pip, setPip] = useState(false)
-  const [menu, setMenu] = useState<'root' | 'quality' | 'speed' | 'captions' | undefined>(undefined)
+  const [menu, setMenu] = useState<'root' | 'quality' | 'speed' | 'captions' | 'sleep' | undefined>(undefined)
   const railRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
@@ -497,6 +503,13 @@ export const PlayerControls = (
     onMenu?.(menuOpen)
     return () => onMenu?.(false)
   }, [menuOpen])
+
+  const sleepMenuSeen = useRef(sleepMenu)
+  useEffect(() => {
+    if (sleepMenu === sleepMenuSeen.current) return
+    sleepMenuSeen.current = sleepMenu
+    setMenu('sleep')
+  }, [sleepMenu])
 
   useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement !== null)
@@ -606,6 +619,13 @@ export const PlayerControls = (
 
   const activeCaption = captionTracks.find((track) => track.id === caption)
   const activeLabel = video.videoHeight > 0 ? `${video.videoHeight}p` : undefined
+  const videoLeft = Math.max(0, duration - state.currentTime)
+
+  // youtube.com goes back to the settings rather than closing them
+  const pickSleep = (choice: number | 'end' | undefined) => {
+    setSleepTimer(choice)
+    setMenu('root')
+  }
 
   return (
     <div css={style} className={visible || scrubbing || menuOpen ? 'visible' : undefined}>
@@ -755,15 +775,18 @@ export const PlayerControls = (
             {menu === 'root'
               ? (
                 <Popup label='Player settings' class='settings-menu'>
-                  <MenuItem detail={state.playbackRate === 1 ? 'Normal' : `${state.playbackRate}x`} onSelect={() => setMenu('speed')}>
-                    Playback speed
-                  </MenuItem>
                   <MenuItem
                     detail={activeCaption ? activeCaption.label : 'Off'}
                     disabled={captionTracks.length === 0}
                     onSelect={() => setMenu('captions')}
                   >
                     Subtitles
+                  </MenuItem>
+                  <MenuItem detail={sleepDetail(sleepTimer, videoLeft)} onSelect={() => setMenu('sleep')}>
+                    Sleep timer
+                  </MenuItem>
+                  <MenuItem detail={state.playbackRate === 1 ? 'Normal' : `${state.playbackRate}x`} onSelect={() => setMenu('speed')}>
+                    Playback speed
                   </MenuItem>
                   <MenuItem
                     detail={quality === 'auto' ? `Auto${activeLabel ? ` (${activeLabel})` : ''}` : `${quality}p`}
@@ -838,7 +861,31 @@ export const PlayerControls = (
                         ))}
                       </Popup>
                     )
-                    : undefined}
+                    : menu === 'sleep'
+                      ? (
+                        <Popup label='Sleep timer' class='settings-menu'>
+                          <MenuItem icon={sleepTimer === undefined ? Check : undefined} onSelect={() => pickSleep(undefined)}>
+                            Off
+                          </MenuItem>
+                          {SLEEP_MINUTES.map(minutes => (
+                            <MenuItem
+                              key={minutes}
+                              icon={typeof sleepTimer === 'object' && sleepTimer.minutes === minutes ? Check : undefined}
+                              onSelect={() => pickSleep(minutes)}
+                            >
+                              {`${minutes} minutes`}
+                            </MenuItem>
+                          ))}
+                          {!isLive && duration > 0
+                            ? (
+                              <MenuItem icon={sleepTimer === 'end' ? Check : undefined} detail={sleepDuration(videoLeft)} onSelect={() => pickSleep('end')}>
+                                End of video
+                              </MenuItem>
+                            )
+                            : undefined}
+                        </Popup>
+                      )
+                      : undefined}
           </div>
           {pipSupported
             ? (

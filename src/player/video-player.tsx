@@ -23,6 +23,7 @@ import { createRestartBudget, isStreamRefusal, resetsEngine } from './restart'
 import { registerSeek, clearSeek } from './seek'
 import { setPanel, setPlayingChapter } from './session'
 import { CAPTION_SIZES, getSettings, updateSettings } from '../settings'
+import { Dialog } from '../components/ui/dialog'
 import { showToast } from '../components/ui/toast'
 import { Bezel } from './bezel'
 import { chapterIndexAt, chapterStep } from './chapters'
@@ -33,6 +34,7 @@ import { RefusalScreen } from './refusal-screen'
 import { stepRate } from './rates'
 import { PlayerMenu } from './player-menu'
 import { ShortcutsDialog } from './shortcuts'
+import { endSleepTimer, getSleepTimer, useSleepTimer } from './sleep-timer'
 import { CLOCK_SLACK, skipTarget } from './sponsorblock'
 import { endAction } from './up-next'
 import { usePlayerState } from './use-player-state'
@@ -192,6 +194,39 @@ const captionSizeStyle = (size: number) => css`
   }
 `
 
+const timesUpStyle = css`
+  display: flex;
+  gap: 0.8rem;
+
+  button {
+    flex: 1;
+    height: 3.6rem;
+    border: none;
+    border-radius: 1.8rem;
+    font-size: 1.4rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .add-time {
+    background: var(--bg-chip);
+    color: var(--text-primary);
+  }
+
+  .add-time:hover {
+    background: var(--bg-chip-hover);
+  }
+
+  .done {
+    background: var(--bg-inverse);
+    color: var(--text-inverse);
+  }
+
+  .done:hover {
+    background: var(--bg-inverse-hover);
+  }
+`
+
 // Chrome sizes cues to 5% of the smaller side of the picture drawn, not of the element
 const captionBase = (video: HTMLVideoElement) => {
   const fit = video.videoWidth > 0 && video.videoHeight > 0
@@ -243,6 +278,21 @@ const VideoPlayer = (
   const [captionSize, setCaptionSize] = useState(() => getSettings().captionSize)
   const [sample, setSample] = useState<number | undefined>(undefined)
   const sampleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [timesUp, setTimesUp] = useState(false)
+  // set when the timer ended on a finished video, so closing Time's up does not start the next one
+  const [slept, setSlept] = useState(false)
+  const [sleepMenu, setSleepMenu] = useState(0)
+  const closeTimesUp = useCallback(() => setTimesUp(false), [])
+  const addTime = useCallback(() => {
+    setTimesUp(false)
+    setSleepMenu(value => value + 1)
+  }, [])
+  const sleepTimer = useSleepTimer(() => {
+    const video = videoRef.current
+    if (video?.ended) setSlept(true)
+    video?.pause()
+    setTimesUp(true)
+  })
   // from the player's corner, so the menu follows the player as the page scrolls
   const [menu, setMenu] = useState<Point | undefined>(undefined)
   const closeMenu = useCallback(() => setMenu(undefined), [])
@@ -258,8 +308,9 @@ const VideoPlayer = (
   useEffect(() => setPlayingChapter(chapterIndex), [chapterIndex])
   const frame = useFrame()
   const grid = frame?.grid ?? false
+  const held = slept || sleepTimer === 'end'
   const ending = state.ended && upNext
-    ? endAction({ queued: upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled })
+    ? endAction({ queued: !held && upNext.queued(), autoplay: upNext.autoplay, pick: upNext.pick, cancelled: cancelled || held })
     : undefined
   const onNext = upNext?.onNext
   const onPrevious = upNext?.onPrevious
@@ -267,6 +318,10 @@ const VideoPlayer = (
   useEffect(() => {
     if (ending === 'advance') onNext?.()
   }, [ending])
+
+  useEffect(() => {
+    if (state.ended && getSleepTimer() === 'end') endSleepTimer()
+  }, [state.ended])
 
   useEffect(() => () => clearTimeout(sampleTimer.current), [])
 
@@ -506,15 +561,15 @@ const VideoPlayer = (
   }
 
   // read at key time, so the listener is bound once rather than on every rendered frame
-  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, chapterList })
-  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, chapterList }
+  const latest = useRef({ onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList })
+  latest.current = { onTheater, onNext, onPrevious, onMiniplayer, toggleCaption, resizeCaptions, player, shortcuts, timesUp, chapterList }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const video = videoRef.current
       if (!video || event.defaultPrevented || isTypingTarget(event.target)) return
       const actions = latest.current
-      if (actions.shortcuts) return
+      if (actions.shortcuts || actions.timesUp) return
       const key = event.key
       const handled = () => {
         event.preventDefault()
@@ -726,6 +781,8 @@ const VideoPlayer = (
             chapters={chapters}
             onChapters={() => setPanel('chapters')}
             segments={segments}
+            sleepTimer={sleepTimer}
+            sleepMenu={sleepMenu}
             visible={(active || state.paused) && !grid}
             onMenu={setSettingsOpen}
           />
@@ -767,6 +824,17 @@ const VideoPlayer = (
         )
         : undefined}
       {shortcuts ? createPortal(<ShortcutsDialog onClose={closeShortcuts} />, document.body) : undefined}
+      {timesUp
+        ? createPortal(
+          <Dialog title={'Time\'s up'} onClose={closeTimesUp}>
+            <div css={timesUpStyle}>
+              <button type='button' className='add-time' onClick={addTime}>Add time</button>
+              <button type='button' className='done' onClick={closeTimesUp}>Close</button>
+            </div>
+          </Dialog>,
+          document.fullscreenElement ?? document.body,
+        )
+        : undefined}
     </div>
   )
 }
